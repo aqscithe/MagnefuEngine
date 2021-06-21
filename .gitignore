@@ -1,0 +1,9 @@
+*.user
+*.vs
+Magnefu/Magnefu/x64
+Magnefu/Magnefu/Resources
+Magnefu/Magnefu/Logs
+Magnefu/Magnefu/imgui.ini
+
+# merge originals
+*.orig
