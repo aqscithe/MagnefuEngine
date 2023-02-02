@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Core.h"
+#include "Vectors.h"
+#include "Matrices.h"
 
 struct GLFWwindow;
 

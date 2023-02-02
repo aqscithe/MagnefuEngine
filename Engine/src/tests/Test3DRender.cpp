@@ -78,7 +78,7 @@ namespace test
         m_translation = { 0.f, 0.f, 0.f };
         m_scaling = { 1.f, 1.f, 1.f };
 
-        m_Quat = std::make_unique<Quaternion>(m_angleRot, m_rotationAxis);
+        m_Quat = std::make_unique<Maths::Quaternion>(m_angleRot, m_rotationAxis);
 
         m_Camera = std::make_unique<Camera>();
 
