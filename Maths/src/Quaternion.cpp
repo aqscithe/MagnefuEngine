@@ -40,6 +40,8 @@ namespace Maths
 		return { -q.x, -q.y, -q.z, q.w };
 	}
 
+	
+
 	//vec3 Quaternion::RotateVertexPos()
 	//{
 	//	vec4 q = quat_from_axis_angle(axis, angle);

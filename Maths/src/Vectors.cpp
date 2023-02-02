@@ -33,10 +33,25 @@ namespace Maths
         };
     }
 
+    // not sure if this angle is in rads already
+    vec3 RotateVector(const vec3& v, const vec3& rotAxis, float angle)
+    {
+        vec3 unitRotAxis = normalize(rotAxis);
+        
+        // check for special case where v and rotAxis are orthogonal
+        if (dotProduct(v, rotAxis) == 0.f)
+            return cos(angle) * v + sin(angle) * crossProduct(unitRotAxis, v);
+
+        // Rodriquez Rotation Formula
+        return (1.f - cos(angle)) * dotProduct(v, unitRotAxis) * unitRotAxis + cos(angle) * crossProduct(unitRotAxis, v);
+    }
+
+
+    // TODO: do a linear interpolation to ensure theta doesn't become 0
     vec3 slerp(const vec3& v_i, const vec3& v_f, float k)
     {
         // theta is in radians
-        float theta = acos(dotProduct(Maths::normalize(v_i), Maths::normalize(v_f)));
+        float theta = acos(dotProduct(normalize(v_i), normalize(v_f)));
         return ((sin((1 - k) * theta) / sin(theta)) * v_i) + ((sin(k * theta) / sin(theta)) * v_f);
     }
 

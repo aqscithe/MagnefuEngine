@@ -194,5 +194,7 @@ namespace Maths
 	vec3 slerp(const vec3& v_i, const vec3& v_f, float k);
 	vec4 slerp(const vec4& v_i, const vec4 & v_f, float k);
 
+	vec3 RotateVector(const vec3& v, const vec3& rotAxis, float angle);
+
 #pragma endregion
 }
