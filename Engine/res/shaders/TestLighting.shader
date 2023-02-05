@@ -25,6 +25,16 @@ void main()
 #version 450 core
 
 
+struct Light
+{
+	float K_a;
+	vec3  Position;
+	vec4  Ambient;
+};
+
+uniform Light u_light;
+uniform vec3 u_ObjectColor;
+
 in  vec4 VertexColor;
 in  vec2 TexCoords;
 in float TexID;
@@ -33,5 +43,7 @@ out vec4 FragColor;
 
 void main()
 {
-	FragColor = VertexColor;
+	float ambientK = 0.4;
+	vec4 ambientColor = { 1.0, 0.1, 0.2, 1.0 };
+	FragColor = u_light.K_a * u_light.Ambient * vec4(u_ObjectColor, 1.0);
 }

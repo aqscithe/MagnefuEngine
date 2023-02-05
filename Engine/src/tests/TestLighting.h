@@ -19,6 +19,17 @@
 
 namespace test
 {
+	struct Light
+	{
+		float K_a;
+		Maths::vec3 Position;
+		Maths::vec4 Ambient;
+	};
+
+	struct Material
+	{
+
+	};
 
 	class TestLighting : public Test
 	{
@@ -31,13 +42,17 @@ namespace test
 			void OnImGUIRender()           override;
 
 		private:
+			void SetShaderUniforms();
+
+			Light m_light;
+
 			Renderer m_Renderer;
 			std::unique_ptr<VertexBuffer> m_VBO;
 			std::unique_ptr<VertexArray> m_VAO;
 			std::unique_ptr<IndexBuffer> m_IBO;
 			std::unique_ptr<Shader> m_Shader;
-			std::unique_ptr<Texture> m_Texture0;
-			std::unique_ptr<Texture> m_Texture1;
+
+
 
 
 			std::unique_ptr <Maths::Quaternion> m_Quat;
@@ -48,6 +63,11 @@ namespace test
 
 			std::unique_ptr<Camera> m_Camera;
 
+			Maths::vec3 m_ObjectColor;
+
+
+			// put this in a camera info struct that all
+			// these test classes can access
 			float m_aspectRatio;
 			float m_near;
 			float m_far;

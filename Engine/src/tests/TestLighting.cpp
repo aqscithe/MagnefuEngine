@@ -24,6 +24,7 @@ namespace test
 	{
         /* --Creating data and prepping buffer with data-- */
 
+        
         m_cubeCount = 1;
         ASSERT(m_cubeCount > 0);
 
@@ -46,6 +47,14 @@ namespace test
         m_Shader = std::make_unique <Shader>("res/shaders/TestLighting.shader");
         
         m_Shader->Bind();
+
+        m_ObjectColor = { 1.f, 1.f, 1.f };
+
+        // Lights
+
+        m_light.K_a = 1.f; // should be in material file
+        m_light.Position = { 0.f, 0.f, 0.f };
+        m_light.Ambient = { 1.f, 1.f, 1.f, 1.f };
         
         
         m_angleRot = 0.f;
@@ -69,7 +78,11 @@ namespace test
         m_IsOrtho = false;
 
         m_MVP = Maths::identity();
+
         
+
+        //Set Uniforms
+        SetShaderUniforms();
 
         // clear buffers
         m_VAO->Unbind();
@@ -115,9 +128,7 @@ namespace test
 	void TestLighting::OnUpdate(GLFWwindow* window, float deltaTime)
 	{
         Globals& global = Globals::Get();
-        // Updating MVP
 
-        //Maths::mat4 modelMatrix = Maths::translate(m_translation) * Maths::rotate(m_angleRot, m_rotationAxis) * Maths::scale(m_scaling);
         Maths::mat4 modelMatrix = Maths::translate(m_translation) * m_Quat->UpdateRotMatrix(m_angleRot, m_rotationAxis) * Maths::scale(m_scaling);
         m_Camera->CalculateView();
         Maths::mat4 projMatrix = m_IsOrtho ? Maths::orthographic(m_left, m_right, m_bottom, m_top, m_near, m_far)
@@ -125,13 +136,14 @@ namespace test
 
         m_MVP = projMatrix * m_Camera->GetView() * modelMatrix;
 
-        // Updating Projection Parameters
         m_bottom = -m_top;
         m_right = m_top * m_aspectRatio;
         m_left = -m_right;
 
 
         m_Camera->ProcessInput(window, deltaTime);
+
+
 
 
         // dynamic buffer updates   
@@ -165,7 +177,7 @@ namespace test
         m_Renderer.Clear();
 
         m_Shader->Bind();
-        m_Shader->SetUniformMatrix4fv("u_MVP", m_MVP);
+        SetShaderUniforms();
 
         m_Renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
 
@@ -175,7 +187,14 @@ namespace test
 	{
         Globals& global = Globals::Get();
 
-        ImGui::SliderInt("Cubes Count", &m_cubeCount, 0, 1);
+        ImGui::SliderInt("Cubes Count", &m_cubeCount, 0, 3);
+        ImGui::ColorEdit3("Cube Color", m_ObjectColor.e);
+
+        ImGui::Text("Lights");
+        ImGui::SliderFloat("Ambient Strength", &m_light.K_a, 0.f, 1.f);
+        ImGui::SliderFloat3("Light Position", m_light.Position.e, -10.f, 10.f);
+        ImGui::ColorEdit4("Ambient Color", m_light.Ambient.e);
+
 
         ImGui::Checkbox("Edit Transform", &m_bShowTransform);
         if (m_bShowTransform)
@@ -208,4 +227,13 @@ namespace test
             ImGui::SliderFloat("FOV", &global.fovY, 1.f, 100.f);
         }
 	}
+
+    void TestLighting::SetShaderUniforms()
+    {
+        m_Shader->SetUniformMatrix4fv("u_MVP", m_MVP);
+        m_Shader->SetUniform3fv("u_ObjectColor", m_ObjectColor);
+        m_Shader->SetUniform1f("u_light.K_a", m_light.K_a);
+        m_Shader->SetUniform3fv("u_light.Position", m_light.Position);
+        m_Shader->SetUniform4fv("u_light.Ambient", m_light.Ambient);
+    }
 }
