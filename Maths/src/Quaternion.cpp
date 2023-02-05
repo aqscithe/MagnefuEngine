@@ -11,8 +11,14 @@ namespace Maths
 		CreateQuatRotMatrix();
 	}
 
+
+
+
 	void Quaternion::SetQuaternion(const vec3& rotationAxis, float rotationAngle)
 	{
+		// i see a slightly different formula here:
+		// https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+
 		float halfAngleInRadians = toRadians(rotationAngle / 2.f);
 		m_Quat.x = rotationAxis.x * sin(halfAngleInRadians);
 		m_Quat.y = rotationAxis.y * sin(halfAngleInRadians);

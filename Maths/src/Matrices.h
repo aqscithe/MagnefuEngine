@@ -2,9 +2,16 @@
 
 #include "Vectors.h"
 
+
 namespace Maths
 {
 #pragma Union Declarations
+
+	union mat2x4
+	{
+		float e[8];
+		vec4 c[2];
+	};
 
 	union mat4
 	{

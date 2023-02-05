@@ -179,6 +179,7 @@
     <ClCompile Include="src\tests\Test3DRender.cpp" />
     <ClCompile Include="src\tests\TestBatchRendering.cpp" />
     <ClCompile Include="src\tests\TestClearColor.cpp" />
+    <ClCompile Include="src\tests\TestLighting.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\Timer.cpp" />
     <ClCompile Include="src\VertexArray.cpp" />
@@ -323,6 +324,7 @@
     <None Include="header\vendor\glm\gtx\vector_query.inl" />
     <None Include="header\vendor\glm\gtx\wrap.inl" />
     <None Include="res\shaders\BatchRender.shader" />
+    <None Include="res\shaders\TestLighting.shader" />
     <None Include="res\shaders\Texture2D.shader" />
     <None Include="res\shaders\Basic.shader" />
     <None Include="res\shaders\Test.shader" />
@@ -630,11 +632,13 @@
     <ClInclude Include="header\VertexBuffer.h" />
     <ClInclude Include="header\VertexBufferAttribsLayout.h" />
     <ClInclude Include="src\Application.h" />
+    <ClInclude Include="src\Header.h" />
     <ClInclude Include="src\tests\Test.h" />
     <ClInclude Include="src\tests\Test2DTexture.h" />
     <ClInclude Include="src\tests\Test3DRender.h" />
     <ClInclude Include="src\tests\TestBatchRendering.h" />
     <ClInclude Include="src\tests\TestClearColor.h" />
+    <ClInclude Include="src\tests\TestLighting.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\textures\moon.png" />

@@ -1,4 +1,4 @@
-#include "TestBatchRendering.h"
+#include "TestLighting.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
@@ -13,21 +13,23 @@
 #include "Renderer.h"
 #include "Globals.h"
 
-#include "Primitive2D.h"
+#include "Primitive3D.h"
 
 #include <array>
 
 namespace test
 {
 
-	TestBatchRendering::TestBatchRendering()
+	TestLighting::TestLighting()
 	{
         /* --Creating data and prepping buffer with data-- */
 
-        m_QuadCount = 4;
-        ASSERT(m_QuadCount > 0);
+        m_cubeCount = 1;
+        ASSERT(m_cubeCount > 0);
 
-        m_VBO = std::make_unique<VertexBuffer>(sizeof(Vertex) * 4 * 100, nullptr);
+        m_bShowTransform = false;
+
+        m_VBO = std::make_unique<VertexBuffer>(sizeof(Vertex) * 8 * 100, nullptr);
 
         VertexBufferAttribsLayout layout;
         layout.Push<float>(3);
@@ -41,17 +43,9 @@ namespace test
 
         m_IBO = std::make_unique<IndexBuffer>(sizeof(unsigned int) * 6 * 100, nullptr);
 
-        m_Shader = std::make_unique <Shader>("res/shaders/BatchRender.shader");
-        m_Texture0 = std::make_unique<Texture>("res/textures/wall.jpg");
-        m_Texture1 = std::make_unique<Texture>("res/textures/pluto.png");
+        m_Shader = std::make_unique <Shader>("res/shaders/TestLighting.shader");
         
         m_Shader->Bind();
-        
-        m_Texture0->Bind();
-        m_Texture1->Bind(1);
-
-        int textureLocations[2] = { 0, 1 };
-        m_Shader->SetUniform1iv("u_Texture", textureLocations);
         
         
         m_angleRot = 0.f;
@@ -82,30 +76,43 @@ namespace test
         m_Shader->Unbind();
         m_VBO->Unbind();
         m_IBO->Unbind();
-        m_Texture0->Unbind();
-        m_Texture1->Unbind();
         
-
+        GLCall(glEnable(GL_DEPTH_TEST));
 	}
 
-	TestBatchRendering::~TestBatchRendering()
+	TestLighting::~TestLighting()
 	{
+        GLCall(glDisable(GL_DEPTH_TEST));
 	}
 
-    static std::vector<unsigned int> SetIndices(int quadCount)
+    static std::vector<unsigned int> SetIndices(int cubeCount)
     {
-        int IndexPattern[6] = { 0, 1, 2, 2, 3, 0 };
+        unsigned int IndexPattern[36] = {
+            0, 1, 2,
+            2, 3, 0,
+            2, 1, 5,
+            5, 6, 2,
+            2, 6, 7,
+            7, 3, 2,
+            3, 0, 4,
+            4, 7, 3,
+            0, 4, 5,
+            5, 1, 0,
+            7, 4, 5,
+            5, 6, 7
+        };
 
         std::vector<unsigned int> indices;
-        for (int quadNum = 0; quadNum < quadCount; quadNum++)
+        int indicesPerCube = 36;
+        for (int cubeNum = 0; cubeNum < cubeCount; cubeNum++)
         {
-            for (int i = 0; i < 6; i++)
-                indices.push_back(IndexPattern[i] + 4 * quadNum);
+            for (int i = 0; i < 36; i++)
+                indices.push_back(IndexPattern[i] + 8 * cubeNum);
         }
         return indices;
     }
 
-	void TestBatchRendering::OnUpdate(GLFWwindow* window, float deltaTime)
+	void TestLighting::OnUpdate(GLFWwindow* window, float deltaTime)
 	{
         Globals& global = Globals::Get();
         // Updating MVP
@@ -127,24 +134,23 @@ namespace test
         m_Camera->ProcessInput(window, deltaTime);
 
 
-        // dynamic buffer updates
+        // dynamic buffer updates   
 
         std::vector<unsigned int> indices;
-        indices.reserve(m_QuadCount * 6); 
+        indices.reserve(m_cubeCount * 8); 
         
-        indices = SetIndices(m_QuadCount);
+        indices = SetIndices(m_cubeCount);
 
-        std::vector<Primitive::Quad> Quads;
-        Quads.reserve(m_QuadCount);
+        std::vector<Primitive::Cube> Cubes;
+        Cubes.reserve(m_cubeCount);
 
-        for (int i = 0; i < m_QuadCount; i++)
+        for (int i = 0; i < m_cubeCount; i++)
         {
-            Quads.emplace_back(Primitive::CreateQuad(-0.5f + i * 1.5f, -0.5f + i * 1.5f, i % 2));
+            Cubes.emplace_back(Primitive::CreateCube(-0.5f + i * 1.5f, -0.5f, 0.5f));
         }
-
         
         m_VBO->Bind();
-        GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Primitive::Quad) * Quads.size(), Quads.data()));
+        GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Primitive::Cube) * Cubes.size(), Cubes.data()));
 
         m_IBO->Bind();
         GLCall(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(unsigned int) * indices.size(), indices.data()));
@@ -153,40 +159,43 @@ namespace test
 
 	}
 
-	void TestBatchRendering::OnRender()
+	void TestLighting::OnRender()
 	{
 
         m_Renderer.Clear();
 
         m_Shader->Bind();
         m_Shader->SetUniformMatrix4fv("u_MVP", m_MVP);
-        m_Texture0->Bind();
-        m_Texture1->Bind(1);
 
         m_Renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
 
 	}
 	
-	void TestBatchRendering::OnImGUIRender()
+	void TestLighting::OnImGUIRender()
 	{
         Globals& global = Globals::Get();
 
-        ImGui::SliderInt("Quad Count", &m_QuadCount, 0, 20);
+        ImGui::SliderInt("Cubes Count", &m_cubeCount, 0, 1);
 
-        ImGui::Text("Transform");
-        ImGui::SliderFloat3("Model Translation", m_translation.e, -10.f, 10.f);
-        ImGui::SliderFloat3("Model Rotation", m_rotationAxis.e, 0.f, 1.f);
-        ImGui::SliderFloat("Model Rotation Angle", &m_angleRot, -360.f, 360.f);
-        ImGui::SliderFloat3("Model Scale", m_scaling.e, 0.f, 10.f);
+        ImGui::Checkbox("Edit Transform", &m_bShowTransform);
+        if (m_bShowTransform)
+        {
+            ImGui::Text("Transform");
+            ImGui::SliderFloat3("Model Translation", m_translation.e, -10.f, 10.f);
+            ImGui::SliderFloat3("Model Rotation", m_rotationAxis.e, 0.f, 1.f);
+            ImGui::SliderFloat("Model Rotation Angle", &m_angleRot, -360.f, 360.f);
+            ImGui::SliderFloat3("Model Scale", m_scaling.e, 0.f, 10.f);
 
-        ImGui::Text("Camera");
-        ImGui::DragFloat("CameraSpeed", &m_Camera->m_Speed, 0.05f, 4.f);
-        ImGui::SliderFloat3("Camera Translation", m_Camera->m_Position.e, -10.f, 10.f);
+            ImGui::Text("Camera");
+            ImGui::DragFloat("CameraSpeed", &m_Camera->m_Speed, 0.05f, 4.f);
+            ImGui::SliderFloat3("Camera Translation", m_Camera->m_Position.e, -10.f, 10.f);
 
-        ImGui::Text("Projection");
+            ImGui::Text("Projection");
+            ImGui::SliderFloat("Near", &m_near, 0.01f, 10.f);
+            ImGui::SliderFloat("Far", &m_far, 10.f, 100.f);
+        }
+        
         ImGui::Checkbox("Toggle Projection Mode", &m_IsOrtho);
-        ImGui::SliderFloat("Near", &m_near, 0.01f, 10.f);
-        ImGui::SliderFloat("Far", &m_far, 10.f, 100.f);
         if (m_IsOrtho)
         {
             ImGui::SliderFloat("Top", &m_top, 3.f, 15.f);

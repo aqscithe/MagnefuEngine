@@ -14,7 +14,6 @@ out float TexID;
 
 void main()
 {
-	// Must do multiplication in reverse order as I am using row major ordering
 	gl_Position = u_MVP * vec4(v_Position, 1.0);
 	VertexColor = v_Color;
 	TexCoords   = v_TexCoords;
@@ -26,8 +25,6 @@ void main()
 #version 450 core
 
 
-uniform sampler2D u_Texture[2];
-
 in  vec4 VertexColor;
 in  vec2 TexCoords;
 in float TexID;
@@ -36,5 +33,5 @@ out vec4 FragColor;
 
 void main()
 {
-	FragColor = texture(u_Texture[int(ceil(TexID))], TexCoords);
+	FragColor = VertexColor;
 }

@@ -47,6 +47,7 @@ namespace Maths
 	}
 
 	inline float lerp(float initial, float final, float factor) { return (1.f - factor) * initial + (factor * final); };
+	inline float lerp(int initial, int final, float factor) { return (1.f - factor) * initial + (factor * final); };
 
 #pragma endregion
 }
