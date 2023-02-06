@@ -22,8 +22,10 @@ namespace test
 	struct Light
 	{
 		float K_a;
+		float K_d;
 		Maths::vec3 Position;
 		Maths::vec4 Ambient;
+		Maths::vec4 Diffuse;
 	};
 
 	struct Material

@@ -53,9 +53,10 @@ namespace test
         // Lights
 
         m_light.K_a = 1.f; // should be in material file
-        m_light.Position = { 0.f, 0.f, 0.f };
+        m_light.K_d = 1.f;
+        m_light.Position = { -0.27f, 0.67f, 1.56f };
         m_light.Ambient = { 1.f, 1.f, 1.f, 1.f };
-        
+        m_light.Diffuse = { 1.f, 1.f, 1.f, 1.f };
         
         m_angleRot = 0.f;
         m_rotationAxis = { 0.f, 0.f, 0.f };
@@ -107,6 +108,9 @@ namespace test
             : Maths::perspective(Maths::toRadians(global.fovY), m_aspectRatio, m_near, m_far);
 
         m_MVP = projMatrix * m_Camera->GetView() * modelMatrix;
+        m_Shader->Bind();
+        m_Shader->SetUniformMatrix4fv("u_ModelMatrix", modelMatrix);
+        m_Shader->Unbind();
 
         m_bottom = -m_top;
         m_right = m_top * m_aspectRatio;
@@ -136,9 +140,11 @@ namespace test
         ImGui::ColorEdit3("Cube Color", m_ObjectColor.e);
 
         ImGui::Text("Lights");
-        ImGui::SliderFloat("Ambient Strength", &m_light.K_a, 0.f, 1.f);
         ImGui::SliderFloat3("Light Position", m_light.Position.e, -10.f, 10.f);
+        ImGui::SliderFloat("Ambient Strength", &m_light.K_a, 0.f, 1.f);
         ImGui::ColorEdit4("Ambient Color", m_light.Ambient.e);
+        ImGui::SliderFloat("Diffuse Strength", &m_light.K_d, 0.f, 1.f);
+        ImGui::ColorEdit4("Diffuse Color", m_light.Diffuse.e);
 
 
         ImGui::Checkbox("Edit Transform", &m_bShowTransform);
@@ -178,7 +184,10 @@ namespace test
         m_Shader->SetUniformMatrix4fv("u_MVP", m_MVP);
         m_Shader->SetUniform3fv("u_ObjectColor", m_ObjectColor);
         m_Shader->SetUniform1f("u_light.K_a", m_light.K_a);
+        m_Shader->SetUniform1f("u_light.K_d", m_light.K_d);
         m_Shader->SetUniform3fv("u_light.Position", m_light.Position);
         m_Shader->SetUniform4fv("u_light.Ambient", m_light.Ambient);
+        m_Shader->SetUniform4fv("u_light.Diffuse", m_light.Diffuse);
+
     }
 }
