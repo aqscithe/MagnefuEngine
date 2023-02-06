@@ -30,19 +30,19 @@ namespace test
 
         m_bShowTransform = false;
 
-        m_VBO = std::make_unique<VertexBuffer>(sizeof(Vertex) * 8 * 100, nullptr);
+        auto cube = Primitive::CreateCube();
+
+        m_VBO = std::make_unique<VertexBuffer>(sizeof(Primitive::Cube) * 1, cube.Vertices.data());
 
         VertexBufferAttribsLayout layout;
         layout.Push<float>(3);
+        layout.Push<float>(3);
         layout.Push<float>(4);
-        layout.Push<float>(2);
-        layout.Push<unsigned int>(1);
 
         m_VAO = std::make_unique<VertexArray>();
         m_VAO->AddBuffer(*m_VBO, layout);
 
 
-        m_IBO = std::make_unique<IndexBuffer>(sizeof(unsigned int) * 6 * 100, nullptr);
 
         m_Shader = std::make_unique <Shader>("res/shaders/TestLighting.shader");
         
@@ -88,7 +88,6 @@ namespace test
         m_VAO->Unbind();
         m_Shader->Unbind();
         m_VBO->Unbind();
-        m_IBO->Unbind();
         
         GLCall(glEnable(GL_DEPTH_TEST));
 	}
@@ -97,33 +96,6 @@ namespace test
 	{
         GLCall(glDisable(GL_DEPTH_TEST));
 	}
-
-    static std::vector<unsigned int> SetIndices(int cubeCount)
-    {
-        unsigned int IndexPattern[36] = {
-            0, 1, 2,
-            2, 3, 0,
-            2, 1, 5,
-            5, 6, 2,
-            2, 6, 7,
-            7, 3, 2,
-            3, 0, 4,
-            4, 7, 3,
-            0, 4, 5,
-            5, 1, 0,
-            7, 4, 5,
-            5, 6, 7
-        };
-
-        std::vector<unsigned int> indices;
-        int indicesPerCube = 36;
-        for (int cubeNum = 0; cubeNum < cubeCount; cubeNum++)
-        {
-            for (int i = 0; i < 36; i++)
-                indices.push_back(IndexPattern[i] + 8 * cubeNum);
-        }
-        return indices;
-    }
 
 	void TestLighting::OnUpdate(GLFWwindow* window, float deltaTime)
 	{
@@ -142,33 +114,6 @@ namespace test
 
 
         m_Camera->ProcessInput(window, deltaTime);
-
-
-
-
-        // dynamic buffer updates   
-
-        std::vector<unsigned int> indices;
-        indices.reserve(m_cubeCount * 8); 
-        
-        indices = SetIndices(m_cubeCount);
-
-        std::vector<Primitive::Cube> Cubes;
-        Cubes.reserve(m_cubeCount);
-
-        for (int i = 0; i < m_cubeCount; i++)
-        {
-            Cubes.emplace_back(Primitive::CreateCube(-0.5f + i * 1.5f, -0.5f, 0.5f));
-        }
-        
-        m_VBO->Bind();
-        GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Primitive::Cube) * Cubes.size(), Cubes.data()));
-
-        m_IBO->Bind();
-        GLCall(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(unsigned int) * indices.size(), indices.data()));
-        m_IBO->Unbind();
-        m_VBO->Unbind();
-
 	}
 
 	void TestLighting::OnRender()
@@ -179,7 +124,7 @@ namespace test
         m_Shader->Bind();
         SetShaderUniforms();
 
-        m_Renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
+        m_Renderer.DrawCube(*m_VAO, *m_Shader);
 
 	}
 	

@@ -9,8 +9,9 @@ namespace Primitive
 {
     struct Cube
     {
-        std::array<Vertex, 8> Vertices;
+        std::array<BasicVertex, 36> Vertices;
     };
 
-    Cube CreateCube(float x, float y, float z, unsigned int texID = 99);
+    Cube CreateCube();
+    //Cube CreateCube(float x, float y, float z, unsigned int texID = 99);
 }
