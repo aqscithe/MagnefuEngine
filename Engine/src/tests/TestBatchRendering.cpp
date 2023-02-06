@@ -31,6 +31,7 @@ namespace test
 
         VertexBufferAttribsLayout layout;
         layout.Push<float>(3);
+        layout.Push<float>(3);
         layout.Push<float>(4);
         layout.Push<float>(2);
         layout.Push<unsigned int>(1);
