@@ -9,6 +9,7 @@ layout(location = 4) in float   v_TexID;
 
 uniform mat4 u_MVP;
 uniform mat4 u_ModelMatrix;
+uniform mat4 u_NormalMatrix;
 
 out vec4 VertexColor;
 out vec3 Normal;
@@ -19,7 +20,7 @@ void main()
 	gl_Position = u_MVP * vec4(v_Position, 1.0);
 	VertexColor = v_Color;
 	// inverse function is computationally expensive and should be done cpu side
-	Normal = mat3(transpose(inverse(u_ModelMatrix))) * v_Normal;
+	Normal = mat3(u_NormalMatrix) * v_Normal;
 	FragPos = vec3(u_ModelMatrix * vec4(v_Position, 1.0));
 }
 

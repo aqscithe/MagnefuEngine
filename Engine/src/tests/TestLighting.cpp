@@ -16,6 +16,7 @@
 #include "Primitive3D.h"
 
 #include <array>
+#include <iostream>
 
 namespace test
 {
@@ -79,7 +80,6 @@ namespace test
         m_IsOrtho = false;
 
         m_MVP = Maths::identity();
-
         
 
         //Set Uniforms
@@ -108,8 +108,16 @@ namespace test
             : Maths::perspective(Maths::toRadians(global.fovY), m_aspectRatio, m_near, m_far);
 
         m_MVP = projMatrix * m_Camera->GetView() * modelMatrix;
+
+        // for accurate lighting when model isn't scaled uniformly
+        Maths::mat4 inverted;
+        Maths::mat4 normalMatrix = Maths::identity();
+        if(Maths::invert(modelMatrix.e, inverted.e))
+             normalMatrix = Maths::transpose(inverted);
+
         m_Shader->Bind();
         m_Shader->SetUniformMatrix4fv("u_ModelMatrix", modelMatrix);
+        m_Shader->SetUniformMatrix4fv("u_NormalMatrix", normalMatrix);
         m_Shader->Unbind();
 
         m_bottom = -m_top;
