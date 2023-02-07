@@ -508,6 +508,7 @@
     <None Include="res\shaders\BatchRender.shader" />
     <None Include="res\shaders\Texture2D.shader" />
     <None Include="res\shaders\TestLighting.shader" />
+    <None Include="res\shaders\LightCube.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\Renderer.h">

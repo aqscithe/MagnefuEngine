@@ -23,14 +23,17 @@ namespace test
 	{
 		float K_a;
 		float K_d;
+		float K_s;
 		Maths::vec3 Position;
 		Maths::vec4 Ambient;
 		Maths::vec4 Diffuse;
+		Maths::vec4 Specular;
 	};
 
-	struct Material
+	enum class LightModel
 	{
-
+		PHONG,
+		GORAUD
 	};
 
 	class TestLighting : public Test
@@ -47,14 +50,19 @@ namespace test
 			void SetShaderUniforms();
 
 			Light m_light;
+			Maths::vec3 m_lightScaling;
+
+			float m_shininess;
+
+			int   m_LightModel;
 
 			Renderer m_Renderer;
 			std::unique_ptr<VertexBuffer> m_VBO;
-			std::unique_ptr<VertexArray> m_VAO;
+			std::unique_ptr<VertexArray> m_ModelCubeVAO;
+			std::unique_ptr<VertexArray> m_LightCubeVAO;
 			std::unique_ptr<IndexBuffer> m_IBO;
-			std::unique_ptr<Shader> m_Shader;
-
-
+			std::unique_ptr<Shader> m_ModelCubeShader;
+			std::unique_ptr<Shader> m_LightCubeShader;
 
 
 			std::unique_ptr <Maths::Quaternion> m_Quat;

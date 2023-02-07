@@ -40,29 +40,41 @@ namespace test
         layout.Push<float>(3);
         layout.Push<float>(4);
 
-        m_VAO = std::make_unique<VertexArray>();
-        m_VAO->AddBuffer(*m_VBO, layout);
+        m_ModelCubeVAO = std::make_unique<VertexArray>();
+        m_ModelCubeVAO->AddBuffer(*m_VBO, layout);
+        m_ModelCubeVAO->Unbind();
 
+        m_ModelCubeShader = std::make_unique <Shader>("res/shaders/TestLighting.shader");
 
+        m_LightCubeVAO = std::make_unique<VertexArray>();
+        m_LightCubeVAO->AddBuffer(*m_VBO, layout);
+        m_LightCubeVAO->Unbind();
 
-        m_Shader = std::make_unique <Shader>("res/shaders/TestLighting.shader");
-        
-        m_Shader->Bind();
+        m_LightCubeShader = std::make_unique <Shader>("res/shaders/LightCube.shader");
 
         m_ObjectColor = { 1.f, 1.f, 1.f };
 
         // Lights
 
-        m_light.K_a = 1.f; // should be in material file
+        m_LightModel = static_cast<int>(LightModel::PHONG);
+
+        m_shininess = 32.f; // based on material
+
+        m_light.K_a = 1.f; 
         m_light.K_d = 1.f;
+        m_light.K_s = 1.f;
         m_light.Position = { -0.27f, 0.67f, 1.56f };
         m_light.Ambient = { 1.f, 1.f, 1.f, 1.f };
         m_light.Diffuse = { 1.f, 1.f, 1.f, 1.f };
+        m_light.Specular = { 1.f, 0.f, 1.f, 1.f };
+        m_lightScaling = { 0.1f, 0.1f, 0.1f };
+
         
         m_angleRot = 0.f;
         m_rotationAxis = { 0.f, 0.f, 0.f };
         m_translation = { 1.f, 0.f, 0.f };
         m_scaling = { 1.f, 1.f, 1.f };
+
 
         m_Quat = std::make_unique<Maths::Quaternion>(m_angleRot, m_rotationAxis);
 
@@ -83,11 +95,14 @@ namespace test
         
 
         //Set Uniforms
+        m_ModelCubeShader->Bind();
         SetShaderUniforms();
+        m_ModelCubeShader->Unbind();
 
         // clear buffers
-        m_VAO->Unbind();
-        m_Shader->Unbind();
+        m_ModelCubeVAO->Unbind();
+        
+        m_LightCubeVAO->Unbind();
         m_VBO->Unbind();
         
         GLCall(glEnable(GL_DEPTH_TEST));
@@ -102,6 +117,7 @@ namespace test
 	{
         Globals& global = Globals::Get();
 
+        // Cube Matrix Update
         Maths::mat4 modelMatrix = Maths::translate(m_translation) * m_Quat->UpdateRotMatrix(m_angleRot, m_rotationAxis) * Maths::scale(m_scaling);
         m_Camera->CalculateView();
         Maths::mat4 projMatrix = m_IsOrtho ? Maths::orthographic(m_left, m_right, m_bottom, m_top, m_near, m_far)
@@ -109,16 +125,25 @@ namespace test
 
         m_MVP = projMatrix * m_Camera->GetView() * modelMatrix;
 
+        // Light Matrix Update
+        Maths::mat4 lightCubeMVP = projMatrix * m_Camera->GetView() * Maths::translate(m_light.Position) * Maths::scale(m_lightScaling);
+        m_LightCubeShader->Bind();
+        m_LightCubeShader->SetUniformMatrix4fv("u_MVP", lightCubeMVP);
+        m_LightCubeShader->Unbind();
+
+
+
         // for accurate lighting when model isn't scaled uniformly
         Maths::mat4 inverted;
         Maths::mat4 normalMatrix = Maths::identity();
         if(Maths::invert(modelMatrix.e, inverted.e))
              normalMatrix = Maths::transpose(inverted);
 
-        m_Shader->Bind();
-        m_Shader->SetUniformMatrix4fv("u_ModelMatrix", modelMatrix);
-        m_Shader->SetUniformMatrix4fv("u_NormalMatrix", normalMatrix);
-        m_Shader->Unbind();
+        m_ModelCubeShader->Bind();
+        m_ModelCubeShader->SetUniformMatrix4fv("u_ModelMatrix", modelMatrix);
+        m_ModelCubeShader->SetUniformMatrix4fv("u_NormalMatrix", normalMatrix);
+        m_ModelCubeShader->SetUniform3fv("u_CameraPos", m_Camera->GetPosition());
+        m_ModelCubeShader->Unbind();
 
         m_bottom = -m_top;
         m_right = m_top * m_aspectRatio;
@@ -133,11 +158,15 @@ namespace test
 
         m_Renderer.Clear();
 
-        m_Shader->Bind();
+        m_ModelCubeShader->Bind();
         SetShaderUniforms();
+        m_ModelCubeShader->Unbind();
 
-        m_Renderer.DrawCube(*m_VAO, *m_Shader);
+        m_LightCubeShader->Bind();
+        m_LightCubeShader->Unbind();
 
+        m_Renderer.DrawCube(*m_ModelCubeVAO, *m_ModelCubeShader);
+        m_Renderer.DrawCube(*m_LightCubeVAO, *m_LightCubeShader);
 	}
 	
 	void TestLighting::OnImGUIRender()
@@ -146,13 +175,22 @@ namespace test
 
         ImGui::SliderInt("Cubes Count", &m_cubeCount, 0, 3);
         ImGui::ColorEdit3("Cube Color", m_ObjectColor.e);
+        ImGui::Text("Material");
+        ImGui::SliderFloat("Shininess", &m_shininess, 0.f, 255.f);
+        //ImGui::SliderFloat("Roughness")
+        //ImGui::SliderFloat("Opacity")
+
 
         ImGui::Text("Lights");
+        ImGui::SliderInt("Light Model", &m_LightModel, 0, 1);
         ImGui::SliderFloat3("Light Position", m_light.Position.e, -10.f, 10.f);
+        ImGui::SliderFloat3("Light Scale", m_lightScaling.e, -10.f, 10.f);
         ImGui::SliderFloat("Ambient Strength", &m_light.K_a, 0.f, 1.f);
         ImGui::ColorEdit4("Ambient Color", m_light.Ambient.e);
         ImGui::SliderFloat("Diffuse Strength", &m_light.K_d, 0.f, 1.f);
         ImGui::ColorEdit4("Diffuse Color", m_light.Diffuse.e);
+        ImGui::SliderFloat("Specular Strength", &m_light.K_s, 0.f, 1.f);
+        ImGui::ColorEdit4("Specular Color", m_light.Specular.e);
 
 
         ImGui::Checkbox("Edit Transform", &m_bShowTransform);
@@ -189,13 +227,16 @@ namespace test
 
     void TestLighting::SetShaderUniforms()
     {
-        m_Shader->SetUniformMatrix4fv("u_MVP", m_MVP);
-        m_Shader->SetUniform3fv("u_ObjectColor", m_ObjectColor);
-        m_Shader->SetUniform1f("u_light.K_a", m_light.K_a);
-        m_Shader->SetUniform1f("u_light.K_d", m_light.K_d);
-        m_Shader->SetUniform3fv("u_light.Position", m_light.Position);
-        m_Shader->SetUniform4fv("u_light.Ambient", m_light.Ambient);
-        m_Shader->SetUniform4fv("u_light.Diffuse", m_light.Diffuse);
-
+        m_ModelCubeShader->SetUniformMatrix4fv("u_MVP", m_MVP);
+        m_ModelCubeShader->SetUniform3fv("u_ObjectColor", m_ObjectColor);
+        m_ModelCubeShader->SetUniform1i("u_LightModel", m_LightModel);
+        m_ModelCubeShader->SetUniform1f("u_Shininess", m_shininess);
+        m_ModelCubeShader->SetUniform1f("u_light.K_a", m_light.K_a);
+        m_ModelCubeShader->SetUniform1f("u_light.K_d", m_light.K_d);
+        m_ModelCubeShader->SetUniform1f("u_light.K_s", m_light.K_s);
+        m_ModelCubeShader->SetUniform3fv("u_light.Position", m_light.Position);
+        m_ModelCubeShader->SetUniform4fv("u_light.Ambient", m_light.Ambient);
+        m_ModelCubeShader->SetUniform4fv("u_light.Diffuse", m_light.Diffuse);
+        m_ModelCubeShader->SetUniform4fv("u_light.Specular", m_light.Specular);
     }
 }

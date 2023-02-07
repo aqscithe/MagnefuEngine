@@ -324,6 +324,7 @@
     <None Include="header\vendor\glm\gtx\vector_query.inl" />
     <None Include="header\vendor\glm\gtx\wrap.inl" />
     <None Include="res\shaders\BatchRender.shader" />
+    <None Include="res\shaders\LightCube.shader" />
     <None Include="res\shaders\TestLighting.shader" />
     <None Include="res\shaders\Texture2D.shader" />
     <None Include="res\shaders\Basic.shader" />
