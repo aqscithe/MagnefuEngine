@@ -182,7 +182,11 @@ namespace test
 
 
         ImGui::Text("Lights");
-        ImGui::SliderInt("Light Model", &m_LightModel, 0, 1);
+        ImGui::Text("Light Model");
+        ImGui::SameLine();
+        if (ImGui::Button("Phong")) m_LightModel = 0;
+        ImGui::SameLine(); 
+        if (ImGui::Button("Goraud")) m_LightModel = 1;
         ImGui::SliderFloat3("Light Position", m_light.Position.e, -10.f, 10.f);
         ImGui::SliderFloat3("Light Scale", m_lightScaling.e, -10.f, 10.f);
         ImGui::SliderFloat("Ambient Strength", &m_light.K_a, 0.f, 1.f);
