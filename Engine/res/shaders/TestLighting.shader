@@ -18,7 +18,8 @@ void main()
 {
 	gl_Position = u_MVP * vec4(v_Position, 1.0);
 	VertexColor = v_Color;
-	Normal = v_Normal;
+	// inverse function is computationally expensive and should be done cpu side
+	Normal = mat3(transpose(inverse(u_ModelMatrix))) * v_Normal;
 	FragPos = vec3(u_ModelMatrix * vec4(v_Position, 1.0));
 }
 
