@@ -130,6 +130,10 @@ namespace test
 
         m_ActiveMaterial = &m_AvailableMaterials["Emerald"]; 
 
+        m_AmbientIntensity = { 0.1f, 0.1f, 0.1f };
+        m_DiffusionIntensity = { 1.f, 1.f, 1.f };
+        m_SpecularIntensity = { 1.f, 1.f, 1.f };
+
         // Lights
 
         m_LightModel = static_cast<int>(LightModel::PHONG);
@@ -280,6 +284,8 @@ namespace test
                     ImGui::Text("Diffuse: %.4f %.4f %.4f", m_ActiveMaterial->Diffuse.r, m_ActiveMaterial->Diffuse.g, m_ActiveMaterial->Diffuse.b);
                     ImGui::Text("Specular: %.4f %.4f %.4f", m_ActiveMaterial->Specular.r, m_ActiveMaterial->Specular.g, m_ActiveMaterial->Specular.b);
                     ImGui::Text("Shininess: %.2f", m_ActiveMaterial->Shininess);
+                    //ImGui::SliderFloat("Roughness")
+                    //ImGui::SliderFloat("Opacity")  
                 }
                 else
                 {
@@ -288,10 +294,11 @@ namespace test
                     ImGui::ColorEdit3("Specular", m_ActiveMaterial->Specular.e);
                     ImGui::SliderFloat("Shininess", &m_ActiveMaterial->Shininess, 0.f, 255.f);
                 }
-                
+                ImGui::SliderFloat3("Ambient Intensity", m_AmbientIntensity.e, 0.f, 1.f);
+                ImGui::SliderFloat3("Diffuse Intensity", m_DiffusionIntensity.e, 0.f, 1.f);
+                ImGui::SliderFloat3("Specular Intensity", m_SpecularIntensity.e, 0.f, 1.f);
 
-                //ImGui::SliderFloat("Roughness")
-                //ImGui::SliderFloat("Opacity")                
+                              
                 ImGui::SliderInt("Cubes Count", &m_cubeCount, 0, 3);
                 ImGui::TreePop();
             }
@@ -350,10 +357,16 @@ namespace test
     void TestLighting::SetShaderUniforms()
     {
         m_ModelCubeShader->SetUniformMatrix4fv("u_MVP", m_MVP);
+
         m_ModelCubeShader->SetUniform3fv("u_material.Ambient", m_ActiveMaterial->Ambient);
         m_ModelCubeShader->SetUniform3fv("u_material.Diffuse", m_ActiveMaterial->Diffuse);
         m_ModelCubeShader->SetUniform3fv("u_material.Specular", m_ActiveMaterial->Specular);
         m_ModelCubeShader->SetUniform1f("u_material.Shininess", m_ActiveMaterial->Shininess);
+
+        m_ModelCubeShader->SetUniform3fv("u_Intensity.Ambient", m_AmbientIntensity);
+        m_ModelCubeShader->SetUniform3fv("u_Intensity.Diffuse", m_DiffusionIntensity);
+        m_ModelCubeShader->SetUniform3fv("u_Intensity.Specular", m_SpecularIntensity);
+
         m_ModelCubeShader->SetUniform1i("u_LightModel", m_LightModel);
         m_ModelCubeShader->SetUniform1f("u_light.K_a", m_light.K_a);
         m_ModelCubeShader->SetUniform1f("u_light.K_d", m_light.K_d);

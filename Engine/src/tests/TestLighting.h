@@ -64,6 +64,10 @@ namespace test
 			Light m_light;
 			Maths::vec3 m_lightScaling;
 
+
+			Maths::vec3 m_AmbientIntensity;
+			Maths::vec3 m_DiffusionIntensity;
+			Maths::vec3 m_SpecularIntensity;
 			Material* m_ActiveMaterial;
 			std::unordered_map<std::string, Material> m_AvailableMaterials;
 
