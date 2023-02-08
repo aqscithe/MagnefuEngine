@@ -69,6 +69,62 @@ namespace test
                           { 0.633f, 0.727811f, 0.633f },
                           0.6f * 128
                         }
+            },
+            {"Jade", {
+                          true,
+                          { 0.135f, 0.2225f, 0.1575f },
+                          { 0.54f, 0.89f, 0.63f},
+                          { 0.316228f, 0.316228f, 0.316228f },
+                          0.1f * 128
+                        }
+            },
+            {"Obsidian", {
+                          true,
+                          { 0.05375f, 0.05f, 0.06625f },
+                          { 0.18275f, 0.17f, 0.22525f},
+                          { 0.332741f, 0.328634f, 0.346435f },
+                          0.3f * 128
+                        }
+            },
+            {"Pearl", {
+                          true,
+                          { 0.25f, 0.20725f, 0.20725f },
+                          { 1.f, 0.829f, 0.829f},
+                          { 0.296648f, 0.296648f, 0.296648f },
+                          0.088f * 128
+                        }
+            },
+            {"Ruby", {
+                          true,
+                          { 0.1745f, 0.01175f, 0.01175f },
+                          { 0.61424f, 0.04136f, 0.04136f},
+                          { 0.727811f, 0.626959f, 0.626959f },
+                          0.6f * 128
+                        }
+            },
+            {"Chrome", {
+                          true,
+                          { 0.25f, 0.25f, 0.25f },
+                          { 0.4f, 0.4f, 0.4f},
+                          { 0.774597f, 0.774597f, 0.774597f },
+                          0.6f * 128
+                        }
+            },
+            {"White Plastic", {
+                          true,
+                          { 0.f, 0.f, 0.f },
+                          { 0.55f, 0.55f, 0.55f},
+                          { 0.70f, 0.70f, 0.70f },
+                          0.25f * 128
+                        }
+            },
+            {"Black Rubber", {
+                          true,
+                          { 0.02f, 0.02f, 0.02f },
+                          { 0.01f, 0.01f, 0.01f},
+                          { 0.4f, 0.4f, 0.4f },
+                          0.078125f * 128
+                        }
             }
         };
 
@@ -203,14 +259,27 @@ namespace test
             {
                 if (ImGui::Button("Custom")) m_ActiveMaterial = &m_AvailableMaterials["Custom"];
                 ImGui::SameLine();
-                if (ImGui::Button("Emerald")) m_ActiveMaterial = &m_AvailableMaterials["Emerald"];
-
+                if (ImGui::ColorButton("Emerald", { 0.07568f, 0.61424f, 0.07568f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Emerald"];
+                ImGui::SameLine();
+                if (ImGui::ColorButton("Jade", { 0.54f, 0.89f, 0.63f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Jade"];
+                ImGui::SameLine();
+                if (ImGui::ColorButton("Obsidian", { 0.18275f, 0.17f, 0.22525f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Obsidian"];
+                ImGui::SameLine();
+                if (ImGui::ColorButton("Pearl", { 1.f, 0.829f, 0.829f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Pearl"];
+                ImGui::SameLine();
+                if (ImGui::ColorButton("Ruby", { 0.61424f, 0.04136f, 0.04136f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Ruby"];
+                ImGui::SameLine();
+                if (ImGui::ColorButton("Chrome", { 0.4f, 0.4f, 0.4f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Chrome"];
+                ImGui::SameLine();
+                if (ImGui::ColorButton("White Plastic", { 0.55f, 0.55f, 0.55f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["White Plastic"];
+                ImGui::SameLine();
+                if (ImGui::ColorButton("Black Rubber", { 0.01f, 0.01f, 0.01f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Black Rubber"];
                 if (m_ActiveMaterial->Preset)
                 {
-                    ImGui::Text("Ambient: %.3f %.3f %.3f", m_ActiveMaterial->Ambient.r, m_ActiveMaterial->Ambient.g, m_ActiveMaterial->Ambient.b);
-                    ImGui::Text("Diffuse: %.3f %.3f %.3f", m_ActiveMaterial->Diffuse.r, m_ActiveMaterial->Diffuse.g, m_ActiveMaterial->Diffuse.b);
-                    ImGui::Text("Specular: %.3f %.3f %.3f", m_ActiveMaterial->Specular.r, m_ActiveMaterial->Specular.g, m_ActiveMaterial->Specular.b);
-                    ImGui::Text("Shininess: %.3f", m_ActiveMaterial->Shininess);
+                    ImGui::Text("Ambient: %.4f %.4f %.4f", m_ActiveMaterial->Ambient.r, m_ActiveMaterial->Ambient.g, m_ActiveMaterial->Ambient.b);
+                    ImGui::Text("Diffuse: %.4f %.4f %.4f", m_ActiveMaterial->Diffuse.r, m_ActiveMaterial->Diffuse.g, m_ActiveMaterial->Diffuse.b);
+                    ImGui::Text("Specular: %.4f %.4f %.4f", m_ActiveMaterial->Specular.r, m_ActiveMaterial->Specular.g, m_ActiveMaterial->Specular.b);
+                    ImGui::Text("Shininess: %.2f", m_ActiveMaterial->Shininess);
                 }
                 else
                 {
