@@ -16,6 +16,7 @@
 #include "Matrices.h"
 
 #include <memory>
+#include <vector>
 
 namespace test
 {
@@ -36,6 +37,17 @@ namespace test
 		GORAUD
 	};
 
+	struct Material
+	{
+		bool Preset;
+		Maths::vec3 Ambient;
+		Maths::vec3 Diffuse;
+		Maths::vec3 Specular;
+		float       Shininess;
+		//float       Roughness;
+		//float       Opacity;
+	};
+
 	class TestLighting : public Test
 	{
 		public:
@@ -51,6 +63,9 @@ namespace test
 
 			Light m_light;
 			Maths::vec3 m_lightScaling;
+
+			Material* m_ActiveMaterial;
+			std::unordered_map<std::string, Material> m_AvailableMaterials;
 
 			float m_shininess;
 
