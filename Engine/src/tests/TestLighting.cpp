@@ -82,9 +82,9 @@ namespace test
         m_light.K_d = 1.f;
         m_light.K_s = 1.f;
         m_light.Position = { -0.27f, 0.67f, 1.56f };
-        m_light.Ambient = { 1.f, 1.f, 1.f, 1.f };
-        m_light.Diffuse = { 1.f, 1.f, 1.f, 1.f };
-        m_light.Specular = { 1.f, 0.f, 1.f, 1.f };
+        m_light.Ambient = { 1.f, 1.f, 1.f};
+        m_light.Diffuse = { 1.f, 1.f, 1.f};
+        m_light.Specular = { 1.f, 0.f, 1.f };
         m_lightScaling = { 0.1f, 0.1f, 0.1f };
 
         
@@ -173,9 +173,6 @@ namespace test
         m_ModelCubeShader->SetUniform3fv("u_CameraPos", m_Camera->GetPosition());
         m_ModelCubeShader->Unbind();
 
-        
-        
-
 
         m_Camera->ProcessInput(window, deltaTime);
 	}
@@ -204,9 +201,6 @@ namespace test
         {
             if (ImGui::TreeNode("Material"))
             {
-                ImGui::RadioButton("TestRadioButtonActive", true);
-                ImGui::RadioButton("TestRadioButtonDisabled", false);
-
                 if (ImGui::Button("Custom")) m_ActiveMaterial = &m_AvailableMaterials["Custom"];
                 ImGui::SameLine();
                 if (ImGui::Button("Emerald")) m_ActiveMaterial = &m_AvailableMaterials["Emerald"];
@@ -220,9 +214,9 @@ namespace test
                 }
                 else
                 {
-                    ImGui::SliderFloat3("Ambient", m_ActiveMaterial->Ambient.e, 0.f, 1.f);
-                    ImGui::SliderFloat3("Diffuse", m_ActiveMaterial->Diffuse.e, 0.f, 1.f);
-                    ImGui::SliderFloat3("Specular", m_ActiveMaterial->Specular.e, 0.f, 1.f);
+                    ImGui::ColorEdit3("Ambient", m_ActiveMaterial->Ambient.e);
+                    ImGui::ColorEdit3("Diffuse", m_ActiveMaterial->Diffuse.e);
+                    ImGui::ColorEdit3("Specular", m_ActiveMaterial->Specular.e);
                     ImGui::SliderFloat("Shininess", &m_ActiveMaterial->Shininess, 0.f, 255.f);
                 }
                 
@@ -243,11 +237,11 @@ namespace test
             ImGui::SliderFloat3("Light Position", m_light.Position.e, -10.f, 10.f);
             ImGui::SliderFloat3("Light Scale", m_lightScaling.e, -10.f, 10.f);
             ImGui::SliderFloat("Ambient Strength", &m_light.K_a, 0.f, 1.f);
-            ImGui::ColorEdit4("Ambient Color", m_light.Ambient.e);
+            ImGui::ColorEdit3("Ambient Color", m_light.Ambient.e);
             ImGui::SliderFloat("Diffuse Strength", &m_light.K_d, 0.f, 1.f);
-            ImGui::ColorEdit4("Diffuse Color", m_light.Diffuse.e);
+            ImGui::ColorEdit3("Diffuse Color", m_light.Diffuse.e);
             ImGui::SliderFloat("Specular Strength", &m_light.K_s, 0.f, 1.f);
-            ImGui::ColorEdit4("Specular Color", m_light.Specular.e);
+            ImGui::ColorEdit3("Specular Color", m_light.Specular.e);
 
 
 
@@ -296,8 +290,8 @@ namespace test
         m_ModelCubeShader->SetUniform1f("u_light.K_d", m_light.K_d);
         m_ModelCubeShader->SetUniform1f("u_light.K_s", m_light.K_s);
         m_ModelCubeShader->SetUniform3fv("u_light.Position", m_light.Position);
-        m_ModelCubeShader->SetUniform4fv("u_light.Ambient", m_light.Ambient);
-        m_ModelCubeShader->SetUniform4fv("u_light.Diffuse", m_light.Diffuse);
-        m_ModelCubeShader->SetUniform4fv("u_light.Specular", m_light.Specular);
+        m_ModelCubeShader->SetUniform3fv("u_light.Ambient", m_light.Ambient);
+        m_ModelCubeShader->SetUniform3fv("u_light.Diffuse", m_light.Diffuse);
+        m_ModelCubeShader->SetUniform3fv("u_light.Specular", m_light.Specular);
     }
 }

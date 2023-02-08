@@ -26,9 +26,9 @@ namespace test
 		float K_d;
 		float K_s;
 		Maths::vec3 Position;
-		Maths::vec4 Ambient;
-		Maths::vec4 Diffuse;
-		Maths::vec4 Specular;
+		Maths::vec3 Ambient;
+		Maths::vec3 Diffuse;
+		Maths::vec3 Specular;
 	};
 
 	enum class LightModel

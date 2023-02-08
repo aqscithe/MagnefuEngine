@@ -7,6 +7,17 @@ layout(location = 2) in vec4  v_Color;
 layout(location = 3) in vec2  v_TexCoords;
 layout(location = 4) in float   v_TexID;
 
+struct Material {
+	vec3 Ambient;
+	vec3 Diffuse;
+	vec3 Specular;
+	float Shininess;
+	//float Roughness;
+	//float Opacity;
+};
+
+uniform Material u_material;
+
 
 struct Light
 {
@@ -14,9 +25,9 @@ struct Light
 	float K_d;
 	float K_s;
 	vec3  Position;
-	vec4  Ambient;
-	vec4  Diffuse;
-	vec4  Specular;
+	vec3  Ambient;
+	vec3  Diffuse;
+	vec3  Specular;
 };
 
 uniform Light u_light;
@@ -32,19 +43,19 @@ out vec4 VertexColor;
 out vec3 Normal;
 out vec3 FragPos;
 
-out vec4 CombinedLight;
+out vec3 CombinedLight;
 
-vec4 GetCombinedLight(Light u_light, vec3 u_CameraPos)
+vec3 GetCombinedLight(Light u_light, vec3 u_CameraPos, Material u_material)
 {
 	vec3 LightVector = normalize(u_light.Position - FragPos);
-	vec4 AmbientLight = u_light.K_a * u_light.Ambient;
-	vec4 DiffuseLight = u_light.K_d * dot(LightVector, Normal) * u_light.Diffuse;
+	vec3 AmbientLight = u_light.K_a * u_light.Ambient;
+	vec3 DiffuseLight = u_light.K_d * dot(LightVector, Normal) * u_light.Diffuse;
 
 	vec3 ReflectionVector = 2 * dot(LightVector, Normal) * Normal - LightVector;
 	vec3 ViewVector = normalize(u_CameraPos - FragPos);
-	vec4 SpecularLight = u_light.K_s * pow(max(dot(ReflectionVector, ViewVector), 0.0), 32) * u_light.Specular;
+	vec3 SpecularLight = u_light.K_s * pow(max(dot(ReflectionVector, ViewVector), 0.0), u_material.Shininess) * u_light.Specular;
 
-	return AmbientLight + DiffuseLight + SpecularLight;
+	return AmbientLight * u_material.Ambient + DiffuseLight * u_material.Diffuse + SpecularLight * u_material.Specular;
 }
 
 void main()
@@ -57,7 +68,7 @@ void main()
 
 	if (u_LightModel == 1)
 	{
-		CombinedLight = GetCombinedLight(u_light, u_CameraPos);
+		CombinedLight = GetCombinedLight(u_light, u_CameraPos, u_material);
 	}
 }
 
@@ -84,9 +95,9 @@ struct Light
 	float K_d;
 	float K_s;
 	vec3  Position;
-	vec4  Ambient;
-	vec4  Diffuse;
-	vec4  Specular;
+	vec3  Ambient;
+	vec3  Diffuse;
+	vec3  Specular;
 };
 
 uniform Light u_light;
@@ -98,33 +109,33 @@ in vec4 VertexColor;
 in vec3 Normal;
 in vec3 FragPos;
 
-in vec4 CombinedLight;
+in vec3 CombinedLight;
 
 out vec4 FragColor;
 
 
 
-vec4 GetCombinedLight(Light u_light, vec3 u_CameraPos)
+vec3 GetCombinedLight(Light u_light, vec3 u_CameraPos, Material u_material)
 {
 	vec3 LightVector = normalize(u_light.Position - FragPos);
-	vec4 AmbientLight = u_light.K_a * u_light.Ambient;
-	vec4 DiffuseLight = u_light.K_d * dot(LightVector, Normal) * u_light.Diffuse;
+	vec3 AmbientLight = u_light.K_a * u_light.Ambient;
+	vec3 DiffuseLight = u_light.K_d * dot(LightVector, Normal) * u_light.Diffuse;
 
 	vec3 ReflectionVector = 2 * dot(LightVector, Normal) * Normal - LightVector;
 	vec3 ViewVector = normalize(u_CameraPos - FragPos);
-	vec4 SpecularLight = u_light.K_s * pow(max(dot(ReflectionVector, ViewVector), 0.0), 32) * u_light.Specular;
+	vec3 SpecularLight = u_light.K_s * pow(max(dot(ReflectionVector, ViewVector), 0.0), u_material.Shininess) * u_light.Specular;
 
-	return AmbientLight + DiffuseLight + SpecularLight;
+	return AmbientLight * u_material.Ambient + DiffuseLight * u_material.Diffuse + SpecularLight * u_material.Specular;
 }
 
 void main()
 {
 	if (u_LightModel == 1)
 	{
-		FragColor = CombinedLight * vec4(1.0, 1.0, 1.0, 1.0);
+		FragColor = vec4(CombinedLight, 1.0);
 	}
 	else
 	{
-		FragColor = GetCombinedLight(u_light, u_CameraPos) * vec4(1.0, 1.0, 1.0, 1.0);
+		FragColor = vec4(GetCombinedLight(u_light, u_CameraPos, u_material), 1.0);
 	}
 }
