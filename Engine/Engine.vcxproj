@@ -92,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_STATIC;_GLFW_USE_HYBRID_HPG;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)header;$(ProjectDir)header\vendor;$(SolutionDir)Dependencies\GLEW_2.1.0\include;$(SolutionDir)Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Maths\src\;$(ProjectDir)header;$(ProjectDir)header\vendor;$(SolutionDir)Dependencies\GLEW_2.1.0\include;$(SolutionDir)Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -110,7 +110,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_STATIC;_GLFW_USE_HYBRID_HPG;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)header;$(ProjectDir)header\vendor;$(SolutionDir)Dependencies\GLEW_2.1.0\include;$(SolutionDir)Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Maths\src\;$(ProjectDir)header;$(ProjectDir)header\vendor;$(SolutionDir)Dependencies\GLEW_2.1.0\include;$(SolutionDir)Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -128,7 +128,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_STATIC;_GLFW_USE_HYBRID_HPG;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)header;$(ProjectDir)header\vendor;$(SolutionDir)Dependencies\GLEW_2.1.0\include;$(SolutionDir)Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Maths\src\;$(ProjectDir)header;$(ProjectDir)header\vendor;$(SolutionDir)Dependencies\GLEW_2.1.0\include;$(SolutionDir)Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -146,7 +146,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_STATIC;_GLFW_USE_HYBRID_HPG;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)header;$(ProjectDir)header\vendor;$(SolutionDir)Dependencies\GLEW_2.1.0\include;$(SolutionDir)Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Maths\src\;$(ProjectDir)header;$(ProjectDir)header\vendor;$(SolutionDir)Dependencies\GLEW_2.1.0\include;$(SolutionDir)Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -170,10 +170,8 @@
     <ClCompile Include="header\vendor\stb_image\stb_image.cpp" />
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\Camera.cpp" />
-    <ClCompile Include="src\Core.cpp" />
     <ClCompile Include="src\Globals.cpp" />
     <ClCompile Include="src\IndexBuffer.cpp" />
-    <ClCompile Include="src\Quaternion.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\tests\Test.cpp" />
@@ -181,6 +179,7 @@
     <ClCompile Include="src\tests\Test3DRender.cpp" />
     <ClCompile Include="src\tests\TestBatchRendering.cpp" />
     <ClCompile Include="src\tests\TestClearColor.cpp" />
+    <ClCompile Include="src\tests\TestLighting.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\Timer.cpp" />
     <ClCompile Include="src\VertexArray.cpp" />
@@ -325,16 +324,16 @@
     <None Include="header\vendor\glm\gtx\vector_query.inl" />
     <None Include="header\vendor\glm\gtx\wrap.inl" />
     <None Include="res\shaders\BatchRender.shader" />
+    <None Include="res\shaders\LightCube.shader" />
+    <None Include="res\shaders\TestLighting.shader" />
     <None Include="res\shaders\Texture2D.shader" />
     <None Include="res\shaders\Basic.shader" />
     <None Include="res\shaders\Test.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\Camera.h" />
-    <ClInclude Include="header\Core.h" />
     <ClInclude Include="header\Globals.h" />
     <ClInclude Include="header\IndexBuffer.h" />
-    <ClInclude Include="header\Quaternion.h" />
     <ClInclude Include="header\Renderer.h" />
     <ClInclude Include="header\Shader.h" />
     <ClInclude Include="header\Texture.h" />
@@ -634,16 +633,23 @@
     <ClInclude Include="header\VertexBuffer.h" />
     <ClInclude Include="header\VertexBufferAttribsLayout.h" />
     <ClInclude Include="src\Application.h" />
+    <ClInclude Include="src\Header.h" />
     <ClInclude Include="src\tests\Test.h" />
     <ClInclude Include="src\tests\Test2DTexture.h" />
     <ClInclude Include="src\tests\Test3DRender.h" />
     <ClInclude Include="src\tests\TestBatchRendering.h" />
     <ClInclude Include="src\tests\TestClearColor.h" />
+    <ClInclude Include="src\tests\TestLighting.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\textures\moon.png" />
     <Image Include="res\textures\pluto.png" />
     <Image Include="res\textures\wall.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Maths\Maths.vcxproj">
+      <Project>{6766ae2d-1e79-4191-9181-49a6a6bf01f5}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

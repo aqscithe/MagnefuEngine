@@ -2,6 +2,8 @@
 #include <GLFW/glfw3.h>
 #include "Globals.h"
 
+#include "Common.h"
+
 
 
 Camera::Camera()

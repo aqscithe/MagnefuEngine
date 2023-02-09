@@ -5,6 +5,7 @@
 #include "tests/Test3DRender.h"
 #include "tests/Test2DTexture.h"
 #include "tests/TestBatchRendering.h"
+#include "tests/TestLighting.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
@@ -15,8 +16,8 @@
 #include <memory>
 #include <chrono>
 
+#include "Vectors.h"
 #include "Globals.h"
-#include "Core.h"
 #include "Renderer.h"
 #include "Application.h"
 
@@ -161,6 +162,7 @@ int main()
         testMenu->RegisterTest<test::Test2DTexture>("2D Texture");
         testMenu->RegisterTest<test::Test3DRender>("Cube Render");
         testMenu->RegisterTest<test::TestBatchRendering>("Batching");
+        testMenu->RegisterTest<test::TestLighting>("Lighting");
         
        
         auto lastTime = std::chrono::high_resolution_clock::now();
@@ -182,7 +184,7 @@ int main()
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
-
+            
 
             if (activeTest)
             {
@@ -214,9 +216,10 @@ int main()
             glfwSwapBuffers(window);
         }
 
-        delete activeTest;
         if (activeTest != testMenu)
             delete testMenu;
+        delete activeTest;
+        
         
     }
     // Cleanup

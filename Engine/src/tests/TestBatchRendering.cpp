@@ -13,25 +13,12 @@
 #include "Renderer.h"
 #include "Globals.h"
 
+#include "Primitive2D.h"
+
 #include <array>
 
 namespace test
 {
-    struct Vertex
-    {
-        Maths::vec3  Position;       // Pos
-        Maths::vec4  Color;          // Color
-        Maths::vec2  TextureCoords;  // Texture coordinates
-        unsigned int TextureID;      // Texture ID
-    };
-
-    struct Quad
-    {
-        Vertex v0;
-        Vertex v1;
-        Vertex v2;
-        Vertex v3;
-    };
 
 	TestBatchRendering::TestBatchRendering()
 	{
@@ -43,6 +30,7 @@ namespace test
         m_VBO = std::make_unique<VertexBuffer>(sizeof(Vertex) * 4 * 100, nullptr);
 
         VertexBufferAttribsLayout layout;
+        layout.Push<float>(3);
         layout.Push<float>(3);
         layout.Push<float>(4);
         layout.Push<float>(2);
@@ -63,10 +51,8 @@ namespace test
         m_Texture0->Bind();
         m_Texture1->Bind(1);
 
-        //int textureLocations[2] = { 0, 1 };
-        //m_Shader->SetUniform1iv("u_Texture", textureLocations);
-        m_Shader->SetUniform1i("u_Texture0", 0);
-        m_Shader->SetUniform1i("u_Texture1", 1);
+        int textureLocations[2] = { 0, 1 };
+        m_Shader->SetUniform1iv("u_Texture", textureLocations);
         
         
         m_angleRot = 0.f;
@@ -74,7 +60,7 @@ namespace test
         m_translation = { 1.f, 0.f, 0.f };
         m_scaling = { 1.f, 1.f, 1.f };
 
-        m_Quat = std::make_unique<Quaternion>(m_angleRot, m_rotationAxis);
+        m_Quat = std::make_unique<Maths::Quaternion>(m_angleRot, m_rotationAxis);
 
         m_Camera = std::make_unique<Camera>();
 
@@ -120,41 +106,6 @@ namespace test
         return indices;
     }
 
-    static  Quad CreateQuad(float x, float y, unsigned int texID)
-    {
-        float sideLength = 1.f;
-
-        // Bottom left
-        Vertex v0;
-        v0.Position = { x, y, 0.f };
-        v0.Color = { 0.8f, 0.2f, 1.f, 1.f };
-        v0.TextureCoords = { 0.f, 0.f };
-        v0.TextureID = texID;
-
-        // Bottom right
-        Vertex v1;
-        v1.Position = { x + sideLength, y, 0.f };
-        v1.Color = { 0.8f, 0.2f, 1.f, 1.f };
-        v1.TextureCoords = { 1.f,  0.f };
-        v1.TextureID = texID;
-
-        // Top right
-        Vertex v2;
-        v2.Position = { x + sideLength, y + sideLength, 0.f };
-        v2.Color = { 1.f,  0.3f, 1.f, 0.1f };
-        v2.TextureCoords = { 1.f,  1.f };
-        v2.TextureID = texID;
-
-        // Top left
-        Vertex v3;
-        v3.Position = { x, y + sideLength, 0.f };
-        v3.Color = { 0.f,  0.9f, 1.f, 1.f };
-        v3.TextureCoords = { 0.f, 1.f };
-        v3.TextureID = texID;
-        
-        return { v0, v1, v2, v3 };
-    }
-
 	void TestBatchRendering::OnUpdate(GLFWwindow* window, float deltaTime)
 	{
         Globals& global = Globals::Get();
@@ -184,17 +135,17 @@ namespace test
         
         indices = SetIndices(m_QuadCount);
 
-        std::vector<Quad> Quads;
+        std::vector<Primitive::Quad> Quads;
         Quads.reserve(m_QuadCount);
 
         for (int i = 0; i < m_QuadCount; i++)
         {
-            Quads.emplace_back(CreateQuad(-0.5f + i * 1.5f, -0.5f + i * 1.5f, i % 2));
+            Quads.emplace_back(Primitive::CreateQuad(-0.5f + i * 1.5f, -0.5f + i * 1.5f, i % 2));
         }
-        
 
+        
         m_VBO->Bind();
-        GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Quad) * Quads.size(), Quads.data()));
+        GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Primitive::Quad) * Quads.size(), Quads.data()));
 
         m_IBO->Bind();
         GLCall(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(unsigned int) * indices.size(), indices.data()));

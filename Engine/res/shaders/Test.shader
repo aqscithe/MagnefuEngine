@@ -36,5 +36,6 @@ uniform sampler2D u_Texture1;
 
 void main()
 {
-	FragColor = mix(texture(u_Texture0, TexCoords), texture(u_Texture1, TexCoords), 0.5);
+	//FragColor = mix(texture(u_Texture0, TexCoords), texture(u_Texture1, TexCoords), 0.5);
+	FragColor = mix(texture(u_Texture0, TexCoords), texture(u_Texture1, TexCoords), 0.0);
 }

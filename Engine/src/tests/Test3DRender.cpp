@@ -28,7 +28,7 @@ namespace test
                  0.5f, -0.5f,  0.5f,    0.f,   0.5f,   0.7f,    1.f,  0.f,       // 1  BR
                  0.5f,  0.5f,  0.5f,    0.2f,  0.5f,   0.3f,    1.f,  1.f,       // 2  TR
                 -0.5f,  0.5f,  0.5f,    0.8f,  1.f,    0.3f,    0.f,  1.f,       // 3  TL
-                -0.5,  -0.5f, -0.5f,    1.f,   0.5f,   0.3f,    0.f,  0.f,       // 4
+                -0.5,  -0.5f, -0.5f,    1.f,   0.5f,   0.3f,    0.f,  0.f,       // 4  
                 -0.5f,  0.5f, -0.5f,    0.f,   0.5f,   0.7f,    1.f,  0.f,       // 5
                  0.5f,  0.5f, -0.5f,    0.2f,  0.5f,   0.3f,    1.f,  1.f,       // 6
                  0.5f, -0.5f, -0.5f,    0.8f,  1.f,    0.3f,    0.f,  1.f        // 7
@@ -78,7 +78,7 @@ namespace test
         m_translation = { 0.f, 0.f, 0.f };
         m_scaling = { 1.f, 1.f, 1.f };
 
-        m_Quat = std::make_unique<Quaternion>(m_angleRot, m_rotationAxis);
+        m_Quat = std::make_unique<Maths::Quaternion>(m_angleRot, m_rotationAxis);
 
         m_Camera = std::make_unique<Camera>();
 

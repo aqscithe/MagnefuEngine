@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Core.h"
+#include "Vectors.h"
+#include "Matrices.h"
 
 struct GLFWwindow;
 
@@ -32,6 +33,7 @@ public:
 	inline const Maths::vec3& GetRight() const { return m_Right; }
 	inline const Maths::vec3& GetUp() const { return m_Up; }
 	inline const Maths::vec3& GetForward() const { return m_Forward; }
+	inline const Maths::vec3& GetPosition() const { return m_Position; }
 
 private:
 	void CreateCameraAxes();

@@ -1,18 +1,21 @@
 #pragma once
 
 #include "Test.h"
-#include "Core.h"
 
 #include <GL/glew.h>
 #include "Renderer.h"
 #include "Texture.h"
 #include "Shader.h"
-#include "Quaternion.h"
 #include "Camera.h"
 #include "VertexArray.h"
 #include "IndexBuffer.h"
 
+#include "Vectors.h"
+#include "Matrices.h"
+#include "Quaternion.h"
+
 #include <memory>
+
 
 namespace test
 {
@@ -35,7 +38,7 @@ namespace test
 			std::unique_ptr<Texture> m_Texture;
 
 
-			std::unique_ptr <Quaternion> m_Quat;
+			std::unique_ptr <Maths::Quaternion> m_Quat;
 			float m_angleRot = 0.f;
 			Maths::vec3 m_translation;
 			Maths::vec3 m_rotationAxis;
