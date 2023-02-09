@@ -128,7 +128,7 @@ namespace test
             }
         };
 
-        m_ActiveMaterial = &m_AvailableMaterials["Emerald"]; 
+        m_ActiveMaterial = &m_AvailableMaterials["Custom"]; 
 
         m_AmbientIntensity = { 0.1f, 0.1f, 0.1f };
         m_DiffusionIntensity = { 1.f, 1.f, 1.f };
@@ -136,13 +136,12 @@ namespace test
 
         // Lights
 
-        m_LightModel = static_cast<int>(LightModel::PHONG);
+        m_ShadingTechnique = static_cast<int>(ShadingTechnique::PHONG);
+        m_ReflectionModel = static_cast<int>(ReflectionModel::PHONG);
 
-        m_light.K_a = 0.1f; 
         m_light.K_d = 1.f;
         m_light.K_s = 1.f;
         m_light.Position = { -0.27f, 0.67f, 1.56f };
-        m_light.Ambient = { 1.f, 1.f, 1.f};
         m_light.Diffuse = { 1.f, 1.f, 1.f};
         m_light.Specular = { 1.f, 0.f, 1.f };
         m_lightScaling = { 0.1f, 0.1f, 0.1f };
@@ -203,10 +202,10 @@ namespace test
         float moveScale = 1.5f;  // 1 means default sine wave of -1 to 1
         float moveAdjustment = 1.f;
 
-        //m_light.Position.x = moveAdjustment + Maths::sin(std::chrono::high_resolution_clock::now().time_since_epoch().count() * moveRate) * moveScale;
-        m_light.Diffuse.r = 0.5f + Maths::sin(std::chrono::high_resolution_clock::now().time_since_epoch().count() * moveRate) * 0.4f;
-        m_light.Diffuse.g = 0.5f + Maths::sin(std::chrono::high_resolution_clock::now().time_since_epoch().count() * moveRate) * 0.5f;
-        m_light.Diffuse.b = 0.5f + Maths::sin(std::chrono::high_resolution_clock::now().time_since_epoch().count() * .0000000001f) * 0.2f;
+        m_light.Position.x = moveAdjustment + Maths::sin(std::chrono::high_resolution_clock::now().time_since_epoch().count() * moveRate) * moveScale;
+        //m_light.Diffuse.r = 0.5f + Maths::sin(std::chrono::high_resolution_clock::now().time_since_epoch().count() * moveRate) * 0.4f;
+        //m_light.Diffuse.g = 0.5f + Maths::sin(std::chrono::high_resolution_clock::now().time_since_epoch().count() * moveRate) * 0.5f;
+        //m_light.Diffuse.b = 0.5f + Maths::sin(std::chrono::high_resolution_clock::now().time_since_epoch().count() * .0000000001f) * 0.2f;
 
         // Cube Matrix Update
         Maths::mat4 modelMatrix = Maths::translate(m_translation) * m_Quat->UpdateRotMatrix(m_angleRot, m_rotationAxis) * Maths::scale(m_scaling);
@@ -259,9 +258,34 @@ namespace test
 	void TestLighting::OnImGUIRender()
 	{
         Globals& global = Globals::Get();
+        bool menu = true;
+        bool munu = true;
 
         if (ImGui::CollapsingHeader("Test Lighting", ImGuiTreeNodeFlags_DefaultOpen))
         {
+            if (ImGui::TreeNode("Options"))
+            {
+                /*if (ImGui::BeginMenu("MenuTest", true))
+                {
+                    ImGui::MenuItem("Hello", "Um...", &menu);
+                    ImGui::MenuItem("Yahh", "uhh...", &munu);
+                    ImGui::EndMenu();
+                }*/
+                ImGui::Text("Reflection Model: ");
+                ImGui::SameLine();
+                if (ImGui::Button("Phong ")) m_ReflectionModel = 0;
+                ImGui::SameLine();
+                if (ImGui::Button("Blinn-Phong")) m_ReflectionModel = 1;
+
+                ImGui::Text("Shading Technique");
+                ImGui::SameLine();
+                if (ImGui::Button("Phong")) m_ShadingTechnique = 0;
+                ImGui::SameLine();
+                if (ImGui::Button("Goraud")) m_ShadingTechnique = 1;
+
+                ImGui::TreePop();
+            }
+
             if (ImGui::TreeNode("Material"))
             {
                 if (ImGui::Button("Custom")) m_ActiveMaterial = &m_AvailableMaterials["Custom"];
@@ -292,67 +316,62 @@ namespace test
                 }
                 else
                 {
-                    ImGui::ColorEdit3("Ambient", m_ActiveMaterial->Ambient.e);
                     ImGui::ColorEdit3("Diffuse", m_ActiveMaterial->Diffuse.e);
                     ImGui::ColorEdit3("Specular", m_ActiveMaterial->Specular.e);
-                    ImGui::SliderFloat("Shininess", &m_ActiveMaterial->Shininess, 0.f, 255.f);
+                    ImGui::SliderFloat("Shininess", &m_ActiveMaterial->Shininess, 0.01f, 255.f);
                 }
                 ImGui::SliderFloat3("Ambient Intensity", m_AmbientIntensity.e, 0.f, 1.f);
                 ImGui::SliderFloat3("Diffuse Intensity", m_DiffusionIntensity.e, 0.f, 1.f);
                 ImGui::SliderFloat3("Specular Intensity", m_SpecularIntensity.e, 0.f, 1.f);
-
                               
-                ImGui::SliderInt("Cubes Count", &m_cubeCount, 0, 3);
                 ImGui::TreePop();
             }
 
-
-            ImGui::Text("Lights");
-            ImGui::Text("Light Model");
-            ImGui::SameLine();
-            if (ImGui::Button("Phong")) m_LightModel = 0;
-            ImGui::SameLine();
-            if (ImGui::Button("Goraud")) m_LightModel = 1;
-            ImGui::SliderFloat3("Light Position", m_light.Position.e, -10.f, 10.f);
-            ImGui::SliderFloat3("Light Scale", m_lightScaling.e, -10.f, 10.f);
-            ImGui::SliderFloat("Ambient Strength", &m_light.K_a, 0.f, 1.f);
-            ImGui::ColorEdit3("Ambient Color", m_light.Ambient.e);
-            ImGui::SliderFloat("Diffuse Strength", &m_light.K_d, 0.f, 1.f);
-            ImGui::ColorEdit3("Diffuse Color", m_light.Diffuse.e);
-            ImGui::SliderFloat("Specular Strength", &m_light.K_s, 0.f, 1.f);
-            ImGui::ColorEdit3("Specular Color", m_light.Specular.e);
-
-
-
-            ImGui::Checkbox("Edit Transform", &m_bShowTransform);
-            if (m_bShowTransform)
+            if (ImGui::TreeNode("Lights"))
             {
-                ImGui::Text("Transform");
-                ImGui::SliderFloat3("Model Translation", m_translation.e, -10.f, 10.f);
-                ImGui::SliderFloat3("Model Rotation", m_rotationAxis.e, 0.f, 1.f);
-                ImGui::SliderFloat("Model Rotation Angle", &m_angleRot, -360.f, 360.f);
-                ImGui::SliderFloat3("Model Scale", m_scaling.e, 0.f, 10.f);
+                ImGui::SliderFloat3("Light Position", m_light.Position.e, -10.f, 10.f);
+                ImGui::SliderFloat3("Light Scale", m_lightScaling.e, -10.f, 10.f);
+                ImGui::SliderFloat("Diffuse Strength", &m_light.K_d, 0.f, 1.f);
+                ImGui::ColorEdit3("Diffuse Color", m_light.Diffuse.e);
+                ImGui::SliderFloat("Specular Strength", &m_light.K_s, 0.f, 1.f);
+                ImGui::ColorEdit3("Specular Color", m_light.Specular.e);
 
-                ImGui::Text("Camera");
-                ImGui::DragFloat("CameraSpeed", &m_Camera->m_Speed, 0.05f, 4.f);
-                ImGui::SliderFloat3("Camera Translation", m_Camera->m_Position.e, -10.f, 10.f);
-
-                ImGui::Text("Projection");
-                ImGui::SliderFloat("Near", &m_near, 0.01f, 10.f);
-                ImGui::SliderFloat("Far", &m_far, 10.f, 100.f);
+                ImGui::TreePop();
             }
+            
+            if (ImGui::TreeNode("Transformation"))
+            {
+                ImGui::Checkbox("Edit Transform", &m_bShowTransform);
+                if (m_bShowTransform)
+                {
+                    ImGui::Text("Transform");
+                    ImGui::SliderFloat3("Model Translation", m_translation.e, -10.f, 10.f);
+                    ImGui::SliderFloat3("Model Rotation", m_rotationAxis.e, 0.f, 1.f);
+                    ImGui::SliderFloat("Model Rotation Angle", &m_angleRot, -360.f, 360.f);
+                    ImGui::SliderFloat3("Model Scale", m_scaling.e, 0.f, 10.f);
 
-            ImGui::Checkbox("Toggle Projection Mode", &m_IsOrtho);
-            if (m_IsOrtho)
-            {
-                ImGui::SliderFloat("Top", &m_top, 3.f, 15.f);
-                ImGui::Text("Left %.2f", m_left);
-                ImGui::Text("Right %.2f", m_right);
-                ImGui::Text("Bottom %.2f", m_bottom);
-            }
-            else
-            {
-                ImGui::SliderFloat("FOV", &global.fovY, 1.f, 100.f);
+                    ImGui::Text("Camera");
+                    ImGui::DragFloat("CameraSpeed", &m_Camera->m_Speed, 0.05f, 4.f);
+                    ImGui::SliderFloat3("Camera Translation", m_Camera->m_Position.e, -10.f, 10.f);
+
+                    ImGui::Text("Projection");
+                    ImGui::SliderFloat("Near", &m_near, 0.01f, 10.f);
+                    ImGui::SliderFloat("Far", &m_far, 10.f, 100.f);
+                }
+
+                ImGui::Checkbox("Toggle Projection Mode", &m_IsOrtho);
+                if (m_IsOrtho)
+                {
+                    ImGui::SliderFloat("Top", &m_top, 3.f, 15.f);
+                    ImGui::Text("Left %.2f", m_left);
+                    ImGui::Text("Right %.2f", m_right);
+                    ImGui::Text("Bottom %.2f", m_bottom);
+                }
+                else
+                {
+                    ImGui::SliderFloat("FOV", &global.fovY, 1.f, 100.f);
+                }
+                ImGui::TreePop();
             }
         }
 	}
@@ -370,12 +389,11 @@ namespace test
         m_ModelCubeShader->SetUniform3fv("u_Intensity.Diffuse", m_DiffusionIntensity);
         m_ModelCubeShader->SetUniform3fv("u_Intensity.Specular", m_SpecularIntensity);
 
-        m_ModelCubeShader->SetUniform1i("u_LightModel", m_LightModel);
-        m_ModelCubeShader->SetUniform1f("u_light.K_a", m_light.K_a);
+        m_ModelCubeShader->SetUniform1i("u_ShadingTechnique", m_ShadingTechnique);
+        m_ModelCubeShader->SetUniform1i("u_ReflectionModel", m_ReflectionModel);
         m_ModelCubeShader->SetUniform1f("u_light.K_d", m_light.K_d);
         m_ModelCubeShader->SetUniform1f("u_light.K_s", m_light.K_s);
         m_ModelCubeShader->SetUniform3fv("u_light.Position", m_light.Position);
-        m_ModelCubeShader->SetUniform3fv("u_light.Ambient", m_light.Ambient);
         m_ModelCubeShader->SetUniform3fv("u_light.Diffuse", m_light.Diffuse);
         m_ModelCubeShader->SetUniform3fv("u_light.Specular", m_light.Specular);
     }

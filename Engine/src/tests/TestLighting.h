@@ -22,19 +22,23 @@ namespace test
 {
 	struct Light
 	{
-		float K_a;
 		float K_d;
 		float K_s;
 		Maths::vec3 Position;
-		Maths::vec3 Ambient;
 		Maths::vec3 Diffuse;
 		Maths::vec3 Specular;
 	};
 
-	enum class LightModel
+	enum class ShadingTechnique
 	{
 		PHONG,
 		GORAUD
+	};
+
+	enum class ReflectionModel
+	{
+		PHONG,
+		BLINN_PHONG
 	};
 
 	struct Material
@@ -73,7 +77,8 @@ namespace test
 
 			float m_shininess;
 
-			int   m_LightModel;
+			int m_ShadingTechnique;
+			int m_ReflectionModel;
 
 			Renderer m_Renderer;
 			std::unique_ptr<VertexBuffer> m_VBO;
