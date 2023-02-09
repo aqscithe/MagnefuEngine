@@ -44,6 +44,8 @@ namespace test
 	struct Material
 	{
 		bool Preset;
+		bool Textured;
+		unsigned int TexID;
 		Maths::vec3 Ambient;
 		Maths::vec3 Diffuse;
 		Maths::vec3 Specular;
@@ -66,6 +68,7 @@ namespace test
 			void UpdateLights();
 			void UpdateMVP();
 			void SetShaderUniforms();
+			void SetTextureShaderUniforms();
 
 			Light m_light;
 			Maths::vec3 m_lightScaling;
@@ -89,6 +92,9 @@ namespace test
 			std::unique_ptr<IndexBuffer> m_IBO;
 			std::unique_ptr<Shader> m_ModelCubeShader;
 			std::unique_ptr<Shader> m_LightCubeShader;
+			std::unique_ptr<Shader> m_TextureCubeShader;
+			std::unique_ptr<Texture> m_Texture;
+			std::unique_ptr<Texture> m_Texture1;
 
 
 			std::unique_ptr <Maths::Quaternion> m_Quat;

@@ -16,5 +16,12 @@ struct BasicVertex
 {
     Maths::vec3  Position;       // Pos
     Maths::vec3  Normal;
-    Maths::vec4  Color;          // Color
+};
+
+struct TextureVertex
+{
+    Maths::vec3  Position;       
+    Maths::vec3  Normal;
+    Maths::vec2  TextureCoords;
+    unsigned int TextureID;
 };

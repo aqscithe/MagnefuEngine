@@ -509,6 +509,7 @@
     <None Include="res\shaders\Texture2D.shader" />
     <None Include="res\shaders\TestLighting.shader" />
     <None Include="res\shaders\LightCube.shader" />
+    <None Include="res\shaders\TestLighting-Texture.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\Renderer.h">
@@ -1447,6 +1448,12 @@
       <Filter>Fichiers de ressources</Filter>
     </Image>
     <Image Include="res\textures\pluto.png">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\water_abstract.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\grass.jpg">
       <Filter>Fichiers de ressources</Filter>
     </Image>
   </ItemGroup>

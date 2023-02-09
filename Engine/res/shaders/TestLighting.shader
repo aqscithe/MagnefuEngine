@@ -3,9 +3,8 @@
 
 layout(location = 0) in vec3  v_Position;
 layout(location = 1) in vec3  v_Normal;
-layout(location = 2) in vec4  v_Color;
-layout(location = 3) in vec2  v_TexCoords;
-layout(location = 4) in float   v_TexID;
+layout(location = 2) in vec2  v_TexCoords;
+layout(location = 3) in float   v_TexID;
 
 struct Material {
 	vec3 Diffuse;
@@ -45,7 +44,6 @@ uniform mat4 u_NormalMatrix;
 uniform int u_ShadingTechnique;
 uniform int u_ReflectionModel;
 
-out vec4 VertexColor;
 out vec3 Normal;
 out vec3 FragPos;
 
@@ -79,7 +77,6 @@ void main()
 {
 	gl_Position = u_MVP * vec4(v_Position, 1.0);
 
-	VertexColor = v_Color;
 	Normal = mat3(u_NormalMatrix) * v_Normal;
 	FragPos = vec3(u_ModelMatrix * vec4(v_Position, 1.0));
 

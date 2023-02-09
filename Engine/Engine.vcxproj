@@ -325,6 +325,7 @@
     <None Include="header\vendor\glm\gtx\wrap.inl" />
     <None Include="res\shaders\BatchRender.shader" />
     <None Include="res\shaders\LightCube.shader" />
+    <None Include="res\shaders\TestLighting-Texture.shader" />
     <None Include="res\shaders\TestLighting.shader" />
     <None Include="res\shaders\Texture2D.shader" />
     <None Include="res\shaders\Basic.shader" />
@@ -642,9 +643,11 @@
     <ClInclude Include="src\tests\TestLighting.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\textures\grass.jpg" />
     <Image Include="res\textures\moon.png" />
     <Image Include="res\textures\pluto.png" />
     <Image Include="res\textures\wall.jpg" />
+    <Image Include="res\textures\water_abstract.jpg" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Maths\Maths.vcxproj">

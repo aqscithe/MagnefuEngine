@@ -32,30 +32,31 @@ namespace test
 
         m_bShowTransform = false;
 
-        auto cube = Primitive::CreateCube();
+        auto cube = Primitive::CreateTextureCube();
 
-        m_VBO = std::make_unique<VertexBuffer>(sizeof(Primitive::Cube) * 1, cube.Vertices.data());
+        m_VBO = std::make_unique<VertexBuffer>(sizeof(Primitive::TextureCube) * 1, cube.Vertices.data());
 
         VertexBufferAttribsLayout layout;
         layout.Push<float>(3);
         layout.Push<float>(3);
-        layout.Push<float>(4);
+        layout.Push<float>(2);
+        layout.Push<unsigned int>(1);
 
         m_ModelCubeVAO = std::make_unique<VertexArray>();
         m_ModelCubeVAO->AddBuffer(*m_VBO, layout);
         m_ModelCubeVAO->Unbind();
 
-        m_ModelCubeShader = std::make_unique <Shader>("res/shaders/TestLighting.shader");
+        
 
         m_LightCubeVAO = std::make_unique<VertexArray>();
         m_LightCubeVAO->AddBuffer(*m_VBO, layout);
         m_LightCubeVAO->Unbind();
 
-        m_LightCubeShader = std::make_unique <Shader>("res/shaders/LightCube.shader");
+        
 
         m_AvailableMaterials = {
             {"Custom", { 
-                         false,
+                         false, false, 99,
                          { 1.f, 1.f, 1.f },
                          { 1.f, 1.f, 1.f },
                          { 1.f, 1.f, 1.f },
@@ -63,7 +64,7 @@ namespace test
                        }
             },
             {"Emerald", { 
-                          true,
+                          true, false, 99,
                           { 0.0215f, 0.1745f, 0.0215f },
                           { 0.07568f, 0.61424f, 0.07568f},
                           { 0.633f, 0.727811f, 0.633f },
@@ -71,7 +72,7 @@ namespace test
                         }
             },
             {"Jade", {
-                          true,
+                          true, false, 99,
                           { 0.135f, 0.2225f, 0.1575f },
                           { 0.54f, 0.89f, 0.63f},
                           { 0.316228f, 0.316228f, 0.316228f },
@@ -79,7 +80,7 @@ namespace test
                         }
             },
             {"Obsidian", {
-                          true,
+                          true, false, 99,
                           { 0.05375f, 0.05f, 0.06625f },
                           { 0.18275f, 0.17f, 0.22525f},
                           { 0.332741f, 0.328634f, 0.346435f },
@@ -87,7 +88,7 @@ namespace test
                         }
             },
             {"Pearl", {
-                          true,
+                          true, false, 99,
                           { 0.25f, 0.20725f, 0.20725f },
                           { 1.f, 0.829f, 0.829f},
                           { 0.296648f, 0.296648f, 0.296648f },
@@ -95,7 +96,7 @@ namespace test
                         }
             },
             {"Ruby", {
-                          true,
+                          true, false, 99,
                           { 0.1745f, 0.01175f, 0.01175f },
                           { 0.61424f, 0.04136f, 0.04136f},
                           { 0.727811f, 0.626959f, 0.626959f },
@@ -103,7 +104,7 @@ namespace test
                         }
             },
             {"Chrome", {
-                          true,
+                          true, false, 99,
                           { 0.25f, 0.25f, 0.25f },
                           { 0.4f, 0.4f, 0.4f},
                           { 0.774597f, 0.774597f, 0.774597f },
@@ -111,7 +112,7 @@ namespace test
                         }
             },
             {"White Plastic", {
-                          true,
+                          true, false, 99,
                           { 0.f, 0.f, 0.f },
                           { 0.55f, 0.55f, 0.55f},
                           { 0.70f, 0.70f, 0.70f },
@@ -119,11 +120,27 @@ namespace test
                         }
             },
             {"Black Rubber", {
-                          true,
+                          true, false, 99,
                           { 0.02f, 0.02f, 0.02f },
                           { 0.01f, 0.01f, 0.01f},
                           { 0.4f, 0.4f, 0.4f },
                           0.078125f * 128
+                        }
+            },
+            {"Water", {
+                          true, true, 0,
+                          { 1.f, 1.f, 1.f },
+                          { 1.f, 1.f, 1.f },
+                          { 1.f, 1.f, 1.f },
+                          128.f
+                        }
+            },
+            {"Grass", {
+                          true, true, 1,
+                          { 1.f, 1.f, 1.f },
+                          { 1.f, 1.f, 1.f },
+                          { 1.f, 1.f, 1.f },
+                          32.f
                         }
             }
         };
@@ -152,7 +169,6 @@ namespace test
         m_translation = { 1.f, 0.f, 0.f };
         m_scaling = { 1.f, 1.f, 1.f };
 
-
         m_Quat = std::make_unique<Maths::Quaternion>(m_angleRot, m_rotationAxis);
 
         m_Camera = std::make_unique<Camera>();
@@ -170,15 +186,35 @@ namespace test
 
         m_MVP = Maths::identity();
         
-
-        //Set Uniforms
+        m_ModelCubeShader = std::make_unique <Shader>("res/shaders/TestLighting.shader");
         m_ModelCubeShader->Bind();
         SetShaderUniforms();
         m_ModelCubeShader->Unbind();
 
+
+        m_TextureCubeShader = std::make_unique <Shader>("res/shaders/TestLighting-Texture.shader");
+        m_TextureCubeShader->Bind();
+        m_Texture = std::make_unique<Texture>("res/textures/water_abstract.jpg");
+        m_Texture1 = std::make_unique<Texture>("res/textures/grass.jpg");
+        m_Texture->Bind();
+        m_Texture1->Bind(1);
+        int diffuseTextureLocations[2] = { 0, 1 };
+        m_TextureCubeShader->SetUniform1iv("u_material.Diffuse", diffuseTextureLocations);
+        SetTextureShaderUniforms();
+        m_Texture->Unbind();
+        m_Texture1->Unbind();
+        m_TextureCubeShader->Unbind();
+        
+
+        m_LightCubeShader = std::make_unique <Shader>("res/shaders/LightCube.shader");
+
+        //Set Uniforms
+        
+
+        
+
         // clear buffers
         m_ModelCubeVAO->Unbind();
-        
         m_LightCubeVAO->Unbind();
         m_VBO->Unbind();
         
@@ -241,6 +277,12 @@ namespace test
         m_ModelCubeShader->SetUniformMatrix4fv("u_NormalMatrix", normalMatrix);
         m_ModelCubeShader->SetUniform3fv("u_CameraPos", m_Camera->GetPosition());
         m_ModelCubeShader->Unbind();
+
+        m_TextureCubeShader->Bind();
+        m_TextureCubeShader->SetUniformMatrix4fv("u_ModelMatrix", modelMatrix);
+        m_TextureCubeShader->SetUniformMatrix4fv("u_NormalMatrix", normalMatrix);
+        m_TextureCubeShader->SetUniform3fv("u_CameraPos", m_Camera->GetPosition());
+        m_TextureCubeShader->Unbind();
     }
 
 	void TestLighting::OnRender()
@@ -248,22 +290,31 @@ namespace test
 
         m_Renderer.Clear();
 
-        m_ModelCubeShader->Bind();
-        SetShaderUniforms();
-        m_ModelCubeShader->Unbind();
+        if (m_ActiveMaterial->Textured)
+        {
+            m_TextureCubeShader->Bind();
+            m_Texture->Bind();
+            m_Texture1->Bind(1);             
+            SetTextureShaderUniforms();
+            m_Renderer.DrawCube(*m_ModelCubeVAO, *m_TextureCubeShader);
 
+            m_TextureCubeShader->Unbind();
+        }
+        else
+        {
+            m_ModelCubeShader->Bind();
+            SetShaderUniforms();
+            m_Renderer.DrawCube(*m_ModelCubeVAO, *m_ModelCubeShader);
+            m_ModelCubeShader->Unbind();
+        }
+            
         m_LightCubeShader->Bind();
-        m_LightCubeShader->Unbind();
-
-        m_Renderer.DrawCube(*m_ModelCubeVAO, *m_ModelCubeShader);
         m_Renderer.DrawCube(*m_LightCubeVAO, *m_LightCubeShader);
 	}
 	
 	void TestLighting::OnImGUIRender()
 	{
         Globals& global = Globals::Get();
-        bool menu = true;
-        bool munu = true;
 
         if (ImGui::CollapsingHeader("Test Lighting", ImGuiTreeNodeFlags_DefaultOpen))
         {
@@ -309,7 +360,11 @@ namespace test
                 if (ImGui::ColorButton("White Plastic", { 0.55f, 0.55f, 0.55f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["White Plastic"];
                 ImGui::SameLine();
                 if (ImGui::ColorButton("Black Rubber", { 0.01f, 0.01f, 0.01f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Black Rubber"];
-                if (m_ActiveMaterial->Preset)
+
+                if (ImGui::ColorButton("Water", { 0.f, 0.45f, 1.f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["Water"]; ImGui::SameLine();
+                if (ImGui::ColorButton("Grass", { 0.f, 1.f, 0.1f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["Grass"];
+
+                if (m_ActiveMaterial->Preset && !m_ActiveMaterial->Textured)
                 {
                     ImGui::Text("Ambient: %.4f %.4f %.4f", m_ActiveMaterial->Ambient.r, m_ActiveMaterial->Ambient.g, m_ActiveMaterial->Ambient.b);
                     ImGui::Text("Diffuse: %.4f %.4f %.4f", m_ActiveMaterial->Diffuse.r, m_ActiveMaterial->Diffuse.g, m_ActiveMaterial->Diffuse.b);
@@ -318,7 +373,7 @@ namespace test
                     //ImGui::SliderFloat("Roughness")
                     //ImGui::SliderFloat("Opacity")  
                 }
-                else
+                else if(!m_ActiveMaterial->Preset)
                 {
                     ImGui::ColorEdit3("Diffuse", m_ActiveMaterial->Diffuse.e);
                     ImGui::ColorEdit3("Specular", m_ActiveMaterial->Specular.e);
@@ -395,10 +450,34 @@ namespace test
 
         m_ModelCubeShader->SetUniform1i("u_ShadingTechnique", m_ShadingTechnique);
         m_ModelCubeShader->SetUniform1i("u_ReflectionModel", m_ReflectionModel);
+
         m_ModelCubeShader->SetUniform1f("u_light.K_d", m_light.K_d);
         m_ModelCubeShader->SetUniform1f("u_light.K_s", m_light.K_s);
         m_ModelCubeShader->SetUniform3fv("u_light.Position", m_light.Position);
         m_ModelCubeShader->SetUniform3fv("u_light.Diffuse", m_light.Diffuse);
         m_ModelCubeShader->SetUniform3fv("u_light.Specular", m_light.Specular);
+    }
+
+    void TestLighting::SetTextureShaderUniforms()
+    {
+        m_TextureCubeShader->SetUniformMatrix4fv("u_MVP", m_MVP);
+
+        m_TextureCubeShader->SetUniform1ui("u_material.TexID", m_ActiveMaterial->TexID);
+        
+        m_TextureCubeShader->SetUniform3fv("u_material.Specular", m_ActiveMaterial->Specular);
+        m_TextureCubeShader->SetUniform1f("u_material.Shininess", m_ActiveMaterial->Shininess);
+
+        m_TextureCubeShader->SetUniform3fv("u_Intensity.Ambient", m_AmbientIntensity);
+        m_TextureCubeShader->SetUniform3fv("u_Intensity.Diffuse", m_DiffusionIntensity);
+        m_TextureCubeShader->SetUniform3fv("u_Intensity.Specular", m_SpecularIntensity);
+
+        m_TextureCubeShader->SetUniform1i("u_ShadingTechnique", m_ShadingTechnique);
+        m_TextureCubeShader->SetUniform1i("u_ReflectionModel", m_ReflectionModel);
+
+        m_TextureCubeShader->SetUniform1f("u_light.K_d", m_light.K_d);
+        m_TextureCubeShader->SetUniform1f("u_light.K_s", m_light.K_s);
+        m_TextureCubeShader->SetUniform3fv("u_light.Position", m_light.Position);
+        m_TextureCubeShader->SetUniform3fv("u_light.Diffuse", m_light.Diffuse);
+        m_TextureCubeShader->SetUniform3fv("u_light.Specular", m_light.Specular);
     }
 }
