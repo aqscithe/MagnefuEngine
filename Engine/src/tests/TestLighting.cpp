@@ -192,12 +192,13 @@ namespace test
 
 	void TestLighting::OnUpdate(GLFWwindow* window, float deltaTime)
 	{
-        Globals& global = Globals::Get();
+        UpdateLights();
+        UpdateMVP();
+        m_Camera->ProcessInput(window, deltaTime);
+	}
 
-        m_bottom = -m_top;
-        m_right = m_top * m_aspectRatio;
-        m_left = -m_right;
-
+    void TestLighting::UpdateLights()
+    {
         float moveRate = .000000001;
         float moveScale = 1.5f;  // 1 means default sine wave of -1 to 1
         float moveAdjustment = 1.f;
@@ -206,13 +207,21 @@ namespace test
         //m_light.Diffuse.r = 0.5f + Maths::sin(std::chrono::high_resolution_clock::now().time_since_epoch().count() * moveRate) * 0.4f;
         //m_light.Diffuse.g = 0.5f + Maths::sin(std::chrono::high_resolution_clock::now().time_since_epoch().count() * moveRate) * 0.5f;
         //m_light.Diffuse.b = 0.5f + Maths::sin(std::chrono::high_resolution_clock::now().time_since_epoch().count() * .0000000001f) * 0.2f;
+    }
+
+    void TestLighting::UpdateMVP()
+    {
+        Globals& global = Globals::Get();
+
+        m_bottom = -m_top;
+        m_right = m_top * m_aspectRatio;
+        m_left = -m_right;
 
         // Cube Matrix Update
         Maths::mat4 modelMatrix = Maths::translate(m_translation) * m_Quat->UpdateRotMatrix(m_angleRot, m_rotationAxis) * Maths::scale(m_scaling);
         m_Camera->CalculateView();
         Maths::mat4 projMatrix = m_IsOrtho ? Maths::orthographic(m_left, m_right, m_bottom, m_top, m_near, m_far)
             : Maths::perspective(Maths::toRadians(global.fovY), m_aspectRatio, m_near, m_far);
-
         m_MVP = projMatrix * m_Camera->GetView() * modelMatrix;
 
         // Light Matrix Update
@@ -221,23 +230,18 @@ namespace test
         m_LightCubeShader->SetUniformMatrix4fv("u_MVP", lightCubeMVP);
         m_LightCubeShader->Unbind();
 
-
-
         // for accurate lighting when model isn't scaled uniformly
         Maths::mat4 inverted;
         Maths::mat4 normalMatrix = Maths::identity();
-        if(Maths::invert(modelMatrix.e, inverted.e))
-             normalMatrix = Maths::transpose(inverted);
+        if (Maths::invert(modelMatrix.e, inverted.e))
+            normalMatrix = Maths::transpose(inverted);
 
         m_ModelCubeShader->Bind();
         m_ModelCubeShader->SetUniformMatrix4fv("u_ModelMatrix", modelMatrix);
         m_ModelCubeShader->SetUniformMatrix4fv("u_NormalMatrix", normalMatrix);
         m_ModelCubeShader->SetUniform3fv("u_CameraPos", m_Camera->GetPosition());
         m_ModelCubeShader->Unbind();
-
-
-        m_Camera->ProcessInput(window, deltaTime);
-	}
+    }
 
 	void TestLighting::OnRender()
 	{

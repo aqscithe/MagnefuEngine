@@ -63,6 +63,8 @@ namespace test
 			void OnImGUIRender()           override;
 
 		private:
+			void UpdateLights();
+			void UpdateMVP();
 			void SetShaderUniforms();
 
 			Light m_light;

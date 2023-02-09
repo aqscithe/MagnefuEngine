@@ -216,9 +216,10 @@ int main()
             glfwSwapBuffers(window);
         }
 
-        delete activeTest;
         if (activeTest != testMenu)
             delete testMenu;
+        delete activeTest;
+        
         
     }
     // Cleanup
