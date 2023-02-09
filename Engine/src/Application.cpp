@@ -185,7 +185,6 @@ int main()
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
             
-
             if (activeTest)
             {
                 activeTest->OnUpdate(window, std::chrono::duration<float>(elapsedTime).count());
