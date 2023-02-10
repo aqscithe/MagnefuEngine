@@ -132,7 +132,7 @@ namespace test
                           { 1.f, 1.f, 1.f },
                           { 1.f, 1.f, 1.f },
                           { 1.f, 1.f, 1.f },
-                          128.f
+                          200.f
                         }
             },
             {"Grass", {
@@ -140,7 +140,7 @@ namespace test
                           { 1.f, 1.f, 1.f },
                           { 1.f, 1.f, 1.f },
                           { 1.f, 1.f, 1.f },
-                          32.f
+                          200.f
                         }
             }
         };
@@ -194,30 +194,31 @@ namespace test
 
         m_TextureCubeShader = std::make_unique <Shader>("res/shaders/TestLighting-Texture.shader");
         m_TextureCubeShader->Bind();
-        m_Texture = std::make_unique<Texture>("res/textures/water_abstract.jpg");
-        m_Texture1 = std::make_unique<Texture>("res/textures/grass.jpg");
-        m_Texture2 = std::make_unique<Texture>("res/textures/container_specular.png");
+        m_Texture = std::make_unique<Texture>("res/textures/starlights/starlights_d.jpg");
+        m_Texture1 = std::make_unique<Texture>("res/textures/darkmarble/dark-marbled-stone_d.jpg");
+        m_Texture2 = std::make_unique<Texture>("res/textures/starlights/starlights_s.jpg");
+        m_Texture3 = std::make_unique<Texture>("res/textures/darkmarble/dark-marbled-stone_s.jpg");
         m_Texture->Bind();
         m_Texture1->Bind(1);
         m_Texture2->Bind(2);
+        m_Texture3->Bind(3);
 
         int diffuseTextureLocations[2] = { 0, 1 };
         m_TextureCubeShader->SetUniform1iv("u_material.Diffuse", diffuseTextureLocations);
-        int specularTextureLocations[2] = { 2, 2 };
+        int specularTextureLocations[2] = { 2, 3 };
         m_TextureCubeShader->SetUniform1iv("u_material.Specular", specularTextureLocations);
 
         SetTextureShaderUniforms();
         m_Texture->Unbind();
         m_Texture1->Unbind();
+        m_Texture2->Unbind();
+        m_Texture3->Unbind();
         m_TextureCubeShader->Unbind();
         
 
         m_LightCubeShader = std::make_unique <Shader>("res/shaders/LightCube.shader");
 
         //Set Uniforms
-        
-
-        
 
         // clear buffers
         m_ModelCubeVAO->Unbind();
@@ -302,6 +303,7 @@ namespace test
             m_Texture->Bind();
             m_Texture1->Bind(1);  
             m_Texture2->Bind(2);
+            m_Texture3->Bind(3);
             SetTextureShaderUniforms();
             m_Renderer.DrawCube(*m_ModelCubeVAO, *m_TextureCubeShader);
 

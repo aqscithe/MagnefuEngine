@@ -644,9 +644,17 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\textures\container_specular.png" />
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_ao.jpg" />
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_d.jpg" />
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_n.jpg" />
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_s.jpg" />
     <Image Include="res\textures\grass.jpg" />
     <Image Include="res\textures\moon.png" />
     <Image Include="res\textures\pluto.png" />
+    <Image Include="res\textures\starlights\starlights_ao.jpg" />
+    <Image Include="res\textures\starlights\starlights_d.jpg" />
+    <Image Include="res\textures\starlights\starlights_n.jpg" />
+    <Image Include="res\textures\starlights\starlights_s.jpg" />
     <Image Include="res\textures\wall.jpg" />
     <Image Include="res\textures\water_abstract.jpg" />
   </ItemGroup>

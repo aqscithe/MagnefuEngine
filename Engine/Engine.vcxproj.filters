@@ -1459,5 +1459,29 @@
     <Image Include="res\textures\container_specular.png">
       <Filter>Fichiers de ressources</Filter>
     </Image>
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_ao.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_d.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_n.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_s.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\starlights\starlights_ao.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\starlights\starlights_d.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\starlights\starlights_n.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\starlights\starlights_s.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
   </ItemGroup>
 </Project>
