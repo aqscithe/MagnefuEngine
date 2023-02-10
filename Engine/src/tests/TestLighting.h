@@ -95,6 +95,7 @@ namespace test
 			std::unique_ptr<Shader> m_TextureCubeShader;
 			std::unique_ptr<Texture> m_Texture;
 			std::unique_ptr<Texture> m_Texture1;
+			std::unique_ptr<Texture> m_Texture2;
 
 
 			std::unique_ptr <Maths::Quaternion> m_Quat;

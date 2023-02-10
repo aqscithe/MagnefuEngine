@@ -196,10 +196,16 @@ namespace test
         m_TextureCubeShader->Bind();
         m_Texture = std::make_unique<Texture>("res/textures/water_abstract.jpg");
         m_Texture1 = std::make_unique<Texture>("res/textures/grass.jpg");
+        m_Texture2 = std::make_unique<Texture>("res/textures/container_specular.png");
         m_Texture->Bind();
         m_Texture1->Bind(1);
+        m_Texture2->Bind(2);
+
         int diffuseTextureLocations[2] = { 0, 1 };
         m_TextureCubeShader->SetUniform1iv("u_material.Diffuse", diffuseTextureLocations);
+        int specularTextureLocations[2] = { 2, 2 };
+        m_TextureCubeShader->SetUniform1iv("u_material.Specular", specularTextureLocations);
+
         SetTextureShaderUniforms();
         m_Texture->Unbind();
         m_Texture1->Unbind();
@@ -294,7 +300,8 @@ namespace test
         {
             m_TextureCubeShader->Bind();
             m_Texture->Bind();
-            m_Texture1->Bind(1);             
+            m_Texture1->Bind(1);  
+            m_Texture2->Bind(2);
             SetTextureShaderUniforms();
             m_Renderer.DrawCube(*m_ModelCubeVAO, *m_TextureCubeShader);
 
@@ -464,7 +471,6 @@ namespace test
 
         m_TextureCubeShader->SetUniform1ui("u_material.TexID", m_ActiveMaterial->TexID);
         
-        m_TextureCubeShader->SetUniform3fv("u_material.Specular", m_ActiveMaterial->Specular);
         m_TextureCubeShader->SetUniform1f("u_material.Shininess", m_ActiveMaterial->Shininess);
 
         m_TextureCubeShader->SetUniform3fv("u_Intensity.Ambient", m_AmbientIntensity);

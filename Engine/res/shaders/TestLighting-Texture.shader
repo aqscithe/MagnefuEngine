@@ -10,7 +10,7 @@ struct Material
 {
 	unsigned int TexID;
 	sampler2D Diffuse[2];
-	vec3      Specular;
+	sampler2D Specular[2];
 	float     Shininess;
 	//float Roughness;
 	//float Opacity;
@@ -61,7 +61,7 @@ vec3 GetPhongReflection()
 	vec3 DiffuseLight = u_light.K_d * dot(LightVector, Normal) * u_light.Diffuse;
 	vec3 SpecularLight = u_light.K_s * pow(max(dot(ReflectionVector, ViewVector), 0.0), u_material.Shininess) * u_light.Specular;
 
-	return u_Intensity.Ambient * vec3(texture(u_material.Diffuse[u_material.TexID], v_TexCoords)) + DiffuseLight * u_Intensity.Diffuse * vec3(texture(u_material.Diffuse[u_material.TexID], v_TexCoords)) + SpecularLight * u_Intensity.Specular * u_material.Specular;
+	return u_Intensity.Ambient * vec3(texture(u_material.Diffuse[u_material.TexID], v_TexCoords)) + DiffuseLight * u_Intensity.Diffuse * vec3(texture(u_material.Diffuse[u_material.TexID], v_TexCoords)) + SpecularLight * u_Intensity.Specular * vec3(texture(u_material.Specular[u_material.TexID], TexCoords));
 }
 
 vec3 GetBlinnPhongReflection()
@@ -73,7 +73,7 @@ vec3 GetBlinnPhongReflection()
 	vec3 DiffuseLight = u_light.K_d * dot(LightVector, Normal) * u_light.Diffuse;
 	vec3 SpecularLight = u_light.K_s * pow(max(dot(Normal, HalfwayVector), 0.0), u_material.Shininess) * u_light.Specular;
 
-	return u_Intensity.Ambient * vec3(texture(u_material.Diffuse[u_material.TexID], v_TexCoords)) + DiffuseLight * u_Intensity.Diffuse * vec3(texture(u_material.Diffuse[u_material.TexID], v_TexCoords)) + SpecularLight * u_Intensity.Specular * u_material.Specular;
+	return u_Intensity.Ambient * vec3(texture(u_material.Diffuse[u_material.TexID], v_TexCoords)) + DiffuseLight * u_Intensity.Diffuse * vec3(texture(u_material.Diffuse[u_material.TexID], v_TexCoords)) + SpecularLight * u_Intensity.Specular * vec3(texture(u_material.Specular[u_material.TexID], TexCoords));
 }
 
 void main()
@@ -107,8 +107,8 @@ void main()
 struct Material 
 {
 	unsigned int TexID;
-	sampler2D Diffuse[2];
-	vec3      Specular;
+	sampler2D  Diffuse[2];
+	sampler2D  Specular[2];
 	float     Shininess;
 	//float Roughness;
 	//float Opacity;
@@ -158,7 +158,7 @@ vec3 GetPhongReflection()
 	vec3 ViewVector = normalize(u_CameraPos - FragPos);
 	vec3 SpecularLight = u_light.K_s * pow(max(dot(ReflectionVector, ViewVector), 0.0), u_material.Shininess) * u_light.Specular;
 
-	return u_Intensity.Ambient * vec3(texture(u_material.Diffuse[u_material.TexID], TexCoords)) + DiffuseLight * u_Intensity.Diffuse * vec3(texture(u_material.Diffuse[u_material.TexID], TexCoords)) + SpecularLight * u_Intensity.Specular * u_material.Specular;
+	return u_Intensity.Ambient * vec3(texture(u_material.Diffuse[u_material.TexID], TexCoords)) + DiffuseLight * u_Intensity.Diffuse * vec3(texture(u_material.Diffuse[u_material.TexID], TexCoords)) + SpecularLight * u_Intensity.Specular * vec3(texture(u_material.Specular[u_material.TexID], TexCoords));
 }
 
 vec3 GetBlinnPhongReflection()
@@ -170,7 +170,7 @@ vec3 GetBlinnPhongReflection()
 	vec3 DiffuseLight = u_light.K_d * dot(LightVector, Normal) * u_light.Diffuse;
 	vec3 SpecularLight = u_light.K_s * pow(max(dot(Normal, HalfwayVector), 0.0), u_material.Shininess) * u_light.Specular;
 
-	return u_Intensity.Ambient * vec3(texture(u_material.Diffuse[u_material.TexID], TexCoords)) + DiffuseLight * u_Intensity.Diffuse * vec3(texture(u_material.Diffuse[u_material.TexID], TexCoords)) + SpecularLight * u_Intensity.Specular * u_material.Specular;
+	return u_Intensity.Ambient * vec3(texture(u_material.Diffuse[u_material.TexID], TexCoords)) + DiffuseLight * u_Intensity.Diffuse * vec3(texture(u_material.Diffuse[u_material.TexID], TexCoords)) + SpecularLight * u_Intensity.Specular * vec3(texture(u_material.Specular[u_material.TexID], TexCoords));
 }
 
 void main()

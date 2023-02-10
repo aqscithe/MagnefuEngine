@@ -643,6 +643,7 @@
     <ClInclude Include="src\tests\TestLighting.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\textures\container_specular.png" />
     <Image Include="res\textures\grass.jpg" />
     <Image Include="res\textures\moon.png" />
     <Image Include="res\textures\pluto.png" />

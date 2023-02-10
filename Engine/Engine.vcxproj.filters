@@ -1456,5 +1456,8 @@
     <Image Include="res\textures\grass.jpg">
       <Filter>Fichiers de ressources</Filter>
     </Image>
+    <Image Include="res\textures\container_specular.png">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
   </ItemGroup>
 </Project>
