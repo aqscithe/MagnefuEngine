@@ -55,6 +55,13 @@ out vec2 TexCoords;
 
 out vec3 ReflectionResult;
 
+
+float CalculateAttenuation()
+{
+	float distance = length(u_light.Position - FragPos);
+	return 1.0 / (u_light.Constant + u_light.Linear * distance + u_light.Quadratic * pow(distance, 2));
+}
+
 vec3 GetPhongReflection()
 {
 	vec3 LightVector = normalize(u_light.Position - FragPos);
@@ -68,7 +75,7 @@ vec3 GetPhongReflection()
 	vec3 Diffuse = DiffuseLight * u_Intensity.Diffuse * vec3(texture(u_material.Diffuse[u_material.TexID], TexCoords));
 	vec3 Specular = SpecularLight * u_Intensity.Specular * vec3(texture(u_material.Specular[u_material.TexID], TexCoords));
 
-	return Ambient + Diffuse + Specular;
+	return (Ambient + Diffuse + Specular) * CalculateAttenuation();
 }
 
 vec3 GetBlinnPhongReflection()
@@ -84,7 +91,7 @@ vec3 GetBlinnPhongReflection()
 	vec3 Diffuse = DiffuseLight * u_Intensity.Diffuse * vec3(texture(u_material.Diffuse[u_material.TexID], TexCoords));
 	vec3 Specular = SpecularLight * u_Intensity.Specular * vec3(texture(u_material.Specular[u_material.TexID], TexCoords));
 
-	return Ambient + Diffuse + Specular;
+	return (Ambient + Diffuse + Specular) * CalculateAttenuation();
 }
 
 void main()
@@ -162,6 +169,11 @@ in vec3 ReflectionResult;
 out vec4 FragColor;
 
 
+float CalculateAttenuation()
+{
+	float distance = length(u_light.Position - FragPos);
+	return 1.0 / (u_light.Constant + u_light.Linear * distance + u_light.Quadratic * pow(distance, 2));
+}
 
 vec3 GetPhongReflection()
 {
@@ -176,7 +188,7 @@ vec3 GetPhongReflection()
 	vec3 Diffuse = DiffuseLight * u_Intensity.Diffuse * vec3(texture(u_material.Diffuse[u_material.TexID], TexCoords));
 	vec3 Specular = SpecularLight * u_Intensity.Specular * vec3(texture(u_material.Specular[u_material.TexID], TexCoords));
 
-	return Ambient + Diffuse + Specular;
+	return (Ambient + Diffuse + Specular) * CalculateAttenuation();
 }
 
 vec3 GetBlinnPhongReflection()
@@ -192,7 +204,7 @@ vec3 GetBlinnPhongReflection()
 	vec3 Diffuse = DiffuseLight * u_Intensity.Diffuse * vec3(texture(u_material.Diffuse[u_material.TexID], TexCoords));
 	vec3 Specular = SpecularLight * u_Intensity.Specular * vec3(texture(u_material.Specular[u_material.TexID], TexCoords));
 
-	return Ambient + Diffuse + Specular;
+	return (Ambient + Diffuse + Specular) * CalculateAttenuation();
 }
 
 void main()
