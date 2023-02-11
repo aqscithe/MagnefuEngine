@@ -168,9 +168,12 @@ namespace test
         m_ReflectionModel = static_cast<int>(ReflectionModel::PHONG);
 
 
-        m_light.Position = { -0.27f, 0.67f, 1.56f };
-        m_light.Diffuse = { 1.f, 1.f, 1.f};
-        m_light.Specular = { 1.f, 0.f, 1.f };
+        m_PointLight.Position = { -0.27f, 0.67f, 1.56f };
+        m_PointLight.Diffuse = { 1.f, 1.f, 1.f};
+        m_PointLight.Specular = { 1.f, 0.f, 1.f };
+        m_PointLight.constant = 1.f;
+        m_PointLight.linear = 0.7f;
+        m_PointLight.quadratic = 1.8f;
         m_lightScaling = { 0.1f, 0.1f, 0.1f };
 
         
@@ -256,10 +259,10 @@ namespace test
         float moveScale = 1.5f;  // 1 means default sine wave of -1 to 1
         float moveAdjustment = 1.f;
 
-        m_light.Position.x = moveAdjustment + Maths::sin(std::chrono::high_resolution_clock::now().time_since_epoch().count() * moveRate) * moveScale;
-        //m_light.Diffuse.r = 0.5f + Maths::sin(std::chrono::high_resolution_clock::now().time_since_epoch().count() * moveRate) * 0.4f;
-        //m_light.Diffuse.g = 0.5f + Maths::sin(std::chrono::high_resolution_clock::now().time_since_epoch().count() * moveRate) * 0.5f;
-        //m_light.Diffuse.b = 0.5f + Maths::sin(std::chrono::high_resolution_clock::now().time_since_epoch().count() * .0000000001f) * 0.2f;
+        m_PointLight.Position.x = moveAdjustment + Maths::sin(std::chrono::high_resolution_clock::now().time_since_epoch().count() * moveRate) * moveScale;
+        //m_PointLight.Diffuse.r = 0.5f + Maths::sin(std::chrono::high_resolution_clock::now().time_since_epoch().count() * moveRate) * 0.4f;
+        //m_PointLight.Diffuse.g = 0.5f + Maths::sin(std::chrono::high_resolution_clock::now().time_since_epoch().count() * moveRate) * 0.5f;
+        //m_PointLight.Diffuse.b = 0.5f + Maths::sin(std::chrono::high_resolution_clock::now().time_since_epoch().count() * .0000000001f) * 0.2f;
     }
 
     void TestLighting::UpdateMVP()
@@ -278,7 +281,7 @@ namespace test
         m_MVP = projMatrix * m_Camera->GetView() * modelMatrix;
 
         // Light Matrix Update
-        Maths::mat4 lightCubeMVP = projMatrix * m_Camera->GetView() * Maths::translate(m_light.Position) * Maths::scale(m_lightScaling);
+        Maths::mat4 lightCubeMVP = projMatrix * m_Camera->GetView() * Maths::translate(m_PointLight.Position) * Maths::scale(m_lightScaling);
         m_LightCubeShader->Bind();
         m_LightCubeShader->SetUniformMatrix4fv("u_MVP", lightCubeMVP);
         m_LightCubeShader->Unbind();
@@ -409,10 +412,14 @@ namespace test
 
             if (ImGui::TreeNode("Lights"))
             {
-                ImGui::SliderFloat3("Light Position", m_light.Position.e, -10.f, 10.f);
+                ImGui::SliderFloat3("Light Position", m_PointLight.Position.e, -10.f, 10.f);
                 ImGui::SliderFloat3("Light Scale", m_lightScaling.e, -10.f, 10.f);
-                ImGui::ColorEdit3("Diffuse Color", m_light.Diffuse.e);
-                ImGui::ColorEdit3("Specular Color", m_light.Specular.e);
+                ImGui::ColorEdit3("Diffuse Color", m_PointLight.Diffuse.e);
+                ImGui::ColorEdit3("Specular Color", m_PointLight.Specular.e);
+                ImGui::Text("Attenuation Controls");
+                ImGui::Text("Att Constant (Should be 1.0): %f", m_PointLight.constant);
+                ImGui::SliderFloat("Att Linear", &m_PointLight.linear, 0.f, 1.f);
+                ImGui::SliderFloat("Att Quadratic", &m_PointLight.quadratic, 0.f, 2.f);
 
                 ImGui::TreePop();
             }
@@ -473,9 +480,12 @@ namespace test
         m_ModelCubeShader->SetUniform1i("u_ReflectionModel",  m_ReflectionModel);
 
 
-        m_ModelCubeShader->SetUniform3fv("u_light.Position", m_light.Position);
-        m_ModelCubeShader->SetUniform3fv("u_light.Diffuse",  m_light.Diffuse);
-        m_ModelCubeShader->SetUniform3fv("u_light.Specular", m_light.Specular);
+        m_ModelCubeShader->SetUniform3fv("u_light.Position", m_PointLight.Position);
+        m_ModelCubeShader->SetUniform3fv("u_light.Diffuse",  m_PointLight.Diffuse);
+        m_ModelCubeShader->SetUniform3fv("u_light.Specular", m_PointLight.Specular);
+        m_ModelCubeShader->SetUniform1f("u_light.Constant",  m_PointLight.constant);
+        m_ModelCubeShader->SetUniform1f("u_light.Linear",    m_PointLight.linear);
+        m_ModelCubeShader->SetUniform1f("u_light.Quadratic", m_PointLight.quadratic);
     }
 
     void TestLighting::SetTextureShaderUniforms()
@@ -491,12 +501,15 @@ namespace test
         m_TextureCubeShader->SetUniform3fv("u_Intensity.Ambient",  m_AmbientIntensity);
         m_TextureCubeShader->SetUniform3fv("u_Intensity.Diffuse",  m_DiffusionIntensity);
         m_TextureCubeShader->SetUniform3fv("u_Intensity.Specular", m_SpecularIntensity);
+        m_TextureCubeShader->SetUniform1f("u_light.Constant",      m_PointLight.constant);
+        m_TextureCubeShader->SetUniform1f("u_light.Linear",        m_PointLight.linear);
+        m_TextureCubeShader->SetUniform1f("u_light.Quadratic",     m_PointLight.quadratic);
 
         m_TextureCubeShader->SetUniform1i("u_ShadingTechnique", m_ShadingTechnique);
         m_TextureCubeShader->SetUniform1i("u_ReflectionModel",  m_ReflectionModel);
 
-        m_TextureCubeShader->SetUniform3fv("u_light.Position", m_light.Position);
-        m_TextureCubeShader->SetUniform3fv("u_light.Diffuse",  m_light.Diffuse);
-        m_TextureCubeShader->SetUniform3fv("u_light.Specular", m_light.Specular);
+        m_TextureCubeShader->SetUniform3fv("u_light.Position", m_PointLight.Position);
+        m_TextureCubeShader->SetUniform3fv("u_light.Diffuse",  m_PointLight.Diffuse);
+        m_TextureCubeShader->SetUniform3fv("u_light.Specular", m_PointLight.Specular);
     }
 }

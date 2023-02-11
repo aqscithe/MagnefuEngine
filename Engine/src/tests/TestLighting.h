@@ -22,15 +22,17 @@ namespace test
 {
 	struct Light
 	{
-		Maths::vec3 Position;
 		Maths::vec3 Diffuse;
 		Maths::vec3 Specular;
+		float constant;
+		float linear;
+		float quadratic;
 	};
 
-	//struct DirectionalLight : public Light
-	//{
-	//
-	//};
+	struct PointLight : public Light
+	{
+		Maths::vec3 Position;
+	};
 
 	enum class ShadingTechnique
 	{
@@ -75,7 +77,7 @@ namespace test
 			void SetShaderUniforms();
 			void SetTextureShaderUniforms();
 
-			Light m_light;
+			PointLight m_PointLight;
 			Maths::vec3 m_lightScaling;
 
 

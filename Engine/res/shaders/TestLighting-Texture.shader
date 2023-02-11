@@ -34,6 +34,9 @@ struct Light
 	vec3  Position;
 	vec3  Diffuse;
 	vec3  Specular;
+	float Constant;
+	float Linear;
+	float Quadratic;
 };
 
 uniform Light u_light;
@@ -139,6 +142,9 @@ struct Light
 	vec3  Position;
 	vec3  Diffuse;
 	vec3  Specular;
+	float Constant;
+	float Linear;
+	float Quadratic;
 };
 
 uniform Light u_light;
