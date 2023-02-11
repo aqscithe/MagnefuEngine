@@ -60,6 +60,7 @@ namespace test
                          { 1.f, 1.f, 1.f },
                          { 1.f, 1.f, 1.f },
                          { 1.f, 1.f, 1.f },
+                         1.f, 1.f,
                          32.f
                        }
             },
@@ -68,6 +69,7 @@ namespace test
                           { 0.0215f, 0.1745f, 0.0215f },
                           { 0.07568f, 0.61424f, 0.07568f},
                           { 0.633f, 0.727811f, 0.633f },
+                          1.f, 1.f,
                           0.6f * 128
                         }
             },
@@ -76,6 +78,7 @@ namespace test
                           { 0.135f, 0.2225f, 0.1575f },
                           { 0.54f, 0.89f, 0.63f},
                           { 0.316228f, 0.316228f, 0.316228f },
+                          1.f, 1.f,
                           0.1f * 128
                         }
             },
@@ -84,6 +87,7 @@ namespace test
                           { 0.05375f, 0.05f, 0.06625f },
                           { 0.18275f, 0.17f, 0.22525f},
                           { 0.332741f, 0.328634f, 0.346435f },
+                          1.f, 1.f,
                           0.3f * 128
                         }
             },
@@ -92,6 +96,7 @@ namespace test
                           { 0.25f, 0.20725f, 0.20725f },
                           { 1.f, 0.829f, 0.829f},
                           { 0.296648f, 0.296648f, 0.296648f },
+                          1.f, 1.f,
                           0.088f * 128
                         }
             },
@@ -100,6 +105,7 @@ namespace test
                           { 0.1745f, 0.01175f, 0.01175f },
                           { 0.61424f, 0.04136f, 0.04136f},
                           { 0.727811f, 0.626959f, 0.626959f },
+                          1.f, 1.f,
                           0.6f * 128
                         }
             },
@@ -108,6 +114,7 @@ namespace test
                           { 0.25f, 0.25f, 0.25f },
                           { 0.4f, 0.4f, 0.4f},
                           { 0.774597f, 0.774597f, 0.774597f },
+                          1.f, 1.f,
                           0.6f * 128
                         }
             },
@@ -116,6 +123,7 @@ namespace test
                           { 0.f, 0.f, 0.f },
                           { 0.55f, 0.55f, 0.55f},
                           { 0.70f, 0.70f, 0.70f },
+                          1.f, 1.f,
                           0.25f * 128
                         }
             },
@@ -124,6 +132,7 @@ namespace test
                           { 0.02f, 0.02f, 0.02f },
                           { 0.01f, 0.01f, 0.01f},
                           { 0.4f, 0.4f, 0.4f },
+                          1.f, 1.f,
                           0.078125f * 128
                         }
             },
@@ -132,6 +141,7 @@ namespace test
                           { 1.f, 1.f, 1.f },
                           { 1.f, 1.f, 1.f },
                           { 1.f, 1.f, 1.f },
+                          1.f, 1.f,
                           200.f
                         }
             },
@@ -140,6 +150,7 @@ namespace test
                           { 1.f, 1.f, 1.f },
                           { 1.f, 1.f, 1.f },
                           { 1.f, 1.f, 1.f },
+                          1.f, 1.f,
                           200.f
                         }
             }
@@ -156,8 +167,7 @@ namespace test
         m_ShadingTechnique = static_cast<int>(ShadingTechnique::PHONG);
         m_ReflectionModel = static_cast<int>(ReflectionModel::PHONG);
 
-        m_light.K_d = 1.f;
-        m_light.K_s = 1.f;
+
         m_light.Position = { -0.27f, 0.67f, 1.56f };
         m_light.Diffuse = { 1.f, 1.f, 1.f};
         m_light.Specular = { 1.f, 0.f, 1.f };
@@ -391,6 +401,8 @@ namespace test
                 ImGui::SliderFloat3("Ambient Intensity", m_AmbientIntensity.e, 0.f, 1.f);
                 ImGui::SliderFloat3("Diffuse Intensity", m_DiffusionIntensity.e, 0.f, 1.f);
                 ImGui::SliderFloat3("Specular Intensity", m_SpecularIntensity.e, 0.f, 1.f);
+                ImGui::SliderFloat("Diffuse & Ambient Strength", &m_ActiveMaterial->K_d, 0.f, 1.f);
+                ImGui::SliderFloat("Specular Strength", &m_ActiveMaterial->K_s, 0.f, 1.f);
                               
                 ImGui::TreePop();
             }
@@ -399,9 +411,7 @@ namespace test
             {
                 ImGui::SliderFloat3("Light Position", m_light.Position.e, -10.f, 10.f);
                 ImGui::SliderFloat3("Light Scale", m_lightScaling.e, -10.f, 10.f);
-                ImGui::SliderFloat("Diffuse Strength", &m_light.K_d, 0.f, 1.f);
                 ImGui::ColorEdit3("Diffuse Color", m_light.Diffuse.e);
-                ImGui::SliderFloat("Specular Strength", &m_light.K_s, 0.f, 1.f);
                 ImGui::ColorEdit3("Specular Color", m_light.Specular.e);
 
                 ImGui::TreePop();
@@ -448,22 +458,23 @@ namespace test
     {
         m_ModelCubeShader->SetUniformMatrix4fv("u_MVP", m_MVP);
 
-        m_ModelCubeShader->SetUniform3fv("u_material.Ambient", m_ActiveMaterial->Ambient);
-        m_ModelCubeShader->SetUniform3fv("u_material.Diffuse", m_ActiveMaterial->Diffuse);
+        m_ModelCubeShader->SetUniform3fv("u_material.Ambient",  m_ActiveMaterial->Ambient);
+        m_ModelCubeShader->SetUniform3fv("u_material.Diffuse",  m_ActiveMaterial->Diffuse);
         m_ModelCubeShader->SetUniform3fv("u_material.Specular", m_ActiveMaterial->Specular);
         m_ModelCubeShader->SetUniform1f("u_material.Shininess", m_ActiveMaterial->Shininess);
+        m_ModelCubeShader->SetUniform1f("u_material.K_d",       m_ActiveMaterial->K_d);
+        m_ModelCubeShader->SetUniform1f("u_material.K_s",       m_ActiveMaterial->K_s);
 
-        m_ModelCubeShader->SetUniform3fv("u_Intensity.Ambient", m_AmbientIntensity);
-        m_ModelCubeShader->SetUniform3fv("u_Intensity.Diffuse", m_DiffusionIntensity);
+        m_ModelCubeShader->SetUniform3fv("u_Intensity.Ambient",  m_AmbientIntensity);
+        m_ModelCubeShader->SetUniform3fv("u_Intensity.Diffuse",  m_DiffusionIntensity);
         m_ModelCubeShader->SetUniform3fv("u_Intensity.Specular", m_SpecularIntensity);
 
         m_ModelCubeShader->SetUniform1i("u_ShadingTechnique", m_ShadingTechnique);
-        m_ModelCubeShader->SetUniform1i("u_ReflectionModel", m_ReflectionModel);
+        m_ModelCubeShader->SetUniform1i("u_ReflectionModel",  m_ReflectionModel);
 
-        m_ModelCubeShader->SetUniform1f("u_light.K_d", m_light.K_d);
-        m_ModelCubeShader->SetUniform1f("u_light.K_s", m_light.K_s);
+
         m_ModelCubeShader->SetUniform3fv("u_light.Position", m_light.Position);
-        m_ModelCubeShader->SetUniform3fv("u_light.Diffuse", m_light.Diffuse);
+        m_ModelCubeShader->SetUniform3fv("u_light.Diffuse",  m_light.Diffuse);
         m_ModelCubeShader->SetUniform3fv("u_light.Specular", m_light.Specular);
     }
 
@@ -474,18 +485,18 @@ namespace test
         m_TextureCubeShader->SetUniform1ui("u_material.TexID", m_ActiveMaterial->TexID);
         
         m_TextureCubeShader->SetUniform1f("u_material.Shininess", m_ActiveMaterial->Shininess);
+        m_TextureCubeShader->SetUniform1f("u_material.K_d",       m_ActiveMaterial->K_d);
+        m_TextureCubeShader->SetUniform1f("u_material.K_s",       m_ActiveMaterial->K_s);
 
-        m_TextureCubeShader->SetUniform3fv("u_Intensity.Ambient", m_AmbientIntensity);
-        m_TextureCubeShader->SetUniform3fv("u_Intensity.Diffuse", m_DiffusionIntensity);
+        m_TextureCubeShader->SetUniform3fv("u_Intensity.Ambient",  m_AmbientIntensity);
+        m_TextureCubeShader->SetUniform3fv("u_Intensity.Diffuse",  m_DiffusionIntensity);
         m_TextureCubeShader->SetUniform3fv("u_Intensity.Specular", m_SpecularIntensity);
 
         m_TextureCubeShader->SetUniform1i("u_ShadingTechnique", m_ShadingTechnique);
-        m_TextureCubeShader->SetUniform1i("u_ReflectionModel", m_ReflectionModel);
+        m_TextureCubeShader->SetUniform1i("u_ReflectionModel",  m_ReflectionModel);
 
-        m_TextureCubeShader->SetUniform1f("u_light.K_d", m_light.K_d);
-        m_TextureCubeShader->SetUniform1f("u_light.K_s", m_light.K_s);
         m_TextureCubeShader->SetUniform3fv("u_light.Position", m_light.Position);
-        m_TextureCubeShader->SetUniform3fv("u_light.Diffuse", m_light.Diffuse);
+        m_TextureCubeShader->SetUniform3fv("u_light.Diffuse",  m_light.Diffuse);
         m_TextureCubeShader->SetUniform3fv("u_light.Specular", m_light.Specular);
     }
 }

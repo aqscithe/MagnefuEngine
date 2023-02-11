@@ -22,12 +22,15 @@ namespace test
 {
 	struct Light
 	{
-		float K_d;
-		float K_s;
 		Maths::vec3 Position;
 		Maths::vec3 Diffuse;
 		Maths::vec3 Specular;
 	};
+
+	//struct DirectionalLight : public Light
+	//{
+	//
+	//};
 
 	enum class ShadingTechnique
 	{
@@ -43,13 +46,15 @@ namespace test
 
 	struct Material
 	{
-		bool Preset;
-		bool Textured;
+		bool		 Preset;
+		bool		 Textured;
 		unsigned int TexID;
-		Maths::vec3 Ambient;
-		Maths::vec3 Diffuse;
-		Maths::vec3 Specular;
-		float       Shininess;
+		Maths::vec3  Ambient;
+		Maths::vec3  Diffuse;
+		Maths::vec3  Specular;
+		float		 K_d;
+		float		 K_s;
+		float        Shininess;
 		//float       Roughness;
 		//float       Opacity;
 	};
