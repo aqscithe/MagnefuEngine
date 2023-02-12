@@ -18,6 +18,10 @@
 #include <memory>
 #include <vector>
 
+// TODO:
+// Implement ability to have multiple of each light type
+// Probably std::vector so num of lights is mutable
+
 namespace test
 {
 	struct Light
@@ -29,9 +33,19 @@ namespace test
 		float quadratic;
 	};
 
+	struct DirectionLight : public Light
+	{
+		Maths::vec3 Direction;
+	};
+
 	struct PointLight : public Light
 	{
 		Maths::vec3 Position;
+	};
+
+	struct SpotLight : public DirectionLight, PointLight
+	{
+		float cutoff;
 	};
 
 	enum class ShadingTechnique
@@ -79,6 +93,10 @@ namespace test
 
 			PointLight m_PointLight;
 			Maths::vec3 m_lightScaling;
+
+			std::vector<PointLight> m_PointLights;
+			std::vector<DirectionLight> m_DirectionLights;
+			std::vector<SpotLight> m_SpotLights;
 
 
 			Maths::vec3 m_AmbientIntensity;
