@@ -6,6 +6,7 @@ layout(location = 1) in vec3  v_Normal;
 layout(location = 2) in vec2  v_TexCoords;
 layout(location = 3) in float   v_TexID;
 
+// possible to update this value?
 #define NR_POINT_LIGHTS 2
 
 struct Material
