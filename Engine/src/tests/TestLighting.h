@@ -10,6 +10,7 @@
 #include "Camera.h"
 #include "VertexArray.h"
 #include "IndexBuffer.h"
+#include "Light.h"
 
 #include "Quaternion.h"
 #include "Vectors.h"
@@ -24,30 +25,6 @@
 
 namespace test
 {
-	struct Light
-	{
-		Maths::vec3 Diffuse;
-		Maths::vec3 Specular;
-		float constant;
-		float linear;
-		float quadratic;
-	};
-
-	struct DirectionLight : public Light
-	{
-		Maths::vec3 Direction;
-	};
-
-	struct PointLight : public Light
-	{
-		Maths::vec3 Position;
-	};
-
-	struct SpotLight : public DirectionLight, PointLight
-	{
-		float cutoff;
-	};
-
 	enum class ShadingTechnique
 	{
 		PHONG,
@@ -75,6 +52,7 @@ namespace test
 		//float       Opacity;
 	};
 
+
 	class TestLighting : public Test
 	{
 		public:
@@ -91,10 +69,11 @@ namespace test
 			void SetShaderUniforms();
 			void SetTextureShaderUniforms();
 
-			PointLight m_PointLight;
 			Maths::vec3 m_lightScaling;
 
-			std::vector<PointLight> m_PointLights;
+			std::vector<PointLightModel> m_PointLights;
+
+			//std::vector<PointLight> m_PointLights;
 			std::vector<DirectionLight> m_DirectionLights;
 			std::vector<SpotLight> m_SpotLights;
 

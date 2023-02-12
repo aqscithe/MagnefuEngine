@@ -6,6 +6,8 @@ layout(location = 1) in vec3  v_Normal;
 layout(location = 2) in vec2  v_TexCoords;
 layout(location = 3) in float   v_TexID;
 
+#define NR_POINT_LIGHTS 2
+
 struct Material
 {
 	unsigned int TexID;
@@ -29,7 +31,7 @@ struct Intensity
 uniform Intensity u_Intensity;
 
 
-struct Light
+struct PointLight
 {
 	vec3  Position;
 	vec3  Diffuse;
@@ -39,7 +41,8 @@ struct Light
 	float Quadratic;
 };
 
-uniform Light u_light;
+uniform PointLight u_PointLights[NR_POINT_LIGHTS];
+
 uniform vec3 u_CameraPos;
 
 uniform mat4 u_MVP;
@@ -52,39 +55,47 @@ uniform int u_ReflectionModel;
 out vec3 Normal;
 out vec3 FragPos;
 
-out vec3 ReflectionResult;
+out vec3 GoraudReflectionResult;
 
-float CalculateAttenuation()
+float CalculateAttenuation(int index)
 {
-	float distance = length(u_light.Position - FragPos);
-	return 1.0 / (u_light.Constant + u_light.Linear * distance + u_light.Quadratic * pow(distance, 2));
+	float distance = length(u_PointLights[index].Position - FragPos);
+	return 1.0 / (u_PointLights[index].Constant + u_PointLights[index].Linear * distance + u_PointLights[index].Quadratic * pow(distance, 2));
 }
 
-vec3 GetPhongReflection(vec3 LightVector, vec3 ViewVector)
+vec3 GetPhongReflection(vec3 LightVector, vec3 ViewVector, int index)
 {
 	vec3 ReflectionVector = 2 * dot(LightVector, Normal) * Normal - LightVector;
-	return  u_material.K_s * pow(max(dot(ReflectionVector, ViewVector), 0.0), u_material.Shininess) * u_light.Specular;
+	return  u_material.K_s * pow(max(dot(ReflectionVector, ViewVector), 0.0), u_material.Shininess) * u_PointLights[index].Specular;
 }
 
-vec3 GetBlinnPhongReflection(vec3 LightVector, vec3 ViewVector)
+vec3 GetBlinnPhongReflection(vec3 LightVector, vec3 ViewVector, int index)
 {
 	vec3 HalfwayVector = normalize(LightVector + ViewVector);
-	return  u_material.K_s * pow(max(dot(Normal, HalfwayVector), 0.0), u_material.Shininess) * u_light.Specular;
+	return  u_material.K_s * pow(max(dot(Normal, HalfwayVector), 0.0), u_material.Shininess) * u_PointLights[index].Specular;
 }
 
-vec3 GetReflectionLight()
+vec3 GetReflectionLight(int index)
 {
-	vec3 LightVector = normalize(u_light.Position - FragPos);
+	vec3 LightVector = normalize(u_PointLights[index].Position - FragPos);
 	vec3 ViewVector = normalize(u_CameraPos - FragPos);
 
-	vec3 DiffuseLight = u_material.K_d * dot(LightVector, Normal) * u_light.Diffuse;
-	vec3 SpecularLight = u_ReflectionModel == 0 ? GetPhongReflection(LightVector, ViewVector) : GetBlinnPhongReflection(LightVector, ViewVector);
+	vec3 DiffuseLight = u_material.K_d * dot(LightVector, Normal) * u_PointLights[index].Diffuse;
+	vec3 SpecularLight = u_ReflectionModel == 0 ? GetPhongReflection(LightVector, ViewVector, index) : GetBlinnPhongReflection(LightVector, ViewVector, index);
 
 	vec3 Ambient = u_Intensity.Ambient * u_material.Diffuse;
 	vec3 Diffuse = DiffuseLight * u_Intensity.Diffuse * u_material.Diffuse;
 	vec3 Specular = SpecularLight * u_Intensity.Specular * u_material.Specular;
 
-	return (Ambient + Diffuse + Specular) * CalculateAttenuation();
+	return (Ambient + Diffuse + Specular) * CalculateAttenuation(index);
+}
+
+vec3 CalculatePointLights()
+{
+	vec3 result;
+	for (int i = 0; i < NR_POINT_LIGHTS; i++)
+		result += GetReflectionLight(i);
+	return result;
 }
 
 void main()
@@ -94,8 +105,14 @@ void main()
 	Normal = mat3(u_NormalMatrix) * v_Normal;
 	FragPos = vec3(u_ModelMatrix * vec4(v_Position, 1.0));
 
+	vec3 result;
+
 	if (u_ShadingTechnique == 1)
-		ReflectionResult = GetReflectionLight();
+	{
+		result += CalculatePointLights();
+		GoraudReflectionResult = result;
+	}
+		
 }
 
 
@@ -104,6 +121,7 @@ void main()
 #shader fragment
 #version 450 core
 
+#define NR_POINT_LIGHTS 2
 
 struct Material
 {
@@ -127,7 +145,7 @@ struct Intensity
 };
 uniform Intensity u_Intensity;
 
-struct Light
+struct PointLight
 {
 	vec3  Position;
 	vec3  Diffuse;
@@ -137,7 +155,8 @@ struct Light
 	float Quadratic;
 };
 
-uniform Light u_light;
+uniform PointLight u_PointLights[NR_POINT_LIGHTS];
+
 uniform vec3 u_CameraPos;
 uniform int u_ShadingTechnique;
 uniform int u_ReflectionModel;
@@ -146,49 +165,61 @@ in vec4 VertexColor;
 in vec3 Normal;
 in vec3 FragPos;
 
-in vec3 ReflectionResult;
+in vec3 GoraudReflectionResult;
 
 out vec4 FragColor;
 
 
-float CalculateAttenuation()
+float CalculateAttenuation(int index)
 {
-	float distance = length(u_light.Position - FragPos);
-	return 1.0 / (u_light.Constant + u_light.Linear * distance + u_light.Quadratic * pow(distance, 2));
+	float distance = length(u_PointLights[index].Position - FragPos);
+	return 1.0 / (u_PointLights[index].Constant + u_PointLights[index].Linear * distance + u_PointLights[index].Quadratic * pow(distance, 2));
 }
 
 
-vec3 GetPhongReflection(vec3 LightVector, vec3 ViewVector)
+vec3 GetPhongReflection(vec3 LightVector, vec3 ViewVector, int index)
 {
 	vec3 ReflectionVector = 2 * dot(LightVector, Normal) * Normal - LightVector;
-	return  u_material.K_s * pow(max(dot(ReflectionVector, ViewVector), 0.0), u_material.Shininess) * u_light.Specular;
+	return  u_material.K_s * pow(max(dot(ReflectionVector, ViewVector), 0.0), u_material.Shininess) * u_PointLights[index].Specular;
 }
 
-vec3 GetBlinnPhongReflection(vec3 LightVector, vec3 ViewVector)
+vec3 GetBlinnPhongReflection(vec3 LightVector, vec3 ViewVector, int index)
 {
 	vec3 HalfwayVector = normalize(LightVector + ViewVector);
-	return  u_material.K_s * pow(max(dot(Normal, HalfwayVector), 0.0), u_material.Shininess) * u_light.Specular;
+	return  u_material.K_s * pow(max(dot(Normal, HalfwayVector), 0.0), u_material.Shininess) * u_PointLights[index].Specular;
 }
 
-vec3 GetReflectionLight()
+vec3 GetReflectionLight(int index)
 {
-	vec3 LightVector = normalize(u_light.Position - FragPos);
+	vec3 LightVector = normalize(u_PointLights[index].Position - FragPos);
 	vec3 ViewVector = normalize(u_CameraPos - FragPos);
 
-	vec3 DiffuseLight = u_material.K_d * dot(LightVector, Normal) * u_light.Diffuse;
-	vec3 SpecularLight = u_ReflectionModel == 0 ? GetPhongReflection(LightVector, ViewVector) : GetBlinnPhongReflection(LightVector, ViewVector);
+	vec3 DiffuseLight = u_material.K_d * dot(LightVector, Normal) * u_PointLights[index].Diffuse;
+	vec3 SpecularLight = u_ReflectionModel == 0 ? GetPhongReflection(LightVector, ViewVector, index) : GetBlinnPhongReflection(LightVector, ViewVector, index);
 
 	vec3 Ambient = u_Intensity.Ambient * u_material.Diffuse;
 	vec3 Diffuse = DiffuseLight * u_Intensity.Diffuse * u_material.Diffuse;
 	vec3 Specular = SpecularLight * u_Intensity.Specular * u_material.Specular;
 
-	return (Ambient + Diffuse + Specular) * CalculateAttenuation();
+	return (Ambient + Diffuse + Specular) * CalculateAttenuation(index);
+}
+
+vec3 CalculatePointLights()
+{
+	vec3 result;
+	for (int i = 0; i < NR_POINT_LIGHTS; i++)
+		result += GetReflectionLight(i);
+	return result;
 }
 
 void main()
 {
 	if (u_ShadingTechnique == 1)
-		FragColor = vec4(ReflectionResult, 1.0);
+		FragColor = vec4(GoraudReflectionResult, 1.0);
 	else
-		FragColor = vec4(GetReflectionLight(), 1.0);
+	{
+		vec3 result = CalculatePointLights();
+		FragColor = vec4(result, 1.0);
+	}
+		
 }
