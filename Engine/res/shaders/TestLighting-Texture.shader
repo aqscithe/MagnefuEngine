@@ -96,11 +96,25 @@ vec3 GetReflectionLight(int index)
 		
 }
 
+vec3 CalculateDirLights()
+{
+	vec3 result = vec3(0.0, 0.0, 0.0);
+	
+	return result;
+}
+
 vec3 CalculatePointLights()
 {
 	vec3 result;
 	for (int i = 0; i < NR_POINT_LIGHTS; i++)
 		result += GetReflectionLight(i);
+	return result;
+}
+
+vec3 CalculateSpotLights()
+{
+	vec3 result = vec3(0.0, 0.0, 0.0);
+
 	return result;
 }
 
@@ -116,7 +130,9 @@ void main()
 
 	if (u_ShadingTechnique == 1)
 	{
+		result += CalculateDirLights();
 		result += CalculatePointLights();
+		result += CalculateSpotLights();
 		GoraudReflectionResult = result;
 	}
 }
@@ -215,11 +231,25 @@ vec3 GetReflectionLight(int index)
 
 }
 
+vec3 CalculateDirLights()
+{
+	vec3 result = vec3(0.0, 0.0, 0.0);
+
+	return result;
+}
+
 vec3 CalculatePointLights()
 {
 	vec3 result;
 	for (int i = 0; i < NR_POINT_LIGHTS; i++)
 		result += GetReflectionLight(i);
+	return result;
+}
+
+vec3 CalculateSpotLights()
+{
+	vec3 result = vec3(0.0, 0.0, 0.0);
+
 	return result;
 }
 
@@ -230,7 +260,9 @@ void main()
 	else
 	{
 		vec3 result;
+		result += CalculateDirLights();
 		result += CalculatePointLights();
+		result += CalculateSpotLights();
 		FragColor = vec4(result, 1.0);
 	}
 		
