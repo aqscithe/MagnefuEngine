@@ -138,9 +138,11 @@ vec3 GetPointReflectionLight(int index)
 	vec3 ViewVector = normalize(u_CameraPos - FragPos);
 
 	vec3 DiffuseLight = u_material.K_d * dot(LightVector, Normal) * u_PointLights[index].Diffuse;
-	vec3 SpecularLight = u_ReflectionModel == 0 ? GetPhongReflection(LightVector, ViewVector, u_PointLights[index].Specular) : GetBlinnPhongReflection(LightVector, ViewVector, u_PointLights[index].Specular);
+	vec3 SpecularLight = u_ReflectionModel == 0 ? GetPhongReflection(LightVector, ViewVector, u_PointLights[index].Specular) : 
+		GetBlinnPhongReflection(LightVector, ViewVector, u_PointLights[index].Specular);
 
-	return GetCombined(DiffuseLight, SpecularLight) * CalculateAttenuation(u_PointLights[index].Position, u_PointLights[index].Constant, u_PointLights[index].Linear, u_PointLights[index].Quadratic);
+	return GetCombined(DiffuseLight, SpecularLight) * 
+		CalculateAttenuation(u_PointLights[index].Position, u_PointLights[index].Constant, u_PointLights[index].Linear, u_PointLights[index].Quadratic);
 }
 
 vec3 GetDirReflectionLight(int index)
@@ -149,9 +151,36 @@ vec3 GetDirReflectionLight(int index)
 	vec3 ViewVector = normalize(u_CameraPos - FragPos);
 
 	vec3 DiffuseLight = u_material.K_d * dot(LightVector, Normal) * u_DirectionLights[index].Diffuse;
-	vec3 SpecularLight = u_ReflectionModel == 0 ? GetPhongReflection(LightVector, ViewVector, u_DirectionLights[index].Specular) : GetBlinnPhongReflection(LightVector, ViewVector, u_DirectionLights[index].Specular);
+	vec3 SpecularLight = u_ReflectionModel == 0 ? GetPhongReflection(LightVector, ViewVector, u_DirectionLights[index].Specular) : 
+		GetBlinnPhongReflection(LightVector, ViewVector, u_DirectionLights[index].Specular);
 
 	return GetCombined(DiffuseLight, SpecularLight);
+}
+
+vec3 GetSpotReflectionLight(int index)
+{
+	vec3 LightVector = normalize(u_SpotLights[index].Position - FragPos);
+
+	float theta = dot(LightVector, normalize(-u_SpotLights[index].Direction));
+	if (theta > u_SpotLights[index].OuterCutoff)
+	{
+		float epsilon = u_SpotLights[index].InnerCutoff - u_SpotLights[index].OuterCutoff;
+		float edgeIntensity = clamp((theta - u_SpotLights[index].OuterCutoff) / epsilon, 0.0, 1.0);
+
+		vec3 ViewVector = normalize(u_CameraPos - FragPos);
+
+		vec3 DiffuseLight = u_material.K_d * dot(LightVector, Normal) * u_SpotLights[index].Diffuse;
+		vec3 SpecularLight = u_ReflectionModel == 0 ? GetPhongReflection(LightVector, ViewVector, u_SpotLights[index].Specular) :
+			GetBlinnPhongReflection(LightVector, ViewVector, u_SpotLights[index].Specular);
+
+		return GetCombined(DiffuseLight * edgeIntensity, SpecularLight * edgeIntensity) *
+			CalculateAttenuation(u_SpotLights[index].Position, u_SpotLights[index].Constant, u_SpotLights[index].Linear, u_SpotLights[index].Quadratic);
+	}
+	else
+	{
+		// should return some light. this may be too much however
+		return u_Intensity.Ambient * u_material.Diffuse;
+	}
 }
 
 
@@ -175,6 +204,8 @@ vec3 CalculatePointLights()
 vec3 CalculateSpotLights()
 {
 	vec3 result = vec3(0.0, 0.0, 0.0);
+	for (int i = 0; i < NR_SPOT_LIGHTS; i++)
+		result += GetSpotReflectionLight(i);
 
 	return result;
 }
@@ -187,8 +218,10 @@ vec3 ShadeFragment()
 	case 0:
 		result += CalculateDirLights();
 		result += CalculatePointLights();
-		//result += CalculateSpotLights();
+		result += CalculateSpotLights();
+		break;
 	default:
+		result = vec3(0.0, 0.0, 1.0);
 		break;
 	}
 	return result;

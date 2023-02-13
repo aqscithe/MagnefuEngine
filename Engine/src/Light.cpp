@@ -43,13 +43,13 @@ SpotLight CreateSpotLight()
 {
 	Maths::vec3 position = { 0.5f, 0.5f, 1.25f };
 	Maths::vec3 direction = { 0.f, 0.f, -1.f };
-	Maths::vec3 diffuse = { 1.f, 1.f, 1.f };
+	Maths::vec3 diffuse = { 0.25f, 1.f, 1.f };
 	Maths::vec3 specular = { 1.f, 0.f, 1.f };
 	float constant = 1.f;
-	float linear = 0.7f;
-	float quadratic = 1.8f;
-	float innerCutoff = 1.f;
-	float outerCutoff = 0.8f;
+	float linear = 0.09f;
+	float quadratic = 0.032;
+	float innerCutoff = Maths::cos(Maths::toRadians(15.f));
+	float outerCutoff = Maths::cos(Maths::toRadians(25.f));
 
 
 	return {

@@ -475,12 +475,12 @@ namespace test
                         std::string name = "Spot Light: " + std::to_string(i);
                         if (ImGui::TreeNode(name.c_str()))
                         {
-                            ImGui::SliderFloat3("Light Position ", m_SpotLights[i].Direction.e, -10.f, 10.f);
+                            ImGui::SliderFloat3("Light Direction ", m_SpotLights[i].Direction.e, -10.f, 10.f);
                             ImGui::SliderFloat3("Light Position ", m_SpotLights[i].Position.e, -10.f, 10.f);
                             ImGui::ColorEdit3("Diffuse Color", m_SpotLights[i].Diffuse.e);
                             ImGui::ColorEdit3("Specular Color", m_SpotLights[i].Specular.e);
-                            ImGui::SliderFloat("Inner Cutoff", &m_SpotLights[i].innerCutoff, 0.f, 2.f);
-                            ImGui::SliderFloat("Outer Cutoff", &m_SpotLights[i].outerCutoff, 0.f, 2.f);
+                            ImGui::SliderFloat("Inner Cutoff", &m_SpotLights[i].innerCutoff, 0.f, 1.f);
+                            ImGui::SliderFloat("Outer Cutoff", &m_SpotLights[i].outerCutoff, 0.f, 1.f);
                             ImGui::Text("Attenuation Controls");
                             ImGui::Text("Att Constant (Should be 1.0): %f", m_SpotLights[i].constant);
                             ImGui::SliderFloat("Att Linear", &m_SpotLights[i].linear, 0.f, 1.f);
