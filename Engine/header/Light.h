@@ -5,6 +5,7 @@
 
 struct Light
 {
+	bool Enabled;
 	Maths::vec3 Diffuse;
 	Maths::vec3 Specular;
 	float constant;

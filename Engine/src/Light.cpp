@@ -11,6 +11,7 @@ PointLight CreatePointLight()
 	float quadratic = 0.032f;
 
 	return {
+		true,
 		diffuse,
 		specular,
 		constant,
@@ -30,6 +31,7 @@ DirectionLight CreateDirLight()
 	float quadratic = 0.032f;
 
 	return {
+		true,
 		diffuse,
 		specular,
 		constant,
@@ -53,6 +55,7 @@ SpotLight CreateSpotLight()
 
 
 	return {
+		true,
 		diffuse,
 		specular,
 		constant,

@@ -60,6 +60,7 @@ uniform Intensity u_Intensity;
 
 struct PointLight
 {
+	bool  Enabled;
 	vec3  Position;
 	vec3  Diffuse;
 	vec3  Specular;
@@ -72,6 +73,7 @@ uniform PointLight u_PointLights[NR_POINT_LIGHTS];
 
 struct DirectionLight
 {
+	bool  Enabled;
 	vec3  Direction;
 	vec3  Diffuse;
 	vec3  Specular;
@@ -81,6 +83,7 @@ uniform DirectionLight u_DirectionLights[NR_DIR_LIGHTS];
 
 struct SpotLight
 {
+	bool  Enabled;
 	vec3  Direction;
 	vec3  Position;
 	vec3  Diffuse;
@@ -188,7 +191,7 @@ vec3 CalculateDirLights()
 {
 	vec3 result = vec3(0.0);
 	for (int i = 0; i < NR_DIR_LIGHTS; i++)
-		result += GetDirReflectionLight(i);
+		result += u_DirectionLights[i].Enabled ? GetDirReflectionLight(i) : vec3(0.0);
 	return result;
 }
 
@@ -196,7 +199,7 @@ vec3 CalculatePointLights()
 {
 	vec3 result = vec3(0.0);
 	for (int i = 0; i < NR_POINT_LIGHTS; i++)
-		result += GetPointReflectionLight(i);
+		result += u_PointLights[i].Enabled ? GetPointReflectionLight(i) : vec3(0.0);
 	return result;
 }
 
@@ -204,7 +207,7 @@ vec3 CalculateSpotLights()
 {
 	vec3 result = vec3(0.0);
 	for (int i = 0; i < NR_SPOT_LIGHTS; i++)
-		result += GetSpotReflectionLight(i);
+		result += u_SpotLights[i].Enabled ? GetSpotReflectionLight(i) : vec3(0.0);
 
 	return result;
 }
