@@ -168,9 +168,14 @@ namespace test
         m_ReflectionModel = static_cast<int>(ReflectionModel::PHONG);
 
         m_PointLights.reserve(5);
+        m_PointLights.emplace_back(CreatePointLight(), Maths::identity());
+        m_PointLights.emplace_back(CreatePointLight(), Maths::identity());
 
-        m_PointLights.emplace_back(CreatePointLight(), Maths::identity());
-        m_PointLights.emplace_back(CreatePointLight(), Maths::identity());
+        m_DirectionLights.reserve(1);
+        m_DirectionLights.emplace_back(CreateDirLight(), Maths::identity());
+
+        m_SpotLights.reserve(1);
+        m_SpotLights.emplace_back(CreateSpotLight(), Maths::identity());
 
         m_lightScaling = { 0.1f, 0.1f, 0.1f };
 
@@ -281,10 +286,10 @@ namespace test
         // Light Matrix Update
 
         for (auto& pointlight : m_PointLights)
-        {
             pointlight.MVP = projMatrix * m_Camera->GetView() * Maths::translate(pointlight.Position) * Maths::scale(m_lightScaling);
 
-        }
+        for(auto& spotlight : m_SpotLights)
+            spotlight.MVP = projMatrix * m_Camera->GetView() * Maths::translate(spotlight.Position) * Maths::scale(m_lightScaling);
        
 
         // for accurate lighting when model isn't scaled uniformly
@@ -332,10 +337,17 @@ namespace test
         }
             
 
+        // Render light models
+        // can comment out if don't need models representing their position
         m_LightCubeShader->Bind();
         for (auto& pointlight : m_PointLights)
         {
             m_LightCubeShader->SetUniformMatrix4fv("u_MVP", pointlight.MVP);
+            m_Renderer.DrawCube(*m_LightCubeVAO, *m_LightCubeShader);
+        }
+        for (auto& spotlight : m_SpotLights)
+        {
+            m_LightCubeShader->SetUniformMatrix4fv("u_MVP", spotlight.MVP);
             m_Renderer.DrawCube(*m_LightCubeVAO, *m_LightCubeShader);
         }
         m_LightCubeShader->Unbind();
@@ -365,8 +377,6 @@ namespace test
                 ImGui::Text("Shading Technique");
                 ImGui::SameLine();
                 if (ImGui::Button("Phong")) m_ShadingTechnique = 0;
-                ImGui::SameLine();
-                if (ImGui::Button("Goraud")) m_ShadingTechnique = 1;
 
                 ImGui::TreePop();
             }
@@ -417,27 +427,72 @@ namespace test
                               
                 ImGui::TreePop();
             }
-
-            if (ImGui::TreeNode("Point Lights"))
+            if (ImGui::TreeNode("Scene Lights"))
             {
-                for (int i = 0; i < m_PointLights.size(); i++)
+                if (ImGui::TreeNode("Directional Lights"))
                 {
-                    std::string name = "Point Light: " + std::to_string(i);
-                    if (ImGui::TreeNode(name.c_str()))
+                    for (int i = 0; i < m_DirectionLights.size(); i++)
                     {
-                        ImGui::SliderFloat3("Light Position ", m_PointLights[i].Position.e, -10.f, 10.f);
-                        ImGui::SliderFloat3("Light Scale", m_lightScaling.e, -10.f, 10.f);
-                        ImGui::ColorEdit3("Diffuse Color", m_PointLights[i].Diffuse.e);
-                        ImGui::ColorEdit3("Specular Color", m_PointLights[i].Specular.e);
-                        ImGui::Text("Attenuation Controls");
-                        ImGui::Text("Att Constant (Should be 1.0): %f", m_PointLights[i].constant);
-                        ImGui::SliderFloat("Att Linear", &m_PointLights[i].linear, 0.f, 1.f);
-                        ImGui::SliderFloat("Att Quadratic", &m_PointLights[i].quadratic, 0.f, 2.f);
-                        ImGui::TreePop();
+                        std::string name = "Directional Light: " + std::to_string(i);
+                        if (ImGui::TreeNode(name.c_str()))
+                        {
+                            ImGui::SliderFloat3("Light Direction ", m_DirectionLights[i].Direction.e, -1.f, 1.f);
+                            ImGui::ColorEdit3("Diffuse Color", m_DirectionLights[i].Diffuse.e);
+                            ImGui::ColorEdit3("Specular Color", m_DirectionLights[i].Specular.e);
+                            ImGui::Text("Attenuation Controls");
+                            ImGui::Text("Att Constant (Should be 1.0): %f", m_DirectionLights[i].constant);
+                            ImGui::SliderFloat("Att Linear", &m_DirectionLights[i].linear, 0.f, 1.f);
+                            ImGui::SliderFloat("Att Quadratic", &m_DirectionLights[i].quadratic, 0.f, 2.f);
+                            ImGui::TreePop();
+                        }
                     }
+                    ImGui::TreePop();
+                }
+                if (ImGui::TreeNode("Point Lights"))
+                {
+                    for (int i = 0; i < m_PointLights.size(); i++)
+                    {
+                        std::string name = "Point Light: " + std::to_string(i);
+                        if (ImGui::TreeNode(name.c_str()))
+                        {
+                            ImGui::SliderFloat3("Light Position ", m_PointLights[i].Position.e, -10.f, 10.f);
+                            ImGui::SliderFloat3("Light Scale", m_lightScaling.e, -10.f, 10.f);
+                            ImGui::ColorEdit3("Diffuse Color", m_PointLights[i].Diffuse.e);
+                            ImGui::ColorEdit3("Specular Color", m_PointLights[i].Specular.e);
+                            ImGui::Text("Attenuation Controls");
+                            ImGui::Text("Att Constant (Should be 1.0): %f", m_PointLights[i].constant);
+                            ImGui::SliderFloat("Att Linear", &m_PointLights[i].linear, 0.f, 1.f);
+                            ImGui::SliderFloat("Att Quadratic", &m_PointLights[i].quadratic, 0.f, 2.f);
+                            ImGui::TreePop();
+                        }
+                    }
+                    ImGui::TreePop();
+                }
+                if (ImGui::TreeNode("Spot Lights"))
+                {
+                    for (int i = 0; i < m_SpotLights.size(); i++)
+                    {
+                        std::string name = "Spot Light: " + std::to_string(i);
+                        if (ImGui::TreeNode(name.c_str()))
+                        {
+                            ImGui::SliderFloat3("Light Position ", m_SpotLights[i].Direction.e, -10.f, 10.f);
+                            ImGui::SliderFloat3("Light Position ", m_SpotLights[i].Position.e, -10.f, 10.f);
+                            ImGui::ColorEdit3("Diffuse Color", m_SpotLights[i].Diffuse.e);
+                            ImGui::ColorEdit3("Specular Color", m_SpotLights[i].Specular.e);
+                            ImGui::SliderFloat("Inner Cutoff", &m_SpotLights[i].innerCutoff, 0.f, 2.f);
+                            ImGui::SliderFloat("Outer Cutoff", &m_SpotLights[i].outerCutoff, 0.f, 2.f);
+                            ImGui::Text("Attenuation Controls");
+                            ImGui::Text("Att Constant (Should be 1.0): %f", m_SpotLights[i].constant);
+                            ImGui::SliderFloat("Att Linear", &m_SpotLights[i].linear, 0.f, 1.f);
+                            ImGui::SliderFloat("Att Quadratic", &m_SpotLights[i].quadratic, 0.f, 2.f);
+                            ImGui::TreePop();
+                        }
+                    }
+                    ImGui::TreePop();
                 }
                 ImGui::TreePop();
             }
+            
             if (ImGui::TreeNode("Transformation"))
             {
                 ImGui::Checkbox("Edit Transform", &m_bShowTransform);
@@ -503,6 +558,28 @@ namespace test
             m_ModelCubeShader->SetUniform1f(lightLabel + "Linear", m_PointLights[i].linear);
             m_ModelCubeShader->SetUniform1f(lightLabel + "Quadratic", m_PointLights[i].quadratic);
         }
+
+        for (int i = 0; i < m_DirectionLights.size(); i++)
+        {
+            std::string lightLabel = "u_DirectionLights[" + std::to_string(i) + "].";
+            m_ModelCubeShader->SetUniform3fv(lightLabel + "Direction", m_DirectionLights[i].Direction);
+            m_ModelCubeShader->SetUniform3fv(lightLabel + "Diffuse", m_DirectionLights[i].Diffuse);
+            m_ModelCubeShader->SetUniform3fv(lightLabel + "Specular", m_DirectionLights[i].Specular);
+        }
+
+        for (int i = 0; i < m_SpotLights.size(); i++)
+        {
+            std::string lightLabel = "u_SpotLights[" + std::to_string(i) + "].";
+            m_ModelCubeShader->SetUniform3fv(lightLabel + "Direction", m_SpotLights[i].Direction);
+            m_ModelCubeShader->SetUniform3fv(lightLabel + "Position", m_SpotLights[i].Position);
+            m_ModelCubeShader->SetUniform3fv(lightLabel + "Diffuse", m_SpotLights[i].Diffuse);
+            m_ModelCubeShader->SetUniform3fv(lightLabel + "Specular", m_SpotLights[i].Specular);
+            m_ModelCubeShader->SetUniform1f(lightLabel + "Constant", m_SpotLights[i].constant);
+            m_ModelCubeShader->SetUniform1f(lightLabel + "Linear", m_SpotLights[i].linear);
+            m_ModelCubeShader->SetUniform1f(lightLabel + "Quadratic", m_SpotLights[i].quadratic);
+            m_ModelCubeShader->SetUniform1f(lightLabel + "InnerCutoff", m_SpotLights[i].innerCutoff);
+            m_ModelCubeShader->SetUniform1f(lightLabel + "OuterCutoff", m_SpotLights[i].outerCutoff);
+        }
     }
 
     void TestLighting::SetTextureShaderUniforms()
@@ -531,6 +608,28 @@ namespace test
             m_TextureCubeShader->SetUniform1f(lightLabel + "Constant", m_PointLights[i].constant);
             m_TextureCubeShader->SetUniform1f(lightLabel + "Linear", m_PointLights[i].linear);
             m_TextureCubeShader->SetUniform1f(lightLabel + "Quadratic", m_PointLights[i].quadratic);
+        }
+
+        for (int i = 0; i < m_DirectionLights.size(); i++)
+        {
+            std::string lightLabel = "u_DirectionLights[" + std::to_string(i) + "].";
+            m_TextureCubeShader->SetUniform3fv(lightLabel + "Direction", m_DirectionLights[i].Direction);
+            m_TextureCubeShader->SetUniform3fv(lightLabel + "Diffuse", m_DirectionLights[i].Diffuse);
+            m_TextureCubeShader->SetUniform3fv(lightLabel + "Specular", m_DirectionLights[i].Specular);
+        }
+
+        for (int i = 0; i < m_SpotLights.size(); i++)
+        {
+            std::string lightLabel = "u_SpotLights[" + std::to_string(i) + "].";
+            m_TextureCubeShader->SetUniform3fv(lightLabel + "Direction", m_SpotLights[i].Direction);
+            m_TextureCubeShader->SetUniform3fv(lightLabel + "Position", m_SpotLights[i].Position);
+            m_TextureCubeShader->SetUniform3fv(lightLabel + "Diffuse", m_SpotLights[i].Diffuse);
+            m_TextureCubeShader->SetUniform3fv(lightLabel + "Specular", m_SpotLights[i].Specular);
+            m_TextureCubeShader->SetUniform1f(lightLabel + "Constant", m_SpotLights[i].constant);
+            m_TextureCubeShader->SetUniform1f(lightLabel + "Linear", m_SpotLights[i].linear);
+            m_TextureCubeShader->SetUniform1f(lightLabel + "Quadratic", m_SpotLights[i].quadratic);
+            m_TextureCubeShader->SetUniform1f(lightLabel + "InnerCutoff", m_SpotLights[i].innerCutoff);
+            m_TextureCubeShader->SetUniform1f(lightLabel + "OuterCutoff", m_SpotLights[i].outerCutoff);
         }
     }
 }

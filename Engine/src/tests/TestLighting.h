@@ -27,8 +27,7 @@ namespace test
 {
 	enum class ShadingTechnique
 	{
-		PHONG,
-		GORAUD
+		PHONG
 	};
 
 	enum class ReflectionModel
@@ -72,10 +71,8 @@ namespace test
 			Maths::vec3 m_lightScaling;
 
 			std::vector<PointLightModel> m_PointLights;
-
-			//std::vector<PointLight> m_PointLights;
-			std::vector<DirectionLight> m_DirectionLights;
-			std::vector<SpotLight> m_SpotLights;
+			std::vector<DirLightModel> m_DirectionLights;
+			std::vector<SpotLightModel> m_SpotLights;
 
 
 			Maths::vec3 m_AmbientIntensity;
