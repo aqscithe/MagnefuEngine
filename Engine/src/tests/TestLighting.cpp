@@ -156,7 +156,7 @@ namespace test
             }
         };
 
-        m_ActiveMaterial = &m_AvailableMaterials["Custom"]; 
+        m_ActiveMaterial = &m_AvailableMaterials["Grass"]; 
 
         m_AmbientIntensity = { 0.1f, 0.1f, 0.1f };
         m_DiffusionIntensity = { 1.f, 1.f, 1.f };

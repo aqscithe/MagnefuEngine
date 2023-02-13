@@ -178,7 +178,6 @@ vec3 GetSpotReflectionLight(int index)
 	}
 	else
 	{
-		// should return some light. this may be too much however
 		return u_Intensity.Ambient * u_material.Diffuse;
 	}
 }
