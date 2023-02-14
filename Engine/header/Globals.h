@@ -34,7 +34,7 @@ private:
 		WIDTH = 1920;
 		HEIGHT = 1080;
 		fovY = 45.f;
-		yaw = 0.f;
+		yaw = 0.0f;
 		pitch = 0.f;
 	}
 	static Globals s_Instance;

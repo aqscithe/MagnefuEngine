@@ -18,6 +18,8 @@
 
 #include <memory>
 #include <vector>
+#include <future>
+
 
 // TODO:
 // Implement ability to have multiple of each light type
@@ -94,10 +96,13 @@ namespace test
 			std::unique_ptr<Shader> m_ModelCubeShader;
 			std::unique_ptr<Shader> m_LightCubeShader;
 			std::unique_ptr<Shader> m_TextureCubeShader;
-			std::unique_ptr<Texture> m_Texture;
-			std::unique_ptr<Texture> m_Texture1;
-			std::unique_ptr<Texture> m_Texture2;
-			std::unique_ptr<Texture> m_Texture3;
+
+			std::vector<std::unique_ptr<Texture>> m_Textures;
+			std::vector<std::future<void>> m_Futures;
+			//std::unique_ptr<Texture> m_Texture;
+			//std::unique_ptr<Texture> m_Texture1;
+			//std::unique_ptr<Texture> m_Texture2;
+			//std::unique_ptr<Texture> m_Texture3;
 
 
 			std::unique_ptr <Maths::Quaternion> m_Quat;

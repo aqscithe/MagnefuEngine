@@ -14,16 +14,32 @@
 #include "Globals.h"
 
 #include "Primitive3D.h"
+#include "Timer.h"
 
 #include <array>
 #include <iostream>
 #include <chrono>
 
+#include <mutex>
+
 namespace test
 {
+    static std::mutex s_TextureMutex;
+    
+
+    static void InitTexture(std::vector<std::unique_ptr<Texture>>& textures, std::string& filepath)
+    {
+        //std::lock_guard<std::mutex> lock(s_TextureMutex);
+        textures.emplace_back(std::make_unique<Texture>(filepath));
+
+
+        //std::cout << "Thread id: " << std::this_thread::get_id() << std::endl;
+    }
 
 	TestLighting::TestLighting()
 	{
+        Timer timer;
+
         /* --Creating data and prepping buffer with data-- */
 
         
@@ -210,25 +226,40 @@ namespace test
 
         m_TextureCubeShader = std::make_unique <Shader>("res/shaders/TestLighting-Texture.shader");
         m_TextureCubeShader->Bind();
-        m_Texture = std::make_unique<Texture>("res/textures/starlights/starlights_d.jpg");
-        m_Texture1 = std::make_unique<Texture>("res/textures/darkmarble/dark-marbled-stone_d.jpg");
-        m_Texture2 = std::make_unique<Texture>("res/textures/starlights/starlights_s.jpg");
-        m_Texture3 = std::make_unique<Texture>("res/textures/darkmarble/dark-marbled-stone_s.jpg");
-        m_Texture->Bind();
-        m_Texture1->Bind(1);
-        m_Texture2->Bind(2);
-        m_Texture3->Bind(3);
+
+
+        std::array<std::string, 4> textureList = {
+            "res/textures/starlights/starlights_d.jpg",
+            "res/textures/darkmarble/dark-marbled-stone_d.jpg",
+            "res/textures/starlights/starlights_s.jpg",
+            "res/textures/darkmarble/dark-marbled-stone_s.jpg"
+        };
+
+        m_Textures.reserve(textureList.size());
+
+        // multithreaded version
+        /*for (auto& texturePath : textureList)
+        {
+            m_Futures.emplace_back(std::async(std::launch::async, InitTexture, std::ref(m_Textures), std::ref(texturePath)));
+        }*/
+
+        // single threaded version
+        for (int i = 0; i < textureList.size(); i++)
+        {
+            m_Textures.emplace_back(std::make_unique<Texture>(textureList[i]));
+            m_Textures[i]->Bind(i);
+        }
 
         int diffuseTextureLocations[2] = { 0, 1 };
         m_TextureCubeShader->SetUniform1iv("u_material.Diffuse", diffuseTextureLocations);
         int specularTextureLocations[2] = { 2, 3 };
         m_TextureCubeShader->SetUniform1iv("u_material.Specular", specularTextureLocations);
 
+        for (int i = 0; i < m_Textures.size(); i++)
+            m_Textures[i]->Unbind();
+
         SetTextureShaderUniforms();
-        m_Texture->Unbind();
-        m_Texture1->Unbind();
-        m_Texture2->Unbind();
-        m_Texture3->Unbind();
+
         m_TextureCubeShader->Unbind();
         
 
@@ -319,10 +350,8 @@ namespace test
         if (m_ActiveMaterial->Textured)
         {
             m_TextureCubeShader->Bind();
-            m_Texture->Bind();
-            m_Texture1->Bind(1);  
-            m_Texture2->Bind(2);
-            m_Texture3->Bind(3);
+            for (int i = 0; i < m_Textures.size(); i++)
+                m_Textures[i]->Bind(i);
             SetTextureShaderUniforms();
             m_Renderer.DrawCube(*m_ModelCubeVAO, *m_TextureCubeShader);
 
@@ -650,4 +679,5 @@ namespace test
             m_TextureCubeShader->SetUniform1f(lightLabel + "OuterCutoff", m_SpotLights[i].outerCutoff);
         }
     }
+    
 }
