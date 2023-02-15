@@ -6,6 +6,7 @@
 #include "tests/Test2DTexture.h"
 #include "tests/TestBatchRendering.h"
 #include "tests/TestLighting.h"
+#include "tests/TestModelLoading.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
@@ -163,6 +164,7 @@ int main()
         testMenu->RegisterTest<test::Test3DRender>("Cube Render");
         testMenu->RegisterTest<test::TestBatchRendering>("Batching");
         testMenu->RegisterTest<test::TestLighting>("Lighting");
+        testMenu->RegisterTest <test::TestModelLoading>("3D Models");
         
        
         auto lastTime = std::chrono::high_resolution_clock::now();

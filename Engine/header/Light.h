@@ -3,6 +3,12 @@
 #include "Vectors.h"
 #include "Matrices.h"
 
+enum class ReflectionModel
+{
+	PHONG,
+	BLINN_PHONG
+};
+
 struct Light
 {
 	bool Enabled;
@@ -45,6 +51,7 @@ struct SpotLightModel : public SpotLight
 {
 	Maths::mat4 MVP;
 };
+
 
 PointLight CreatePointLight();
 DirectionLight CreateDirLight();

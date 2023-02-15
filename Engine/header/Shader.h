@@ -7,6 +7,11 @@
 #include "Matrices.h"
 
 
+enum class ShadingTechnique
+{
+	PHONG
+};
+
 
 struct ShaderProgramSource
 {

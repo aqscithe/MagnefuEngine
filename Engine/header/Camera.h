@@ -5,9 +5,22 @@
 
 struct GLFWwindow;
 
+struct CameraProperties
+{
+	float AspectRatio;
+	float Near;
+	float Far;
+	float Top;
+	float Bottom;
+	float Right;
+	float Left;
+	bool  IsOrtho;
+};
+
 class Camera
 {
 public:
+	CameraProperties m_Properties;
 	Maths::vec3 m_Position;
 	Maths::vec3 m_Target;
 	Maths::vec3 m_Forward;

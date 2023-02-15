@@ -28,11 +28,12 @@
 
 namespace test
 {
-	class TestLighting : public Test
+
+	class TestModelLoading : public Test
 	{
 		public:
-			TestLighting();
-			~TestLighting();
+			TestModelLoading();
+			~TestModelLoading();
 
 			void OnUpdate(GLFWwindow* window, float deltaTime) override;
 			void OnRender()                override;
@@ -41,7 +42,6 @@ namespace test
 		private:
 			void UpdateLights();
 			void UpdateMVP();
-			void SetShaderUniforms();
 			void SetTextureShaderUniforms();
 
 			Maths::vec3 m_lightScaling;
@@ -54,29 +54,17 @@ namespace test
 			Maths::vec3 m_AmbientIntensity;
 			Maths::vec3 m_DiffusionIntensity;
 			Maths::vec3 m_SpecularIntensity;
+
+			std::vector<std::unique_ptr<Texture>> m_Textures;
 			Material* m_ActiveMaterial;
 			std::unordered_map<std::string, Material> m_AvailableMaterials;
 
-			float m_shininess;
-
-			int m_ShadingTechnique;
-			int m_ReflectionModel;
-
 			Renderer m_Renderer;
 			std::unique_ptr<VertexBuffer> m_VBO;
-			std::unique_ptr<VertexArray> m_ModelCubeVAO;
-			std::unique_ptr<VertexArray> m_LightCubeVAO;
+			std::unique_ptr<VertexArray> m_VAO;
 			std::unique_ptr<IndexBuffer> m_IBO;
-			std::unique_ptr<Shader> m_ModelCubeShader;
+			std::unique_ptr<Shader> m_Shader;
 			std::unique_ptr<Shader> m_LightCubeShader;
-			std::unique_ptr<Shader> m_TextureCubeShader;
-
-			std::vector<std::unique_ptr<Texture>> m_Textures;
-			std::vector<std::future<void>> m_Futures;
-			//std::unique_ptr<Texture> m_Texture;
-			//std::unique_ptr<Texture> m_Texture1;
-			//std::unique_ptr<Texture> m_Texture2;
-			//std::unique_ptr<Texture> m_Texture3;
 
 
 			std::unique_ptr <Maths::Quaternion> m_Quat;
@@ -85,16 +73,14 @@ namespace test
 			Maths::vec3 m_rotationAxis;
 			Maths::vec3 m_scaling;
 
+			Maths::mat4 m_MVP;
 			std::unique_ptr<Camera> m_Camera;
 
-			Maths::vec3 m_ObjectColor;
-
-
-			Maths::mat4 m_MVP;
-
-			int m_cubeCount;
 
 			bool m_bShowTransform;
+
+			ReflectionModel m_ReflectionModel;
+			ShadingTechnique m_ShadingTechnique;
 
 
 			
