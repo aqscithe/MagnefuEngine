@@ -16,15 +16,28 @@
 #include "Primitive3D.h"
 #include "Timer.h"
 
-#include <array>
 #include <iostream>
 #include <chrono>
+#include <mutex>
 
 namespace test
 {
+    static void  LoadMesh(std::unique_ptr<Mesh>& mesh, std::string& filepath)
+    {
+        Timer timer;
+        mesh = std::make_unique<Mesh>(filepath);
+    }
+
 	TestModelLoading::TestModelLoading()
 	{
         Timer timer;
+
+        // TODO: load mesh data asynchronously
+        // Load meshes
+        std::string filepath = "res/meshes/12221_Cat_v1_l3.obj";
+        //m_Mesh = std::make_unique<Mesh>("res/meshes/12221_Cat_v1_l3.obj");
+        
+        m_Future = std::async(std::launch::async, LoadMesh, std::ref(m_Mesh), std::ref(filepath));
 
         // TRANSFORM
         m_bShowTransform = false;
@@ -62,12 +75,10 @@ namespace test
         m_Shader->Unbind();
 
 
-        // Load meshes
-        m_Mesh = std::make_unique<Mesh>("res/meshes/12221_Cat_v1_l3.obj");
-
 
         
         GLCall(glEnable(GL_DEPTH_TEST));
+        std::cout << "Test Model Loading Constructor Finished" << std::endl;
 	}
 
 	TestModelLoading::~TestModelLoading()

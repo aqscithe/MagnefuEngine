@@ -57,6 +57,7 @@ namespace test
 			Maths::vec3 m_SpecularIntensity;
 
 			std::unique_ptr<Mesh> m_Mesh;
+			std::future<void > m_Future;
 
 			std::vector<std::unique_ptr<Texture>> m_Textures;
 			Material* m_ActiveMaterial;

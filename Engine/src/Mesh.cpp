@@ -69,7 +69,7 @@ Face Mesh::GetFaceData(std::string& line)
         vertexIndex++;
     }
 
-    return { Maths::vec3i(faceData[0]), Maths::vec3i(faceData[3]), Maths::vec3i(faceData[6]), Maths::vec3i(faceData[9]) };
+    return {faceData[0], faceData[3], faceData[6], faceData[9] };
 
 }
 
