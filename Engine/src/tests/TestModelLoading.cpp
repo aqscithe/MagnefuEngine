@@ -62,6 +62,10 @@ namespace test
         m_Shader->Unbind();
 
 
+        // Load meshes
+        m_Mesh = std::make_unique<Mesh>("res/meshes/12221_Cat_v1_l3.obj");
+
+
         
         GLCall(glEnable(GL_DEPTH_TEST));
 	}
@@ -76,6 +80,7 @@ namespace test
 
         UpdateMVP();
         m_Camera->ProcessInput(window, deltaTime);
+        m_Mesh;
 	}
 
     void TestModelLoading::UpdateLights()

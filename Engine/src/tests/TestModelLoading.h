@@ -12,6 +12,7 @@
 #include "IndexBuffer.h"
 #include "Light.h"
 #include "Material.h"
+#include "Mesh.h"
 
 #include "Quaternion.h"
 #include "Vectors.h"
@@ -54,6 +55,8 @@ namespace test
 			Maths::vec3 m_AmbientIntensity;
 			Maths::vec3 m_DiffusionIntensity;
 			Maths::vec3 m_SpecularIntensity;
+
+			std::unique_ptr<Mesh> m_Mesh;
 
 			std::vector<std::unique_ptr<Texture>> m_Textures;
 			Material* m_ActiveMaterial;

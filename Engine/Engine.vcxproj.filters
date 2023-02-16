@@ -102,6 +102,12 @@
     <ClCompile Include="src\Material.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
+    <ClCompile Include="src\Mesh.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Model.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\Basic.shader" />
@@ -520,6 +526,7 @@
     <None Include="res\shaders\LightCube.shader" />
     <None Include="res\shaders\TestLighting-Texture.shader" />
     <None Include="res\shaders\TestModelLoading.shader" />
+    <None Include="res\meshes\12221_Cat_v1_l3.mtl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\Renderer.h">
@@ -1458,6 +1465,12 @@
     <ClInclude Include="header\Material.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="header\Mesh.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="header\Model.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\textures\moon.png">
@@ -1500,6 +1513,12 @@
       <Filter>Fichiers de ressources</Filter>
     </Image>
     <Image Include="res\textures\starlights\starlights_s.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\meshes\Cat_bump.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\meshes\Cat_diffuse.jpg">
       <Filter>Fichiers de ressources</Filter>
     </Image>
   </ItemGroup>

@@ -2,6 +2,8 @@
 
 #include "Vectors.h"
 
+#include <vector>
+
 
 struct Vertex
 {
@@ -24,4 +26,20 @@ struct TextureVertex
     Maths::vec3  Normal;
     Maths::vec2  TextureCoords;
     unsigned int TextureID;
+};
+
+struct ObjModelVertex
+{
+    Maths::vec3 Position;
+    Maths::vec3 Normal;
+    Maths::vec2  TextureCoords;
+};
+
+
+struct Face
+{
+    Maths::vec3i Vertex1Indices;
+    Maths::vec3i Vertex2Indices;
+    Maths::vec3i Vertex3Indices;
+    Maths::vec3i Vertex4Indices;
 };
