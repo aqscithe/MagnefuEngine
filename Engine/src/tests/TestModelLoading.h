@@ -56,8 +56,11 @@ namespace test
 			Maths::vec3 m_DiffusionIntensity;
 			Maths::vec3 m_SpecularIntensity;
 
+			std::vector<ObjModelVertex> m_TempVertices;
+			std::vector<unsigned int>   m_TempIndices;
 			std::unique_ptr<Mesh> m_Mesh;
 			std::future<void > m_Future;
+			bool m_bFutureAccessed;
 
 			std::vector<std::unique_ptr<Texture>> m_Textures;
 			Material* m_ActiveMaterial;

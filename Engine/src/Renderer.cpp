@@ -12,6 +12,7 @@ void Renderer::Draw(const VertexArray& vao, const IndexBuffer& ibo, const Shader
     GLCall(glDrawElements(GL_TRIANGLES, ibo.GetCount(), GL_UNSIGNED_INT, nullptr));
 }
 
+
 void Renderer::DrawCube(const VertexArray& vao, const Shader& shader) const
 {
     shader.Bind();

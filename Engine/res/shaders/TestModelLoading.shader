@@ -230,5 +230,6 @@ vec3 ShadeFragment()
 
 void main()
 {
-	FragColor = vec4(ShadeFragment(), 1.0);
+	//FragColor = vec4(ShadeFragment(), 1.0);
+	FragColor = vec4(1.0);
 }

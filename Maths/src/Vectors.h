@@ -69,6 +69,7 @@ namespace Maths
 
 		int e[3];
 
+		struct { int v, vt, vn; };
 		struct { int x, y, z; };
 		struct { int r, g, b; };
 

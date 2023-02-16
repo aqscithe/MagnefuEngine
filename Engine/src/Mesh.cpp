@@ -63,13 +63,19 @@ Face Mesh::GetFaceData(std::string& line)
         std::string delB;
         while (std::getline(ssB, delB, '/'))
         {
-            faceData[vertexIndex * 3 + elementIndex] = std::stoi(delB);
+            // subtract 1 b/c face indices start at 1 instead of 0 in obj file
+            faceData[vertexIndex * 3 + elementIndex] = std::stoi(delB) - 1;
             elementIndex++;
         }
         vertexIndex++;
     }
 
-    return {faceData[0], faceData[3], faceData[6], faceData[9] };
+    return { 
+        Maths::vec3i(faceData[0], faceData[1], faceData[2]), 
+        Maths::vec3i(faceData[3], faceData[4], faceData[5]), 
+        Maths::vec3i(faceData[6], faceData[7], faceData[8]), 
+        Maths::vec3i(faceData[9], faceData[10], faceData[11])
+    };
 
 }
 

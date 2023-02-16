@@ -18,26 +18,72 @@
 
 #include <iostream>
 #include <chrono>
-#include <mutex>
+#include <numeric>
+//#include <mutex>
 
 namespace test
 {
-    static void  LoadMesh(std::unique_ptr<Mesh>& mesh, std::string& filepath)
+
+    static std::vector<unsigned int> SetIndices(int quadCount)
+    {
+        int IndexPattern[6] = { 0, 1, 2, 2, 3, 0 };
+
+        std::vector<unsigned int> indices;
+        for (int quadNum = 0; quadNum < quadCount; quadNum++)
+        {
+            for (int i = 0; i < 6; i++)
+                indices.push_back(IndexPattern[i] + 4 * quadNum);
+        }
+        return indices;
+    }
+
+    static void  LoadMesh(std::unique_ptr<Mesh>& mesh, std::string& filepath, std::vector<ObjModelVertex>& vertices, std::vector<unsigned int>& indices)
     {
         Timer timer;
         mesh = std::make_unique<Mesh>(filepath);
+
+        vertices.clear();
+        indices.clear();
+        vertices.reserve(mesh->m_Faces.size() * 4);
+        indices = SetIndices(static_cast<int>(mesh->m_Faces.size()));
+        //indices.resize(mesh->m_Faces.size() * 4);
+        //std::iota(std::begin(indices), std::end(indices), 0);
+        
+        for (Face& face : mesh->m_Faces)
+        {
+            for (Maths::vec3i& Index : face.Indices)
+            {
+                // NOTE! Hardcoded Texture ID value of 0
+                vertices.emplace_back(mesh->m_Positions[Index.v], mesh->m_Normals[Index.vn], mesh->m_TexCoords[Index.vt], 0);
+            }
+        }
     }
 
 	TestModelLoading::TestModelLoading()
 	{
         Timer timer;
 
-        // TODO: load mesh data asynchronously
-        // Load meshes
+        // LOAD MESHES
         std::string filepath = "res/meshes/12221_Cat_v1_l3.obj";
-        //m_Mesh = std::make_unique<Mesh>("res/meshes/12221_Cat_v1_l3.obj");
         
-        m_Future = std::async(std::launch::async, LoadMesh, std::ref(m_Mesh), std::ref(filepath));
+        m_bFutureAccessed = false;
+        m_Future = std::async(std::launch::async, LoadMesh, std::ref(m_Mesh), std::ref(filepath), std::ref(m_TempVertices), std::ref(m_TempIndices));
+
+        m_VBO = std::make_unique<VertexBuffer>(sizeof(ObjModelVertex) * 35288 * 4);
+
+        m_IBO = std::make_unique<IndexBuffer>(sizeof(unsigned int) * 35288 * 6, nullptr);
+
+        VertexBufferAttribsLayout layout;
+        layout.Push<float>(3);
+        layout.Push<float>(3);
+        layout.Push<float>(2);
+        layout.Push<unsigned int>(1);
+
+        m_VAO = std::make_unique<VertexArray>();
+        m_VAO->AddBuffer(*m_VBO, layout);
+
+        
+
 
         // TRANSFORM
         m_bShowTransform = false;
@@ -67,6 +113,14 @@ namespace test
         m_ReflectionModel = ReflectionModel::PHONG;
         m_ShadingTechnique = ShadingTechnique::PHONG;
 
+        m_DirectionLights.reserve(1);
+        m_DirectionLights.emplace_back(CreateDirLight(), Maths::identity());
+
+        m_SpotLights.reserve(1);
+        m_SpotLights.emplace_back(CreateSpotLight(), Maths::identity());
+
+        m_lightScaling = { 0.1f, 0.1f, 0.1f };
+
 
         // SHADERS & TEXTURES
         m_Shader = std::make_unique <Shader>("res/shaders/TestModelLoading.shader");
@@ -88,10 +142,21 @@ namespace test
 
 	void TestModelLoading::OnUpdate(GLFWwindow* window, float deltaTime)
 	{
+        if (m_Future.wait_for(std::chrono::seconds(0)) == std::future_status::ready && !m_bFutureAccessed)
+        {
+            // do something to invalidate the future so this if statement is not accessed a second time
 
+            m_VBO->Bind();
+            GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(ObjModelVertex) * m_TempVertices.size(), m_TempVertices.data()));
+
+            m_IBO->Bind();
+            GLCall(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(unsigned int) * m_TempIndices.size(), m_TempIndices.data()));
+            m_IBO->Unbind();
+            m_VBO->Unbind();
+            m_bFutureAccessed = true;
+        }
         UpdateMVP();
         m_Camera->ProcessInput(window, deltaTime);
-        m_Mesh;
 	}
 
     void TestModelLoading::UpdateLights()
@@ -148,7 +213,7 @@ namespace test
 
         m_Renderer.Clear();
 
-        if (m_ActiveMaterial && m_ActiveMaterial->Textured)
+        /*if (m_ActiveMaterial && m_ActiveMaterial->Textured)
         {
             m_Shader->Bind();
             for (int i = 0; i < m_Textures.size(); i++)
@@ -157,8 +222,17 @@ namespace test
             m_Renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
 
             m_Shader->Unbind();
+        }*/
+
+        if (m_Future.wait_for(std::chrono::seconds(0)) == std::future_status::ready && m_bFutureAccessed)
+        {
+            m_Shader->Bind();
+            SetTextureShaderUniforms();
+            m_Renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
+
+            m_Shader->Unbind();
         }
-            
+
 
         // Render light models
         // can comment out if don't need models representing their position
