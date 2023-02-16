@@ -21,7 +21,7 @@ Camera::Camera(const Maths::vec3& position, const Maths::vec3& target)
 
 void Camera::CreateCameraAxes()
 {
-	m_Forward = m_Position - m_Target;
+	m_Forward = Maths::normalize(m_Position - m_Target);
 	m_Right = Maths::normalize(Maths::crossProduct(Maths::vec3(0.0f, 1.0f, 0.0f), m_Forward));
 	m_Up = Maths::normalize(Maths::crossProduct(m_Forward, m_Right));
 	CalculateView();

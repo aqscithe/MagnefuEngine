@@ -307,7 +307,7 @@ namespace test
         Maths::mat4 modelMatrix = Maths::translate(m_translation) * m_Quat->UpdateRotMatrix(m_angleRot, m_rotationAxis) * Maths::scale(m_scaling);
         m_Camera->CalculateView();
         Maths::mat4 projMatrix = m_Camera->m_Properties.IsOrtho ? Maths::orthographic(m_Camera->m_Properties.Left, m_Camera->m_Properties.Right, m_Camera->m_Properties.Bottom, m_Camera->m_Properties.Top, m_Camera->m_Properties.Near, m_Camera->m_Properties.Far)
-            : Maths::perspective(Maths::toRadians(global.fovY), m_Camera->m_Properties.AspectRatio, m_Camera->m_Properties.Near, m_Camera->m_Properties.Far);
+            : Maths::perspective(Maths::toRadians(global.fovY) , m_Camera->m_Properties.AspectRatio, m_Camera->m_Properties.Near, m_Camera->m_Properties.Far);
         m_MVP = projMatrix * m_Camera->GetView() * modelMatrix;
 
         // Light Matrix Update
