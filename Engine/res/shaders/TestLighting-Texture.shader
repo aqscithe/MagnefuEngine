@@ -41,9 +41,9 @@ struct Material
 	unsigned int TexID;
 	sampler2D    Diffuse[2];
 	sampler2D    Specular[2];
-	float        K_d;
-	float        K_s;
-	float        Shininess;
+	vec3        Kd;
+	vec3        Ks;
+	float        Ns;
 	//float Roughness;
 	//float Opacity;
 };
@@ -120,13 +120,13 @@ float CalculateAttenuation(vec3 position, float constant, float Linear, float qu
 vec3 GetPhongReflection(vec3 LightVector, vec3 ViewVector, vec3 Specular)
 {
 	vec3 ReflectionVector = 2 * dot(LightVector, Normal) * Normal - LightVector;
-	return  u_material.K_s * pow(max(dot(ReflectionVector, ViewVector), 0.0), u_material.Shininess) * Specular;
+	return  u_material.Ks * pow(max(dot(ReflectionVector, ViewVector), 0.0), u_material.Ns) * Specular;
 }
 
 vec3 GetBlinnPhongReflection(vec3 LightVector, vec3 ViewVector, vec3 Specular)
 {
 	vec3 HalfwayVector = normalize(LightVector + ViewVector);
-	return  u_material.K_s * pow(max(dot(Normal, HalfwayVector), 0.0), u_material.Shininess) * Specular;
+	return  u_material.Ks * pow(max(dot(Normal, HalfwayVector), 0.0), u_material.Ns) * Specular;
 }
 
 vec3 GetCombined(vec3 DiffuseLight, vec3 SpecularLight)
@@ -143,7 +143,7 @@ vec3 GetPointReflectionLight(int index)
 	vec3 LightVector = normalize(u_PointLights[index].Position - FragPos);
 	vec3 ViewVector = normalize(u_CameraPos - FragPos);
 
-	vec3 DiffuseLight = u_material.K_d * dot(LightVector, Normal) * u_PointLights[index].Diffuse;
+	vec3 DiffuseLight = u_material.Kd * dot(LightVector, Normal) * u_PointLights[index].Diffuse;
 	vec3 SpecularLight = u_ReflectionModel == 0 ? GetPhongReflection(LightVector, ViewVector, u_PointLights[index].Specular) : GetBlinnPhongReflection(LightVector, ViewVector, u_PointLights[index].Specular);
 
 	return GetCombined(DiffuseLight, SpecularLight) * 
@@ -155,7 +155,7 @@ vec3 GetDirReflectionLight(int index)
 	vec3 LightVector = normalize(-u_DirectionLights[index].Direction);
 	vec3 ViewVector = normalize(u_CameraPos - FragPos);
 
-	vec3 DiffuseLight = u_material.K_d * dot(LightVector, Normal) * u_DirectionLights[index].Diffuse;
+	vec3 DiffuseLight = u_material.Kd * dot(LightVector, Normal) * u_DirectionLights[index].Diffuse;
 	vec3 SpecularLight = u_ReflectionModel == 0 ? GetPhongReflection(LightVector, ViewVector, u_DirectionLights[index].Specular) :
 		GetBlinnPhongReflection(LightVector, ViewVector, u_DirectionLights[index].Specular);
 
@@ -174,7 +174,7 @@ vec3 GetSpotReflectionLight(int index)
 
 		vec3 ViewVector = normalize(u_CameraPos - FragPos);
 
-		vec3 DiffuseLight = u_material.K_d * dot(LightVector, Normal) * u_SpotLights[index].Diffuse;
+		vec3 DiffuseLight = u_material.Kd * dot(LightVector, Normal) * u_SpotLights[index].Diffuse;
 		vec3 SpecularLight = u_ReflectionModel == 0 ? GetPhongReflection(LightVector, ViewVector, u_SpotLights[index].Specular) :
 			GetBlinnPhongReflection(LightVector, ViewVector, u_SpotLights[index].Specular);
 

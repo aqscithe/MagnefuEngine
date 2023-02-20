@@ -65,107 +65,174 @@ namespace test
 
         
 
-        m_AvailableMaterials = {
-            {"Custom", { 
-                         false, false, 99,
-                         { 1.f, 1.f, 1.f },
-                         { 1.f, 1.f, 1.f },
-                         { 1.f, 1.f, 1.f },
-                         1.f, 1.f,
-                         32.f
-                       }
-            },
-            {"Emerald", { 
-                          true, false, 99,
-                          { 0.0215f, 0.1745f, 0.0215f },
-                          { 0.07568f, 0.61424f, 0.07568f},
-                          { 0.633f, 0.727811f, 0.633f },
-                          1.f, 1.f,
-                          0.6f * 128
-                        }
-            },
-            {"Jade", {
-                          true, false, 99,
-                          { 0.135f, 0.2225f, 0.1575f },
-                          { 0.54f, 0.89f, 0.63f},
-                          { 0.316228f, 0.316228f, 0.316228f },
-                          1.f, 1.f,
-                          0.1f * 128
-                        }
-            },
-            {"Obsidian", {
-                          true, false, 99,
-                          { 0.05375f, 0.05f, 0.06625f },
-                          { 0.18275f, 0.17f, 0.22525f},
-                          { 0.332741f, 0.328634f, 0.346435f },
-                          1.f, 1.f,
-                          0.3f * 128
-                        }
-            },
-            {"Pearl", {
-                          true, false, 99,
-                          { 0.25f, 0.20725f, 0.20725f },
-                          { 1.f, 0.829f, 0.829f},
-                          { 0.296648f, 0.296648f, 0.296648f },
-                          1.f, 1.f,
-                          0.088f * 128
-                        }
-            },
-            {"Ruby", {
-                          true, false, 99,
-                          { 0.1745f, 0.01175f, 0.01175f },
-                          { 0.61424f, 0.04136f, 0.04136f},
-                          { 0.727811f, 0.626959f, 0.626959f },
-                          1.f, 1.f,
-                          0.6f * 128
-                        }
-            },
-            {"Chrome", {
-                          true, false, 99,
-                          { 0.25f, 0.25f, 0.25f },
-                          { 0.4f, 0.4f, 0.4f},
-                          { 0.774597f, 0.774597f, 0.774597f },
-                          1.f, 1.f,
-                          0.6f * 128
-                        }
-            },
-            {"White Plastic", {
-                          true, false, 99,
-                          { 0.f, 0.f, 0.f },
-                          { 0.55f, 0.55f, 0.55f},
-                          { 0.70f, 0.70f, 0.70f },
-                          1.f, 1.f,
-                          0.25f * 128
-                        }
-            },
-            {"Black Rubber", {
-                          true, false, 99,
-                          { 0.02f, 0.02f, 0.02f },
-                          { 0.01f, 0.01f, 0.01f},
-                          { 0.4f, 0.4f, 0.4f },
-                          1.f, 1.f,
-                          0.078125f * 128
-                        }
-            },
-            {"Water", {
-                          true, true, 0,
-                          { 1.f, 1.f, 1.f },
-                          { 1.f, 1.f, 1.f },
-                          { 1.f, 1.f, 1.f },
-                          1.f, 1.f,
-                          200.f
-                        }
-            },
-            {"Grass", {
-                          true, true, 1,
-                          { 1.f, 1.f, 1.f },
-                          { 1.f, 1.f, 1.f },
-                          { 1.f, 1.f, 1.f },
-                          1.f, 1.f,
-                          200.f
-                        }
-            }
+        m_AvailableMaterials["Custom"] = {
+            false, false, 99,
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            32.f, 1.f,
+            { 1.f, 1.f, 1.f },
+            0       
         };
+
+        m_AvailableMaterials["Emerald"] = {
+            true, false, 99,
+            { 0.0215f, 0.1745f, 0.0215f },
+            { 0.07568f, 0.61424f, 0.07568f},
+            { 0.633f, 0.727811f, 0.633f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            0.6f * 128, 1.f,
+            { 1.f, 1.f, 1.f },
+            0
+
+        };
+
+        m_AvailableMaterials["Jade"] = {
+            true, false, 99,
+            { 0.135f, 0.2225f, 0.1575f },
+            { 0.54f, 0.89f, 0.63f},
+            { 0.316228f, 0.316228f, 0.316228f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            0.1f * 128, 1.f,
+            { 1.f, 1.f, 1.f },
+            0
+
+        };
+
+        m_AvailableMaterials["Obsidian"] = {
+            true, false, 99,
+            { 0.05375f, 0.05f, 0.06625f },
+            { 0.18275f, 0.17f, 0.22525f},
+            { 0.332741f, 0.328634f, 0.346435f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            0.3f * 128, 1.f,
+            { 1.f, 1.f, 1.f },
+            0
+
+        };
+
+        m_AvailableMaterials["Pearl"] = {
+            true, false, 99,
+            { 0.25f, 0.20725f, 0.20725f },
+            { 1.f, 0.829f, 0.829f},
+            { 0.296648f, 0.296648f, 0.296648f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            0.088f * 128, 1.f,
+            { 1.f, 1.f, 1.f },
+            0
+            };
+
+        m_AvailableMaterials["Ruby"] = {
+            true, false, 99,
+            { 0.1745f, 0.01175f, 0.01175f },
+            { 0.61424f, 0.04136f, 0.04136f},
+            { 0.727811f, 0.626959f, 0.626959f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            0.6f * 128, 1.f,
+            { 1.f, 1.f, 1.f },
+            0
+        };
+
+        m_AvailableMaterials["Chrome"] = {
+            true, false, 99,
+            { 0.25f, 0.25f, 0.25f },
+            { 0.4f, 0.4f, 0.4f},
+            { 0.774597f, 0.774597f, 0.774597f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            0.6f * 128, 1.f,
+            { 1.f, 1.f, 1.f },
+            0
+        };
+
+        m_AvailableMaterials["White Plastic"] = {
+            true, false, 99,
+            { 0.f, 0.f, 0.f },
+            { 0.55f, 0.55f, 0.55f},
+            { 0.70f, 0.70f, 0.70f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            0.25f * 128, 1.f,
+            { 1.f, 1.f, 1.f },
+            0
+        };
+
+        m_AvailableMaterials["Black Rubber"] = {
+            true, false, 99,
+            { 0.02f, 0.02f, 0.02f },
+            { 0.01f, 0.01f, 0.01f},
+            { 0.4f, 0.4f, 0.4f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            0.078125f * 128, 1.f,
+            { 1.f, 1.f, 1.f },
+            0
+        };
+
+        m_AvailableMaterials["Water"] = {
+            true, true, 0,
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            200.f, 1.f,
+            { 1.f, 1.f, 1.f },
+            0
+        };
+
+        m_AvailableMaterials["Grass"] = {
+            true, true, 1,
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            200.f, 1.f,
+            { 1.f, 1.f, 1.f },
+            0
+        };
+        
 
         m_ActiveMaterial = &m_AvailableMaterials["Grass"]; 
 
@@ -434,7 +501,7 @@ namespace test
                     ImGui::Text("Ambient: %.4f %.4f %.4f", m_ActiveMaterial->Ambient.r, m_ActiveMaterial->Ambient.g, m_ActiveMaterial->Ambient.b);
                     ImGui::Text("Diffuse: %.4f %.4f %.4f", m_ActiveMaterial->Diffuse.r, m_ActiveMaterial->Diffuse.g, m_ActiveMaterial->Diffuse.b);
                     ImGui::Text("Specular: %.4f %.4f %.4f", m_ActiveMaterial->Specular.r, m_ActiveMaterial->Specular.g, m_ActiveMaterial->Specular.b);
-                    ImGui::Text("Shininess: %.2f", m_ActiveMaterial->Shininess);
+                    ImGui::Text("Ns: %.2f", m_ActiveMaterial->Ns);
                     //ImGui::SliderFloat("Roughness")
                     //ImGui::SliderFloat("Opacity")  
                 }
@@ -442,13 +509,13 @@ namespace test
                 {
                     ImGui::ColorEdit3("Diffuse", m_ActiveMaterial->Diffuse.e);
                     ImGui::ColorEdit3("Specular", m_ActiveMaterial->Specular.e);
-                    ImGui::SliderFloat("Shininess", &m_ActiveMaterial->Shininess, 0.01f, 255.f);
+                    ImGui::SliderFloat("Ns", &m_ActiveMaterial->Ns, 0.01f, 255.f);
                 }
                 ImGui::SliderFloat3("Ambient Intensity", m_AmbientIntensity.e, 0.f, 1.f);
                 ImGui::SliderFloat3("Diffuse Intensity", m_DiffusionIntensity.e, 0.f, 1.f);
                 ImGui::SliderFloat3("Specular Intensity", m_SpecularIntensity.e, 0.f, 1.f);
-                ImGui::SliderFloat("Diffuse & Ambient Strength", &m_ActiveMaterial->K_d, 0.f, 1.f);
-                ImGui::SliderFloat("Specular Strength", &m_ActiveMaterial->K_s, 0.f, 1.f);
+                ImGui::SliderFloat3("Diffuse & Ambient Strength", m_ActiveMaterial->Kd.e, 0.f, 1.f);
+                ImGui::SliderFloat3("Specular Strength", m_ActiveMaterial->Ks.e, 0.f, 1.f);
                               
                 ImGui::TreePop();
             }
@@ -574,9 +641,9 @@ namespace test
         m_ModelCubeShader->SetUniform3fv("u_material.Ambient",  m_ActiveMaterial->Ambient);
         m_ModelCubeShader->SetUniform3fv("u_material.Diffuse",  m_ActiveMaterial->Diffuse);
         m_ModelCubeShader->SetUniform3fv("u_material.Specular", m_ActiveMaterial->Specular);
-        m_ModelCubeShader->SetUniform1f("u_material.Shininess", m_ActiveMaterial->Shininess);
-        m_ModelCubeShader->SetUniform1f("u_material.K_d",       m_ActiveMaterial->K_d);
-        m_ModelCubeShader->SetUniform1f("u_material.K_s",       m_ActiveMaterial->K_s);
+        m_ModelCubeShader->SetUniform1f("u_material.Ns", m_ActiveMaterial->Ns);
+        m_ModelCubeShader->SetUniform3fv("u_material.Kd",       m_ActiveMaterial->Kd);
+        m_ModelCubeShader->SetUniform3fv("u_material.Ks",       m_ActiveMaterial->Ks);
 
         m_ModelCubeShader->SetUniform3fv("u_Intensity.Ambient",  m_AmbientIntensity);
         m_ModelCubeShader->SetUniform3fv("u_Intensity.Diffuse",  m_DiffusionIntensity);
@@ -628,9 +695,9 @@ namespace test
 
         m_TextureCubeShader->SetUniform1ui("u_material.TexID", m_ActiveMaterial->TexID);
         
-        m_TextureCubeShader->SetUniform1f("u_material.Shininess", m_ActiveMaterial->Shininess);
-        m_TextureCubeShader->SetUniform1f("u_material.K_d",       m_ActiveMaterial->K_d);
-        m_TextureCubeShader->SetUniform1f("u_material.K_s",       m_ActiveMaterial->K_s);
+        m_TextureCubeShader->SetUniform1f("u_material.Ns", m_ActiveMaterial->Ns);
+        m_TextureCubeShader->SetUniform3fv("u_material.Kd",       m_ActiveMaterial->Kd);
+        m_TextureCubeShader->SetUniform3fv("u_material.Ks",       m_ActiveMaterial->Ks);
 
         m_TextureCubeShader->SetUniform3fv("u_Intensity.Ambient",  m_AmbientIntensity);
         m_TextureCubeShader->SetUniform3fv("u_Intensity.Diffuse",  m_DiffusionIntensity);

@@ -19,8 +19,8 @@ struct Material
 	Maths::vec3  Kd;
 	Maths::vec3  Ks;
 	Maths::vec3  Ke;
-	Maths::vec3  Ns;
 	Maths::vec3  Ni;       // Index of refraction
+	float        Ns;
 	float        Opacity;  // d OR 1 - Tr
 	Maths::vec3  Tf;       // Transmission filter color
 	int          Illum;
