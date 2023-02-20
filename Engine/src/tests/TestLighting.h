@@ -54,8 +54,8 @@ namespace test
 			Maths::vec3 m_AmbientIntensity;
 			Maths::vec3 m_DiffusionIntensity;
 			Maths::vec3 m_SpecularIntensity;
-			Material* m_ActiveMaterial;
-			std::unordered_map<std::string, Material> m_AvailableMaterials;
+			Material<Maths::vec3>* m_ActiveMaterial;
+			std::unordered_map<std::string, Material<Maths::vec3>> m_AvailableMaterials;
 
 			float m_shininess;
 

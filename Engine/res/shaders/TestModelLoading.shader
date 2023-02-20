@@ -99,6 +99,11 @@ uniform SpotLight u_SpotLights[NR_SPOT_LIGHTS];
 
 uniform vec3 u_CameraPos;
 uniform int u_ShadingTechnique;
+
+// BRDF
+// 0 - Phong
+// 1 - Blinn-Phong
+// 2 - Microfacet (not yet implemented)
 uniform int u_ReflectionModel;
 
 in vec4 VertexColor;

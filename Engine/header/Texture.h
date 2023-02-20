@@ -11,8 +11,10 @@ private:
 	int m_width, m_height, m_BPP;
 
 public:
-	Texture(const String& filepath);
+	Texture(const String& filepath, bool async = false);
 	~Texture();
+
+	unsigned int GetRendererID() { return m_RendererID; };
 
 	void Bind(unsigned int slot = 0)   const;
 	void Unbind() const;

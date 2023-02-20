@@ -37,26 +37,32 @@ namespace test
         return indices;
     }
 
-    static void  LoadMesh(std::unique_ptr<Mesh>& mesh, std::string& filepath, std::vector<ObjModelVertex>& vertices, std::vector<unsigned int>& indices)
+    static void  LoadMesh(std::unique_ptr<Mesh>& mesh, std::string& filepath, std::vector<ObjModelVertex>& vertices, std::vector<unsigned int>& indices, std::vector<MaterialData>& materialList)
     {
         Timer timer;
-        mesh = std::make_unique<Mesh>(filepath);
+        mesh = std::make_unique<Mesh>(filepath, materialList);
 
         vertices.clear();
         indices.clear();
         vertices.reserve(mesh->m_Faces.size() * 4);
         indices = SetIndices(static_cast<int>(mesh->m_Faces.size()));
-        //indices.resize(mesh->m_Faces.size() * 4);
-        //std::iota(std::begin(indices), std::end(indices), 0);
         
         for (Face& face : mesh->m_Faces)
         {
             for (Maths::vec3i& Index : face.Indices)
             {
                 // NOTE! Hardcoded Texture ID value of 0
-                vertices.emplace_back(mesh->m_Positions[Index.v], mesh->m_Normals[Index.vn], mesh->m_TexCoords[Index.vt], 0);
+                vertices.emplace_back(mesh->m_Positions[Index.v], mesh->m_Normals[Index.vn], mesh->m_TexCoords[Index.vt], face.TexID);
             }
         }
+
+        // i actually think the mesh should parse the material file BEFORE it is done loading b/c typically there are mutltiple smaller materials
+        // in the same material file. this will avoid me needing to parse the mat file multiple times. in fact, i can probably simplify it and send the
+        // stream of each mtl's data to the constructor of the materials as input. thus the materials are parsing they're own portion of data.
+
+        // doing the above and just loading the textures right after getting all of the material data. why complicate things unnecessarily
+
+        
     }
 
 	TestModelLoading::TestModelLoading()
@@ -64,10 +70,10 @@ namespace test
         Timer timer;
 
         // LOAD MESHES
-        std::string filepath = "res/meshes/12221_Cat_v1_l3.obj";
+        std::string filepath = "res/meshes/cat/12221_Cat_v1_l3.obj";
         
         m_bFutureAccessed = false;
-        m_Future = std::async(std::launch::async, LoadMesh, std::ref(m_Mesh), std::ref(filepath), std::ref(m_TempVertices), std::ref(m_TempIndices));
+        m_Future = std::async(std::launch::async, LoadMesh, std::ref(m_Mesh), std::ref(filepath), std::ref(m_TempVertices), std::ref(m_TempIndices), std::ref(m_MaterialList));
 
         m_VBO = std::make_unique<VertexBuffer>(sizeof(ObjModelVertex) * 35288 * 4);
 
@@ -142,9 +148,17 @@ namespace test
 
 	void TestModelLoading::OnUpdate(GLFWwindow* window, float deltaTime)
 	{
+        OnHandleThreads();
+        UpdateMVP();
+        m_Camera->ProcessInput(window, deltaTime);
+	}
+
+    void TestModelLoading::OnHandleThreads()
+    {
         if (m_Future.wait_for(std::chrono::seconds(0)) == std::future_status::ready && !m_bFutureAccessed)
         {
             // do something to invalidate the future so this if statement is not accessed a second time
+            m_bFutureAccessed = true;
 
             m_VBO->Bind();
             GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(ObjModelVertex) * m_TempVertices.size(), m_TempVertices.data()));
@@ -153,11 +167,9 @@ namespace test
             GLCall(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(unsigned int) * m_TempIndices.size(), m_TempIndices.data()));
             m_IBO->Unbind();
             m_VBO->Unbind();
-            m_bFutureAccessed = true;
+            
         }
-        UpdateMVP();
-        m_Camera->ProcessInput(window, deltaTime);
-	}
+    }
 
     void TestModelLoading::UpdateLights()
     {
@@ -213,20 +225,11 @@ namespace test
 
         m_Renderer.Clear();
 
-        /*if (m_ActiveMaterial && m_ActiveMaterial->Textured)
-        {
-            m_Shader->Bind();
-            for (int i = 0; i < m_Textures.size(); i++)
-                m_Textures[i]->Bind(i);
-            SetTextureShaderUniforms();
-            m_Renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
-
-            m_Shader->Unbind();
-        }*/
-
         if (m_Future.wait_for(std::chrono::seconds(0)) == std::future_status::ready && m_bFutureAccessed)
         {
             m_Shader->Bind();
+
+
             SetTextureShaderUniforms();
             m_Renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
 
@@ -280,47 +283,7 @@ namespace test
 
             if (ImGui::TreeNode("Material"))
             {
-                if (m_ActiveMaterial)
-                {
-                    if (ImGui::Button("Custom")) m_ActiveMaterial = &m_AvailableMaterials["Custom"];
-                    ImGui::SameLine();
-                    if (ImGui::ColorButton("Emerald", { 0.07568f, 0.61424f, 0.07568f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["Emerald"];
-                    ImGui::SameLine();
-                    if (ImGui::ColorButton("Jade", { 0.54f, 0.89f, 0.63f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["Jade"];
-                    ImGui::SameLine();
-                    if (ImGui::ColorButton("Obsidian", { 0.18275f, 0.17f, 0.22525f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["Obsidian"];
-                    ImGui::SameLine();
-                    if (ImGui::ColorButton("Pearl", { 1.f, 0.829f, 0.829f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["Pearl"];
-                    ImGui::SameLine();
-                    if (ImGui::ColorButton("Ruby", { 0.61424f, 0.04136f, 0.04136f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["Ruby"];
-                    ImGui::SameLine();
-                    if (ImGui::ColorButton("Chrome", { 0.4f, 0.4f, 0.4f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["Chrome"];
-                    ImGui::SameLine();
-                    if (ImGui::ColorButton("White Plastic", { 0.55f, 0.55f, 0.55f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["White Plastic"];
-                    ImGui::SameLine();
-                    if (ImGui::ColorButton("Black Rubber", { 0.01f, 0.01f, 0.01f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["Black Rubber"];
 
-                    if (ImGui::ColorButton("Water", { 0.f, 0.45f, 1.f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["Water"]; ImGui::SameLine();
-                    if (ImGui::ColorButton("Grass", { 0.f, 1.f, 0.1f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["Grass"];
-
-                    if (m_ActiveMaterial->Preset && !m_ActiveMaterial->Textured)
-                    {
-                        ImGui::Text("Ambient: %.4f %.4f %.4f", m_ActiveMaterial->Ambient.r, m_ActiveMaterial->Ambient.g, m_ActiveMaterial->Ambient.b);
-                        ImGui::Text("Diffuse: %.4f %.4f %.4f", m_ActiveMaterial->Diffuse.r, m_ActiveMaterial->Diffuse.g, m_ActiveMaterial->Diffuse.b);
-                        ImGui::Text("Specular: %.4f %.4f %.4f", m_ActiveMaterial->Specular.r, m_ActiveMaterial->Specular.g, m_ActiveMaterial->Specular.b);
-                        ImGui::Text("Shininess: %.2f", m_ActiveMaterial->Shininess);
-                        //ImGui::SliderFloat("Roughness")
-                        //ImGui::SliderFloat("Opacity")  
-                    }
-                    else if (!m_ActiveMaterial->Preset)
-                    {
-                        ImGui::ColorEdit3("Diffuse", m_ActiveMaterial->Diffuse.e);
-                        ImGui::ColorEdit3("Specular", m_ActiveMaterial->Specular.e);
-                        ImGui::SliderFloat("Shininess", &m_ActiveMaterial->Shininess, 0.01f, 255.f);
-                    }
-                    ImGui::SliderFloat("Diffuse & Ambient Strength", &m_ActiveMaterial->K_d, 0.f, 1.f);
-                    ImGui::SliderFloat("Specular Strength", &m_ActiveMaterial->K_s, 0.f, 1.f);
-                }
                 
                 ImGui::SliderFloat3("Ambient Intensity", m_AmbientIntensity.e, 0.f, 1.f);
                 ImGui::SliderFloat3("Diffuse Intensity", m_DiffusionIntensity.e, 0.f, 1.f);
@@ -444,72 +407,11 @@ namespace test
         }
 	}
 
-    /*void TestModelLoading::SetShaderUniforms()
-    {
-        m_ModelCubeShader->SetUniformMatrix4fv("u_MVP", m_MVP);
-
-        m_ModelCubeShader->SetUniform3fv("u_material.Ambient",  m_ActiveMaterial->Ambient);
-        m_ModelCubeShader->SetUniform3fv("u_material.Diffuse",  m_ActiveMaterial->Diffuse);
-        m_ModelCubeShader->SetUniform3fv("u_material.Specular", m_ActiveMaterial->Specular);
-        m_ModelCubeShader->SetUniform1f("u_material.Shininess", m_ActiveMaterial->Shininess);
-        m_ModelCubeShader->SetUniform1f("u_material.K_d",       m_ActiveMaterial->K_d);
-        m_ModelCubeShader->SetUniform1f("u_material.K_s",       m_ActiveMaterial->K_s);
-
-        m_ModelCubeShader->SetUniform3fv("u_Intensity.Ambient",  m_AmbientIntensity);
-        m_ModelCubeShader->SetUniform3fv("u_Intensity.Diffuse",  m_DiffusionIntensity);
-        m_ModelCubeShader->SetUniform3fv("u_Intensity.Specular", m_SpecularIntensity);
-
-        m_ModelCubeShader->SetUniform1i("u_ShadingTechnique", m_ShadingTechnique);
-        m_ModelCubeShader->SetUniform1i("u_ReflectionModel",  m_ReflectionModel);
-
-        for (int i = 0; i < m_PointLights.size(); i++)
-        {
-            std::string lightLabel = "u_PointLights[" + std::to_string(i) + "].";
-            m_ModelCubeShader->SetUniform1i(lightLabel + "Enabled", m_PointLights[i].Enabled);
-            m_ModelCubeShader->SetUniform3fv(lightLabel + "Position", m_PointLights[i].Position);
-            m_ModelCubeShader->SetUniform3fv(lightLabel + "Diffuse", m_PointLights[i].Diffuse);
-            m_ModelCubeShader->SetUniform3fv(lightLabel + "Specular", m_PointLights[i].Specular);
-            m_ModelCubeShader->SetUniform1f(lightLabel + "Constant", m_PointLights[i].constant);
-            m_ModelCubeShader->SetUniform1f(lightLabel + "Linear", m_PointLights[i].linear);
-            m_ModelCubeShader->SetUniform1f(lightLabel + "Quadratic", m_PointLights[i].quadratic);
-        }
-
-        for (int i = 0; i < m_DirectionLights.size(); i++)
-        {
-            std::string lightLabel = "u_DirectionLights[" + std::to_string(i) + "].";
-            m_ModelCubeShader->SetUniform1i(lightLabel + "Enabled", m_DirectionLights[i].Enabled);
-            m_ModelCubeShader->SetUniform3fv(lightLabel + "Direction", m_DirectionLights[i].Direction);
-            m_ModelCubeShader->SetUniform3fv(lightLabel + "Diffuse", m_DirectionLights[i].Diffuse);
-            m_ModelCubeShader->SetUniform3fv(lightLabel + "Specular", m_DirectionLights[i].Specular);
-        }
-
-        for (int i = 0; i < m_SpotLights.size(); i++)
-        {
-            std::string lightLabel = "u_SpotLights[" + std::to_string(i) + "].";
-            m_ModelCubeShader->SetUniform1i(lightLabel + "Enabled", m_SpotLights[i].Enabled);
-            m_ModelCubeShader->SetUniform3fv(lightLabel + "Direction", m_SpotLights[i].Direction);
-            m_ModelCubeShader->SetUniform3fv(lightLabel + "Position", m_SpotLights[i].Position);
-            m_ModelCubeShader->SetUniform3fv(lightLabel + "Diffuse", m_SpotLights[i].Diffuse);
-            m_ModelCubeShader->SetUniform3fv(lightLabel + "Specular", m_SpotLights[i].Specular);
-            m_ModelCubeShader->SetUniform1f(lightLabel + "Constant", m_SpotLights[i].constant);
-            m_ModelCubeShader->SetUniform1f(lightLabel + "Linear", m_SpotLights[i].linear);
-            m_ModelCubeShader->SetUniform1f(lightLabel + "Quadratic", m_SpotLights[i].quadratic);
-            m_ModelCubeShader->SetUniform1f(lightLabel + "InnerCutoff", m_SpotLights[i].innerCutoff);
-            m_ModelCubeShader->SetUniform1f(lightLabel + "OuterCutoff", m_SpotLights[i].outerCutoff);
-        }
-    }*/
-
     void TestModelLoading::SetTextureShaderUniforms()
     {
         m_Shader->SetUniformMatrix4fv("u_MVP", m_MVP);
 
-        if (m_ActiveMaterial)
-        {
-            m_Shader->SetUniform1ui("u_material.TexID", m_ActiveMaterial->TexID);
-            m_Shader->SetUniform1f("u_material.Shininess", m_ActiveMaterial->Shininess);
-            m_Shader->SetUniform1f("u_material.K_d", m_ActiveMaterial->K_d);
-            m_Shader->SetUniform1f("u_material.K_s", m_ActiveMaterial->K_s);
-        }
+
 
         m_Shader->SetUniform3fv("u_Intensity.Ambient",  m_AmbientIntensity);
         m_Shader->SetUniform3fv("u_Intensity.Diffuse",  m_DiffusionIntensity);

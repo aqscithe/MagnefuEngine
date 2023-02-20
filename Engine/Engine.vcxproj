@@ -328,6 +328,7 @@
     <None Include="header\vendor\glm\gtx\vector_angle.inl" />
     <None Include="header\vendor\glm\gtx\vector_query.inl" />
     <None Include="header\vendor\glm\gtx\wrap.inl" />
+    <None Include="res\materials\cat\12221_Cat_v1_l3.mtl" />
     <None Include="res\meshes\12221_Cat_v1_l3.mtl" />
     <None Include="res\shaders\BatchRender.shader" />
     <None Include="res\shaders\LightCube.shader" />
@@ -657,6 +658,8 @@
   <ItemGroup>
     <Image Include="res\meshes\Cat_bump.jpg" />
     <Image Include="res\meshes\Cat_diffuse.jpg" />
+    <Image Include="res\textures\cat\Cat_bump.jpg" />
+    <Image Include="res\textures\cat\Cat_diffuse.jpg" />
     <Image Include="res\textures\container_specular.png" />
     <Image Include="res\textures\darkmarble\dark-marbled-stone_ao.jpg" />
     <Image Include="res\textures\darkmarble\dark-marbled-stone_d.jpg" />

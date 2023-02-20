@@ -527,6 +527,7 @@
     <None Include="res\shaders\TestLighting-Texture.shader" />
     <None Include="res\shaders\TestModelLoading.shader" />
     <None Include="res\meshes\12221_Cat_v1_l3.mtl" />
+    <None Include="res\materials\cat\12221_Cat_v1_l3.mtl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\Renderer.h">
@@ -1519,6 +1520,12 @@
       <Filter>Fichiers de ressources</Filter>
     </Image>
     <Image Include="res\meshes\Cat_diffuse.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\cat\Cat_bump.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\cat\Cat_diffuse.jpg">
       <Filter>Fichiers de ressources</Filter>
     </Image>
   </ItemGroup>

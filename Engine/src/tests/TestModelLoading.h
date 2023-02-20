@@ -37,6 +37,7 @@ namespace test
 			~TestModelLoading();
 
 			void OnUpdate(GLFWwindow* window, float deltaTime) override;
+			void OnHandleThreads();
 			void OnRender()                override;
 			void OnImGUIRender()           override;
 
@@ -62,9 +63,12 @@ namespace test
 			std::future<void > m_Future;
 			bool m_bFutureAccessed;
 
+
 			std::vector<std::unique_ptr<Texture>> m_Textures;
-			Material* m_ActiveMaterial;
-			std::unordered_map<std::string, Material> m_AvailableMaterials;
+			Material<int>* m_ActiveMaterial;
+			std::vector<MaterialData> m_MaterialList;
+			//std::unordered_map<std::string, Material> m_AvailableMaterials;
+			std::string m_MatFilePath;
 
 			Renderer m_Renderer;
 			std::unique_ptr<VertexBuffer> m_VBO;

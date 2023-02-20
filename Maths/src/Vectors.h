@@ -239,6 +239,8 @@ namespace Maths
 #pragma endregion
 
 #pragma Functions
+	vec3 StrtoVec3(const std::string& str);
+
 	vec3 normalize(const vec3& v);
 	vec4 normalize(const vec4& v);
 	vec3 crossProduct(const vec3& v, const vec3& k);

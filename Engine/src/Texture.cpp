@@ -4,10 +4,13 @@
 #include "vendor/stb_image/stb_image.h"
 
 
-Texture::Texture(const String& filepath)
+Texture::Texture(const String& filepath, bool async)
 	: m_filepath(filepath)
 {
 	LoadTexture();
+
+	if (async) return;
+
 	GLCall(glGenTextures(1, &m_RendererID));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_RendererID));
 

@@ -1,25 +1,40 @@
 #pragma once
 
 #include "Vectors.h"
+#include "Texture.h"
+#include <string>
+#include <unordered_map>
 
 
+template <typename T>
 struct Material
 {
 	bool		 Preset;
 	bool		 Textured;
 	unsigned int TexID;
-	Maths::vec3  Ambient;
-	Maths::vec3  Diffuse;
-	Maths::vec3  Specular;
-	float		 K_d;
-	float		 K_s;
-	float        Shininess;
-	// some of this info may be passed - instead - via vertices
-	// into vertex shader
+	T            Ambient;
+	T            Diffuse;
+	T            Specular;
+	Maths::vec3  Ka;
+	Maths::vec3  Kd;
+	Maths::vec3  Ks;
+	Maths::vec3  Ke;
+	Maths::vec3  Ns;
+	Maths::vec3  Ni;       // Index of refraction
+	float        Opacity;  // d OR 1 - Tr
+	Maths::vec3  Tf;       // Transmission filter color
+	int          Illum;
 	// AO
 	//float       Roughness;
 	//float		  Displacement
-	//float       Opacity;
-	//float       Metallic
 	
+	//float       Metallic	
+};
+
+
+struct MaterialData
+{
+	std::string MaterialLibrary;
+	std::string SubMaterialName;
+	Material<int> MaterialProperties;
 };
