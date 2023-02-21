@@ -28,10 +28,10 @@ enum TextureType
 	BUMP
 };
 
-struct TextureData
+struct TextureLabel
 {
+	std::string Name;
 	TextureType Type;
-	std::shared_ptr<Texture> Texture;
 };
 
 class Mesh
@@ -48,7 +48,8 @@ public:
 	std::string m_Filepath;
 
 	std::unordered_map<std::string, int> m_MaterialIndices;
-	std::unordered_map<std::string, TextureData> m_Textures;
+	std::vector<TextureLabel> m_Textures;
+	std::unordered_map<std::string, std::shared_ptr<Texture>> m_TextureCache;
 	
 
 private:
@@ -56,5 +57,5 @@ private:
 	Maths::vec3 GetVertexData(std::string& line, int elementCount);
 	std::array<Maths::vec3i, 4>        GetFaceData(std::string& line);
 	void ParseMaterial(const std::string& filepath, std::vector<SubMaterialStream>& ss);
-	Material<int> CreateMaterial(const std::string& matStream, const std::string& matName);
+	Material<std::shared_ptr<Texture>> CreateMaterial(const std::string& matStream, const std::string& matName);
 };

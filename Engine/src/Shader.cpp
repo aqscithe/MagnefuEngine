@@ -23,8 +23,6 @@ Shader::~Shader()
 ShaderProgramSource Shader::ParseShader(const String& filepath)
 {
 
-    FILE* ptr = nullptr;
-
     std::ifstream stream(filepath);
 
     enum class ShaderType

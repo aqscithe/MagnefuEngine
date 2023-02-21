@@ -50,19 +50,8 @@ namespace test
         for (Face& face : mesh->m_Faces)
         {
             for (Maths::vec3i& Index : face.Indices)
-            {
-                // NOTE! Hardcoded Texture ID value of 0
                 vertices.emplace_back(mesh->m_Positions[Index.v], mesh->m_Normals[Index.vn], mesh->m_TexCoords[Index.vt], face.TexID);
-            }
         }
-
-        // i actually think the mesh should parse the material file BEFORE it is done loading b/c typically there are mutltiple smaller materials
-        // in the same material file. this will avoid me needing to parse the mat file multiple times. in fact, i can probably simplify it and send the
-        // stream of each mtl's data to the constructor of the materials as input. thus the materials are parsing they're own portion of data.
-
-        // doing the above and just loading the textures right after getting all of the material data. why complicate things unnecessarily
-
-        
     }
 
 	TestModelLoading::TestModelLoading()
@@ -167,7 +156,19 @@ namespace test
             GLCall(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(unsigned int) * m_TempIndices.size(), m_TempIndices.data()));
             m_IBO->Unbind();
             m_VBO->Unbind();
+
+            // CAN GENERATE TEXTURE IMAGES AND BIND THEM HERE
+
+            //bind shader
+            //generate textures
+                //create method in texture class to generate texture images
+            // bind textures
+            // set diffuse, ambient and specular material uniforms - arrays
+            // unbind textures
+            // unbind shaders
             
+            m_Mesh;
+            m_MaterialList;
         }
     }
 

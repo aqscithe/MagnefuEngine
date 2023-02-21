@@ -19,12 +19,12 @@ Mesh::Mesh(const std::string& filepath, std::vector<MaterialData>& materialList)
         if (line.find("mtllib ") == 0)
         {
             matFile = line.substr(7);
-            ParseMaterial(matFile, ss);
+            std::string filepath = "res/materials/" + matFile;
+            ParseMaterial(filepath, ss);
 
             for (auto& matData : ss)
             {
-                Material<int> material = CreateMaterial(matData.StrData, matData.SubMatName);
-                materialList.emplace_back(matFile, matData.SubMatName, material);
+                materialList.emplace_back(matFile, matData.SubMatName, CreateMaterial(matData.StrData, matData.SubMatName));
                 m_MaterialIndices.emplace(matData.SubMatName, materialList.size() - 1);
             }
         }
@@ -125,15 +125,21 @@ void Mesh::ParseMaterial(const std::string& filepath, std::vector<SubMaterialStr
     ss.push_back(SubMaterialStream{ newmtl, matProperties.str() });
 }
 
-Material<int> Mesh::CreateMaterial(const std::string& matData, const std::string& matName)
+Material<std::shared_ptr<Texture>> Mesh::CreateMaterial(const std::string& matData, const std::string& matName)
 {
     using String = std::string;
 
-    std::ifstream stream(matData);
+    std::stringstream stream(matData);
 
     String line;
-    Material<int> material;
 
+
+    float Ns, Ni, Opacity;
+    Maths::vec3 Tf, Ka, Kd, Ke, Ks;
+    int Illum;
+    std::shared_ptr<Texture> Ambient = nullptr;
+    std::shared_ptr<Texture> Diffuse = nullptr;
+    std::shared_ptr<Texture> Specular = nullptr;
 
     while (std::getline(stream, line))
     {
@@ -142,61 +148,91 @@ Material<int> Mesh::CreateMaterial(const std::string& matData, const std::string
 
 
         size_t pos;
-        if ((pos = line.find("Ns ")) != String::npos)
-            material.Ns = std::stof(line.substr(pos + 3));
-
-        else if ((pos = line.find("Ni ")) != String::npos)
-            material.Ni = std::stof(line.substr(pos + 3));
-
-        else if ((pos = line.find("d ")) != String::npos)
-            material.Opacity = std::stof(line.substr(pos + 2));
-
-        else if ((pos = line.find("Tr ")) != String::npos && material.Opacity < 0.f)
-            material.Opacity = 1.f - std::stof(line.substr(pos + 3));
-
-        else if ((pos = line.find("Tf ")) != String::npos)
-            material.Tf = Maths::StrtoVec3(line.substr(pos + 3));
-
-        else if ((pos = line.find("illum ")) != String::npos)
-            material.Illum = std::stoi(line.substr(pos + 6));
-
-        else if ((pos = line.find("Ka ")) != String::npos)
-            material.Ka = Maths::StrtoVec3(line.substr(pos + 3));
-
-        else if ((pos = line.find("Kd ")) != String::npos)
-            material.Kd = Maths::StrtoVec3(line.substr(pos + 3));
-
-        else if ((pos = line.find("Ks ")) != String::npos)
-            material.Ks = Maths::StrtoVec3(line.substr(pos + 3));
-
-        else if ((pos = line.find("Ke ")) != String::npos)
-            material.Ke = Maths::StrtoVec3(line.substr(pos + 3));
-
-        else if ((pos = line.find("map_ ")) != String::npos)
+        if ((pos = line.find("Ns ")) == 1)
         {
-            TextureType type;
-            if (line.find("Ka")) type = TextureType::AMBIENT;
-            else if (line.find("Kd")) type = TextureType::DIFFUSE;
-            else if (line.find("Ks")) type = TextureType::SPECULAR;
-            else if (line.find("Ke")) type = TextureType::EMISSIVE;
-            else if (line.find("bump")) type = TextureType::BUMP;
+            std::cout << std::stof(line.substr(pos + 3)) << std::endl;
+            Ns = std::stof(line.substr(pos + 3));
+        }
 
+        else if ((pos = line.find("Ni ")) == 1)
+            Ni = std::stof(line.substr(pos + 3));
+
+        else if ((pos = line.find("d ")) == 1)
+            Opacity = std::stof(line.substr(pos + 2));
+
+        else if ((pos = line.find("Tr ")) == 1 && Opacity < 0.f)
+            Opacity = 1.f - std::stof(line.substr(pos + 3));
+
+        else if ((pos = line.find("Tf ")) == 1)
+            Tf = Maths::StrtoVec3(line.substr(pos + 3));
+
+        else if ((pos = line.find("illum ")) == 1)
+            Illum = std::stoi(line.substr(pos + 6));
+
+        else if ((pos = line.find("Ka ")) == 1)
+            Ka = Maths::StrtoVec3(line.substr(pos + 3));
+
+        else if ((pos = line.find("Kd ")) == 1)
+            Kd = Maths::StrtoVec3(line.substr(pos + 3));
+
+        else if ((pos = line.find("Ks ")) == 1)
+            Ks = Maths::StrtoVec3(line.substr(pos + 3));
+
+        else if ((pos = line.find("Ke ")) == 1)
+            Ke = Maths::StrtoVec3(line.substr(pos + 3));
+
+        else if ((pos = line.find("map_")) == 1)
+        {
             String file = line.substr(pos + 7); 
-            String filepath = "res/textures/" + matName + "/" + file;
-            if (!m_Textures.contains(file))
-                m_Textures[file] = TextureData{ type, std::make_shared<Texture>(filepath, true) };
-            else if (m_Textures[file].Type != type)
+            TextureType type;
+            if (line.find("map_Ka") == 1) type = TextureType::AMBIENT;
+            else if (line.find("map_Kd") == 1) type = TextureType::DIFFUSE;
+            else if (line.find("map_Ks") == 1) type = TextureType::SPECULAR;
+            else if (line.find("map_Ke") == 1) type = TextureType::EMISSIVE;
+            else if (line.find("map_bump") == 1)
             {
-                String fileSuffixed = file + "_" + std::to_string((int)type);
-                m_Textures[fileSuffixed] = TextureData{ type, m_Textures[file].Texture };
+                type = TextureType::BUMP;
+                file = line.substr(pos + 9);
             }
 
-            // when do I set material.Ambient, diffuse, and specular?
-            // after generating the texture image
+            
+            String filepath = "res/textures/" + matName + "/" + file;
+
+            // i should use a struct for the key!!! {string, TextureType}
+            if (!m_TextureCache.contains(file))
+                m_TextureCache.emplace(file, std::make_shared<Texture>(filepath, true));
+            m_Textures.emplace_back(file, type);
+                
+
+            switch (type)
+            {
+            case NONE:
+                break;
+            case AMBIENT:
+                Ambient = m_TextureCache[file];
+                break;
+            case DIFFUSE:
+                Diffuse = m_TextureCache[file];
+                break;
+            case SPECULAR:
+                Specular = m_TextureCache[file];
+                break;
+            case EMISSIVE:
+                break;
+            case BUMP:
+                break;
+            default:
+                break;
+            }
                 
         }
     }
 
-    return material;
+    return {
+        false, false, 99,
+        Ambient, Diffuse, Specular,
+        Ka, Kd, Ks, Ke,
+        Ni, Ns, Opacity, Tf, Illum
+    };
 }
 

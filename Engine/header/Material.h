@@ -3,7 +3,7 @@
 #include "Vectors.h"
 #include "Texture.h"
 #include <string>
-#include <unordered_map>
+#include <memory>
 
 
 template <typename T>
@@ -19,7 +19,7 @@ struct Material
 	Maths::vec3  Kd;
 	Maths::vec3  Ks;
 	Maths::vec3  Ke;
-	Maths::vec3  Ni;       // Index of refraction
+	float        Ni;       // Index of refraction
 	float        Ns;
 	float        Opacity;  // d OR 1 - Tr
 	Maths::vec3  Tf;       // Transmission filter color
@@ -36,5 +36,5 @@ struct MaterialData
 {
 	std::string MaterialLibrary;
 	std::string SubMaterialName;
-	Material<int> MaterialProperties;
+	Material<std::shared_ptr<Texture>> MaterialProperties;
 };
