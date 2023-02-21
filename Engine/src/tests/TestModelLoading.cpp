@@ -85,10 +85,10 @@ namespace test
 
         m_MVP = Maths::identity();
 
-        m_translation = { 1.f, 0.f, 0.f };
-        m_scaling = { 1.f, 1.f, 1.f };
-        m_angleRot = 0.f;
-        m_rotationAxis = { 0.f, 0.f, 0.f };
+        m_translation = { 6.4f, -1.2f, -4.f };
+        m_scaling = { 0.1f, 0.1f, 0.1f };
+        m_angleRot = -90.f;
+        m_rotationAxis = { 1.f, 0.f, 0.f };
         m_Quat = std::make_unique<Maths::Quaternion>(m_angleRot, m_rotationAxis);
 
         m_Camera = std::make_unique<Camera>();
@@ -160,15 +160,95 @@ namespace test
             // CAN GENERATE TEXTURE IMAGES AND BIND THEM HERE
 
             //bind shader
+            m_Shader->Bind();
             //generate textures
+            
+            for (auto& material : m_MaterialList)
+            {
+                if (material.MaterialProperties.Ambient && !material.MaterialProperties.Ambient->GetGenerationStatus())
+                    material.MaterialProperties.Ambient->GenerateTexture();
+                if (material.MaterialProperties.Diffuse && !material.MaterialProperties.Diffuse->GetGenerationStatus())
+                    material.MaterialProperties.Diffuse->GenerateTexture();
+                if (material.MaterialProperties.Specular && !material.MaterialProperties.Specular->GetGenerationStatus())
+                    material.MaterialProperties.Specular->GenerateTexture();
+            }
+                
                 //create method in texture class to generate texture images
             // bind textures
-            // set diffuse, ambient and specular material uniforms - arrays
-            // unbind textures
-            // unbind shaders
             
-            m_Mesh;
-            m_MaterialList;
+            std::vector<int> ambientTextureLocations;
+            std::vector<int> diffuseTextureLocations;
+            std::vector<int> specularTextureLocations;
+
+            int textureSlot = 0;
+            for (auto& material : m_MaterialList)
+            {
+                if (material.MaterialProperties.Ambient)
+                {
+                    if (!m_BoundTextures.contains(material.MaterialProperties.Ambient->GetFilepath()))
+                    {
+                        material.MaterialProperties.Ambient->Bind(textureSlot);
+                        m_BoundTextures[material.MaterialProperties.Ambient->GetFilepath()] = textureSlot;
+                        ambientTextureLocations.push_back(textureSlot);
+                        textureSlot++;
+                    }
+                    else
+                    {
+                        ambientTextureLocations.push_back(m_BoundTextures[material.MaterialProperties.Ambient->GetFilepath()]);
+                    }
+                }
+                
+
+                if (material.MaterialProperties.Diffuse)
+                {
+                    if (!m_BoundTextures.contains(material.MaterialProperties.Diffuse->GetFilepath()))
+                    {
+                        material.MaterialProperties.Diffuse->Bind(textureSlot);
+                        m_BoundTextures[material.MaterialProperties.Diffuse->GetFilepath()] = textureSlot;
+                        diffuseTextureLocations.push_back(textureSlot);
+                        textureSlot++;
+                    }
+                    else
+                    {
+                        diffuseTextureLocations.push_back(m_BoundTextures[material.MaterialProperties.Diffuse->GetFilepath()]);
+                    }
+                    
+                }
+
+                if (material.MaterialProperties.Specular)
+                {
+                    if (!m_BoundTextures.contains(material.MaterialProperties.Specular->GetFilepath()))
+                    {
+                        material.MaterialProperties.Specular->Bind(textureSlot);
+                        m_BoundTextures[material.MaterialProperties.Specular->GetFilepath()] = textureSlot;
+                        specularTextureLocations.push_back(textureSlot);
+                        textureSlot++;
+                    }
+                    else
+                    {
+                        specularTextureLocations.push_back(m_BoundTextures[material.MaterialProperties.Specular->GetFilepath()]);
+                    }
+                    
+                }
+            }
+
+            // set diffuse, ambient and specular material uniforms - arrays
+            m_Shader->SetUniform1iv("u_material.Ambient", ambientTextureLocations.data());
+            m_Shader->SetUniform1iv("u_material.Diffuse", diffuseTextureLocations.data());
+            m_Shader->SetUniform1iv("u_material.Specular", specularTextureLocations.data());
+
+            // unbind textures
+            for (auto& material : m_MaterialList)
+            {
+                if (material.MaterialProperties.Ambient)
+                    material.MaterialProperties.Ambient->Unbind();
+                if (material.MaterialProperties.Diffuse)
+                    material.MaterialProperties.Diffuse->Unbind();
+                if (material.MaterialProperties.Specular)
+                    material.MaterialProperties.Specular->Unbind();
+            }
+            // unbind shaders
+            m_Shader->Unbind();
         }
     }
 

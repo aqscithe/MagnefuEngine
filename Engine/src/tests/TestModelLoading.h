@@ -64,10 +64,10 @@ namespace test
 			bool m_bFutureAccessed;
 
 
-			std::vector<std::unique_ptr<Texture>> m_Textures;
+			std::map<std::string, int> m_BoundTextures;
 			Material<int>* m_ActiveMaterial;
 			std::vector<MaterialData> m_MaterialList;
-			//std::unordered_map<std::string, Material> m_AvailableMaterials;
+
 			std::string m_MatFilePath;
 
 			Renderer m_Renderer;

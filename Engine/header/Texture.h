@@ -10,19 +10,26 @@ private:
 	unsigned char* m_texData;
 	int m_width, m_height, m_BPP;
 
+	bool m_HasGenerated;
+	bool m_Bound;
+
 public:
 	Texture(const String& filepath, bool async = false);
 	~Texture();
 
-	unsigned int GetRendererID() { return m_RendererID; };
-
 	void Bind(unsigned int slot = 0)   const;
 	void Unbind() const;
 
+	unsigned int GetRendererID() const { return m_RendererID; };
+	bool GetGenerationStatus() const { return m_HasGenerated; };
+	String GetFilepath() const { return m_filepath; };
 
+	void GenerateTexture();
+
+private:
 	void SetTextureOptions();
-
 	void LoadTexture();
 	void GenerateTexImage();
+	
 
 };

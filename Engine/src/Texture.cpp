@@ -7,10 +7,23 @@
 Texture::Texture(const String& filepath, bool async)
 	: m_filepath(filepath)
 {
+	m_HasGenerated = false;
+
 	LoadTexture();
 
 	if (async) return;
 
+	GenerateTexture();
+	
+}
+
+Texture::~Texture()
+{
+	GLCall(glDeleteTextures(1, &m_RendererID));
+}
+
+void Texture::GenerateTexture()
+{
 	GLCall(glGenTextures(1, &m_RendererID));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_RendererID));
 
@@ -19,12 +32,8 @@ Texture::Texture(const String& filepath, bool async)
 	GenerateTexImage();
 
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
-	
-}
 
-Texture::~Texture()
-{
-	GLCall(glDeleteTextures(1, &m_RendererID));
+	m_HasGenerated = true;
 }
 
 void Texture::Bind(unsigned int slot) const
