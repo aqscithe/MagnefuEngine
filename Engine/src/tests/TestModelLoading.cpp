@@ -108,6 +108,8 @@ namespace test
         m_ReflectionModel = ReflectionModel::PHONG;
         m_ShadingTechnique = ShadingTechnique::PHONG;
 
+        m_PointLights.emplace_back(CreatePointLight(), Maths::identity());
+
         m_DirectionLights.reserve(1);
         m_DirectionLights.emplace_back(CreateDirLight(), Maths::identity());
 
@@ -115,6 +117,10 @@ namespace test
         m_SpotLights.emplace_back(CreateSpotLight(), Maths::identity());
 
         m_lightScaling = { 0.1f, 0.1f, 0.1f };
+
+        m_AmbientIntensity = 0.05f;
+        m_DiffusionIntensity = 0.15f;
+        m_SpecularIntensity = 0.f;
 
 
         // SHADERS & TEXTURES
@@ -232,10 +238,22 @@ namespace test
                 }
             }
 
-            // set diffuse, ambient and specular material uniforms - arrays
-            m_Shader->SetUniform1iv("u_material.Ambient", ambientTextureLocations.data());
-            m_Shader->SetUniform1iv("u_material.Diffuse", diffuseTextureLocations.data());
-            m_Shader->SetUniform1iv("u_material.Specular", specularTextureLocations.data());
+            int i = 0;
+            for (auto& material : m_MaterialList)
+            {
+                // set diffuse, ambient and specular material uniforms - arrays
+                std::string matLabel = "u_material[" + std::to_string(i) + "].";
+                
+                if(material.MaterialProperties.Ambient)
+                    m_Shader->SetUniform1i(matLabel + "Ambient", m_BoundTextures[material.MaterialProperties.Ambient->GetFilepath()]);
+                if (material.MaterialProperties.Diffuse)
+                    m_Shader->SetUniform1i(matLabel + "Diffuse", m_BoundTextures[material.MaterialProperties.Diffuse->GetFilepath()]);
+                if (material.MaterialProperties.Specular)
+                    m_Shader->SetUniform1i(matLabel + "Specular", m_BoundTextures[material.MaterialProperties.Specular->GetFilepath()]);
+                i++;
+            }
+
+            
 
             // unbind textures
             for (auto& material : m_MaterialList)
@@ -303,13 +321,20 @@ namespace test
 
 	void TestModelLoading::OnRender()
 	{
-
         m_Renderer.Clear();
 
         if (m_Future.wait_for(std::chrono::seconds(0)) == std::future_status::ready && m_bFutureAccessed)
         {
             m_Shader->Bind();
-
+            for (auto& material : m_MaterialList)
+            {
+                if (material.MaterialProperties.Ambient)
+                    material.MaterialProperties.Ambient->Bind(m_BoundTextures[material.MaterialProperties.Ambient->GetFilepath()]);
+                if (material.MaterialProperties.Diffuse)
+                    material.MaterialProperties.Diffuse->Bind(m_BoundTextures[material.MaterialProperties.Diffuse->GetFilepath()]);
+                if (material.MaterialProperties.Specular)
+                    material.MaterialProperties.Specular->Bind(m_BoundTextures[material.MaterialProperties.Specular->GetFilepath()]);
+            }
 
             SetTextureShaderUniforms();
             m_Renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
@@ -492,14 +517,21 @@ namespace test
     {
         m_Shader->SetUniformMatrix4fv("u_MVP", m_MVP);
 
-
-
         m_Shader->SetUniform3fv("u_Intensity.Ambient",  m_AmbientIntensity);
         m_Shader->SetUniform3fv("u_Intensity.Diffuse",  m_DiffusionIntensity);
         m_Shader->SetUniform3fv("u_Intensity.Specular", m_SpecularIntensity);
 
         m_Shader->SetUniform1i("u_ShadingTechnique", static_cast<int>(m_ShadingTechnique));
         m_Shader->SetUniform1i("u_ReflectionModel", static_cast<int>(m_ReflectionModel));
+
+        for (int i = 0; i < m_MaterialList.size(); i++)
+        {
+            std::string matLabel = "u_material[" + std::to_string(i) + "].";
+            m_Shader->SetUniform3fv(matLabel + "Ka", m_MaterialList[i].MaterialProperties.Ka);
+            m_Shader->SetUniform3fv(matLabel + "Kd", m_MaterialList[i].MaterialProperties.Kd);
+            m_Shader->SetUniform3fv(matLabel + "Ks", m_MaterialList[i].MaterialProperties.Ks);
+            m_Shader->SetUniform1f(matLabel + "Ns", m_MaterialList[i].MaterialProperties.Ns);
+        }
 
         for (int i = 0; i < m_PointLights.size(); i++)
         {
