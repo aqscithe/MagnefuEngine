@@ -1528,5 +1528,26 @@
     <Image Include="res\textures\cat\Cat_diffuse.jpg">
       <Filter>Fichiers de ressources</Filter>
     </Image>
+    <Image Include="res\textures\12221_Cat_v1_l3\Cat_bump.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\12221_Cat_v1_l3\Cat_diffuse.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\santa_hat\bump.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\santa_hat\color.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\santa_hat\normalmap.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\santa_hat\softnessmap.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\santa_hat\specular.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
   </ItemGroup>
 </Project>

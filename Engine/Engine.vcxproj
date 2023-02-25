@@ -658,6 +658,8 @@
   <ItemGroup>
     <Image Include="res\meshes\Cat_bump.jpg" />
     <Image Include="res\meshes\Cat_diffuse.jpg" />
+    <Image Include="res\textures\12221_Cat_v1_l3\Cat_bump.jpg" />
+    <Image Include="res\textures\12221_Cat_v1_l3\Cat_diffuse.jpg" />
     <Image Include="res\textures\cat\Cat_bump.jpg" />
     <Image Include="res\textures\cat\Cat_diffuse.jpg" />
     <Image Include="res\textures\container_specular.png" />
@@ -668,6 +670,11 @@
     <Image Include="res\textures\grass.jpg" />
     <Image Include="res\textures\moon.png" />
     <Image Include="res\textures\pluto.png" />
+    <Image Include="res\textures\santa_hat\bump.jpg" />
+    <Image Include="res\textures\santa_hat\color.jpg" />
+    <Image Include="res\textures\santa_hat\normalmap.jpg" />
+    <Image Include="res\textures\santa_hat\softnessmap.jpg" />
+    <Image Include="res\textures\santa_hat\specular.jpg" />
     <Image Include="res\textures\starlights\starlights_ao.jpg" />
     <Image Include="res\textures\starlights\starlights_d.jpg" />
     <Image Include="res\textures\starlights\starlights_n.jpg" />

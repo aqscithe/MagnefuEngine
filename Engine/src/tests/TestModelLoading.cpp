@@ -59,14 +59,17 @@ namespace test
         Timer timer;
 
         // LOAD MESHES
-        std::string filepath = "res/meshes/cat/12221_Cat_v1_l3.obj";
+        std::string filepath = "res/meshes/12221_Cat_v1_l3.obj";
+        //std::string filepath = "res/meshes/santa_hat(DEFAULT).obj";
         
         m_bFutureAccessed = false;
         m_Future = std::async(std::launch::async, LoadMesh, std::ref(m_Mesh), std::ref(filepath), std::ref(m_TempVertices), std::ref(m_TempIndices), std::ref(m_MaterialList));
 
-        m_VBO = std::make_unique<VertexBuffer>(sizeof(ObjModelVertex) * 35288 * 4);
+        /*m_VBO = std::make_unique<VertexBuffer>(sizeof(ObjModelVertex) * 35288 * 4, nullptr);
+        m_IBO = std::make_unique<IndexBuffer>(sizeof(unsigned int) * 35288 * 6, nullptr);*/
 
-        m_IBO = std::make_unique<IndexBuffer>(sizeof(unsigned int) * 35288 * 6, nullptr);
+        m_VBO = std::make_unique<VertexBuffer>(sizeof(ObjModelVertex) * 47344 * 4, nullptr);
+        m_IBO = std::make_unique<IndexBuffer>(sizeof(unsigned int) * 47344 * 6, nullptr);
 
         VertexBufferAttribsLayout layout;
         layout.Push<float>(3);
@@ -76,8 +79,6 @@ namespace test
 
         m_VAO = std::make_unique<VertexArray>();
         m_VAO->AddBuffer(*m_VBO, layout);
-
-        
 
 
         // TRANSFORM
@@ -154,6 +155,7 @@ namespace test
         {
             // do something to invalidate the future so this if statement is not accessed a second time
             m_bFutureAccessed = true;
+
 
             m_VBO->Bind();
             GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(ObjModelVertex) * m_TempVertices.size(), m_TempVertices.data()));
@@ -265,8 +267,12 @@ namespace test
                 if (material.MaterialProperties.Specular)
                     material.MaterialProperties.Specular->Unbind();
             }
-            // unbind shaders
+
+           
+
+            // unbindings
             m_Shader->Unbind();
+  
         }
     }
 

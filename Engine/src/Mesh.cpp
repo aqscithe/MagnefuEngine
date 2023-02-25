@@ -24,7 +24,7 @@ Mesh::Mesh(const std::string& filepath, std::vector<MaterialData>& materialList)
 
             for (auto& matData : ss)
             {
-                materialList.emplace_back(matFile, matData.SubMatName, CreateMaterial(matData.StrData, matData.SubMatName));
+                materialList.emplace_back(matFile, matData.SubMatName, CreateMaterial(matFile, matData.StrData, matData.SubMatName));
                 m_MaterialIndices.emplace(matData.SubMatName, materialList.size() - 1);
             }
         }
@@ -125,7 +125,7 @@ void Mesh::ParseMaterial(const std::string& filepath, std::vector<SubMaterialStr
     ss.push_back(SubMaterialStream{ newmtl, matProperties.str() });
 }
 
-Material<std::shared_ptr<Texture>> Mesh::CreateMaterial(const std::string& matData, const std::string& matName)
+Material<std::shared_ptr<Texture>> Mesh::CreateMaterial(const std::string& matFile, const std::string& matData, const std::string& matName)
 {
     using String = std::string;
 
@@ -134,9 +134,9 @@ Material<std::shared_ptr<Texture>> Mesh::CreateMaterial(const std::string& matDa
     String line;
 
 
-    float Ns, Ni, Opacity;
-    Maths::vec3 Tf, Ka, Kd, Ke, Ks;
-    int Illum;
+    float Ns = 32.f, Ni = 1.f, Opacity = 1.f;
+    Maths::vec3 Tf{0.f}, Ka{ 0.f }, Kd{ 0.f }, Ke{ 0.f }, Ks{ 0.f };
+    int Illum = 0;
     std::shared_ptr<Texture> Ambient = nullptr;
     std::shared_ptr<Texture> Diffuse = nullptr;
     std::shared_ptr<Texture> Specular = nullptr;
@@ -183,7 +183,20 @@ Material<std::shared_ptr<Texture>> Mesh::CreateMaterial(const std::string& matDa
 
         else if ((pos = line.find("map_")) == 1)
         {
-            String file = line.substr(pos + 7); 
+            std::stringstream ss;
+            ss.str(line);
+            String del;
+
+            String file = line.substr(pos + 7);
+
+            if (line.find("\\") != String::npos)
+            {
+                while (std::getline(ss, del, '\\'))
+                {
+                    file = del;
+                }
+            }
+            
             TextureType type;
             if (line.find("map_Ka") == 1) type = TextureType::AMBIENT;
             else if (line.find("map_Kd") == 1) type = TextureType::DIFFUSE;
@@ -193,10 +206,18 @@ Material<std::shared_ptr<Texture>> Mesh::CreateMaterial(const std::string& matDa
             {
                 type = TextureType::BUMP;
                 file = line.substr(pos + 9);
+
+                if (line.find("\\") != String::npos)
+                {
+                    while (std::getline(ss, del, '\\'))
+                    {
+                        file = del;
+                    }
+                }
             }
 
             
-            String filepath = "res/textures/" + matName + "/" + file;
+            String filepath = "res/textures/" + matFile.substr(0, matFile.find(".")) + "/" + file;
 
             // i should use a struct for the key!!! {string, TextureType}
             if (!m_TextureCache.contains(file))

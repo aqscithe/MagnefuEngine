@@ -33,10 +33,10 @@ namespace Maths
 	union vec3
 	{
 		vec3() = default;
-		vec3(float d)
+		constexpr vec3(float d)
 			: x(d), y(d), z(d)
 		{}
-		vec3(float x, float y, float z)
+		constexpr vec3(float x, float y, float z)
 			: x(x), y(y), z(z)
 		{}
 

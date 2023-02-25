@@ -57,5 +57,5 @@ private:
 	Maths::vec3 GetVertexData(std::string& line, int elementCount);
 	std::array<Maths::vec3i, 4>        GetFaceData(std::string& line);
 	void ParseMaterial(const std::string& filepath, std::vector<SubMaterialStream>& ss);
-	Material<std::shared_ptr<Texture>> CreateMaterial(const std::string& matStream, const std::string& matName);
+	Material<std::shared_ptr<Texture>> CreateMaterial(const std::string& matFile, const std::string& matStream, const std::string& matName);
 };

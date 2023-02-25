@@ -42,6 +42,8 @@ public:
 
 	void ProcessInput(GLFWwindow* window, float deltaTime);
 
+	// just learned i don't need inline here - these functions are implicitly inline
+	// https://en.cppreference.com/w/cpp/language/inline
 	inline const Maths::mat4& GetView() const { return m_View; }
 	inline const Maths::vec3& GetRight() const { return m_Right; }
 	inline const Maths::vec3& GetUp() const { return m_Up; }
