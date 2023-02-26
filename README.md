@@ -52,6 +52,9 @@ Just a simple test to change the background color.
 
 ![CatModel.gif](./SCREENS/CatModel.gif)
 
+![SantaHat.gif](./SCREENS/SantaHat.gif)
+
+![SantaHatArtifacts.gif](./SCREENS/SantaHatArtifacts.gif)
 
 ## Incomplete Features
 
