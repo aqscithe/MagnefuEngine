@@ -63,7 +63,7 @@ namespace test
         m_IBO = std::make_unique<IndexBuffer>(sizeof(indices) / sizeof(unsigned int), indices);
 
         m_Shader = std::make_unique <Shader>("res/shaders/Test.shader");
-        m_Texture0 = std::make_unique<Texture>("res/textures/wall.jpg");
+        m_Texture0 = std::make_unique<Texture>("res/textures/grass.jpg");
         m_Texture1 = std::make_unique<Texture>("res/textures/moon.png");
         
         m_Shader->Bind();
