@@ -7,11 +7,17 @@
 
 namespace Primitive
 {
-    struct Cube
+    struct BasicCube
     {
         std::array<BasicVertex, 36> Vertices;
     };
 
-    Cube CreateCube();
-    //Cube CreateCube(float x, float y, float z, unsigned int texID = 99);
+    struct TextureCube
+    {
+        std::array<TextureVertex, 36> Vertices;
+    };
+
+    
+    BasicCube CreateBasicCube();
+    TextureCube CreateTextureCube();
 }

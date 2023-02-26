@@ -93,6 +93,21 @@
     <ClCompile Include="src\tests\TestLighting.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
+    <ClCompile Include="src\Light.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tests\TestModelLoading.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Material.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Model.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\Basic.shader" />
@@ -509,6 +524,10 @@
     <None Include="res\shaders\Texture2D.shader" />
     <None Include="res\shaders\TestLighting.shader" />
     <None Include="res\shaders\LightCube.shader" />
+    <None Include="res\shaders\TestLighting-Texture.shader" />
+    <None Include="res\shaders\TestModelLoading.shader" />
+    <None Include="res\meshes\12221_Cat_v1_l3.mtl" />
+    <None Include="res\materials\cat\12221_Cat_v1_l3.mtl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\Renderer.h">
@@ -1438,6 +1457,21 @@
     <ClInclude Include="src\tests\TestLighting.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="header\Light.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tests\TestModelLoading.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="header\Material.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="header\Mesh.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="header\Model.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\textures\moon.png">
@@ -1447,6 +1481,72 @@
       <Filter>Fichiers de ressources</Filter>
     </Image>
     <Image Include="res\textures\pluto.png">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\water_abstract.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\grass.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\container_specular.png">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_ao.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_d.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_n.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_s.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\starlights\starlights_ao.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\starlights\starlights_d.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\starlights\starlights_n.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\starlights\starlights_s.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\meshes\Cat_bump.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\meshes\Cat_diffuse.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\cat\Cat_bump.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\cat\Cat_diffuse.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\12221_Cat_v1_l3\Cat_bump.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\12221_Cat_v1_l3\Cat_diffuse.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\santa_hat\bump.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\santa_hat\color.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\santa_hat\normalmap.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\santa_hat\softnessmap.jpg">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="res\textures\santa_hat\specular.jpg">
       <Filter>Fichiers de ressources</Filter>
     </Image>
   </ItemGroup>

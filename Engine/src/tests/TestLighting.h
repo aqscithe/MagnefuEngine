@@ -10,6 +10,8 @@
 #include "Camera.h"
 #include "VertexArray.h"
 #include "IndexBuffer.h"
+#include "Light.h"
+#include "Material.h"
 
 #include "Quaternion.h"
 #include "Vectors.h"
@@ -17,41 +19,15 @@
 
 #include <memory>
 #include <vector>
+#include <future>
+
+
+// TODO:
+// Implement ability to have multiple of each light type
+// Probably std::vector so num of lights is mutable
 
 namespace test
 {
-	struct Light
-	{
-		float K_d;
-		float K_s;
-		Maths::vec3 Position;
-		Maths::vec3 Diffuse;
-		Maths::vec3 Specular;
-	};
-
-	enum class ShadingTechnique
-	{
-		PHONG,
-		GORAUD
-	};
-
-	enum class ReflectionModel
-	{
-		PHONG,
-		BLINN_PHONG
-	};
-
-	struct Material
-	{
-		bool Preset;
-		Maths::vec3 Ambient;
-		Maths::vec3 Diffuse;
-		Maths::vec3 Specular;
-		float       Shininess;
-		//float       Roughness;
-		//float       Opacity;
-	};
-
 	class TestLighting : public Test
 	{
 		public:
@@ -66,16 +42,20 @@ namespace test
 			void UpdateLights();
 			void UpdateMVP();
 			void SetShaderUniforms();
+			void SetTextureShaderUniforms();
 
-			Light m_light;
 			Maths::vec3 m_lightScaling;
+
+			std::vector<PointLightModel> m_PointLights;
+			std::vector<DirLightModel> m_DirectionLights;
+			std::vector<SpotLightModel> m_SpotLights;
 
 
 			Maths::vec3 m_AmbientIntensity;
 			Maths::vec3 m_DiffusionIntensity;
 			Maths::vec3 m_SpecularIntensity;
-			Material* m_ActiveMaterial;
-			std::unordered_map<std::string, Material> m_AvailableMaterials;
+			Material<Maths::vec3>* m_ActiveMaterial;
+			std::unordered_map<std::string, Material<Maths::vec3>> m_AvailableMaterials;
 
 			float m_shininess;
 
@@ -89,6 +69,14 @@ namespace test
 			std::unique_ptr<IndexBuffer> m_IBO;
 			std::unique_ptr<Shader> m_ModelCubeShader;
 			std::unique_ptr<Shader> m_LightCubeShader;
+			std::unique_ptr<Shader> m_TextureCubeShader;
+
+			std::vector<std::unique_ptr<Texture>> m_Textures;
+			std::vector<std::future<void>> m_Futures;
+			//std::unique_ptr<Texture> m_Texture;
+			//std::unique_ptr<Texture> m_Texture1;
+			//std::unique_ptr<Texture> m_Texture2;
+			//std::unique_ptr<Texture> m_Texture3;
 
 
 			std::unique_ptr <Maths::Quaternion> m_Quat;
@@ -101,17 +89,6 @@ namespace test
 
 			Maths::vec3 m_ObjectColor;
 
-
-			// put this in a camera info struct that all
-			// these test classes can access
-			float m_aspectRatio;
-			float m_near;
-			float m_far;
-			float m_top;
-			float m_bottom;
-			float m_right;
-			float m_left;
-			bool m_IsOrtho;
 
 			Maths::mat4 m_MVP;
 

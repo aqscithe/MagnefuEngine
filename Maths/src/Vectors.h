@@ -14,29 +14,75 @@ namespace Maths
 		{}
 
 		float e[2];
+
 		struct { float x; float y; };
+	};
+
+	union vec2i
+	{
+		vec2i() = default;
+		vec2i(int x, int y)
+			: x(x), y(y)
+		{}
+
+		int e[2];
+
+		struct { int x; int y; };
 	};
 
 	union vec3
 	{
 		vec3() = default;
-		vec3(float x, float y, float z)
+		constexpr vec3(float d)
+			: x(d), y(d), z(d)
+		{}
+		constexpr vec3(float x, float y, float z)
 			: x(x), y(y), z(z)
 		{}
+
 		vec3(vec2 xy, float z)
 			: x(xy.x), y(xy.y), z(z)
 		{}
 
 		float e[3];
+
 		struct { float x, y, z; };
 		struct { float r, g, b; };
 
 		vec2 xy;
+		vec2 uv;
+	};
+
+	union vec3i
+	{
+		vec3i() = default;
+		vec3i(int d)
+			: x(d), y(d), z(d)
+		{}
+		vec3i(int x, int y, int z)
+			: x(x), y(y), z(z)
+		{}
+
+		vec3i(vec2i xy, int z)
+			: x(xy.x), y(xy.y), z(z)
+		{}
+
+		int e[3];
+
+		struct { int v, vt, vn; };
+		struct { int x, y, z; };
+		struct { int r, g, b; };
+
+		vec2i xy;
+		vec2i uv;
 	};
 
 	union vec4
 	{
 		vec4() = default;
+		vec4(float d)
+			: x(d), y(d), z(d), w(d)
+		{}
 		vec4(float x, float y, float z, float w)
 			: x(x), y(y), z(z), w(w)
 		{}
@@ -45,12 +91,36 @@ namespace Maths
 		{}
 
 		float e[4];
+
 		struct { float x, y, z, w; };
 		struct { float r, g, b, a; };
 
 		vec3 rgb;
 		vec3 xyz;
 		vec3 xy;
+	};
+
+	union vec4i
+	{
+		vec4i() = default;
+		vec4i(int d)
+			: x(d), y(d), z(d), w(d)
+		{}
+		vec4i(int x, int y, int z, int w)
+			: x(x), y(y), z(z), w(w)
+		{}
+		vec4i(vec3i xyz, int w)
+			: x(xyz.x), y(xyz.y), z(xyz.z), w(w)
+		{}
+
+		int e[4];
+
+		struct { int x, y, z, w; };
+		struct { int r, g, b, a; };
+
+		vec3i rgb;
+		vec3i xyz;
+		vec3i xy;
 	};
 #pragma endregion
 
@@ -169,6 +239,8 @@ namespace Maths
 #pragma endregion
 
 #pragma Functions
+	vec3 StrtoVec3(const std::string& str);
+
 	vec3 normalize(const vec3& v);
 	vec4 normalize(const vec4& v);
 	vec3 crossProduct(const vec3& v, const vec3& k);

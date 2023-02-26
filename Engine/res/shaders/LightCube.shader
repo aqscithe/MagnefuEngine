@@ -3,9 +3,8 @@
 
 layout(location = 0) in vec3  v_Position;
 layout(location = 1) in vec3  v_Normal;
-layout(location = 2) in vec4  v_Color;
-layout(location = 3) in vec2  v_TexCoords;
-layout(location = 4) in float   v_TexID;
+layout(location = 2) in vec2  v_TexCoords;
+layout(location = 3) in float   v_TexID;
 
 
 uniform mat4 u_MVP;

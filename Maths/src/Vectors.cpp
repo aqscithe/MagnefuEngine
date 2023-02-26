@@ -1,7 +1,29 @@
 #include "Vectors.h"
 
+#include <sstream>
+
 namespace Maths
 {
+    vec3 StrtoVec3(const std::string& str)
+    {
+        // could do with some error checking...
+        // im being very trustworthy right now
+
+        std::stringstream ss;
+        ss.str(str);
+
+        int index = 0;
+        float vec[3] = { 0.f, 0.f, 0.f };
+        std::string del;
+        while (std::getline(ss, del, ' '))
+        {
+            vec[index] = std::stof(del);
+            index++;
+        }
+
+        return { vec[0], vec[1], vec[2] };
+    }
+
     vec3 normalize(const vec3& v)
     {
         float mag = magnitude(v);

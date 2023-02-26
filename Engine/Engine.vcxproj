@@ -172,6 +172,10 @@
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\Globals.cpp" />
     <ClCompile Include="src\IndexBuffer.cpp" />
+    <ClCompile Include="src\Light.cpp" />
+    <ClCompile Include="src\Material.cpp" />
+    <ClCompile Include="src\Mesh.cpp" />
+    <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\tests\Test.cpp" />
@@ -180,6 +184,7 @@
     <ClCompile Include="src\tests\TestBatchRendering.cpp" />
     <ClCompile Include="src\tests\TestClearColor.cpp" />
     <ClCompile Include="src\tests\TestLighting.cpp" />
+    <ClCompile Include="src\tests\TestModelLoading.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\Timer.cpp" />
     <ClCompile Include="src\VertexArray.cpp" />
@@ -323,9 +328,13 @@
     <None Include="header\vendor\glm\gtx\vector_angle.inl" />
     <None Include="header\vendor\glm\gtx\vector_query.inl" />
     <None Include="header\vendor\glm\gtx\wrap.inl" />
+    <None Include="res\materials\cat\12221_Cat_v1_l3.mtl" />
+    <None Include="res\meshes\12221_Cat_v1_l3.mtl" />
     <None Include="res\shaders\BatchRender.shader" />
     <None Include="res\shaders\LightCube.shader" />
+    <None Include="res\shaders\TestLighting-Texture.shader" />
     <None Include="res\shaders\TestLighting.shader" />
+    <None Include="res\shaders\TestModelLoading.shader" />
     <None Include="res\shaders\Texture2D.shader" />
     <None Include="res\shaders\Basic.shader" />
     <None Include="res\shaders\Test.shader" />
@@ -334,6 +343,10 @@
     <ClInclude Include="header\Camera.h" />
     <ClInclude Include="header\Globals.h" />
     <ClInclude Include="header\IndexBuffer.h" />
+    <ClInclude Include="header\Light.h" />
+    <ClInclude Include="header\Material.h" />
+    <ClInclude Include="header\Mesh.h" />
+    <ClInclude Include="header\Model.h" />
     <ClInclude Include="header\Renderer.h" />
     <ClInclude Include="header\Shader.h" />
     <ClInclude Include="header\Texture.h" />
@@ -640,11 +653,34 @@
     <ClInclude Include="src\tests\TestBatchRendering.h" />
     <ClInclude Include="src\tests\TestClearColor.h" />
     <ClInclude Include="src\tests\TestLighting.h" />
+    <ClInclude Include="src\tests\TestModelLoading.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\meshes\Cat_bump.jpg" />
+    <Image Include="res\meshes\Cat_diffuse.jpg" />
+    <Image Include="res\textures\12221_Cat_v1_l3\Cat_bump.jpg" />
+    <Image Include="res\textures\12221_Cat_v1_l3\Cat_diffuse.jpg" />
+    <Image Include="res\textures\cat\Cat_bump.jpg" />
+    <Image Include="res\textures\cat\Cat_diffuse.jpg" />
+    <Image Include="res\textures\container_specular.png" />
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_ao.jpg" />
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_d.jpg" />
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_n.jpg" />
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_s.jpg" />
+    <Image Include="res\textures\grass.jpg" />
     <Image Include="res\textures\moon.png" />
     <Image Include="res\textures\pluto.png" />
+    <Image Include="res\textures\santa_hat\bump.jpg" />
+    <Image Include="res\textures\santa_hat\color.jpg" />
+    <Image Include="res\textures\santa_hat\normalmap.jpg" />
+    <Image Include="res\textures\santa_hat\softnessmap.jpg" />
+    <Image Include="res\textures\santa_hat\specular.jpg" />
+    <Image Include="res\textures\starlights\starlights_ao.jpg" />
+    <Image Include="res\textures\starlights\starlights_d.jpg" />
+    <Image Include="res\textures\starlights\starlights_n.jpg" />
+    <Image Include="res\textures\starlights\starlights_s.jpg" />
     <Image Include="res\textures\wall.jpg" />
+    <Image Include="res\textures\water_abstract.jpg" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Maths\Maths.vcxproj">

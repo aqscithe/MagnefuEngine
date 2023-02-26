@@ -21,7 +21,7 @@ Camera::Camera(const Maths::vec3& position, const Maths::vec3& target)
 
 void Camera::CreateCameraAxes()
 {
-	m_Forward = m_Position - m_Target;
+	m_Forward = Maths::normalize(m_Position - m_Target);
 	m_Right = Maths::normalize(Maths::crossProduct(Maths::vec3(0.0f, 1.0f, 0.0f), m_Forward));
 	m_Up = Maths::normalize(Maths::crossProduct(m_Forward, m_Right));
 	CalculateView();
@@ -51,16 +51,16 @@ void Camera::ProcessInput(GLFWwindow* window, float deltaTime)
 	
 	float cameraSpeed = m_Speed * deltaTime;
 	float forwardMovement = 0.f;
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
 		forwardMovement += cameraSpeed;
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		forwardMovement -= cameraSpeed;
 
 
 	float strafeMovement = 0.f;
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
 		strafeMovement -= cameraSpeed;
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
 		strafeMovement += cameraSpeed;
 
 	float verticalMovement = 0.f;

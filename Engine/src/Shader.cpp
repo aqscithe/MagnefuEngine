@@ -23,8 +23,6 @@ Shader::~Shader()
 ShaderProgramSource Shader::ParseShader(const String& filepath)
 {
 
-    FILE* ptr = nullptr;
-
     std::ifstream stream(filepath);
 
     enum class ShaderType
@@ -155,7 +153,17 @@ void Shader::SetUniform1i(const String& name, const int value)
 	GLCall(glUniform1i(GetUniformLocation(name), (GLint)value));
 }
 
+void Shader::SetUniform1i(const String& name, const bool value)
+{
+    GLCall(glUniform1i(GetUniformLocation(name), (GLboolean)value));
+}
+
 void Shader::SetUniform1iv(const String& name, const int* value)
 {
     GLCall(glUniform1iv(GetUniformLocation(name), 2, (const GLint*)value));
+}
+
+void Shader::SetUniform1ui(const String& name, const unsigned int value)
+{
+    GLCall(glUniform1ui(GetUniformLocation(name), (GLuint)value));
 }

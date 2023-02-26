@@ -7,6 +7,11 @@
 #include "Matrices.h"
 
 
+enum class ShadingTechnique
+{
+	PHONG
+};
+
 
 struct ShaderProgramSource
 {
@@ -35,7 +40,9 @@ public:
 	void SetUniform3fv(const String& name, const Maths::vec3& value);
 	void SetUniform1f(const String& name, const float value);
 	void SetUniform1i(const String& name, const int value);
+	void SetUniform1i(const String& name, const bool value);
 	void SetUniform1iv(const String& name, const int* value);
+	void SetUniform1ui(const String& name, const unsigned int value);
 
 private:
 	ShaderProgramSource ParseShader(const String& filepath);

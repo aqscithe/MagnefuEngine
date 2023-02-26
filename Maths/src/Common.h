@@ -13,8 +13,8 @@ namespace Maths
 	inline float tan(float x) { return tanf(x); }
 	inline float acos(float x) { return acosf(x); }
 
-	inline float toRadians(float degrees) { return degrees * TAU / 360.f; };
-	inline float toDegrees(float radians) { return radians * 360.f / TAU; };
+	constexpr inline float toRadians(float degrees) { return degrees * TAU / 360.f; };
+	constexpr inline float toDegrees(float radians) { return radians * 360.f / TAU; };
 
 	template<typename T>
 	inline T min(T x, T y) { return x < y ? x : y; };

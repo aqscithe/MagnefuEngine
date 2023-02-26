@@ -5,9 +5,22 @@
 
 struct GLFWwindow;
 
+struct CameraProperties
+{
+	float AspectRatio;
+	float Near;
+	float Far;
+	float Top;
+	float Bottom;
+	float Right;
+	float Left;
+	bool  IsOrtho;
+};
+
 class Camera
 {
 public:
+	CameraProperties m_Properties;
 	Maths::vec3 m_Position;
 	Maths::vec3 m_Target;
 	Maths::vec3 m_Forward;
@@ -29,6 +42,8 @@ public:
 
 	void ProcessInput(GLFWwindow* window, float deltaTime);
 
+	// just learned i don't need inline here - these functions are implicitly inline
+	// https://en.cppreference.com/w/cpp/language/inline
 	inline const Maths::mat4& GetView() const { return m_View; }
 	inline const Maths::vec3& GetRight() const { return m_Right; }
 	inline const Maths::vec3& GetUp() const { return m_Up; }
