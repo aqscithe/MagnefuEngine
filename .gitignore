@@ -81,6 +81,9 @@ Dependencies/*
 bin/*
 */.vs
 
+# Application
+Application/*
+
 OpenGL/header/vendor/glm/*
 OpenGL/header/vendor/imgui/main.cpp
 

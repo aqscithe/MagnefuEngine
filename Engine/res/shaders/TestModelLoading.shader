@@ -149,6 +149,7 @@ vec3 GetCombined(vec3 DiffuseLight, vec3 SpecularLight)
 	vec3 Specular = SpecularLight * u_Intensity.Specular * vec3(texture(u_material[int(MatID)].Specular, TexCoords));
 
 	return Ambient + Diffuse + Specular;
+	//return Diffuse;
 }
 
 vec3 GetPointReflectionLight(int index)
@@ -244,5 +245,6 @@ vec3 ShadeFragment()
 void main()
 {
 	FragColor = vec4(ShadeFragment(), 1.0);
+	//FragColor = vec4(vec3(texture(u_material[int(MatID)].Diffuse, TexCoords)), 1.0);
 	//FragColor = vec4(1.0);
 }

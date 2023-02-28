@@ -49,9 +49,13 @@ void Texture::Unbind() const
 
 void Texture::SetTextureOptions()
 {
+	// Texture Wrap
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+
+	// Texture Sampling Technique
+	//GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 }
 
@@ -60,7 +64,11 @@ void Texture::GenerateTexImage()
 	if (!m_texData)
 		std::cout << "No valid texture data to generate texture image." << std::endl;
 	else
+	{
 		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_texData));
+		GLCall(glGenerateMipmap(GL_TEXTURE_2D));
+	}
+		
 
 	if(m_texData)
 		stbi_image_free(m_texData);
