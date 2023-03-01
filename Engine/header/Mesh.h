@@ -2,10 +2,16 @@
 
 #include "PrimitiveCommon.h"
 
+#include "VertexBuffer.h"
+#include "VertexArray.h"
+#include "IndexBuffer.h"
 #include "Material.h"
+#include "Shader.h"
+#include "Renderer.h"
 
 #include <vector>
 #include <string>
+#include <memory>
 #include <map>
 #include <unordered_map>
 #include <fstream>
@@ -34,28 +40,34 @@ struct TextureLabel
 	TextureType Type;
 };
 
+struct MeshData
+{
+	std::vector<Maths::vec3> Positions;
+	std::vector<Maths::vec3> Normals;
+	std::vector<Maths::vec2> TexCoords;
+	std::vector<Face> Faces;
+};
+
 class Mesh
 {
 public:
-	Mesh(const std::string& filepath, std::vector<MaterialData>& materialLibs);
+	Mesh(MeshData& meshData);
+
+	void Draw(std::unique_ptr<Shader>& shader);
+
+	void Init();
+
 	
-	std::vector<Maths::vec3> m_Positions;
-	std::vector<Maths::vec3> m_Normals;
-	std::vector<Maths::vec2> m_TexCoords;
-	std::vector<Face> m_Faces;
-	std::vector<std::string> m_TexIDs;
+	MeshData m_MeshData;
 
 	std::string m_Filepath;
 
-	std::unordered_map<std::string, int> m_MaterialIndices;
-	std::vector<TextureLabel> m_Textures;
-	std::unordered_map<std::string, std::shared_ptr<Texture>> m_TextureCache;
+	std::unique_ptr<VertexBuffer> m_VBO;
+	std::unique_ptr<VertexArray> m_VAO;
+	std::unique_ptr<IndexBuffer> m_IBO;
+
+	Renderer m_Renderer;
 	
 
 private:
-
-	Maths::vec3 GetVertexData(std::string& line, int elementCount);
-	std::array<Maths::vec3i, 4>        GetFaceData(std::string& line);
-	void ParseMaterial(const std::string& filepath, std::vector<SubMaterialStream>& ss);
-	Material<std::shared_ptr<Texture>> CreateMaterial(const std::string& matFile, const std::string& matStream, const std::string& matName);
 };

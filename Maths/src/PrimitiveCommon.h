@@ -41,5 +41,5 @@ struct ObjModelVertex
 struct Face
 {
     std::array< Maths::vec3i, 4> Indices;
-    unsigned int TexID;
+    unsigned int MatID;
 };

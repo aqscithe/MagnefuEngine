@@ -39,11 +39,11 @@ void main()
 #define NR_POINT_LIGHTS 1
 #define NR_SPOT_LIGHTS 1
 #define NR_DIR_LIGHTS 1
-#define NR_MATS 1
+#define NR_MATS 10
 
 struct Material 
 {
-	unsigned int TexID;
+	unsigned int MatID;
 	sampler2D    Ambient;
 	sampler2D    Diffuse;
 	sampler2D    Specular;
@@ -51,7 +51,8 @@ struct Material
 	vec3         Kd;
 	vec3         Ks;
 	float        Ns;
-	//float Roughness;
+	//sampler2D Roughness;
+	//sampler2D Metallic;
 	//float Opacity;
 };
 
@@ -244,7 +245,7 @@ vec3 ShadeFragment()
 
 void main()
 {
-	FragColor = vec4(ShadeFragment(), 1.0);
+	//FragColor = vec4(ShadeFragment(), 1.0);
 	//FragColor = vec4(vec3(texture(u_material[int(MatID)].Diffuse, TexCoords)), 1.0);
-	//FragColor = vec4(1.0);
+	FragColor = vec4(1.0);
 }

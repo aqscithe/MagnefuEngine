@@ -11,7 +11,7 @@ struct Material
 {
 	bool		 Preset;
 	bool		 Textured;
-	unsigned int TexID;
+	unsigned int ID;
 	T            Ambient;
 	T            Diffuse;
 	T            Specular;
