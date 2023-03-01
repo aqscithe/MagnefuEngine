@@ -7,6 +7,7 @@
 #include "Mesh.h"
 #include "Shader.h"
 
+#include <mutex>
 
 
 class Model
@@ -38,5 +39,7 @@ private:
 	std::array<Maths::vec3i, 4> GetFaceData(std::string& line);
 
 	void LoadMesh(std::vector<Maths::vec3>& tempPositions, std::vector<Maths::vec3>& tempNormals, std::vector<Maths::vec2>& tempTexCoords, std::vector<Face>& tempFaces);
+
+	static std::mutex m_Mutex;
 
 };

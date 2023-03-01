@@ -1,10 +1,11 @@
 #include "Model.h"
 
-#include <mutex>
 
 
 Model::Model(std::string& filepath, Cache& matCache) : m_Filepath(filepath)
 {
+    std::mutex m_Mutex;
+
     std::ifstream stream(m_Filepath);
     std::string line;
 
@@ -25,8 +26,9 @@ Model::Model(std::string& filepath, Cache& matCache) : m_Filepath(filepath)
             std::string filepath = "res/materials/" + matFile;
             ParseMaterial(filepath, ss);
 
-            std::mutex matCacheMutex;
-            std::lock_guard<std::mutex> guard(matCacheMutex);
+            
+            std::lock_guard<std::mutex> guard(m_Mutex);
+            
             for (auto& matData : ss)
             {
                 m_MaterialList.emplace_back(matFile, matData.SubMatName, CreateMaterial(matFile, matData.StrData, matData.SubMatName, matCache.size()));
@@ -57,8 +59,6 @@ Model::Model(std::string& filepath, Cache& matCache) : m_Filepath(filepath)
     // For the last mesh
     if (!tempFaces.empty())
         LoadMesh(tempPositions, tempNormals, tempTexCoords, tempFaces);
-
-
 
     //std::cout << "Vertex Postions: " << m_Positions.size() << " | " << "Vertex Normals: " << m_Normals.size() << " | " << "Texture Coords: " <<
     //    m_TexCoords.size() << " | " << "Faces: " << m_Faces.size() << std::endl;
