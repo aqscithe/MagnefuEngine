@@ -18,4 +18,6 @@ public:
 	void DrawCube(const VertexArray& vao, const Shader& shader) const;
 	void Clear() const;
 	void ClearColor(Maths::vec4& clearColor) const;
+	void EnableDepthTest() const;
+	void DisableDepthTest() const;
 };

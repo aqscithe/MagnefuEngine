@@ -30,3 +30,13 @@ void Renderer::ClearColor(Maths::vec4& clearColor) const
 {
     GLCall(glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a));
 }
+
+void Renderer::EnableDepthTest() const
+{
+    GLCall(glEnable(GL_DEPTH_TEST));
+}
+
+void Renderer::DisableDepthTest() const
+{
+    GLCall(glDisable(GL_DEPTH_TEST));
+}

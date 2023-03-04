@@ -20,45 +20,30 @@
 #include <chrono>
 #include <numeric>
 #include <cstdio>
-//#include <mutex>
 
 namespace test
 {
 
-    static std::unique_ptr<Model> LoadModel(std::string& filepath, std::unordered_map<std::string, int>& matCache)
+    static std::unique_ptr<Model> LoadModel(std::string& filepath, std::unordered_map<std::string, int>& matCache, std::mutex& mutex)
     {
         Timer timer;
-        return std::make_unique<Model>(filepath, matCache);
+        return std::make_unique<Model>(filepath, matCache, mutex);
     }
 
 	TestModelLoading::TestModelLoading()
 	{
         Timer timer;
 
-        //// LOAD MESHES
+        // LOAD MESHES
         std::vector<std::string> objs = {
-            "res/meshes/12221_Cat_v1_l3.obj",
-            "res/meshes/santa_hat(DEFAULT).obj"
+            //"res/meshes/E 45 Aircraft_obj.obj",
+            "res/meshes/backpack.obj",
+            //"res/meshes/santa_hat(DEFAULT).obj",
+            //"res/meshes/12221_Cat_v1_l3.obj",
         };
                 
         for(std::string& obj : objs)
-            m_ModelWorkers[m_ModelWorkers.size()] = Worker<Model>{ false, std::async(std::launch::async, LoadModel, std::ref(obj), std::ref(m_MaterialCache)) };
-        
-        ///*m_VBO = std::make_unique<VertexBuffer>(sizeof(ObjModelVertex) * 35288 * 4, nullptr);
-        //m_IBO = std::make_unique<IndexBuffer>(sizeof(unsigned int) * 35288 * 6, nullptr);*/
-
-        //m_VBO = std::make_unique<VertexBuffer>(sizeof(ObjModelVertex) * 47344 * 4, nullptr);
-        //m_IBO = std::make_unique<IndexBuffer>(sizeof(unsigned int) * 47344 * 6, nullptr);
-
-        //VertexBufferAttribsLayout layout;
-        //layout.Push<float>(3);
-        //layout.Push<float>(3);
-        //layout.Push<float>(2);
-        //layout.Push<unsigned int>(1);
-
-        //m_VAO = std::make_unique<VertexArray>();
-        //m_VAO->AddBuffer(*m_VBO, layout);
-
+            m_ModelWorkers[m_ModelWorkers.size()] = Worker<Model>{ false, std::async(std::launch::async, LoadModel, std::ref(obj), std::ref(m_MaterialCache), std::ref(m_ModelMutex) )};
 
         // TRANSFORM
         m_bShowTransform = false;
@@ -66,8 +51,8 @@ namespace test
         m_MVP = Maths::identity();
 
         m_translation = { 6.4f, -1.2f, -4.f };
-        m_scaling = { 0.1f, 0.1f, 0.1f };
-        m_angleRot = -90.f;
+        m_scaling = { 1.f, 1.f, 1.f };
+        m_angleRot = 0.f;
         m_rotationAxis = { 1.f, 0.f, 0.f };
         m_Quat = std::make_unique<Maths::Quaternion>(m_angleRot, m_rotationAxis);
 
@@ -98,9 +83,9 @@ namespace test
 
         m_lightScaling = { 0.1f, 0.1f, 0.1f };
 
-        m_AmbientIntensity = 0.05f;
-        m_DiffusionIntensity = 0.15f;
-        m_SpecularIntensity = 0.f;
+        m_AmbientIntensity = 0.1f;
+        m_DiffusionIntensity = 1.f;
+        m_SpecularIntensity = 0.8f;
 
 
         // SHADERS & TEXTURES
@@ -108,19 +93,17 @@ namespace test
         // should this be an async call?
         m_Shader = std::make_unique <Shader>("res/shaders/TestModelLoading.shader"); 
         m_Shader->Bind();
-        SetTextureShaderUniforms();
+        SetShaderUniforms();
         m_Shader->Unbind();
 
 
-
-        
-        GLCall(glEnable(GL_DEPTH_TEST));
-        std::cout << "Test Model Loading Constructor Finished" << std::endl;
+        // RENDER OPTIONS
+        m_Renderer.EnableDepthTest();
 	}
 
 	TestModelLoading::~TestModelLoading()
 	{
-        GLCall(glDisable(GL_DEPTH_TEST));
+        m_Renderer.DisableDepthTest();
 	}
 
 	void TestModelLoading::OnUpdate(GLFWwindow* window, float deltaTime)
@@ -151,131 +134,6 @@ namespace test
             m_InactiveThreads = 0;
         }
     }
-
-        
-    //    if (m_Future.wait_for(std::chrono::seconds(0)) == std::future_status::ready && !m_bFutureAccessed)
-    //    {
-    //        // do something to invalidate the future so this if statement is not accessed a second time
-    //        m_bFutureAccessed = true;
-
-
-    //        m_VBO->Bind();
-    //        GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(ObjModelVertex) * m_TempVertices.size(), m_TempVertices.data()));
-
-    //        m_IBO->Bind();
-    //        GLCall(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(unsigned int) * m_TempIndices.size(), m_TempIndices.data()));
-    //        m_IBO->Unbind();
-    //        m_VBO->Unbind();
-
-    //        // CAN GENERATE TEXTURE IMAGES AND BIND THEM HERE
-
-    //        //bind shader
-    //        m_Shader->Bind();
-    //        //generate textures
-    //        
-    //        for (auto& material : m_MaterialList)
-    //        {
-    //            if (material.MaterialProperties.Ambient && !material.MaterialProperties.Ambient->GetGenerationStatus())
-    //                material.MaterialProperties.Ambient->GenerateTexture();
-    //            if (material.MaterialProperties.Diffuse && !material.MaterialProperties.Diffuse->GetGenerationStatus())
-    //                material.MaterialProperties.Diffuse->GenerateTexture();
-    //            if (material.MaterialProperties.Specular && !material.MaterialProperties.Specular->GetGenerationStatus())
-    //                material.MaterialProperties.Specular->GenerateTexture();
-    //        }
-    //            
-    //            //create method in texture class to generate texture images
-    //        // bind textures
-    //        
-    //        std::vector<int> ambientTextureLocations;
-    //        std::vector<int> diffuseTextureLocations;
-    //        std::vector<int> specularTextureLocations;
-
-    //        int textureSlot = 0;
-    //        for (auto& material : m_MaterialList)
-    //        {
-    //            if (material.MaterialProperties.Ambient)
-    //            {
-    //                if (!m_TextureCache.contains(material.MaterialProperties.Ambient->GetFilepath()))
-    //                {
-    //                    material.MaterialProperties.Ambient->Bind(textureSlot);
-    //                    m_TextureCache[material.MaterialProperties.Ambient->GetFilepath()] = textureSlot;
-    //                    ambientTextureLocations.push_back(textureSlot);
-    //                    textureSlot++;
-    //                }
-    //                else
-    //                {
-    //                    ambientTextureLocations.push_back(m_TextureCache[material.MaterialProperties.Ambient->GetFilepath()]);
-    //                }
-    //            }
-    //            
-
-    //            if (material.MaterialProperties.Diffuse)
-    //            {
-    //                if (!m_TextureCache.contains(material.MaterialProperties.Diffuse->GetFilepath()))
-    //                {
-    //                    material.MaterialProperties.Diffuse->Bind(textureSlot);
-    //                    m_TextureCache[material.MaterialProperties.Diffuse->GetFilepath()] = textureSlot;
-    //                    diffuseTextureLocations.push_back(textureSlot);
-    //                    textureSlot++;
-    //                }
-    //                else
-    //                {
-    //                    diffuseTextureLocations.push_back(m_TextureCache[material.MaterialProperties.Diffuse->GetFilepath()]);
-    //                }
-    //                
-    //            }
-
-    //            if (material.MaterialProperties.Specular)
-    //            {
-    //                if (!m_TextureCache.contains(material.MaterialProperties.Specular->GetFilepath()))
-    //                {
-    //                    material.MaterialProperties.Specular->Bind(textureSlot);
-    //                    m_TextureCache[material.MaterialProperties.Specular->GetFilepath()] = textureSlot;
-    //                    specularTextureLocations.push_back(textureSlot);
-    //                    textureSlot++;
-    //                }
-    //                else
-    //                {
-    //                    specularTextureLocations.push_back(m_TextureCache[material.MaterialProperties.Specular->GetFilepath()]);
-    //                }
-    //                
-    //            }
-    //        }
-
-    //        int i = 0;
-    //        for (auto& material : m_MaterialList)
-    //        {
-    //            // set diffuse, ambient and specular material uniforms - arrays
-    //            std::string matLabel = "u_material[" + std::to_string(i) + "].";
-    //            
-    //            if(material.MaterialProperties.Ambient)
-    //                m_Shader->SetUniform1i(matLabel + "Ambient", m_TextureCache[material.MaterialProperties.Ambient->GetFilepath()]);
-    //            if (material.MaterialProperties.Diffuse)
-    //                m_Shader->SetUniform1i(matLabel + "Diffuse", m_TextureCache[material.MaterialProperties.Diffuse->GetFilepath()]);
-    //            if (material.MaterialProperties.Specular)
-    //                m_Shader->SetUniform1i(matLabel + "Specular", m_TextureCache[material.MaterialProperties.Specular->GetFilepath()]);
-    //            i++;
-    //        }
-
-    //        
-
-    //        // unbind textures
-    //        for (auto& material : m_MaterialList)
-    //        {
-    //            if (material.MaterialProperties.Ambient)
-    //                material.MaterialProperties.Ambient->Unbind();
-    //            if (material.MaterialProperties.Diffuse)
-    //                material.MaterialProperties.Diffuse->Unbind();
-    //            if (material.MaterialProperties.Specular)
-    //                material.MaterialProperties.Specular->Unbind();
-    //        }
-
-    //       
-
-    //        // unbindings
-    //        m_Shader->Unbind();
-  
-    //    }
 
     void TestModelLoading::UpdateLights()
     {
@@ -331,44 +189,10 @@ namespace test
         m_Renderer.Clear();
 
         m_Shader->Bind();
-        SetTextureShaderUniforms();
+        SetShaderUniforms();
         for (auto& model : m_Models)
-            model->Draw(m_Shader);
-
-        /*if (m_Future.wait_for(std::chrono::seconds(0)) == std::future_status::ready && m_bFutureAccessed)
-        {
-            m_Shader->Bind();
-            for (auto& material : m_MaterialList)
-            {
-                if (material.MaterialProperties.Ambient)
-                    material.MaterialProperties.Ambient->Bind(m_TextureCache[material.MaterialProperties.Ambient->GetFilepath()]);
-                if (material.MaterialProperties.Diffuse)
-                    material.MaterialProperties.Diffuse->Bind(m_TextureCache[material.MaterialProperties.Diffuse->GetFilepath()]);
-                if (material.MaterialProperties.Specular)
-                    material.MaterialProperties.Specular->Bind(m_TextureCache[material.MaterialProperties.Specular->GetFilepath()]);
-            }
-
-            SetTextureShaderUniforms();
-            m_Renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
-
-            m_Shader->Unbind();
-        }*/
-
-
-        // Render light models
-        // can comment out if don't need models representing their position
-        /*m_LightCubeShader->Bind();
-        for (auto& pointlight : m_PointLights)
-        {
-            m_LightCubeShader->SetUniformMatrix4fv("u_MVP", pointlight.MVP);
-            m_Renderer.DrawCube(*m_LightCubeVAO, *m_LightCubeShader);
-        }
-        for (auto& spotlight : m_SpotLights)
-        {
-            m_LightCubeShader->SetUniformMatrix4fv("u_MVP", spotlight.MVP);
-            m_Renderer.DrawCube(*m_LightCubeVAO, *m_LightCubeShader);
-        }
-        m_LightCubeShader->Unbind();*/
+            model->Draw(m_Shader, m_TextureCache, m_MaterialCache);
+        m_Shader->Unbind();
         
 	}
 	
@@ -376,16 +200,10 @@ namespace test
 	{
         Globals& global = Globals::Get();
 
-        if (ImGui::CollapsingHeader("Test Lighting", ImGuiTreeNodeFlags_DefaultOpen))
+        if (ImGui::CollapsingHeader("Test Model Loading", ImGuiTreeNodeFlags_DefaultOpen))
         {
             if (ImGui::TreeNode("Options"))
             {
-                /*if (ImGui::BeginMenu("MenuTest", true))
-                {
-                    ImGui::MenuItem("Hello", "Um...", &menu);
-                    ImGui::MenuItem("Yahh", "uhh...", &munu);
-                    ImGui::EndMenu();
-                }*/
                 ImGui::Text("Reflection Model: ");
                 ImGui::SameLine();
                 if (ImGui::Button("Phong ")) m_ReflectionModel = ReflectionModel::PHONG;
@@ -398,18 +216,25 @@ namespace test
 
                 ImGui::TreePop();
             }
+            ImGui::Separator();
 
             if (ImGui::TreeNode("Material"))
             {
-
-                
                 ImGui::SliderFloat3("Ambient Intensity", m_AmbientIntensity.e, 0.f, 1.f);
                 ImGui::SliderFloat3("Diffuse Intensity", m_DiffusionIntensity.e, 0.f, 1.f);
-                ImGui::SliderFloat3("Specular Intensity", m_SpecularIntensity.e, 0.f, 1.f);
-                
-                              
+                ImGui::SliderFloat3("Specular Intensity", m_SpecularIntensity.e, 0.f, 1.f);            
                 ImGui::TreePop();
             }
+            ImGui::Separator();
+
+            if (ImGui::TreeNode("Scene Models"))
+            {
+                for (auto& model : m_Models)
+                    model->OnImGUIRender();
+                ImGui::TreePop();
+            }
+            ImGui::Separator();
+
             if (ImGui::TreeNode("Scene Lights"))
             {
                 if (ImGui::TreeNode("Directional Lights"))
@@ -525,7 +350,7 @@ namespace test
         }
 	}
 
-    void TestModelLoading::SetTextureShaderUniforms()
+    void TestModelLoading::SetShaderUniforms()
     {
         m_Shader->SetUniformMatrix4fv("u_MVP", m_MVP);
 
@@ -535,15 +360,6 @@ namespace test
 
         m_Shader->SetUniform1i("u_ShadingTechnique", static_cast<int>(m_ShadingTechnique));
         m_Shader->SetUniform1i("u_ReflectionModel", static_cast<int>(m_ReflectionModel));
-
-        /*for (int i = 0; i < m_MaterialList.size(); i++)
-        {
-            std::string matLabel = "u_material[" + std::to_string(i) + "].";
-            m_Shader->SetUniform3fv(matLabel + "Ka", m_MaterialList[i].MaterialProperties.Ka);
-            m_Shader->SetUniform3fv(matLabel + "Kd", m_MaterialList[i].MaterialProperties.Kd);
-            m_Shader->SetUniform3fv(matLabel + "Ks", m_MaterialList[i].MaterialProperties.Ks);
-            m_Shader->SetUniform1f(matLabel + "Ns", m_MaterialList[i].MaterialProperties.Ns);
-        }*/
 
         for (int i = 0; i < m_PointLights.size(); i++)
         {

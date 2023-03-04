@@ -57,6 +57,12 @@ void Texture::SetTextureOptions()
 	//GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+
+	//GLfloat value, max_anisotropy = 8.0f; /* don't exceed this value...*/
+	//glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &value);
+	//
+	//value = (value > max_anisotropy) ? max_anisotropy : value;
+	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, value);
 }
 
 void Texture::GenerateTexImage()

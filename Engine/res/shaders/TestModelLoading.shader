@@ -1,5 +1,5 @@
 #shader vertex
-#version 450 core
+#version 460 core
 
 layout(location = 0) in vec3  v_Position;
 layout(location = 1) in vec3  v_Normal;
@@ -33,13 +33,13 @@ void main()
 
 
 #shader fragment
-#version 450 core
+#version 460 core
 
 // TODO: These values need to be changed programmatically!
 #define NR_POINT_LIGHTS 1
 #define NR_SPOT_LIGHTS 1
 #define NR_DIR_LIGHTS 1
-#define NR_MATS 10
+#define NR_MATS 3
 
 struct Material 
 {
@@ -135,6 +135,7 @@ vec3 GetPhongReflection(vec3 LightVector, vec3 ViewVector, vec3 Specular)
 {
 	vec3 ReflectionVector = 2 * dot(LightVector, Normal) * Normal - LightVector;
 	return  u_material[int(MatID)].Ks * pow(max(dot(ReflectionVector, ViewVector), 0.0), u_material[int(MatID)].Ns) * Specular;
+	//return  vec3(0.0) * pow(max(dot(ReflectionVector, ViewVector), 0.0), u_material[int(MatID)].Ns) * Specular;
 }
 
 vec3 GetBlinnPhongReflection(vec3 LightVector, vec3 ViewVector, vec3 Specular)
@@ -145,12 +146,12 @@ vec3 GetBlinnPhongReflection(vec3 LightVector, vec3 ViewVector, vec3 Specular)
 
 vec3 GetCombined(vec3 DiffuseLight, vec3 SpecularLight)
 {
-	vec3 Ambient = u_Intensity.Ambient * vec3(texture(u_material[int(MatID)].Ambient, TexCoords));
+	//vec3 Ambient = u_Intensity.Ambient * vec3(texture(u_material[int(MatID)].Ambient, TexCoords));
+	vec3 Ambient = u_Intensity.Ambient * u_material[int(MatID)].Ka * vec3(texture(u_material[int(MatID)].Ambient, TexCoords));
 	vec3 Diffuse = DiffuseLight * u_Intensity.Diffuse * vec3(texture(u_material[int(MatID)].Diffuse, TexCoords));
 	vec3 Specular = SpecularLight * u_Intensity.Specular * vec3(texture(u_material[int(MatID)].Specular, TexCoords));
 
 	return Ambient + Diffuse + Specular;
-	//return Diffuse;
 }
 
 vec3 GetPointReflectionLight(int index)
@@ -246,6 +247,6 @@ vec3 ShadeFragment()
 void main()
 {
 	//FragColor = vec4(ShadeFragment(), 1.0);
-	//FragColor = vec4(vec3(texture(u_material[int(MatID)].Diffuse, TexCoords)), 1.0);
-	FragColor = vec4(1.0);
+	FragColor = vec4(vec3(texture(u_material[int(MatID)].Diffuse, TexCoords)), 1.0);
+	//FragColor = vec4(1.0);
 }

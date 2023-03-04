@@ -1,11 +1,13 @@
 #include "Model.h"
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
 
 
-Model::Model(std::string& filepath, Cache& matCache) : m_Filepath(filepath)
+
+Model::Model(std::string& filepath, Cache& matCache, std::mutex& mutex) : m_Filepath(filepath)
 {
-    std::mutex m_Mutex;
-
     std::ifstream stream(m_Filepath);
     std::string line;
 
@@ -17,6 +19,9 @@ Model::Model(std::string& filepath, Cache& matCache) : m_Filepath(filepath)
     std::vector<Maths::vec2> tempTexCoords;
     std::vector<Face> tempFaces;
 
+    VertexCount vCount = { 0, 0, 0 };
+    VertexCount vCountLast = vCount;
+
     std::vector<SubMaterialStream> ss;
     while (std::getline(stream, line))
     {
@@ -27,7 +32,7 @@ Model::Model(std::string& filepath, Cache& matCache) : m_Filepath(filepath)
             ParseMaterial(filepath, ss);
 
             
-            std::lock_guard<std::mutex> guard(m_Mutex);
+            std::lock_guard<std::mutex> guard(mutex);
             
             for (auto& matData : ss)
             {
@@ -41,17 +46,47 @@ Model::Model(std::string& filepath, Cache& matCache) : m_Filepath(filepath)
             if (line.find("v ") == 0)
             {
                 if (!tempFaces.empty())
+                {
                     LoadMesh(tempPositions, tempNormals, tempTexCoords, tempFaces);
-                else
-                    tempPositions.emplace_back(GetVertexData(line, 3));
+                    vCountLast.normalCount += vCount.normalCount;
+                    vCountLast.posCount += vCount.posCount;
+                    vCountLast.uvCount += vCount.uvCount;
+
+                    vCount = { 0,0,0 };
+                }
+                    
+                tempPositions.emplace_back(GetVertexData(line, 3));
+                vCount.posCount++;
             }
                 
             else if (line.find("vn ") == 0)
+            {
                 tempNormals.emplace_back(GetVertexData(line, 3));
+                vCount.normalCount++;
+            }
             else if (line.find("vt ") == 0)
+            {
                 tempTexCoords.emplace_back(GetVertexData(line, 2).uv);
+                vCount.uvCount++;
+            }
             else if (line.find("f ") == 0)
-                tempFaces.emplace_back(GetFaceData(line), matCache[mtl]);
+            {
+                uint32_t vertexCount;
+                auto faceData = GetFaceData(line, vertexCount);
+                if (m_Meshes.size() > 0)
+                {
+                    for (uint32_t i = 0; i < vertexCount; i++)
+                    {
+                        if (faceData[i].v < vCountLast.posCount)
+                            int j = 1;
+                        faceData[i].v -= vCountLast.posCount; //- faceData[i].v;
+                        faceData[i].vn -= vCountLast.normalCount; //- faceData[i].vn;
+                        faceData[i].vt -= vCountLast.uvCount; //- faceData[i].vt;
+                    }
+                }
+                tempFaces.emplace_back(faceData, matCache[mtl], vertexCount);
+            }
+                
             else if (line.find("usemtl ") == 0)
                 mtl = line.substr(7);
         }
@@ -60,8 +95,86 @@ Model::Model(std::string& filepath, Cache& matCache) : m_Filepath(filepath)
     if (!tempFaces.empty())
         LoadMesh(tempPositions, tempNormals, tempTexCoords, tempFaces);
 
-    //std::cout << "Vertex Postions: " << m_Positions.size() << " | " << "Vertex Normals: " << m_Normals.size() << " | " << "Texture Coords: " <<
-    //    m_TexCoords.size() << " | " << "Faces: " << m_Faces.size() << std::endl;
+}
+
+void Model::Draw(std::unique_ptr<Shader>& shader, Cache& textureCache, Cache& materialCache)
+{
+
+    BindTextures(textureCache);
+    SetShaderUniforms(shader, materialCache);
+
+    for (auto& mesh : m_Meshes)
+        mesh->Draw(shader);
+
+    // TRY UNBINDING TEXTURES
+    //UnbindTextures(textureCache);
+    for (auto& material : m_MaterialList)
+    {
+        if (material.MaterialProperties.Ambient)
+            material.MaterialProperties.Ambient->Unbind();
+        if (material.MaterialProperties.Diffuse)
+            material.MaterialProperties.Diffuse->Unbind();
+        if (material.MaterialProperties.Specular)
+            material.MaterialProperties.Specular->Unbind();
+    }
+}
+
+void Model::BindTextures(Model::Cache& textureCache)
+{
+    for (auto& material : m_MaterialList)
+    {
+        if (material.MaterialProperties.Ambient)
+            material.MaterialProperties.Ambient->Bind(textureCache[material.MaterialProperties.Ambient->GetFilepath()]);
+        if (material.MaterialProperties.Diffuse)
+            material.MaterialProperties.Diffuse->Bind(textureCache[material.MaterialProperties.Diffuse->GetFilepath()]);
+        if (material.MaterialProperties.Specular)
+            material.MaterialProperties.Specular->Bind(textureCache[material.MaterialProperties.Specular->GetFilepath()]);
+    }
+}
+
+void Model::SetShaderUniforms(std::unique_ptr<Shader>& shader, Cache& materialCache)
+{
+    for (auto& material : m_MaterialList)
+    {
+        std::string matLabel = "u_material[" + std::to_string(materialCache[material.SubMaterialName]) + "].";
+
+        shader->SetUniform3fv(matLabel + "Ka", material.MaterialProperties.Ka);
+        shader->SetUniform3fv(matLabel + "Kd", material.MaterialProperties.Kd);
+        shader->SetUniform3fv(matLabel + "Ks", material.MaterialProperties.Ks);
+        shader->SetUniform1f(matLabel + "Ns", material.MaterialProperties.Ns);
+    }
+}
+
+void Model::OnImGUIRender()
+{
+    ImGui::Text("Model Materials - %s", m_Filepath.c_str());
+    
+    for (auto& material : m_MaterialList)
+    {
+        std::string name = "Material Name: " + material.SubMaterialName;
+        if (ImGui::TreeNode(name.c_str()))
+        {
+            ImGui::Text("Material Lib: %s", material.MaterialLibrary.c_str());
+            ImGui::Text("Material ID: %d", material.MaterialProperties.ID);
+
+            if (material.MaterialProperties.Ambient)
+                ImGui::Text("Ambient - Texture: %s | Render ID: %d", material.MaterialProperties.Ambient->GetFilepath().c_str(), material.MaterialProperties.Ambient->GetRendererID());
+            if (material.MaterialProperties.Diffuse)
+                ImGui::Text("Diffuse - Texture: %s | Render ID: %d", material.MaterialProperties.Diffuse->GetFilepath().c_str(), material.MaterialProperties.Diffuse->GetRendererID());
+            if (material.MaterialProperties.Specular)
+                ImGui::Text("Specular - Texture: %s | Render ID: %d", material.MaterialProperties.Specular->GetFilepath().c_str(), material.MaterialProperties.Specular->GetRendererID());
+
+            ImGui::SliderFloat3("Ka", material.MaterialProperties.Ka.e, 0.f, 1.f);
+            ImGui::SliderFloat3("Kd", material.MaterialProperties.Kd.e, 0.f, 1.f);
+            ImGui::SliderFloat3("Ks", material.MaterialProperties.Ks.e, 0.f, 1.f);
+            ImGui::SliderFloat("Ns", &material.MaterialProperties.Ns, 0.f, 128.f);
+            ImGui::TreePop();
+        }
+            
+    }
+
+    for (auto& mesh : m_Meshes)
+        mesh->OnImGUIRender();
 }
 
 void Model::LoadMesh(std::vector<Maths::vec3>& tempPositions, std::vector<Maths::vec3>& tempNormals, std::vector<Maths::vec2>& tempTexCoords, std::vector<Face>& tempFaces)
@@ -71,6 +184,7 @@ void Model::LoadMesh(std::vector<Maths::vec3>& tempPositions, std::vector<Maths:
     };
 
     m_Meshes.emplace_back(std::make_unique<Mesh>(meshData));
+
     tempPositions.clear();
     tempNormals.clear();
     tempTexCoords.clear();
@@ -96,7 +210,8 @@ void Model::Init(std::unique_ptr<Shader>& shader, Cache& textureCache, Cache& ma
 
 
     // bind textures
-    int textureSlot = m_MaterialList.size();
+    //int textureSlot = m_MaterialList.size();
+    int textureSlot = textureCache.size();
     for (auto& material : m_MaterialList)
     {
         if (material.MaterialProperties.Ambient && !textureCache.contains(material.MaterialProperties.Ambient->GetFilepath()))
@@ -148,14 +263,8 @@ void Model::Init(std::unique_ptr<Shader>& shader, Cache& textureCache, Cache& ma
     shader->Unbind();
 }
 
-void Model::Draw(std::unique_ptr<Shader>& shader)
-{
-    for (auto& mesh : m_Meshes)
-        mesh->Draw(shader);
-}
 
-
-std::array<Maths::vec3i, 4> Model::GetFaceData(std::string& line)
+std::array<Maths::vec3i, 4> Model::GetFaceData(std::string& line, uint32_t& vertexCount)
 {
     std::string faceLine = line.substr(2);
     // maybe i shoudl make a 3x4 matrix
@@ -179,6 +288,8 @@ std::array<Maths::vec3i, 4> Model::GetFaceData(std::string& line)
         }
         vertexIndex++;
     }
+
+    vertexCount = vertexIndex;
 
     return {
         Maths::vec3i(faceData[0], faceData[1], faceData[2]),
@@ -239,10 +350,7 @@ Material<std::shared_ptr<Texture>> Model::CreateMaterial(const std::string& matF
 
         size_t pos;
         if ((pos = line.find("Ns ")) == 1)
-        {
-            std::cout << std::stof(line.substr(pos + 3)) << std::endl;
             Ns = std::stof(line.substr(pos + 3));
-        }
 
         else if ((pos = line.find("Ni ")) == 1)
             Ni = std::stof(line.substr(pos + 3));
@@ -292,7 +400,7 @@ Material<std::shared_ptr<Texture>> Model::CreateMaterial(const std::string& matF
             else if (line.find("map_Kd") == 1) type = TextureType::DIFFUSE;
             else if (line.find("map_Ks") == 1) type = TextureType::SPECULAR;
             else if (line.find("map_Ke") == 1) type = TextureType::EMISSIVE;
-            else if (line.find("map_bump") == 1)
+            else if (line.find("map_bump") == 1 || line.find("map_Bump") == 1)
             {
                 type = TextureType::BUMP;
                 file = line.substr(pos + 9);

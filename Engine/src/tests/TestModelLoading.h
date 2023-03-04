@@ -21,6 +21,7 @@
 #include <memory>
 #include <vector>
 #include <future>
+#include <mutex>
 
 
 // TODO:
@@ -50,7 +51,7 @@ namespace test
 		private:
 			void UpdateLights();
 			void UpdateMVP();
-			void SetTextureShaderUniforms();
+			void SetShaderUniforms();
 
 			Maths::vec3 m_lightScaling;
 
@@ -72,6 +73,8 @@ namespace test
 			uint32_t m_InactiveThreads = 0;
 			std::unordered_map<uint32_t, Worker<Model>> m_ModelWorkers;
 			std::vector<std::unique_ptr<Model>> m_Models;
+
+			std::mutex m_ModelMutex;
 
 			
 
