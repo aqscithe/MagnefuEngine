@@ -79,6 +79,7 @@ DerivedDataCache/*
 # Dependencies
 Dependencies/*
 bin/*
+bin-intermediates/*
 */.vs
 
 # Application

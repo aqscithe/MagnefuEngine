@@ -226,24 +226,28 @@ namespace test
 
         ImGui::Begin("Model Loader", &isopen, ImGuiWindowFlags_MenuBar);
 
-        if (ImGui::BeginTabItem("Select OBJ to Load: "))
+        if (ImGui::BeginTabBar("Model Load Options", ImGuiTabBarFlags_None))
         {
-            for (auto& obj : m_Objs)
+            if (ImGui::BeginTabItem("Select OBJ to Load: "))
             {
-                if (ImGui::Button(obj.c_str()))
-                    m_ModelWorkers[m_ModelWorkers.size()] = Worker<Model>{ false, std::async(std::launch::async, LoadModel, std::ref(obj), std::ref(m_MaterialCache), std::ref(m_ModelMutex)) };
+                for (auto& obj : m_Objs)
+                {
+                    if (ImGui::Button(obj.c_str()))
+                        m_ModelWorkers[m_ModelWorkers.size()] = Worker<Model>{ false, std::async(std::launch::async, LoadModel, std::ref(obj), std::ref(m_MaterialCache), std::ref(m_ModelMutex)) };
+                }
+                ImGui::EndTabItem();
             }
-            ImGui::EndTabItem();
-        }
 
-        if (ImGui::BeginTabItem("Select OBJ to Delete: "))
-        {
-            for (int i = 0; i < m_Models.size(); i++)
+            if (ImGui::BeginTabItem("Select OBJ to Delete: "))
             {
-                if (ImGui::Button(m_Models[i]->m_Filepath.c_str()))
-                    m_Models.erase(m_Models.begin() + i);
+                for (int i = 0; i < m_Models.size(); i++)
+                {
+                    if (ImGui::Button(m_Models[i]->m_Filepath.c_str()))
+                        m_Models.erase(m_Models.begin() + i);
+                }
+                ImGui::EndTabItem();
             }
-            ImGui::EndTabItem();
+            ImGui::EndTabBar();
         }
         ImGui::End();
 
