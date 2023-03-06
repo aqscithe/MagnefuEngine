@@ -11,4 +11,4 @@ newmtl watchtower
 	d 1.000000
 	illum 1
 	map_Kd Wood_Tower_Col.jpg
-	map_Bump  Wood_Tower_Nor.jpg
+	map_Bump Wood_Tower_Nor.jpg

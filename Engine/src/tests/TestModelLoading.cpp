@@ -20,6 +20,7 @@
 #include <chrono>
 #include <numeric>
 #include <cstdio>
+#include <filesystem>
 
 namespace test
 {
@@ -34,14 +35,32 @@ namespace test
 	{
         Timer timer;
 
+        namespace fs = std::filesystem;
+
+        std::error_code ec;
+        const fs::path objPath = fs::relative(fs::path("res\\meshes"), ec);
+        
+        if (ec.value() != 0)
+        {
+            std::cout << "Error getting mesh path: " << ec.message() << std::endl;
+            return;
+        }
+
+        for (const auto& entry : fs::directory_iterator(objPath))
+        {
+            const auto& filename = entry.path().filename().string();
+            if (entry.is_regular_file() && entry.path().extension() == ".obj")
+                m_Objs.push_back(filename);
+        }
+
         // LOAD MESHES
-        std::vector<std::string> objs = {
-            "res/meshes/wooden_watch_tower2.obj",
+        std::vector<std::string> objFiles = {
+            "wooden_watch_tower2.obj",
             //"res/meshes/santa_hat(DEFAULT).obj",
             //"res/meshes/12221_Cat_v1_l3.obj",
         };
                 
-        for(std::string& obj : objs)
+        for(std::string& obj : objFiles)
             m_ModelWorkers[m_ModelWorkers.size()] = Worker<Model>{ false, std::async(std::launch::async, LoadModel, std::ref(obj), std::ref(m_MaterialCache), std::ref(m_ModelMutex) )};
 
         // TRANSFORM
@@ -197,12 +216,37 @@ namespace test
         
 	}
 	
-	void TestModelLoading::OnImGUIRender()
-	{
+    void TestModelLoading::OnImGUIRender()
+    {
+
         Globals& global = Globals::Get();
+
+        bool isopen = true;
+
+        ImGui::Begin("My First Tool", &isopen, ImGuiWindowFlags_MenuBar);
+        static bool selected = false;
+        static char str0[128] = "";
+        ImGui::InputTextWithHint("input text (w/ hint)", "enter obj file here", str0, IM_ARRAYSIZE(str0));
+        if (ImGui::Button("Load Model"))
+        {
+            static std::string fileobj = str0;
+            m_ModelWorkers[m_ModelWorkers.size()] = Worker<Model>{ false, std::async(std::launch::async, LoadModel, std::ref(fileobj), std::ref(m_MaterialCache), std::ref(m_ModelMutex)) };
+        }
+        ImGui::Separator();
+
+        ImGui::Text("OBJS: ");
+        for (auto& obj : m_Objs)
+        {
+            if (ImGui::Selectable(obj.c_str(), &selected))
+            {
+                memcpy(str0, obj.c_str(), obj.size());
+            }
+        }
+        ImGui::End();
 
         if (ImGui::CollapsingHeader("Test Model Loading", ImGuiTreeNodeFlags_DefaultOpen))
         {
+           
             if (ImGui::TreeNode("Options"))
             {
                 if (ImGui::TreeNode("Camera Settings"))

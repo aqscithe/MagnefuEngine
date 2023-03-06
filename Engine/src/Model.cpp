@@ -6,8 +6,9 @@
 
 
 
-Model::Model(std::string& filepath, Cache& matCache, std::mutex& mutex) : m_Filepath(filepath)
+Model::Model(std::string& filepath, Cache& matCache, std::mutex& mutex)
 {
+    m_Filepath = "res/meshes/" + filepath;
     std::ifstream stream(m_Filepath);
     std::string line;
 

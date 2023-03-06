@@ -168,6 +168,7 @@ int main()
         
        
         auto lastTime = std::chrono::high_resolution_clock::now();
+        bool show_demo_window = true;
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
@@ -186,6 +187,32 @@ int main()
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
+
+            if (show_demo_window)
+                ImGui::ShowDemoWindow(&show_demo_window);
+
+            ImGui::Begin("Application");
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            ImGui::Text("MousePos: %.1f %.1f", mouseX, mouseY);
+            ImGui::Text("Yaw: %.2f, | Pitch: %.2f", global.yaw, global.pitch);
+            ImGui::Separator();
+            if (ImGui::TreeNode("CONTROLS"))
+            {
+                ImGui::Text("APP CONTROLS");
+                ImGui::Bullet(); ImGui::Text("Close App:      ESC  |");
+                ImGui::Text("CAMERA CONTROLS");
+                ImGui::Bullet(); ImGui::Text("Camera Left:    A    | Left Arrow");
+                ImGui::Bullet(); ImGui::Text("Camera Right:   D    | Right Arrow");
+                ImGui::Bullet(); ImGui::Text("Camera Forward: W    | Up Arrow");
+                ImGui::Bullet(); ImGui::Text("Camera Back:    S    | Down Arrow");
+                ImGui::Bullet(); ImGui::Text("Camera Up:      E    |");
+                ImGui::Bullet(); ImGui::Text("Camera Down:    Q    |");
+                ImGui::Bullet(); ImGui::Text("Camera Rotate:  Right-Click + Move Mouse");
+                ImGui::Bullet(); ImGui::Text("Adjust FOV:     Rotate Middle Mouse Button");
+                ImGui::Separator();
+                ImGui::TreePop();
+            }
+            ImGui::End();
             
             if (activeTest)
             {
@@ -197,28 +224,8 @@ int main()
                     delete activeTest;
                     activeTest = testMenu;
                 }
-                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-                ImGui::Text("MousePos: %.1f %.1f", mouseX, mouseY);
-                ImGui::Text("Yaw: %.2f, | Pitch: %.2f", global.yaw, global.pitch);
-                ImGui::Separator();
-                if(ImGui::TreeNode("CONTROLS"))
-                {
-                    ImGui::Text("APP CONTROLS");
-                    ImGui::Bullet(); ImGui::Text("Close App:      ESC  |");
-                    ImGui::Text("CAMERA CONTROLS");
-                    ImGui::Bullet(); ImGui::Text("Camera Left:    A    | Left Arrow");
-                    ImGui::Bullet(); ImGui::Text("Camera Right:   D    | Right Arrow");
-                    ImGui::Bullet(); ImGui::Text("Camera Forward: W    | Up Arrow");
-                    ImGui::Bullet(); ImGui::Text("Camera Back:    S    | Down Arrow");
-                    ImGui::Bullet(); ImGui::Text("Camera Up:      E    |");
-                    ImGui::Bullet(); ImGui::Text("Camera Down:    Q    |");
-                    ImGui::Bullet(); ImGui::Text("Camera Rotate:  Right-Click + Move Mouse");
-                    ImGui::Bullet(); ImGui::Text("Adjust FOV:     Rotate Middle Mouse Button");
-                    ImGui::Separator();
-                    ImGui::TreePop();
-                }
                 activeTest->OnImGUIRender();
-                ImGui::End();  
+                ImGui::End();
             }
 
             glfwGetFramebufferSize(window, &displayWidth, &displayHeight);

@@ -53,6 +53,8 @@ namespace test
 			void UpdateMVP();
 			void SetShaderUniforms();
 
+			char* buf = (char*)malloc(sizeof(char) * 0);
+
 			Maths::vec3 m_lightScaling;
 
 			std::vector<PointLightModel> m_PointLights;
@@ -75,6 +77,8 @@ namespace test
 			std::vector<std::unique_ptr<Model>> m_Models;
 
 			std::mutex m_ModelMutex;
+
+			std::vector<std::string> m_Objs;
 
 			
 
