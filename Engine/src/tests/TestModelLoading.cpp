@@ -24,7 +24,6 @@
 
 namespace test
 {
-
     static std::unique_ptr<Model> LoadModel(std::string& filepath, std::unordered_map<std::string, int>& matCache, std::mutex& mutex)
     {
         Timer timer;
@@ -34,6 +33,8 @@ namespace test
 	TestModelLoading::TestModelLoading()
 	{
         Timer timer;
+
+        
 
         namespace fs = std::filesystem;
 
@@ -224,43 +225,26 @@ namespace test
         bool isopen = true;
 
         ImGui::Begin("Model Loader", &isopen, ImGuiWindowFlags_MenuBar);
-        static char str0[128] = "";
-        ImGui::InputTextWithHint("*", "enter obj file here", str0, IM_ARRAYSIZE(str0));
-        if (ImGui::Button("Load Model"))
-        {
-            static std::string fileobj = str0;
-            m_ModelWorkers[m_ModelWorkers.size()] = Worker<Model>{ false, std::async(std::launch::async, LoadModel, std::ref(fileobj), std::ref(m_MaterialCache), std::ref(m_ModelMutex)) };
-        }
-        ImGui::Separator();
 
-        ImGui::Text("OBJS: ");
-        for (auto& obj : m_Objs)
+        if (ImGui::BeginTabItem("Select OBJ to Load: "))
         {
-            if (ImGui::Selectable(obj.c_str()))
-                memcpy(str0, obj.c_str(), obj.size());
+            for (auto& obj : m_Objs)
+            {
+                if (ImGui::Button(obj.c_str()))
+                    m_ModelWorkers[m_ModelWorkers.size()] = Worker<Model>{ false, std::async(std::launch::async, LoadModel, std::ref(obj), std::ref(m_MaterialCache), std::ref(m_ModelMutex)) };
+            }
+            ImGui::EndTabItem();
         }
-        ImGui::Separator();
 
-        static char str1[128] = "";
-        ImGui::InputTextWithHint("**", "enter obj to delete here", str1, IM_ARRAYSIZE(str0));
-        if (ImGui::Button("Delete Model"))
+        if (ImGui::BeginTabItem("Select OBJ to Delete: "))
         {
-            static std::string fileobj = str1;
             for (int i = 0; i < m_Models.size(); i++)
             {
-                if (m_Models[i]->m_Filepath == fileobj)
+                if (ImGui::Button(m_Models[i]->m_Filepath.c_str()))
                     m_Models.erase(m_Models.begin() + i);
             }
+            ImGui::EndTabItem();
         }
-        ImGui::Separator();
-
-        ImGui::Text("Loaded Objs: ");
-        for (auto& model : m_Models)
-        {
-            if (ImGui::Selectable(model->m_Filepath.c_str()))
-                memcpy(str1, model->m_Filepath.c_str(), model->m_Filepath.size());
-        }
-
         ImGui::End();
 
         if (ImGui::CollapsingHeader("Test Model Loading", ImGuiTreeNodeFlags_DefaultOpen))

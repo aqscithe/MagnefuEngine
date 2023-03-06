@@ -108,8 +108,6 @@ namespace test
 
 			ReflectionModel m_ReflectionModel;
 			ShadingTechnique m_ShadingTechnique;
-
-
 			
 	};
 }
