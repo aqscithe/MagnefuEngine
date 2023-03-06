@@ -223,10 +223,9 @@ namespace test
 
         bool isopen = true;
 
-        ImGui::Begin("My First Tool", &isopen, ImGuiWindowFlags_MenuBar);
-        static bool selected = false;
+        ImGui::Begin("Model Loader", &isopen, ImGuiWindowFlags_MenuBar);
         static char str0[128] = "";
-        ImGui::InputTextWithHint("input text (w/ hint)", "enter obj file here", str0, IM_ARRAYSIZE(str0));
+        ImGui::InputTextWithHint("*", "enter obj file here", str0, IM_ARRAYSIZE(str0));
         if (ImGui::Button("Load Model"))
         {
             static std::string fileobj = str0;
@@ -237,11 +236,31 @@ namespace test
         ImGui::Text("OBJS: ");
         for (auto& obj : m_Objs)
         {
-            if (ImGui::Selectable(obj.c_str(), &selected))
-            {
+            if (ImGui::Selectable(obj.c_str()))
                 memcpy(str0, obj.c_str(), obj.size());
+        }
+        ImGui::Separator();
+
+        static char str1[128] = "";
+        ImGui::InputTextWithHint("**", "enter obj to delete here", str1, IM_ARRAYSIZE(str0));
+        if (ImGui::Button("Delete Model"))
+        {
+            static std::string fileobj = str1;
+            for (int i = 0; i < m_Models.size(); i++)
+            {
+                if (m_Models[i]->m_Filepath == fileobj)
+                    m_Models.erase(m_Models.begin() + i);
             }
         }
+        ImGui::Separator();
+
+        ImGui::Text("Loaded Objs: ");
+        for (auto& model : m_Models)
+        {
+            if (ImGui::Selectable(model->m_Filepath.c_str()))
+                memcpy(str1, model->m_Filepath.c_str(), model->m_Filepath.size());
+        }
+
         ImGui::End();
 
         if (ImGui::CollapsingHeader("Test Model Loading", ImGuiTreeNodeFlags_DefaultOpen))
