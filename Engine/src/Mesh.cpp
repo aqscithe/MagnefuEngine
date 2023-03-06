@@ -2,15 +2,32 @@
 #include "VertexBufferAttribsLayout.h"
 
 
-static std::vector<unsigned int> SetIndices(int quadCount)
+static std::vector<unsigned int> SetIndices(std::vector<Face>& faces)
 {
-    int IndexPattern[6] = { 0, 1, 2, 2, 3, 0 };
+    std::unordered_map<uint8_t, std::vector<uint8_t>> IndexPattern;
+    IndexPattern[3] = { 0, 1, 2 };
+    IndexPattern[4] = { 0, 1, 2, 2, 3, 0 };
+
+    //std::unordered_map<uint32_t, uint32_t> vertexCounts;
+    //vertexCounts[3] = 0;
+    //vertexCounts[4] = 0;
+
 
     std::vector<unsigned int> indices;
-    for (int quadNum = 0; quadNum < quadCount; quadNum++)
+    for (int faceCount = 0; faceCount < faces.size(); faceCount++)
     {
-        for (int i = 0; i < 6; i++)
-            indices.push_back(IndexPattern[i] + 4 * quadNum);
+        uint8_t vertexCount = faces[faceCount].VertexCount;
+        uint8_t patternLength = IndexPattern[vertexCount].size();
+        for (int i = 0; i < patternLength; i++)
+        {
+            // only works if all the faces have the same vertex count
+            // need to modify to be more dynamic
+            // probably keep track of the final index value for each face
+            indices.push_back(IndexPattern[vertexCount][i] + vertexCount * faceCount);
+            //uint32_t num = 6 * vertexCounts[4] + 3 * vertexCounts[3];
+            //indices.push_back(IndexPattern[vertexCount][i] + num); 
+            //vertexCounts[vertexCount]++;
+        }
     }
     return indices;
 }
@@ -26,7 +43,11 @@ void Mesh::Init()
 {
     std::vector<ObjModelVertex> vertices;
 
-    std::vector<unsigned int> indices = SetIndices(static_cast<int>(m_MeshData.Faces.size()));
+    // CHANGES
+    // Only declare indices.
+    // Then in the Faces for loop, check the vertex count and set the indices based on that.
+    // then append those indices to the array.
+    std::vector<unsigned int> indices = SetIndices(m_MeshData.Faces);
 
     for (Face& face : m_MeshData.Faces)
     {
@@ -34,11 +55,6 @@ void Mesh::Init()
         for (Maths::vec3i& Index : face.Indices)
         {
             if (i > face.VertexCount) break;
-
-            if (Index.v > m_MeshData.Positions.size() - 1 || Index.vn > m_MeshData.Normals.size() - 1 || Index.vt > m_MeshData.TexCoords.size() - 1)
-            {
-                std::cout << Index.v << "   " << Index.vn << "   " << Index.vt << std::endl;
-            }
             vertices.emplace_back(m_MeshData.Positions[Index.v], m_MeshData.Normals[Index.vn], m_MeshData.TexCoords[Index.vt], face.MatID);
             i++;
         }
@@ -61,8 +77,6 @@ void Mesh::Init()
 
     m_VAO = std::make_unique<VertexArray>();
     m_VAO->AddBuffer(*m_VBO, layout);
-
-    std::cout << "Mesh Initialized " << m_MeshData.Faces.size() << std::endl;
 }
 
 void Mesh::Draw(std::unique_ptr<Shader>& shader)

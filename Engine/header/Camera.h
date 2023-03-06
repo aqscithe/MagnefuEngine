@@ -24,7 +24,7 @@ public:
 	Maths::vec3 m_Position;
 	Maths::vec3 m_Target;
 	Maths::vec3 m_Forward;
-	float m_Speed = 0.5f;
+	float m_Speed = 8.f;
 	
 private:
 	

@@ -36,8 +36,7 @@ namespace test
 
         // LOAD MESHES
         std::vector<std::string> objs = {
-            //"res/meshes/E 45 Aircraft_obj.obj",
-            "res/meshes/backpack.obj",
+            "res/meshes/wooden_watch_tower2.obj",
             //"res/meshes/santa_hat(DEFAULT).obj",
             //"res/meshes/12221_Cat_v1_l3.obj",
         };
@@ -74,16 +73,18 @@ namespace test
         m_ShadingTechnique = ShadingTechnique::PHONG;
 
         m_PointLights.emplace_back(CreatePointLight(), Maths::identity());
+        m_PointLights.back().Enabled = false;
 
         m_DirectionLights.reserve(1);
         m_DirectionLights.emplace_back(CreateDirLight(), Maths::identity());
 
         m_SpotLights.reserve(1);
         m_SpotLights.emplace_back(CreateSpotLight(), Maths::identity());
+        m_SpotLights.back().Enabled = false;
 
         m_lightScaling = { 0.1f, 0.1f, 0.1f };
 
-        m_AmbientIntensity = 0.1f;
+        m_AmbientIntensity = 0.5f;
         m_DiffusionIntensity = 1.f;
         m_SpecularIntensity = 0.8f;
 
@@ -204,15 +205,44 @@ namespace test
         {
             if (ImGui::TreeNode("Options"))
             {
-                ImGui::Text("Reflection Model: ");
-                ImGui::SameLine();
-                if (ImGui::Button("Phong ")) m_ReflectionModel = ReflectionModel::PHONG;
-                ImGui::SameLine();
-                if (ImGui::Button("Blinn-Phong")) m_ReflectionModel = ReflectionModel::BLINN_PHONG;
+                if (ImGui::TreeNode("Camera Settings"))
+                {
+                    ImGui::Text("Camera");
+                    ImGui::DragFloat("CameraSpeed", &m_Camera->m_Speed, 0.05f, 15.f);
+                    ImGui::SliderFloat3("Camera Translation", m_Camera->m_Position.e, -10.f, 10.f);
 
-                ImGui::Text("Shading Technique");
-                ImGui::SameLine();
-                if (ImGui::Button("Phong")) m_ShadingTechnique = ShadingTechnique::PHONG;
+                    ImGui::Text("Projection");
+                    ImGui::SliderFloat("Near", &m_Camera->m_Properties.Near, 0.01f, 10.f);
+                    ImGui::SliderFloat("Far", &m_Camera->m_Properties.Far, 10.f, 100.f);
+
+                    ImGui::Checkbox("Toggle Projection Mode", &m_Camera->m_Properties.IsOrtho);
+                    if (m_Camera->m_Properties.IsOrtho)
+                    {
+                        ImGui::SliderFloat("Top", &m_Camera->m_Properties.Top, 3.f, 15.f);
+                        ImGui::Text("Left %.2f", m_Camera->m_Properties.Left);
+                        ImGui::Text("Right %.2f", m_Camera->m_Properties.Right);
+                        ImGui::Text("Bottom %.2f", m_Camera->m_Properties.Bottom);
+                    }
+                    else
+                    {
+                        ImGui::SliderFloat("FOV", &global.fovY, 1.f, 100.f);
+                    }
+                    ImGui::TreePop();
+                }
+
+                if (ImGui::TreeNode("Lighting & Shading"))
+                {
+                    ImGui::Text("Reflection Model: ");
+                    ImGui::SameLine();
+                    if (ImGui::Button("Phong ")) m_ReflectionModel = ReflectionModel::PHONG;
+                    ImGui::SameLine();
+                    if (ImGui::Button("Blinn-Phong")) m_ReflectionModel = ReflectionModel::BLINN_PHONG;
+
+                    ImGui::Text("Shading Technique");
+                    ImGui::SameLine();
+                    if (ImGui::Button("Phong")) m_ShadingTechnique = ShadingTechnique::PHONG;
+                    ImGui::TreePop();
+                }
 
                 ImGui::TreePop();
             }

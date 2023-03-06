@@ -349,13 +349,13 @@ Material<std::shared_ptr<Texture>> Model::CreateMaterial(const std::string& matF
 
 
         size_t pos;
-        if ((pos = line.find("Ns ")) == 1)
+        if ((pos = line.find("Ns ")) == 1 || (pos = line.find("Ns ")) == 0)
             Ns = std::stof(line.substr(pos + 3));
 
-        else if ((pos = line.find("Ni ")) == 1)
+        else if ((pos = line.find("Ni ")) == 1 || (pos = line.find("Ni ")) == 0)
             Ni = std::stof(line.substr(pos + 3));
 
-        else if ((pos = line.find("d ")) == 1)
+        else if ((pos = line.find("d ")) == 1 || (pos = line.find("d ")) == 0)
             Opacity = std::stof(line.substr(pos + 2));
 
         else if ((pos = line.find("Tr ")) == 1 && Opacity < 0.f)

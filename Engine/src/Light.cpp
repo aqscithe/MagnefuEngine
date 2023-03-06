@@ -24,8 +24,8 @@ PointLight CreatePointLight()
 DirectionLight CreateDirLight()
 {
 	Maths::vec3 direction = { -0.2f, -1.f, -0.3f };
-	Maths::vec3 diffuse = { 0.8f, 0.6f, 0.2f };
-	Maths::vec3 specular = { 0.8f, 0.8f, 0.9f };
+	Maths::vec3 diffuse = { 1.f, 1.f, 1.f };
+	Maths::vec3 specular = { 0.2f, 0.8f, 0.35f };
 	float constant = 1.f;
 	float linear = 0.09f;
 	float quadratic = 0.032f;
