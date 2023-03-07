@@ -1,0 +1,3 @@
+[submodule "Magnefu/vendor/spdlog"]
+	path = Magnefu/vendor/spdlog
+	url = https://github.com/gabime/spdlog
