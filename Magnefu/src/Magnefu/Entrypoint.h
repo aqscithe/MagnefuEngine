@@ -12,6 +12,9 @@ extern std::unique_ptr<Magnefu::Application> Magnefu::CreateApplication();
 
 int main(int argc, char** argv)
 {
+	Magnefu::Log::Init();
+	MF_CORE_DEBUG("Quantum Entanglement Engaged");
+
 	auto app = Magnefu::CreateApplication();
 	app->Run();
 }

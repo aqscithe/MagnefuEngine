@@ -37,7 +37,7 @@ namespace Magnefu
         namespace fs = std::filesystem;
 
         std::error_code ec;
-        const fs::path objPath = fs::absolute(fs::path(MESH_PATH), ec);
+        const fs::path objPath = fs::relative(fs::path("res\\meshes"), ec);
         
         if (ec.value() != 0)
         {
