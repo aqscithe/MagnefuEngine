@@ -6,33 +6,50 @@ workspace "Magnefu"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 resourcedir = "%{prj.name}/res"
 
+prebuildcommands {
+    "{MKDIR} ../bin/" .. outputdir .. "/Sandbox",
+    "{MKDIR} ../bin/" .. outputdir .. "/Sandbox",
+    "{MKDIR} ../bin-intermediates/" .. outputdir .. "/Sandbox",
+    "{MKDIR} ../bin-intermediates/" .. outputdir .. "/Magnefu"
+}
+
 project "Magnefu"
     location "Magnefu"
     kind "SharedLib" -- means dynamic linked lib
     language "C++"
 
-    targetdir ("bin/" .. outputdir .. "%{prj.name}")
-    objdir ("bin-intermediates/" .. outputdir .. "%{prj.name}")
+    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+    objdir ("bin-intermediates/" .. outputdir .. "/%{prj.name}")
 
     files {
         "%{prj.name}/src/**.h",
         "%{prj.name}/src/**.cpp",
-        --"%{prj.name}/vendor/imgui/**.h",
-        --"%{prj.name}/vendor/imgui/**.cpp",
-        --"%{prj.name}/vendor/imgui/**.h",
-        --"%{prj.name}/vendor/imgui/**.cpp",
+        "%{prj.name}/vendor/**.h",
+        "%{prj.name}/vendor/**.cpp",
         resourcedir .. "/**",
     }
 
     includedirs {
-        "%{prj.name}/vendor/spdlog/include",
+        "%{prj.name}/vendor/spdlog",
         "%{prj.name}/vendor",
         "%{prj.name}/src",
-        "Maths/src",
+        "%{prj.name}/src/Maths",
         "Dependencies/",
         "Dependencies/GLEW_2.1.0/include",
         "Dependencies/GLFW/include",
     }
+
+    libdirs { 
+        "Dependencies/GLEW_2.1.0/lib/Release/x64",
+        "Dependencies/GLFW/lib-vc2022",
+    }
+
+    links {
+        "glfw3_mt",
+        "glew32s",
+        "opengl32"
+    }
+
 
     filter "system:windows"
         cppdialect "C++20"
@@ -47,7 +64,7 @@ project "Magnefu"
         }
 
     postbuildcommands {
-        "{COPYFILE} %{cfg.buildtarget.relpath} ../bin" .. outputdir .. "/Sandbox"
+        "{COPYFILE} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/Sandbox"
     }
 
     filter "configurations:Debug"
@@ -62,55 +79,24 @@ project "Magnefu"
         defines  "MF_DIST"
         optimize "On"
 
-
-project "Maths"
-    location "Maths"
-    kind "SharedLib" -- means dynamic linked lib
-    language "C++"
-
-    targetdir ("bin/" .. outputdir .. "%{prj.name}")
-    objdir ("bin-intermediates/" .. outputdir .. "%{prj.name}")
-
-    files {
-        "%{prj.name}/src/**.h",
-        "%{prj.name}/src/**.cpp",
-    }
-
-    includedirs {}
-
-    filter "system:windows"
-        cppdialect "C++20"
-        staticruntime "On"
-        systemversion "latest"
-
-        defines {}
-
-        postbuildcommands {}
-
-    filter "configurations:Debug"
-        defines "MF_DEBUG"
-        symbols "On"
-
-    filter "configurations:Release"
-        defines  "MF_RELEASE"
-        optimize "On"
-
-    filter "configurations:Dist"
-        defines  "MF_DIST"
-        optimize "On"
 
 project "Sandbox"
     location "Sandbox"
-    kind "ConsoleApp" -- means dynamic linked lib
+    kind "ConsoleApp" 
     language "C++"
 
-    targetdir ("bin/" .. outputdir .. "%{prj.name}")
-    objdir ("bin-intermediates/" .. outputdir .. "%{prj.name}")
+    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+    objdir ("bin-intermediates/" .. outputdir .. "/%{prj.name}")
 
     files {
         "%{prj.name}/src/**.h",
         "%{prj.name}/src/**.cpp",
         resourcedir .. "/**",
+    }
+
+    -- temporary
+    removefiles {
+        "%{prj.name}/src/Application.*"
     }
 
     includedirs {
@@ -124,8 +110,7 @@ project "Sandbox"
     }
 
     links {
-        "Magnefu",
-        "Maths"
+        "Magnefu"
     }
 
     filter "system:windows"
@@ -138,7 +123,8 @@ project "Sandbox"
         }
 
     postbuildcommands {
-        "{COPYDIR}" .. resourcedir .. " " .. outputdir .. "/Sandbox"
+        "{COPYDIR} %{prj.location}/res/* %{cfg.buildtarget.directory}/res" 
+        --"XCOPY $(ProjectDir)res* %{cfg.buildtarget.directory}/res /S /Y"
     }
 
     filter "configurations:Debug"
@@ -152,3 +138,8 @@ project "Sandbox"
     filter "configurations:Dist"
         defines  "MF_DIST"
         optimize "On"
+
+
+
+
+

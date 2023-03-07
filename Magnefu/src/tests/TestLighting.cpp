@@ -325,12 +325,12 @@ namespace Magnefu
         m_LightCubeVAO->Unbind();
         m_VBO->Unbind();
         
-        GLCall(glEnable(GL_DEPTH_TEST));
+        glEnable(GL_DEPTH_TEST);
 	}
 
 	TestLighting::~TestLighting()
 	{
-        GLCall(glDisable(GL_DEPTH_TEST));
+        glDisable(GL_DEPTH_TEST);
 	}
 
 	void TestLighting::OnUpdate(GLFWwindow* window, float deltaTime)

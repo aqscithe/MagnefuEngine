@@ -4,9 +4,6 @@
 
 
 #define ASSERT(x) if(!(x)) __debugbreak();
-#define GLCall(x) Debug::GLClearError();\
-		x;\
-		ASSERT(Debug::GLLogCall(#x, __FILE__, __LINE__));
 
 
 
@@ -39,12 +36,3 @@ private:
 	}
 	static Globals s_Instance;
 };
-
-
-namespace Debug
-{
-	void GLClearError();
-
-	bool GLLogCall(const char* function, const char* file, int line);
-
-}

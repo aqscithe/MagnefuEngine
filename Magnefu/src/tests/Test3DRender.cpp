@@ -104,12 +104,12 @@ namespace Magnefu
         m_Texture0->Unbind();
         m_Texture1->Unbind();
 
-        GLCall(glEnable(GL_DEPTH_TEST));
+        glEnable(GL_DEPTH_TEST);
 	}
 
 	Test3DRender::~Test3DRender()
 	{
-        GLCall(glDisable(GL_DEPTH_TEST));
+        glDisable(GL_DEPTH_TEST);
 	}
 
 	void Test3DRender::OnUpdate(GLFWwindow* window, float deltaTime)

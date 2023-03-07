@@ -67,7 +67,7 @@ void Mesh::Init()
     m_IBO = std::make_unique<IndexBuffer>(sizeof(unsigned int) * indices.size(), nullptr);
 
     m_IBO->Bind();
-    GLCall(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(unsigned int) * indices.size(), indices.data()));
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(unsigned int) * indices.size(), indices.data());
 
     VertexBufferAttribsLayout layout;
     layout.Push<float>(3);

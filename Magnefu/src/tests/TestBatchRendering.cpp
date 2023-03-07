@@ -145,10 +145,10 @@ namespace Magnefu
 
         
         m_VBO->Bind();
-        GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Primitive::Quad) * Quads.size(), Quads.data()));
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Primitive::Quad) * Quads.size(), Quads.data());
 
         m_IBO->Bind();
-        GLCall(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(unsigned int) * indices.size(), indices.data()));
+        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(unsigned int) * indices.size(), indices.data());
         m_IBO->Unbind();
         m_VBO->Unbind();
 

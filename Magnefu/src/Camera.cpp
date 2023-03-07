@@ -77,18 +77,4 @@ void Camera::ProcessInput(GLFWwindow* window, float deltaTime)
 	m_Position.y -= Maths::sin(global.pitch) * forwardMovement;
 	m_Position.y += verticalMovement;
 
-
-	/*
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		m_Position -= cameraSpeed * m_Forward;
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		m_Position += cameraSpeed * m_Forward;
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		m_Position += cameraSpeed * Maths::normalize(Maths::crossProduct(m_Forward, m_Up));
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		m_Position -= cameraSpeed * Maths::normalize(Maths::crossProduct(m_Forward, m_Up));*/
-
-
-	
-
 }

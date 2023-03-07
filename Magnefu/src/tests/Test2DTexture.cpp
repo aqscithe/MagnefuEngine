@@ -87,14 +87,14 @@ namespace Magnefu
         m_IBO->Unbind();
         m_Texture->Unbind();
 
-        GLCall(glEnable(GL_BLEND));
-        GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBlendEquation(GL_FUNC_ADD);
 	}
 
 	Test2DTexture::~Test2DTexture()
 	{
-        GLCall(glDisable(GL_BLEND));
+        glDisable(GL_BLEND);
 	}
 
 	void Test2DTexture::OnUpdate(GLFWwindow* window, float deltaTime)
