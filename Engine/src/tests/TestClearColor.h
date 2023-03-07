@@ -3,7 +3,7 @@
 #include "Test.h"
 #include "Vectors.h"
 
-namespace test
+namespace Magnefu
 {
 
 	class TestClearColor : public Test

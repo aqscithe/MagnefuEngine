@@ -17,7 +17,7 @@
 
 #include <array>
 
-namespace test
+namespace Magnefu
 {
 
 	TestBatchRendering::TestBatchRendering()

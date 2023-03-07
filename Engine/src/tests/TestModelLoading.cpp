@@ -22,7 +22,7 @@
 #include <cstdio>
 #include <filesystem>
 
-namespace test
+namespace Magnefu
 {
     static std::unique_ptr<Model> LoadModel(std::string& filepath, std::unordered_map<std::string, int>& matCache, std::mutex& mutex)
     {
@@ -34,12 +34,10 @@ namespace test
 	{
         Timer timer;
 
-        
-
         namespace fs = std::filesystem;
 
         std::error_code ec;
-        const fs::path objPath = fs::relative(fs::path("res\\meshes"), ec);
+        const fs::path objPath = fs::absolute(fs::path(MESH_PATH), ec);
         
         if (ec.value() != 0)
         {

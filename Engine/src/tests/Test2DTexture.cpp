@@ -16,7 +16,7 @@
 #include <chrono>
 
 
-namespace test
+namespace Magnefu
 {
 	Test2DTexture::Test2DTexture()
 	{

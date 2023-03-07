@@ -17,7 +17,7 @@
 
 #include <memory>
 
-namespace test
+namespace Magnefu
 {
 
 	class TestBatchRendering : public Test

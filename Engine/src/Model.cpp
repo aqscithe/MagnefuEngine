@@ -30,6 +30,7 @@ Model::Model(std::string& filepath, Cache& matCache, std::mutex& mutex)
         {
             matFile = line.substr(7);
             std::string filepath = "res/materials/" + matFile;
+            //std::string filepath = MATERIAL_PATH + matFile;
             ParseMaterial(filepath, ss);
 
             

@@ -28,7 +28,7 @@
 // Implement ability to have multiple of each light type
 // Probably std::vector so num of lights is mutable
 
-namespace test
+namespace Magnefu
 {
 	template <typename T>
 	struct Worker

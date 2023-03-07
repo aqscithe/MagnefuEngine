@@ -4,7 +4,7 @@
 #include <GL/glew.h>
 #include "imgui/imgui.h"
 
-namespace test
+namespace Magnefu
 {
 	TestMenu::TestMenu(Test*& activeTestPtr)
 		: m_ActiveTest(activeTestPtr)

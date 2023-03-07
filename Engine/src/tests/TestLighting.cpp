@@ -21,7 +21,7 @@
 #include <chrono>
 
 
-namespace test
+namespace Magnefu
 {    
 
     static void InitTexture(std::vector<std::unique_ptr<Texture>>& textures, std::string& filepath)

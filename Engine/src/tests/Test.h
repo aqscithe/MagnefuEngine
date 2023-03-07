@@ -7,7 +7,7 @@
 
 struct GLFWwindow;
 
-namespace test
+namespace Magnefu
 {
 	class Test
 	{

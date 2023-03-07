@@ -6,7 +6,7 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-namespace test
+namespace Magnefu
 {
 	TestClearColor::TestClearColor()
 		: m_ClearColor {0.f, 0.5f, 0.8f, 1.f}

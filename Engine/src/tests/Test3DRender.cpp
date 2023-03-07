@@ -16,7 +16,7 @@
 #include <chrono>
 
 
-namespace test
+namespace Magnefu
 {
 	Test3DRender::Test3DRender()
 	{
