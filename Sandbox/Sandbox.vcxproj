@@ -55,9 +55,9 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);MF_PLATFORM_WINDOWS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine\src\tests;$(SolutionDir)Engine\src\vendor;$(SolutionDir)Engine\src;$(SolutionDir)Maths\src\;$(ProjectDir)src;$(SolutionDir)Dependencies\GLEW_2.1.0\include;$(SolutionDir)Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Magnefu\src\tests;$(SolutionDir)Magnefu\src\vendor;$(SolutionDir)Magnefu\src;$(SolutionDir)Maths\src\;$(ProjectDir)src;$(SolutionDir)Dependencies\GLEW_2.1.0\include;$(SolutionDir)Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -72,9 +72,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);MF_PLATFORM_WINDOWS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine\src\tests;$(SolutionDir)Engine\src\vendor;$(SolutionDir)Engine\src;$(SolutionDir)Maths\src\;$(ProjectDir)src;$(SolutionDir)Dependencies\GLEW_2.1.0\include;$(SolutionDir)Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Magnefu\src\tests;$(SolutionDir)Magnefu\src\vendor;$(SolutionDir)Magnefu\src;$(SolutionDir)Maths\src\;$(ProjectDir)src;$(SolutionDir)Dependencies\GLEW_2.1.0\include;$(SolutionDir)Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -86,18 +86,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Engine\Engine.vcxproj">
-      <Project>{d9c31a0c-2862-409a-b087-dad369246b2c}</Project>
+    <ProjectReference Include="..\Magnefu\Magnefu.vcxproj">
+      <Project>{037fa1ef-2394-48fe-bce2-03f7c62d247b}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Maths\Maths.vcxproj">
       <Project>{6766ae2d-1e79-4191-9181-49a6a6bf01f5}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Application.cpp" />
+    <ClInclude Include="src\SandboxApp.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Application.h" />
+    <ClCompile Include="src\SandboxApp.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
