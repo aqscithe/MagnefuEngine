@@ -1,6 +1,8 @@
 #include "Renderer.h"
 #include "Globals.h"
 #include <GL/glew.h>
+#include "Magnefu/Log.h"
+
 
 void Renderer::Draw(const VertexArray& vao, const IndexBuffer& ibo, const Shader& shader) const
 {
@@ -33,10 +35,12 @@ void Renderer::ClearColor(Maths::vec4& clearColor) const
 
 void Renderer::EnableDepthTest() const
 {
+    MF_CORE_INFO("RENDERER -- Enabling Depth Test");
     glEnable(GL_DEPTH_TEST);
 }
 
 void Renderer::DisableDepthTest() const
 {
+    MF_CORE_INFO("RENDERER -- Disabling Depth Test");
     glDisable(GL_DEPTH_TEST);
 }

@@ -103,6 +103,7 @@ project "Sandbox"
         "Magnefu/src",
         "Magnefu/vendor",
         "Magnefu/vendor/spdlog/include",
+        "Magnefu/src/Maths",
         "%{prj.name}/src",
         "Dependencies/",
         "Dependencies/GLEW_2.1.0/include",

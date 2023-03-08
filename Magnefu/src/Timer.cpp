@@ -1,5 +1,5 @@
 #include "Timer.h"
-#include <iostream>
+#include "Magnefu/Log.h"
 
 
 Timer::Timer()
@@ -17,7 +17,7 @@ Timer::~Timer()
 	auto duration = End - Start;
 	auto ms = duration * .001;
 
-	std::cout << duration << " us | " << ms << " ms" << std::endl;
+	MF_CORE_DEBUG("{0} us | {1} ms", duration, ms);
 }
 
 void Timer::StartTimer()

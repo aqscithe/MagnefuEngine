@@ -2,6 +2,7 @@
 #include <GL/glew.h>
 #include <iostream>
 #include "stb_image/stb_image.h"
+#include "Magnefu/Log.h"
 
 
 Texture::Texture(const String& filepath, bool async)
@@ -68,7 +69,7 @@ void Texture::SetTextureOptions()
 void Texture::GenerateTexImage()
 {
 	if (!m_texData)
-		std::cout << "No valid texture data to generate texture image." << std::endl;
+		MF_CORE_WARN("TEXTURE -- No valid texture data to generate texture image.");
 	else
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_texData);
@@ -87,9 +88,7 @@ void Texture::LoadTexture()
 	stbi_set_flip_vertically_on_load(1);
 	m_texData = stbi_load(m_filepath.c_str(), &m_width, &m_height, &m_BPP, 4);
 	if (!m_texData)
-		std::cout << "Texture at '" << m_filepath << "' failed to load." << std::endl;
+		MF_CORE_WARN("TEXTURE -- Texture at '{}' failed to load.", m_filepath);
 	else
-		std::cout << "Loaded texture with width " << m_width << ", height " << m_height << " and channels " << m_BPP << std::endl;
-
-		
+		MF_CORE_INFO("TEXTURE -- Loaded texture with width {0}, height {1} and channels {2}", m_width, m_height, m_BPP);
 }

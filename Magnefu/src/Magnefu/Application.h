@@ -12,7 +12,7 @@ namespace Magnefu
 		virtual ~Application();
 
 		virtual void Run();
-
+		
 	};
 
 	// to be defined in client

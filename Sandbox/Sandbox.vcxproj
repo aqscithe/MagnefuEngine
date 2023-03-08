@@ -79,7 +79,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;src;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;..\Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;..\Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -105,7 +105,7 @@ IF NOT EXIST ..\bin-intermediates\Debug-windows-x86_64\Magnefu (mkdir ..\bin-int
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;src;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;..\Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;..\Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -135,7 +135,7 @@ IF NOT EXIST ..\bin-intermediates\Release-windows-x86_64\Magnefu (mkdir ..\bin-i
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;src;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;..\Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;..\Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -160,12 +160,6 @@ IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-inte
       <Command>xcopy /Q /E /Y /I $(ProjectDir)\res\* $(TargetDir)\res</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="src\SandboxApp.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\SandboxApp.cpp" />
-  </ItemGroup>
   <ItemGroup>
     <None Include="res\materials\12221_Cat_v1_l3.mtl" />
     <None Include="res\materials\T-rex.mtl" />
@@ -220,6 +214,12 @@ IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-inte
     <ProjectReference Include="..\Magnefu\Magnefu.vcxproj">
       <Project>{4831CE14-B410-4DB0-BD28-D8862987B311}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\SandboxApp.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\SandboxApp.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

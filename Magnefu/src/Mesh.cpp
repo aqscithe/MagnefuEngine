@@ -1,6 +1,8 @@
 #include "Mesh.h"
 #include "VertexBufferAttribsLayout.h"
 
+#include "Magnefu/Log.h"
+
 
 static std::vector<unsigned int> SetIndices(std::vector<Face>& faces)
 {
@@ -34,9 +36,10 @@ static std::vector<unsigned int> SetIndices(std::vector<Face>& faces)
 
 Mesh::Mesh(MeshData& meshData) : m_MeshData(meshData) 
 {
-    std::cout << "Mesh constructor called: " << std::endl;
-    std::cout << "Vertex Postions: " << m_MeshData.Positions.size() << " | " << "Vertex Normals: " << m_MeshData.Normals.size() << " | " << "Texture Coords: " <<
-        m_MeshData.TexCoords.size() << " | " << "Faces: " << m_MeshData.Faces.size() << std::endl;
+    MF_CORE_DEBUG(
+        "MESH -- Vertex Postions: {0} | Vertex Normals: {1} | Texture Coords: {2} | Faces: {3}", 
+        m_MeshData.Positions.size(), m_MeshData.Normals.size(), m_MeshData.TexCoords.size(), m_MeshData.Faces.size()
+    );
 }
 
 void Mesh::Init()

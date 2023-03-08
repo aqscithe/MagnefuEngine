@@ -1,9 +1,9 @@
 #include "Shader.h"
 #include <GL/glew.h>
-#include <iostream>
+#include "Magnefu/Log.h"
+
 #include <fstream>
 #include <sstream>
-
 
 
 
@@ -93,9 +93,8 @@ unsigned int Shader::CompileShader(unsigned int type, const String& source)
         char* infoLog = (char*)malloc(sizeof(char) * logLength);
         glGetShaderInfoLog(shaderObjID, logLength, nullptr, infoLog);
 
-        std::cout << "Failed to compile shader: " << (type == GL_VERTEX_SHADER ? "VERTEX" : "FRAGMENT") << std::endl;
-        std::cout << infoLog << std::endl;
-
+        MF_CORE_ERROR("Failed to compile shader: {}", type == GL_VERTEX_SHADER ? "VERTEX" : "FRAGMENT");
+        MF_CORE_ERROR(infoLog);
         return 0;
     }
 
@@ -121,7 +120,7 @@ int Shader::GetUniformLocation(const String& name)
     int uniformLocation = glGetUniformLocation(m_RendererID, name.c_str());
 
     if (uniformLocation == -1)
-        std::cout << "Warning: uniform '" << name << "' doesn't exist!" << std::endl;
+        MF_CORE_WARN("Warning: uniform '{}' doesn't exist!", name);
 
     m_uniformLocationAndNameMap.insert({ name, uniformLocation });
     return uniformLocation;

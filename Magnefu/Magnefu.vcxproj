@@ -172,7 +172,6 @@ IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-inte
   <ItemGroup>
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Globals.h" />
-    <ClInclude Include="src\Header.h" />
     <ClInclude Include="src\IndexBuffer.h" />
     <ClInclude Include="src\Light.h" />
     <ClInclude Include="src\Magnefu.h" />

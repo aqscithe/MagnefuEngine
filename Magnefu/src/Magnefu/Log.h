@@ -22,7 +22,6 @@ namespace Magnefu
 		static std::shared_ptr<spdlog::logger> s_CoreLogger;
 		static std::shared_ptr<spdlog::logger> s_ClientLogger;
 
-		
 	};
 
 }
