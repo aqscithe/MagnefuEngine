@@ -8,6 +8,11 @@ With the 3 pillars of Physics, AI, and Chemistry, the Magnefu Game Engine aims t
 
 ## Controls
 
+- Key binds
+> ![controls.png](./SCREENS/controls.png)
+
+- Finding Controls
+> ![howtocontrols.gif](./SCREENS/howtocontrols.gif)
 
 ## Features
 - Test Scenes
@@ -56,7 +61,13 @@ Just a simple test to change the background color.
 
 ![SantaHatArtifacts.gif](./SCREENS/SantaHatArtifacts.gif)
 
+![LoadModel.gif](./SCREENS/LoadModel.gif)
+
+![UnloadAndLoad.gif](./SCREENS/UnloadAndLoad.gif)
+
 ## Incomplete Features
 
 
 ## Known Bugs
+
+- Texture on first model displays correctly. Artifacting of textures on all subsequently loaded models.

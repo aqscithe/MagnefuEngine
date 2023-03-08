@@ -54,9 +54,9 @@ namespace Magnefu
 
         // LOAD MESHES
         std::vector<std::string> objFiles = {
-            "wooden_watch_tower2.obj",
-            //"res/meshes/santa_hat(DEFAULT).obj",
-            //"res/meshes/12221_Cat_v1_l3.obj",
+            //"wooden_watch_tower2.obj",
+            "santa_hat(DEFAULT).obj",
+            //12221_Cat_v1_l3.obj",
         };
                 
         for(std::string& obj : objFiles)
