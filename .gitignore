@@ -82,6 +82,9 @@ bin/*
 bin-intermediates/*
 */.vs
 
+# Vendor
+!vendor/bin/premake/premake5.exe
+
 # Application
 Application/*
 
