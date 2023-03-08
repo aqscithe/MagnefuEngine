@@ -1,0 +1,227 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Dist|x64">
+      <Configuration>Dist</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{F4C124E3-60A1-A37E-69B9-2E55D5170AE0}</ProjectGuid>
+    <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Sandbox</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>..\bin\Debug-windows-x86_64\Sandbox\</OutDir>
+    <IntDir>..\bin-intermediates\Debug-windows-x86_64\Sandbox\</IntDir>
+    <TargetName>Sandbox</TargetName>
+    <TargetExt>.exe</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\bin\Release-windows-x86_64\Sandbox\</OutDir>
+    <IntDir>..\bin-intermediates\Release-windows-x86_64\Sandbox\</IntDir>
+    <TargetName>Sandbox</TargetName>
+    <TargetExt>.exe</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\bin\Dist-windows-x86_64\Sandbox\</OutDir>
+    <IntDir>..\bin-intermediates\Dist-windows-x86_64\Sandbox\</IntDir>
+    <TargetName>Sandbox</TargetName>
+    <TargetExt>.exe</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;..\Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExternalWarningLevel>Level3</ExternalWarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <PreBuildEvent>
+      <Command>IF NOT EXIST ..\bin\Debug-windows-x86_64\Sandbox (mkdir ..\bin\Debug-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin\Debug-windows-x86_64\Sandbox (mkdir ..\bin\Debug-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin-intermediates\Debug-windows-x86_64\Sandbox (mkdir ..\bin-intermediates\Debug-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin-intermediates\Debug-windows-x86_64\Magnefu (mkdir ..\bin-intermediates\Debug-windows-x86_64\Magnefu)</Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy /Q /E /Y /I $(ProjectDir)\res\* $(TargetDir)\res</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;..\Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExternalWarningLevel>Level3</ExternalWarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <PreBuildEvent>
+      <Command>IF NOT EXIST ..\bin\Release-windows-x86_64\Sandbox (mkdir ..\bin\Release-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin\Release-windows-x86_64\Sandbox (mkdir ..\bin\Release-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin-intermediates\Release-windows-x86_64\Sandbox (mkdir ..\bin-intermediates\Release-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin-intermediates\Release-windows-x86_64\Magnefu (mkdir ..\bin-intermediates\Release-windows-x86_64\Magnefu)</Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy /Q /E /Y /I $(ProjectDir)\res\* $(TargetDir)\res</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;..\Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExternalWarningLevel>Level3</ExternalWarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <PreBuildEvent>
+      <Command>IF NOT EXIST ..\bin\Dist-windows-x86_64\Sandbox (mkdir ..\bin\Dist-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin\Dist-windows-x86_64\Sandbox (mkdir ..\bin\Dist-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Sandbox (mkdir ..\bin-intermediates\Dist-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-intermediates\Dist-windows-x86_64\Magnefu)</Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy /Q /E /Y /I $(ProjectDir)\res\* $(TargetDir)\res</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="res\materials\12221_Cat_v1_l3.mtl" />
+    <None Include="res\materials\T-rex.mtl" />
+    <None Include="res\materials\santa_hat.mtl" />
+    <None Include="res\materials\wooden_watch_tower2.mtl" />
+    <None Include="res\meshes\12221_Cat_v1_l3.obj" />
+    <None Include="res\meshes\T-rex.obj" />
+    <None Include="res\meshes\graph.txt" />
+    <None Include="res\meshes\primitives\3D\cube.obj" />
+    <None Include="res\meshes\santa_hat(BLENDER).obj" />
+    <None Include="res\meshes\santa_hat(DEFAULT).obj" />
+    <None Include="res\meshes\santa_hat(POSER).obj" />
+    <None Include="res\meshes\wooden_watch_tower2.obj" />
+    <None Include="res\shaders\Basic.shader" />
+    <None Include="res\shaders\BatchRender.shader" />
+    <None Include="res\shaders\LightCube.shader" />
+    <None Include="res\shaders\Test.shader" />
+    <None Include="res\shaders\TestLighting-Texture.shader" />
+    <None Include="res\shaders\TestLighting.shader" />
+    <None Include="res\shaders\TestModelLoading.shader" />
+    <None Include="res\shaders\Texture2D.shader" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\textures\12221_Cat_v1_l3\Cat_bump.jpg" />
+    <Image Include="res\textures\12221_Cat_v1_l3\Cat_diffuse.jpg" />
+    <Image Include="res\textures\T-rex\755688691_2048x2048.png" />
+    <Image Include="res\textures\container_specular.png" />
+    <Image Include="res\textures\darkmarble\dark-marbled-stone.jpg" />
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_ao.jpg" />
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_d.jpg" />
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_n.jpg" />
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_s.jpg" />
+    <Image Include="res\textures\grass.jpg" />
+    <Image Include="res\textures\moon.png" />
+    <Image Include="res\textures\pluto.png" />
+    <Image Include="res\textures\santa_hat\bump.jpg" />
+    <Image Include="res\textures\santa_hat\color.jpg" />
+    <Image Include="res\textures\santa_hat\normalmap.jpg" />
+    <Image Include="res\textures\santa_hat\softnessmap.jpg" />
+    <Image Include="res\textures\santa_hat\specular.jpg" />
+    <Image Include="res\textures\starlights\starlights.jpg" />
+    <Image Include="res\textures\starlights\starlights_ao.jpg" />
+    <Image Include="res\textures\starlights\starlights_d.jpg" />
+    <Image Include="res\textures\starlights\starlights_n.jpg" />
+    <Image Include="res\textures\starlights\starlights_s.jpg" />
+    <Image Include="res\textures\wall.jpg" />
+    <Image Include="res\textures\water_abstract.jpg" />
+    <Image Include="res\textures\wooden_watch_tower2\Wood_Tower_Col.jpg" />
+    <Image Include="res\textures\wooden_watch_tower2\Wood_Tower_Nor.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Magnefu\Magnefu.vcxproj">
+      <Project>{4831CE14-B410-4DB0-BD28-D8862987B311}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\SandboxApp.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\SandboxApp.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,0 +1,362 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Dist|x64">
+      <Configuration>Dist</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{4831CE14-B410-4DB0-BD28-D8862987B311}</ProjectGuid>
+    <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Magnefu</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>..\bin\Debug-windows-x86_64\Magnefu\</OutDir>
+    <IntDir>..\bin-intermediates\Debug-windows-x86_64\Magnefu\</IntDir>
+    <TargetName>Magnefu</TargetName>
+    <TargetExt>.dll</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\bin\Release-windows-x86_64\Magnefu\</OutDir>
+    <IntDir>..\bin-intermediates\Release-windows-x86_64\Magnefu\</IntDir>
+    <TargetName>Magnefu</TargetName>
+    <TargetExt>.dll</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\bin\Dist-windows-x86_64\Magnefu\</OutDir>
+    <IntDir>..\bin-intermediates\Dist-windows-x86_64\Magnefu\</IntDir>
+    <TargetName>Magnefu</TargetName>
+    <TargetExt>.dll</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>GLEW_STATIC;_GLFW_USE_HYBRID_HPG;MF_PLATFORM_WINDOWS;MF_BUILD_DLL;MF_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>vendor\spdlog;vendor;src;src\Maths;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;..\Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExternalWarningLevel>Level3</ExternalWarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>glfw3_mt.lib;glew32s.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Dependencies\GLEW_2.1.0\lib\Release\x64;..\Dependencies\GLFW\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ImportLibrary>..\bin\Debug-windows-x86_64\Magnefu\Magnefu.lib</ImportLibrary>
+    </Link>
+    <PreBuildEvent>
+      <Command>IF NOT EXIST ..\bin\Debug-windows-x86_64\Sandbox (mkdir ..\bin\Debug-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin\Debug-windows-x86_64\Sandbox (mkdir ..\bin\Debug-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin-intermediates\Debug-windows-x86_64\Sandbox (mkdir ..\bin-intermediates\Debug-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin-intermediates\Debug-windows-x86_64\Magnefu (mkdir ..\bin-intermediates\Debug-windows-x86_64\Magnefu)</Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>copy /B /Y ..\bin\Debug-windows-x86_64\Magnefu\Magnefu.dll ..\bin\Debug-windows-x86_64\Sandbox</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>GLEW_STATIC;_GLFW_USE_HYBRID_HPG;MF_PLATFORM_WINDOWS;MF_BUILD_DLL;MF_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>vendor\spdlog;vendor;src;src\Maths;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;..\Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExternalWarningLevel>Level3</ExternalWarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>glfw3_mt.lib;glew32s.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Dependencies\GLEW_2.1.0\lib\Release\x64;..\Dependencies\GLFW\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ImportLibrary>..\bin\Release-windows-x86_64\Magnefu\Magnefu.lib</ImportLibrary>
+    </Link>
+    <PreBuildEvent>
+      <Command>IF NOT EXIST ..\bin\Release-windows-x86_64\Sandbox (mkdir ..\bin\Release-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin\Release-windows-x86_64\Sandbox (mkdir ..\bin\Release-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin-intermediates\Release-windows-x86_64\Sandbox (mkdir ..\bin-intermediates\Release-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin-intermediates\Release-windows-x86_64\Magnefu (mkdir ..\bin-intermediates\Release-windows-x86_64\Magnefu)</Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>copy /B /Y ..\bin\Release-windows-x86_64\Magnefu\Magnefu.dll ..\bin\Release-windows-x86_64\Sandbox</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>GLEW_STATIC;_GLFW_USE_HYBRID_HPG;MF_PLATFORM_WINDOWS;MF_BUILD_DLL;MF_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>vendor\spdlog;vendor;src;src\Maths;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;..\Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExternalWarningLevel>Level3</ExternalWarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>glfw3_mt.lib;glew32s.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Dependencies\GLEW_2.1.0\lib\Release\x64;..\Dependencies\GLFW\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ImportLibrary>..\bin\Dist-windows-x86_64\Magnefu\Magnefu.lib</ImportLibrary>
+    </Link>
+    <PreBuildEvent>
+      <Command>IF NOT EXIST ..\bin\Dist-windows-x86_64\Sandbox (mkdir ..\bin\Dist-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin\Dist-windows-x86_64\Sandbox (mkdir ..\bin\Dist-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Sandbox (mkdir ..\bin-intermediates\Dist-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-intermediates\Dist-windows-x86_64\Magnefu)</Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>copy /B /Y ..\bin\Dist-windows-x86_64\Magnefu\Magnefu.dll ..\bin\Dist-windows-x86_64\Sandbox</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Camera.h" />
+    <ClInclude Include="src\Globals.h" />
+    <ClInclude Include="src\IndexBuffer.h" />
+    <ClInclude Include="src\Light.h" />
+    <ClInclude Include="src\Magnefu.h" />
+    <ClInclude Include="src\Magnefu\Application.h" />
+    <ClInclude Include="src\Magnefu\Core.h" />
+    <ClInclude Include="src\Magnefu\Entrypoint.h" />
+    <ClInclude Include="src\Magnefu\Log.h" />
+    <ClInclude Include="src\Material.h" />
+    <ClInclude Include="src\Maths\Common.h" />
+    <ClInclude Include="src\Maths\Matrices.h" />
+    <ClInclude Include="src\Maths\Primitive2D.h" />
+    <ClInclude Include="src\Maths\Primitive3D.h" />
+    <ClInclude Include="src\Maths\PrimitiveCommon.h" />
+    <ClInclude Include="src\Maths\Quaternion.h" />
+    <ClInclude Include="src\Maths\Vectors.h" />
+    <ClInclude Include="src\Mesh.h" />
+    <ClInclude Include="src\Model.h" />
+    <ClInclude Include="src\Renderer.h" />
+    <ClInclude Include="src\Shader.h" />
+    <ClInclude Include="src\Texture.h" />
+    <ClInclude Include="src\Timer.h" />
+    <ClInclude Include="src\VertexArray.h" />
+    <ClInclude Include="src\VertexBuffer.h" />
+    <ClInclude Include="src\VertexBufferAttribsLayout.h" />
+    <ClInclude Include="src\tests\Test.h" />
+    <ClInclude Include="src\tests\Test2DTexture.h" />
+    <ClInclude Include="src\tests\Test3DRender.h" />
+    <ClInclude Include="src\tests\TestBatchRendering.h" />
+    <ClInclude Include="src\tests\TestClearColor.h" />
+    <ClInclude Include="src\tests\TestLighting.h" />
+    <ClInclude Include="src\tests\TestModelLoading.h" />
+    <ClInclude Include="vendor\imgui\imconfig.h" />
+    <ClInclude Include="vendor\imgui\imgui.h" />
+    <ClInclude Include="vendor\imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="vendor\imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="vendor\imgui\imgui_internal.h" />
+    <ClInclude Include="vendor\imgui\imstb_rectpack.h" />
+    <ClInclude Include="vendor\imgui\imstb_textedit.h" />
+    <ClInclude Include="vendor\imgui\imstb_truetype.h" />
+    <ClInclude Include="vendor\spdlog\async.h" />
+    <ClInclude Include="vendor\spdlog\async_logger-inl.h" />
+    <ClInclude Include="vendor\spdlog\async_logger.h" />
+    <ClInclude Include="vendor\spdlog\cfg\argv.h" />
+    <ClInclude Include="vendor\spdlog\cfg\env.h" />
+    <ClInclude Include="vendor\spdlog\cfg\helpers-inl.h" />
+    <ClInclude Include="vendor\spdlog\cfg\helpers.h" />
+    <ClInclude Include="vendor\spdlog\common-inl.h" />
+    <ClInclude Include="vendor\spdlog\common.h" />
+    <ClInclude Include="vendor\spdlog\details\backtracer-inl.h" />
+    <ClInclude Include="vendor\spdlog\details\backtracer.h" />
+    <ClInclude Include="vendor\spdlog\details\circular_q.h" />
+    <ClInclude Include="vendor\spdlog\details\console_globals.h" />
+    <ClInclude Include="vendor\spdlog\details\file_helper-inl.h" />
+    <ClInclude Include="vendor\spdlog\details\file_helper.h" />
+    <ClInclude Include="vendor\spdlog\details\fmt_helper.h" />
+    <ClInclude Include="vendor\spdlog\details\log_msg-inl.h" />
+    <ClInclude Include="vendor\spdlog\details\log_msg.h" />
+    <ClInclude Include="vendor\spdlog\details\log_msg_buffer-inl.h" />
+    <ClInclude Include="vendor\spdlog\details\log_msg_buffer.h" />
+    <ClInclude Include="vendor\spdlog\details\mpmc_blocking_q.h" />
+    <ClInclude Include="vendor\spdlog\details\null_mutex.h" />
+    <ClInclude Include="vendor\spdlog\details\os-inl.h" />
+    <ClInclude Include="vendor\spdlog\details\os.h" />
+    <ClInclude Include="vendor\spdlog\details\periodic_worker-inl.h" />
+    <ClInclude Include="vendor\spdlog\details\periodic_worker.h" />
+    <ClInclude Include="vendor\spdlog\details\registry-inl.h" />
+    <ClInclude Include="vendor\spdlog\details\registry.h" />
+    <ClInclude Include="vendor\spdlog\details\synchronous_factory.h" />
+    <ClInclude Include="vendor\spdlog\details\tcp_client-windows.h" />
+    <ClInclude Include="vendor\spdlog\details\tcp_client.h" />
+    <ClInclude Include="vendor\spdlog\details\thread_pool-inl.h" />
+    <ClInclude Include="vendor\spdlog\details\thread_pool.h" />
+    <ClInclude Include="vendor\spdlog\details\udp_client-windows.h" />
+    <ClInclude Include="vendor\spdlog\details\udp_client.h" />
+    <ClInclude Include="vendor\spdlog\details\windows_include.h" />
+    <ClInclude Include="vendor\spdlog\fmt\bin_to_hex.h" />
+    <ClInclude Include="vendor\spdlog\fmt\bundled\args.h" />
+    <ClInclude Include="vendor\spdlog\fmt\bundled\chrono.h" />
+    <ClInclude Include="vendor\spdlog\fmt\bundled\color.h" />
+    <ClInclude Include="vendor\spdlog\fmt\bundled\compile.h" />
+    <ClInclude Include="vendor\spdlog\fmt\bundled\core.h" />
+    <ClInclude Include="vendor\spdlog\fmt\bundled\format-inl.h" />
+    <ClInclude Include="vendor\spdlog\fmt\bundled\format.h" />
+    <ClInclude Include="vendor\spdlog\fmt\bundled\locale.h" />
+    <ClInclude Include="vendor\spdlog\fmt\bundled\os.h" />
+    <ClInclude Include="vendor\spdlog\fmt\bundled\ostream.h" />
+    <ClInclude Include="vendor\spdlog\fmt\bundled\printf.h" />
+    <ClInclude Include="vendor\spdlog\fmt\bundled\ranges.h" />
+    <ClInclude Include="vendor\spdlog\fmt\bundled\std.h" />
+    <ClInclude Include="vendor\spdlog\fmt\bundled\xchar.h" />
+    <ClInclude Include="vendor\spdlog\fmt\chrono.h" />
+    <ClInclude Include="vendor\spdlog\fmt\compile.h" />
+    <ClInclude Include="vendor\spdlog\fmt\fmt.h" />
+    <ClInclude Include="vendor\spdlog\fmt\ostr.h" />
+    <ClInclude Include="vendor\spdlog\fmt\ranges.h" />
+    <ClInclude Include="vendor\spdlog\fmt\std.h" />
+    <ClInclude Include="vendor\spdlog\fmt\xchar.h" />
+    <ClInclude Include="vendor\spdlog\formatter.h" />
+    <ClInclude Include="vendor\spdlog\fwd.h" />
+    <ClInclude Include="vendor\spdlog\logger-inl.h" />
+    <ClInclude Include="vendor\spdlog\logger.h" />
+    <ClInclude Include="vendor\spdlog\pattern_formatter-inl.h" />
+    <ClInclude Include="vendor\spdlog\pattern_formatter.h" />
+    <ClInclude Include="vendor\spdlog\sinks\android_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\ansicolor_sink-inl.h" />
+    <ClInclude Include="vendor\spdlog\sinks\ansicolor_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\base_sink-inl.h" />
+    <ClInclude Include="vendor\spdlog\sinks\base_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\basic_file_sink-inl.h" />
+    <ClInclude Include="vendor\spdlog\sinks\basic_file_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\callback_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\daily_file_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\dist_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\dup_filter_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\hourly_file_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\kafka_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\mongo_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\msvc_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\null_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\ostream_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\qt_sinks.h" />
+    <ClInclude Include="vendor\spdlog\sinks\ringbuffer_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\rotating_file_sink-inl.h" />
+    <ClInclude Include="vendor\spdlog\sinks\rotating_file_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\sink-inl.h" />
+    <ClInclude Include="vendor\spdlog\sinks\sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\stdout_color_sinks-inl.h" />
+    <ClInclude Include="vendor\spdlog\sinks\stdout_color_sinks.h" />
+    <ClInclude Include="vendor\spdlog\sinks\stdout_sinks-inl.h" />
+    <ClInclude Include="vendor\spdlog\sinks\stdout_sinks.h" />
+    <ClInclude Include="vendor\spdlog\sinks\syslog_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\systemd_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\tcp_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\udp_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\win_eventlog_sink.h" />
+    <ClInclude Include="vendor\spdlog\sinks\wincolor_sink-inl.h" />
+    <ClInclude Include="vendor\spdlog\sinks\wincolor_sink.h" />
+    <ClInclude Include="vendor\spdlog\spdlog-inl.h" />
+    <ClInclude Include="vendor\spdlog\spdlog.h" />
+    <ClInclude Include="vendor\spdlog\stopwatch.h" />
+    <ClInclude Include="vendor\spdlog\tweakme.h" />
+    <ClInclude Include="vendor\spdlog\version.h" />
+    <ClInclude Include="vendor\stb_image\stb_image.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\Globals.cpp" />
+    <ClCompile Include="src\IndexBuffer.cpp" />
+    <ClCompile Include="src\Light.cpp" />
+    <ClCompile Include="src\Magnefu\Application.cpp" />
+    <ClCompile Include="src\Magnefu\Core.cpp" />
+    <ClCompile Include="src\Magnefu\Log.cpp" />
+    <ClCompile Include="src\Material.cpp" />
+    <ClCompile Include="src\Maths\Examples.cpp" />
+    <ClCompile Include="src\Maths\Matrices.cpp" />
+    <ClCompile Include="src\Maths\Primitive2D.cpp" />
+    <ClCompile Include="src\Maths\Primitive3D.cpp" />
+    <ClCompile Include="src\Maths\Quaternion.cpp" />
+    <ClCompile Include="src\Maths\Vectors.cpp" />
+    <ClCompile Include="src\Mesh.cpp" />
+    <ClCompile Include="src\Model.cpp" />
+    <ClCompile Include="src\Renderer.cpp" />
+    <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
+    <ClCompile Include="src\Timer.cpp" />
+    <ClCompile Include="src\VertexArray.cpp" />
+    <ClCompile Include="src\VertexBuffer.cpp" />
+    <ClCompile Include="src\VertexBufferAttribsLayout.cpp" />
+    <ClCompile Include="src\tests\Test.cpp" />
+    <ClCompile Include="src\tests\Test2DTexture.cpp" />
+    <ClCompile Include="src\tests\Test3DRender.cpp" />
+    <ClCompile Include="src\tests\TestBatchRendering.cpp" />
+    <ClCompile Include="src\tests\TestClearColor.cpp" />
+    <ClCompile Include="src\tests\TestLighting.cpp" />
+    <ClCompile Include="src\tests\TestModelLoading.cpp" />
+    <ClCompile Include="vendor\imgui\imgui.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_demo.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_draw.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_tables.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="vendor\stb_image\stb_image.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

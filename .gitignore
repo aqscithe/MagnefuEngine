@@ -79,7 +79,11 @@ DerivedDataCache/*
 # Dependencies
 Dependencies/*
 bin/*
+bin-intermediates/*
 */.vs
+
+# Application
+Application/*
 
 OpenGL/header/vendor/glm/*
 OpenGL/header/vendor/imgui/main.cpp
