@@ -55,8 +55,7 @@ struct PointLight
 {
 	bool  Enabled;
 	vec3  Position;
-	vec3  Diffuse;
-	vec3  Specular;
+	vec3  Color;
 	float Constant;
 	float Linear;
 	float Quadratic;
@@ -71,8 +70,7 @@ struct DirectionLight
 {
 	bool  Enabled;
 	vec3  Direction;
-	vec3  Diffuse;
-	vec3  Specular;
+	vec3  Color;
 };
 
 uniform DirectionLight u_DirectionLights[NR_DIR_LIGHTS];
@@ -82,8 +80,7 @@ struct SpotLight
 	bool  Enabled;
 	vec3  Direction;
 	vec3  Position;
-	vec3  Diffuse;
-	vec3  Specular;
+	vec3  Color;
 	float Constant;
 	float Linear;
 	float Quadratic;
@@ -221,7 +218,7 @@ vec3 CalcPointLightRadiance(int index)
 	//vec3 BRDF = u_ReflectionModel == 0 ?
 	vec3 BRDF = CalcPhongBRDF(LightVector, ViewVector);
 
-	Radiance += BRDF * Irradiance; // * pointlight.color
+	Radiance += BRDF * Irradiance * u_PointLights[index].Color;
 
 	return Radiance;
 }

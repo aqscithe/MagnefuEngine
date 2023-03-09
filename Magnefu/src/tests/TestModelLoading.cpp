@@ -331,8 +331,7 @@ namespace Magnefu
                             if (m_DirectionLights[i].Enabled)
                             {
                                 ImGui::SliderFloat3("Light Direction ", m_DirectionLights[i].Direction.e, -1.f, 1.f);
-                                ImGui::ColorEdit3("Diffuse Color", m_DirectionLights[i].Diffuse.e);
-                                ImGui::ColorEdit3("Specular Color", m_DirectionLights[i].Specular.e);
+                                ImGui::ColorEdit3("Color", m_DirectionLights[i].Color.e);
                                 ImGui::Text("Attenuation Controls");
                                 ImGui::Text("Att Constant (Should be 1.0): %f", m_DirectionLights[i].constant);
                                 ImGui::SliderFloat("Att Linear", &m_DirectionLights[i].linear, 0.f, 1.f);
@@ -355,8 +354,7 @@ namespace Magnefu
                             {
                                 ImGui::SliderFloat3("Light Position ", m_PointLights[i].Position.e, -10.f, 10.f);
                                 ImGui::SliderFloat3("Light Scale", m_lightScaling.e, -10.f, 10.f);
-                                ImGui::ColorEdit3("Diffuse Color", m_PointLights[i].Diffuse.e);
-                                ImGui::ColorEdit3("Specular Color", m_PointLights[i].Specular.e);
+                                ImGui::ColorEdit3("Color", m_PointLights[i].Color.e);
                                 ImGui::Text("Attenuation Controls");
                                 ImGui::Text("Att Constant (Should be 1.0): %f", m_PointLights[i].constant);
                                 ImGui::SliderFloat("Att Linear", &m_PointLights[i].linear, 0.f, 1.f);
@@ -379,8 +377,7 @@ namespace Magnefu
                             {
                                 ImGui::SliderFloat3("Light Direction ", m_SpotLights[i].Direction.e, -10.f, 10.f);
                                 ImGui::SliderFloat3("Light Position ", m_SpotLights[i].Position.e, -10.f, 10.f);
-                                ImGui::ColorEdit3("Diffuse Color", m_SpotLights[i].Diffuse.e);
-                                ImGui::ColorEdit3("Specular Color", m_SpotLights[i].Specular.e);
+                                ImGui::ColorEdit3("Color", m_SpotLights[i].Color.e);
                                 ImGui::SliderFloat("Inner Cutoff", &m_SpotLights[i].innerCutoff, 0.f, 1.f);
                                 ImGui::SliderFloat("Outer Cutoff", &m_SpotLights[i].outerCutoff, 0.f, 1.f);
                                 ImGui::Text("Attenuation Controls");
@@ -449,8 +446,7 @@ namespace Magnefu
             std::string lightLabel = "u_PointLights[" + std::to_string(i) + "].";
             m_Shader->SetUniform1i(lightLabel + "Enabled", m_PointLights[i].Enabled);
             m_Shader->SetUniform3fv(lightLabel + "Position", m_PointLights[i].Position);
-            m_Shader->SetUniform3fv(lightLabel + "Diffuse", m_PointLights[i].Diffuse);
-            m_Shader->SetUniform3fv(lightLabel + "Specular", m_PointLights[i].Specular);
+            m_Shader->SetUniform3fv(lightLabel + "Color", m_PointLights[i].Color);
             m_Shader->SetUniform1f(lightLabel + "Constant", m_PointLights[i].constant);
             m_Shader->SetUniform1f(lightLabel + "Linear", m_PointLights[i].linear);
             m_Shader->SetUniform1f(lightLabel + "Quadratic", m_PointLights[i].quadratic);
@@ -461,8 +457,7 @@ namespace Magnefu
             std::string lightLabel = "u_DirectionLights[" + std::to_string(i) + "].";
             m_Shader->SetUniform1i(lightLabel + "Enabled", m_DirectionLights[i].Enabled);
             m_Shader->SetUniform3fv(lightLabel + "Direction", m_DirectionLights[i].Direction);
-            m_Shader->SetUniform3fv(lightLabel + "Diffuse", m_DirectionLights[i].Diffuse);
-            m_Shader->SetUniform3fv(lightLabel + "Specular", m_DirectionLights[i].Specular);
+            m_Shader->SetUniform3fv(lightLabel + "Color", m_DirectionLights[i].Color);
         }
 
         for (int i = 0; i < m_SpotLights.size(); i++)
@@ -471,8 +466,7 @@ namespace Magnefu
             m_Shader->SetUniform1i(lightLabel + "Enabled", m_SpotLights[i].Enabled);
             m_Shader->SetUniform3fv(lightLabel + "Direction", m_SpotLights[i].Direction);
             m_Shader->SetUniform3fv(lightLabel + "Position", m_SpotLights[i].Position);
-            m_Shader->SetUniform3fv(lightLabel + "Diffuse", m_SpotLights[i].Diffuse);
-            m_Shader->SetUniform3fv(lightLabel + "Specular", m_SpotLights[i].Specular);
+            m_Shader->SetUniform3fv(lightLabel + "Color", m_SpotLights[i].Color);
             m_Shader->SetUniform1f(lightLabel + "Constant", m_SpotLights[i].constant);
             m_Shader->SetUniform1f(lightLabel + "Linear", m_SpotLights[i].linear);
             m_Shader->SetUniform1f(lightLabel + "Quadratic", m_SpotLights[i].quadratic);

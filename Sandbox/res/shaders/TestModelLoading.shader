@@ -70,8 +70,7 @@ struct PointLight
 {
 	bool  Enabled;
 	vec3  Position;
-	vec3  Diffuse;
-	vec3  Specular;
+	vec3  Color;
 	float Constant;
 	float Linear;
 	float Quadratic;
@@ -83,8 +82,7 @@ struct DirectionLight
 {
 	bool  Enabled;
 	vec3  Direction;
-	vec3  Diffuse;
-	vec3  Specular;
+	vec3  Color;
 };
 
 uniform DirectionLight u_DirectionLights[NR_DIR_LIGHTS];
@@ -94,8 +92,7 @@ struct SpotLight
 	bool  Enabled;
 	vec3  Direction;
 	vec3  Position;
-	vec3  Diffuse;
-	vec3  Specular;
+	vec3  Color;
 	float Constant;
 	float Linear;
 	float Quadratic;

@@ -13,8 +13,7 @@ enum class ReflectionModel
 struct Light
 {
 	bool Enabled;
-	Maths::vec3 Diffuse;
-	Maths::vec3 Specular;
+	Maths::vec3 Color;
 	float constant;
 	float linear;
 	float quadratic;
