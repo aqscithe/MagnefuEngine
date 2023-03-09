@@ -27,6 +27,7 @@ public:
 	void Init(std::unique_ptr<Shader>& shader, Cache& textureCache, Cache& materialCache);
 	void Draw(std::unique_ptr<Shader>& shader, Cache& textureCache, Cache& materialCache);
 	void OnImGUIRender();
+	void ClearFromCache(Cache& textureCache, Cache& materialCache);
 
 	std::string m_Filepath;
 

@@ -6,7 +6,8 @@
 enum class ReflectionModel
 {
 	PHONG,
-	BLINN_PHONG
+	BLINN_PHONG,
+	MODIFIED_PHONG,
 };
 
 struct Light

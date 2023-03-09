@@ -31,7 +31,9 @@ enum TextureType
 	DIFFUSE,
 	SPECULAR,
 	EMISSIVE,
-	BUMP
+	BUMP,
+	ROUGHNESS,
+	METALLIC
 };
 
 struct TextureLabel

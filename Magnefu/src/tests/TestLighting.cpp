@@ -70,6 +70,8 @@ namespace Magnefu
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
+            { .5f, .5f, .5f }, // Roughness
+            { 1.f, 1.f, 1.f }, // Metallic
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
@@ -84,6 +86,8 @@ namespace Magnefu
             { 0.0215f, 0.1745f, 0.0215f },
             { 0.07568f, 0.61424f, 0.07568f},
             { 0.633f, 0.727811f, 0.633f },
+            { 1.f, 1.f, 1.f },
+            { 0.f, 0.f, 0.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
@@ -100,6 +104,8 @@ namespace Magnefu
             { 0.54f, 0.89f, 0.63f},
             { 0.316228f, 0.316228f, 0.316228f },
             { 1.f, 1.f, 1.f },
+            { 0.f, 0.f, 0.f },
+            { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
@@ -114,6 +120,8 @@ namespace Magnefu
             { 0.05375f, 0.05f, 0.06625f },
             { 0.18275f, 0.17f, 0.22525f},
             { 0.332741f, 0.328634f, 0.346435f },
+            { 1.f, 1.f, 1.f },
+            { 0.f, 0.f, 0.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
@@ -130,6 +138,8 @@ namespace Magnefu
             { 1.f, 0.829f, 0.829f},
             { 0.296648f, 0.296648f, 0.296648f },
             { 1.f, 1.f, 1.f },
+            { 0.f, 0.f, 0.f },
+            { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
@@ -144,6 +154,8 @@ namespace Magnefu
             { 0.1745f, 0.01175f, 0.01175f },
             { 0.61424f, 0.04136f, 0.04136f},
             { 0.727811f, 0.626959f, 0.626959f },
+            { 1.f, 1.f, 1.f },
+            { 0.f, 0.f, 0.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
@@ -162,6 +174,8 @@ namespace Magnefu
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
             1.f, 0.6f * 128, 1.f,
             { 1.f, 1.f, 1.f },
             0
@@ -172,6 +186,8 @@ namespace Magnefu
             { 0.f, 0.f, 0.f },
             { 0.55f, 0.55f, 0.55f},
             { 0.70f, 0.70f, 0.70f },
+            { 1.f, 1.f, 1.f },
+            { 0.f, 0.f, 0.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
@@ -187,6 +203,8 @@ namespace Magnefu
             { 0.01f, 0.01f, 0.01f},
             { 0.4f, 0.4f, 0.4f },
             { 1.f, 1.f, 1.f },
+            { 0.f, 0.f, 0.f },
+            { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
@@ -200,6 +218,8 @@ namespace Magnefu
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
+            { 1.f, 1.f, 1.f },
+            { 0.f, 0.f, 0.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
@@ -215,6 +235,8 @@ namespace Magnefu
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
+            { 0.f, 0.f, 0.f },
+            { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
@@ -226,14 +248,15 @@ namespace Magnefu
 
         m_ActiveMaterial = &m_AvailableMaterials["Grass"]; 
 
-        m_AmbientIntensity = { 0.1f, 0.1f, 0.1f };
-        m_DiffusionIntensity = { 1.f, 1.f, 1.f };
-        m_SpecularIntensity = { 1.f, 1.f, 1.f };
+        m_AvailableMaterials["Grass"].Ka = Maths::vec3(0.01f);
+        m_AvailableMaterials["Water"].Ka = Maths::vec3(0.01f);
 
         // Lights
 
         m_ShadingTechnique = static_cast<int>(ShadingTechnique::PHONG);
         m_ReflectionModel = static_cast<int>(ReflectionModel::PHONG);
+
+        m_PointLightRadius = -1.f;
 
         m_PointLights.reserve(5);
         m_PointLights.emplace_back(CreatePointLight(), Maths::identity());
@@ -247,6 +270,7 @@ namespace Magnefu
 
         m_lightScaling = { 0.1f, 0.1f, 0.1f };
 
+        m_RadiantFlux = 3.f;
         
         m_angleRot = 360.f;
         m_rotationAxis = { 0.f, 0.f, 0.f };
@@ -281,20 +305,18 @@ namespace Magnefu
         m_TextureCubeShader->Bind();
 
 
-        std::array<std::string, 4> textureList = {
-            "res/textures/starlights/starlights_d.jpg",
-            "res/textures/darkmarble/dark-marbled-stone_d.jpg",
-            "res/textures/starlights/starlights_s.jpg",
-            "res/textures/darkmarble/dark-marbled-stone_s.jpg"
+        std::array<std::string, 8> textureList = {
+            "res/textures/metal_plate/metal_plate_diff_2k.jpg",
+            "res/textures/snow_field_aerial/snow_field_aerial_diff_2k.jpg",
+            "res/textures/metal_plate/metal_plate_spec_2k.jpg",
+            "res/textures/colors/black.jpg",
+            "res/textures/metal_plate/metal_plate_rough_2k.jpg",
+            "res/textures/snow_field_aerial/snow_field_aerial_rough_2k.jpg",
+            "res/textures/metal_plate/metal_plate_metal_2k.jpg",
+            "res/textures/colors/black.jpg"
         };
 
         m_Textures.reserve(textureList.size());
-
-        // multithreaded version
-        /*for (auto& texturePath : textureList)
-        {
-            m_Futures.emplace_back(std::async(std::launch::async, InitTexture, std::ref(m_Textures), std::ref(texturePath)));
-        }*/
 
         // single threaded version
         for (int i = 0; i < textureList.size(); i++)
@@ -307,6 +329,12 @@ namespace Magnefu
         m_TextureCubeShader->SetUniform1iv("u_material.Diffuse", diffuseTextureLocations);
         int specularTextureLocations[2] = { 2, 3 };
         m_TextureCubeShader->SetUniform1iv("u_material.Specular", specularTextureLocations);
+
+        int roughTextureLocs[2] = { 4, 5 };
+        m_TextureCubeShader->SetUniform1iv("u_material.Roughness", roughTextureLocs);
+
+        int metalTextureLocs[2] = { 6, 7 };
+        m_TextureCubeShader->SetUniform1iv("u_material.Metallic", metalTextureLocs);
 
         for (int i = 0; i < m_Textures.size(); i++)
             m_Textures[i]->Unbind();
@@ -325,12 +353,12 @@ namespace Magnefu
         m_LightCubeVAO->Unbind();
         m_VBO->Unbind();
         
-        glEnable(GL_DEPTH_TEST);
+        m_Renderer.EnableDepthTest();
 	}
 
 	TestLighting::~TestLighting()
 	{
-        glDisable(GL_DEPTH_TEST);
+        m_Renderer.DisableDepthTest();
 	}
 
 	void TestLighting::OnUpdate(GLFWwindow* window, float deltaTime)
@@ -476,6 +504,10 @@ namespace Magnefu
                     if (ImGui::Button("Phong ")) m_ReflectionModel = 0;
                     ImGui::SameLine();
                     if (ImGui::Button("Blinn-Phong")) m_ReflectionModel = 1;
+                    ImGui::SameLine();
+                    if (ImGui::Button("Modified Phong")) m_ReflectionModel = 2;
+
+                    ImGui::SliderFloat("Radiant Flux ", &m_RadiantFlux, 0.f, 100.f);
 
                     ImGui::Text("Shading Technique");
                     ImGui::SameLine();
@@ -524,10 +556,8 @@ namespace Magnefu
                     ImGui::ColorEdit3("Specular", m_ActiveMaterial->Specular.e);
                     ImGui::SliderFloat("Ns", &m_ActiveMaterial->Ns, 0.01f, 255.f);
                 }
-                ImGui::SliderFloat3("Ambient Intensity", m_AmbientIntensity.e, 0.f, 1.f);
-                ImGui::SliderFloat3("Diffuse Intensity", m_DiffusionIntensity.e, 0.f, 1.f);
-                ImGui::SliderFloat3("Specular Intensity", m_SpecularIntensity.e, 0.f, 1.f);
-                ImGui::SliderFloat3("Diffuse & Ambient Strength", m_ActiveMaterial->Kd.e, 0.f, 1.f);
+                ImGui::SliderFloat3("Ambient Strength", m_ActiveMaterial->Ka.e, 0.f, 1.f);
+                ImGui::SliderFloat3("Diffuse Strength", m_ActiveMaterial->Kd.e, 0.f, 1.f);
                 ImGui::SliderFloat3("Specular Strength", m_ActiveMaterial->Ks.e, 0.f, 1.f);
                               
                 ImGui::TreePop();
@@ -559,6 +589,8 @@ namespace Magnefu
                 }
                 if (ImGui::TreeNode("Point Lights"))
                 {
+                    ImGui::SliderFloat("Point Light Radius ", &m_PointLightRadius, 0.f, 20.f);
+
                     for (int i = 0; i < m_PointLights.size(); i++)
                     {
                         std::string name = "Point Light: " + std::to_string(i);
@@ -635,11 +667,8 @@ namespace Magnefu
         m_ModelCubeShader->SetUniform3fv("u_material.Specular", m_ActiveMaterial->Specular);
         m_ModelCubeShader->SetUniform1f("u_material.Ns", m_ActiveMaterial->Ns);
         m_ModelCubeShader->SetUniform3fv("u_material.Kd",       m_ActiveMaterial->Kd);
+        m_ModelCubeShader->SetUniform3fv("u_material.Ka",       m_ActiveMaterial->Ka);
         m_ModelCubeShader->SetUniform3fv("u_material.Ks",       m_ActiveMaterial->Ks);
-
-        m_ModelCubeShader->SetUniform3fv("u_Intensity.Ambient",  m_AmbientIntensity);
-        m_ModelCubeShader->SetUniform3fv("u_Intensity.Diffuse",  m_DiffusionIntensity);
-        m_ModelCubeShader->SetUniform3fv("u_Intensity.Specular", m_SpecularIntensity);
 
         m_ModelCubeShader->SetUniform1i("u_ShadingTechnique", m_ShadingTechnique);
         m_ModelCubeShader->SetUniform1i("u_ReflectionModel",  m_ReflectionModel);
@@ -688,15 +717,15 @@ namespace Magnefu
         m_TextureCubeShader->SetUniform1ui("u_material.TexID", m_ActiveMaterial->ID);
         
         m_TextureCubeShader->SetUniform1f("u_material.Ns", m_ActiveMaterial->Ns);
+        m_TextureCubeShader->SetUniform3fv("u_material.Ka",       m_ActiveMaterial->Ka);
         m_TextureCubeShader->SetUniform3fv("u_material.Kd",       m_ActiveMaterial->Kd);
         m_TextureCubeShader->SetUniform3fv("u_material.Ks",       m_ActiveMaterial->Ks);
 
-        m_TextureCubeShader->SetUniform3fv("u_Intensity.Ambient",  m_AmbientIntensity);
-        m_TextureCubeShader->SetUniform3fv("u_Intensity.Diffuse",  m_DiffusionIntensity);
-        m_TextureCubeShader->SetUniform3fv("u_Intensity.Specular", m_SpecularIntensity);
-
         m_TextureCubeShader->SetUniform1i("u_ShadingTechnique", m_ShadingTechnique);
         m_TextureCubeShader->SetUniform1i("u_ReflectionModel",  m_ReflectionModel);
+
+        m_TextureCubeShader->SetUniform1f("u_PointLightRadius", m_PointLightRadius);
+        m_TextureCubeShader->SetUniform1f("u_RadiantFlux", m_RadiantFlux);
 
         for (int i = 0; i < m_PointLights.size(); i++)
         {

@@ -1,4 +1,5 @@
 #include "Model.h"
+#include "Magnefu/Log.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
@@ -179,6 +180,32 @@ void Model::OnImGUIRender()
         mesh->OnImGUIRender();
 }
 
+void Model::ClearFromCache(Cache& textureCache, Cache& materialCache)
+{
+    for (auto& material : m_MaterialList)
+    {
+        materialCache.erase(material.SubMaterialName);
+        MF_CORE_DEBUG("Clearing material {} from cache.", material.SubMaterialName);
+        
+        if (material.MaterialProperties.Ambient)
+        {
+            textureCache.erase(material.MaterialProperties.Ambient->GetFilepath());
+            MF_CORE_DEBUG("Clearing texture {} from cache", material.MaterialProperties.Ambient->GetFilepath());
+        }
+        if (material.MaterialProperties.Diffuse)
+        {
+            textureCache.erase(material.MaterialProperties.Diffuse->GetFilepath());
+            MF_CORE_DEBUG("Clearing texture {} from cache", material.MaterialProperties.Diffuse->GetFilepath());
+        }
+        if (material.MaterialProperties.Specular)
+        {
+            textureCache.erase(material.MaterialProperties.Specular->GetFilepath());
+            MF_CORE_DEBUG("Clearing texture {} from cache", material.MaterialProperties.Specular->GetFilepath());
+        }
+            
+    }
+}
+
 void Model::LoadMesh(std::vector<Maths::vec3>& tempPositions, std::vector<Maths::vec3>& tempNormals, std::vector<Maths::vec2>& tempTexCoords, std::vector<Face>& tempFaces)
 {
     MeshData meshData = {
@@ -220,6 +247,7 @@ void Model::Init(std::unique_ptr<Shader>& shader, Cache& textureCache, Cache& ma
         {
             material.MaterialProperties.Ambient->Bind(textureSlot);
             textureCache[material.MaterialProperties.Ambient->GetFilepath()] = textureSlot;
+            MF_CORE_DEBUG("TEXTURE -- Ambient texture {0} bound to slot {1}", material.MaterialProperties.Ambient->GetFilepath(), textureSlot);
             textureSlot++;    
         }
                
@@ -227,6 +255,7 @@ void Model::Init(std::unique_ptr<Shader>& shader, Cache& textureCache, Cache& ma
         {
             material.MaterialProperties.Diffuse->Bind(textureSlot);
             textureCache[material.MaterialProperties.Diffuse->GetFilepath()] = textureSlot;
+            MF_CORE_DEBUG("TEXTURE -- Diffuse texture {0} bound to slot {1}", material.MaterialProperties.Diffuse->GetFilepath(), textureSlot);
             textureSlot++;        
         }
 
@@ -234,6 +263,7 @@ void Model::Init(std::unique_ptr<Shader>& shader, Cache& textureCache, Cache& ma
         {
             material.MaterialProperties.Specular->Bind(textureSlot);
             textureCache[material.MaterialProperties.Specular->GetFilepath()] = textureSlot;
+            MF_CORE_DEBUG("TEXTURE -- Specular texture {0} bound to slot {1}", material.MaterialProperties.Specular->GetFilepath(), textureSlot);
             textureSlot++;
         }
     }
@@ -243,12 +273,36 @@ void Model::Init(std::unique_ptr<Shader>& shader, Cache& textureCache, Cache& ma
     {
         std::string matLabel = "u_material[" + std::to_string(materialCache[material.SubMaterialName]) + "].";
                 
-        if(material.MaterialProperties.Ambient)
+        if (material.MaterialProperties.Ambient)
+        {
             shader->SetUniform1i(matLabel + "Ambient", textureCache[material.MaterialProperties.Ambient->GetFilepath()]);
+            MF_CORE_DEBUG(
+                "SHADER -- Set Ambient Texture {0} from Material {1} to Material Index {2}",
+                material.MaterialProperties.Ambient->GetFilepath(), material.SubMaterialName, materialCache[material.SubMaterialName]
+            );
+        }
+                     
         if (material.MaterialProperties.Diffuse)
+        {
             shader->SetUniform1i(matLabel + "Diffuse", textureCache[material.MaterialProperties.Diffuse->GetFilepath()]);
+            MF_CORE_DEBUG(
+                "SHADER -- Set Diffuse Texture {0} from Material {1} to Material Index {2}",
+                material.MaterialProperties.Diffuse->GetFilepath(), material.SubMaterialName, materialCache[material.SubMaterialName]
+            );
+        }
+            
         if (material.MaterialProperties.Specular)
+        {
             shader->SetUniform1i(matLabel + "Specular", textureCache[material.MaterialProperties.Specular->GetFilepath()]);
+            MF_CORE_DEBUG(
+                "SHADER -- Set Specular Texture {0} from Material {1} to Material Index {2}",
+                material.MaterialProperties.Specular->GetFilepath(), material.SubMaterialName, materialCache[material.SubMaterialName]
+            );
+        }
+            
+
+        
+
     }
 
     // unbind textures
@@ -343,6 +397,8 @@ Material<std::shared_ptr<Texture>> Model::CreateMaterial(const std::string& matF
     std::shared_ptr<Texture> Ambient = nullptr;
     std::shared_ptr<Texture> Diffuse = nullptr;
     std::shared_ptr<Texture> Specular = nullptr;
+    std::shared_ptr<Texture> Roughness = nullptr;
+    std::shared_ptr<Texture> Metallic = nullptr;
 
     while (std::getline(stream, line))
     {
@@ -442,6 +498,11 @@ Material<std::shared_ptr<Texture>> Model::CreateMaterial(const std::string& matF
                 break;
             case BUMP:
                 break;
+            case ROUGHNESS:
+                Roughness = m_TextureCache[file];
+                break;
+            case METALLIC:
+                Metallic = m_TextureCache[file];
             default:
                 break;
             }
@@ -451,7 +512,7 @@ Material<std::shared_ptr<Texture>> Model::CreateMaterial(const std::string& matF
 
     return {
         false, false, matID,
-        Ambient, Diffuse, Specular,
+        Ambient, Diffuse, Specular, Roughness, Metallic,
         Ka, Kd, Ks, Ke,
         Ni, Ns, Opacity, Tf, Illum
     };

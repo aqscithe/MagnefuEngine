@@ -46,14 +46,14 @@ namespace Magnefu
 
 			Maths::vec3 m_lightScaling;
 
+			float m_RadiantFlux;
+
+			float m_PointLightRadius;
 			std::vector<PointLightModel> m_PointLights;
 			std::vector<DirLightModel> m_DirectionLights;
 			std::vector<SpotLightModel> m_SpotLights;
 
 
-			Maths::vec3 m_AmbientIntensity;
-			Maths::vec3 m_DiffusionIntensity;
-			Maths::vec3 m_SpecularIntensity;
 			Material<Maths::vec3>* m_ActiveMaterial;
 			std::unordered_map<std::string, Material<Maths::vec3>> m_AvailableMaterials;
 

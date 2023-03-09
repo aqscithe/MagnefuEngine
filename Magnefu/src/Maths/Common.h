@@ -5,7 +5,7 @@
 namespace Maths
 {
 #pragma region Constants & common math functions
-
+	// const float PI = 3.1415926535897932384626;
 	const float TAU = 6.283185307179586476925f;
 
 	inline float cos(float x) { return cosf(x); }

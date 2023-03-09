@@ -241,7 +241,11 @@ namespace Magnefu
                 for (int i = 0; i < m_Models.size(); i++)
                 {
                     if (ImGui::Button(m_Models[i]->m_Filepath.c_str()))
+                    {
+                        m_Models[i]->ClearFromCache(m_TextureCache, m_MaterialCache);
                         m_Models.erase(m_Models.begin() + i);
+                    }
+                        
                 }
                 ImGui::EndTabItem();
             }

@@ -15,6 +15,8 @@ struct Material
 	T            Ambient;
 	T            Diffuse;
 	T            Specular;
+	T			 Roughness;
+	T			 Metallic;
 	Maths::vec3  Ka;
 	Maths::vec3  Kd;
 	Maths::vec3  Ks;
@@ -25,10 +27,7 @@ struct Material
 	Maths::vec3  Tf;       // Transmission filter color
 	int          Illum;
 	// AO
-	//float       Roughness;
 	//float		  Displacement
-	
-	//float       Metallic	
 };
 
 
