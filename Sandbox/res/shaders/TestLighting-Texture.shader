@@ -194,6 +194,16 @@ out vec4 FragColor;
 //	return GetCombined(DiffuseLight, SpecularLight) * Attenuation;
 //}
 
+//satisfies energy conservation unlike classic Phong
+vec3 CalcModifiedPhongBRDF(vec3 LightVector, vec3 ViewVector)
+{
+	vec3 color = (vec3(texture(u_material.Diffuse[u_material.TexID], TexCoords)) * u_material.Kd) / PI;
+	vec3 ReflectionVector = 2 * dot(LightVector, Normal) * Normal - LightVector;
+	float Ps = (u_material.Ns + 2.0) / (2.0 * PI); 
+	color += pow(max(dot(ReflectionVector, ViewVector), 0.0), u_material.Ns) * Ps * vec3(texture(u_material.Specular[u_material.TexID], TexCoords)) * u_material.Ks;
+	return color; // no color component should be greater than 1.0
+}
+
 vec3 CalcPhongBRDF(vec3 LightVector, vec3 ViewVector)
 {
 	vec3 color = vec3(texture(u_material.Diffuse[u_material.TexID], TexCoords)) * u_material.Kd;
@@ -215,8 +225,7 @@ vec3 CalcPointLightRadiance(int index)
 	float Irradiance = u_RadiantFlux * max(dot(LightVector, Normal), 0.0) / (4.0 * PI * distance * distance);
 
 	// Calculate Selected BRDF
-	//vec3 BRDF = u_ReflectionModel == 0 ?
-	vec3 BRDF = CalcPhongBRDF(LightVector, ViewVector);
+	vec3 BRDF = u_ReflectionModel == 0 ? CalcPhongBRDF(LightVector, ViewVector) : CalcModifiedPhongBRDF(LightVector, ViewVector);
 
 	Radiance += BRDF * Irradiance * u_PointLights[index].Color;
 

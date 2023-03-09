@@ -503,9 +503,9 @@ namespace Magnefu
                     ImGui::SameLine();
                     if (ImGui::Button("Phong ")) m_ReflectionModel = 0;
                     ImGui::SameLine();
-                    if (ImGui::Button("Blinn-Phong")) m_ReflectionModel = 1;
+                    if (ImGui::Button("Modified Phong")) m_ReflectionModel = 1;
                     ImGui::SameLine();
-                    if (ImGui::Button("Modified Phong")) m_ReflectionModel = 2;
+                    if (ImGui::Button("Blinn-Phong")) m_ReflectionModel = 2;
 
                     ImGui::SliderFloat("Radiant Flux ", &m_RadiantFlux, 0.f, 100.f);
 
