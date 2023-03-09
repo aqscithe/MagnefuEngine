@@ -6,6 +6,15 @@ With the 3 pillars of Physics, AI, and Chemistry, the Magnefu Game Engine aims t
 
 ## Installation
 
+## Premake
+
+Project files can be generated - only Windows for now - by running the GenerateProjects.bat
+
+
+## Building
+
+Note that if you receive a message about Magnefu.dll not being a valid win32 application, delete the .vs folder in the root directory and then rerun the GenerateProjects.bat.
+
 ## Controls
 
 - Key binds

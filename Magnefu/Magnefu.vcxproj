@@ -95,7 +95,7 @@
     </Link>
     <PreBuildEvent>
       <Command>IF NOT EXIST ..\bin\Debug-windows-x86_64\Sandbox (mkdir ..\bin\Debug-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin\Debug-windows-x86_64\Sandbox (mkdir ..\bin\Debug-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin\Debug-windows-x86_64\Magnefu (mkdir ..\bin\Debug-windows-x86_64\Magnefu)
 IF NOT EXIST ..\bin-intermediates\Debug-windows-x86_64\Sandbox (mkdir ..\bin-intermediates\Debug-windows-x86_64\Sandbox)
 IF NOT EXIST ..\bin-intermediates\Debug-windows-x86_64\Magnefu (mkdir ..\bin-intermediates\Debug-windows-x86_64\Magnefu)</Command>
     </PreBuildEvent>
@@ -128,7 +128,7 @@ IF NOT EXIST ..\bin-intermediates\Debug-windows-x86_64\Magnefu (mkdir ..\bin-int
     </Link>
     <PreBuildEvent>
       <Command>IF NOT EXIST ..\bin\Release-windows-x86_64\Sandbox (mkdir ..\bin\Release-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin\Release-windows-x86_64\Sandbox (mkdir ..\bin\Release-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin\Release-windows-x86_64\Magnefu (mkdir ..\bin\Release-windows-x86_64\Magnefu)
 IF NOT EXIST ..\bin-intermediates\Release-windows-x86_64\Sandbox (mkdir ..\bin-intermediates\Release-windows-x86_64\Sandbox)
 IF NOT EXIST ..\bin-intermediates\Release-windows-x86_64\Magnefu (mkdir ..\bin-intermediates\Release-windows-x86_64\Magnefu)</Command>
     </PreBuildEvent>
@@ -161,7 +161,7 @@ IF NOT EXIST ..\bin-intermediates\Release-windows-x86_64\Magnefu (mkdir ..\bin-i
     </Link>
     <PreBuildEvent>
       <Command>IF NOT EXIST ..\bin\Dist-windows-x86_64\Sandbox (mkdir ..\bin\Dist-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin\Dist-windows-x86_64\Sandbox (mkdir ..\bin\Dist-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin\Dist-windows-x86_64\Magnefu (mkdir ..\bin\Dist-windows-x86_64\Magnefu)
 IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Sandbox (mkdir ..\bin-intermediates\Dist-windows-x86_64\Sandbox)
 IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-intermediates\Dist-windows-x86_64\Magnefu)</Command>
     </PreBuildEvent>

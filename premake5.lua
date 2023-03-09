@@ -1,6 +1,7 @@
 workspace "Magnefu"
     architecture "x64"
     configurations { "Debug", "Release", "Dist" }
+    startproject "Sandbox"
 
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
@@ -8,9 +9,9 @@ resourcedir = "%{prj.name}/res"
 
 prebuildcommands {
     "{MKDIR} ../bin/" .. outputdir .. "/Sandbox",
-    "{MKDIR} ../bin/" .. outputdir .. "/Sandbox",
+    "{MKDIR} ../bin/" .. outputdir .. "/Magnefu",
     "{MKDIR} ../bin-intermediates/" .. outputdir .. "/Sandbox",
-    "{MKDIR} ../bin-intermediates/" .. outputdir .. "/Magnefu"
+    "{MKDIR} ../bin-intermediates/" .. outputdir .. "/Magnefu",
 }
 
 project "Magnefu"

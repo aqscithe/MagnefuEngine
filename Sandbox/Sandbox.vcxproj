@@ -92,7 +92,7 @@
     </Link>
     <PreBuildEvent>
       <Command>IF NOT EXIST ..\bin\Debug-windows-x86_64\Sandbox (mkdir ..\bin\Debug-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin\Debug-windows-x86_64\Sandbox (mkdir ..\bin\Debug-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin\Debug-windows-x86_64\Magnefu (mkdir ..\bin\Debug-windows-x86_64\Magnefu)
 IF NOT EXIST ..\bin-intermediates\Debug-windows-x86_64\Sandbox (mkdir ..\bin-intermediates\Debug-windows-x86_64\Sandbox)
 IF NOT EXIST ..\bin-intermediates\Debug-windows-x86_64\Magnefu (mkdir ..\bin-intermediates\Debug-windows-x86_64\Magnefu)</Command>
     </PreBuildEvent>
@@ -122,7 +122,7 @@ IF NOT EXIST ..\bin-intermediates\Debug-windows-x86_64\Magnefu (mkdir ..\bin-int
     </Link>
     <PreBuildEvent>
       <Command>IF NOT EXIST ..\bin\Release-windows-x86_64\Sandbox (mkdir ..\bin\Release-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin\Release-windows-x86_64\Sandbox (mkdir ..\bin\Release-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin\Release-windows-x86_64\Magnefu (mkdir ..\bin\Release-windows-x86_64\Magnefu)
 IF NOT EXIST ..\bin-intermediates\Release-windows-x86_64\Sandbox (mkdir ..\bin-intermediates\Release-windows-x86_64\Sandbox)
 IF NOT EXIST ..\bin-intermediates\Release-windows-x86_64\Magnefu (mkdir ..\bin-intermediates\Release-windows-x86_64\Magnefu)</Command>
     </PreBuildEvent>
@@ -152,7 +152,7 @@ IF NOT EXIST ..\bin-intermediates\Release-windows-x86_64\Magnefu (mkdir ..\bin-i
     </Link>
     <PreBuildEvent>
       <Command>IF NOT EXIST ..\bin\Dist-windows-x86_64\Sandbox (mkdir ..\bin\Dist-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin\Dist-windows-x86_64\Sandbox (mkdir ..\bin\Dist-windows-x86_64\Sandbox)
+IF NOT EXIST ..\bin\Dist-windows-x86_64\Magnefu (mkdir ..\bin\Dist-windows-x86_64\Magnefu)
 IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Sandbox (mkdir ..\bin-intermediates\Dist-windows-x86_64\Sandbox)
 IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-intermediates\Dist-windows-x86_64\Magnefu)</Command>
     </PreBuildEvent>
@@ -160,6 +160,12 @@ IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-inte
       <Command>xcopy /Q /E /Y /I $(ProjectDir)\res\* $(TargetDir)\res</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="src\SandboxApp.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\SandboxApp.cpp" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="res\materials\12221_Cat_v1_l3.mtl" />
     <None Include="res\materials\T-rex.mtl" />
@@ -186,6 +192,7 @@ IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-inte
     <Image Include="res\textures\12221_Cat_v1_l3\Cat_bump.jpg" />
     <Image Include="res\textures\12221_Cat_v1_l3\Cat_diffuse.jpg" />
     <Image Include="res\textures\T-rex\755688691_2048x2048.png" />
+    <Image Include="res\textures\colors\black.jpg" />
     <Image Include="res\textures\container_specular.png" />
     <Image Include="res\textures\darkmarble\dark-marbled-stone.jpg" />
     <Image Include="res\textures\darkmarble\dark-marbled-stone_ao.jpg" />
@@ -193,6 +200,10 @@ IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-inte
     <Image Include="res\textures\darkmarble\dark-marbled-stone_n.jpg" />
     <Image Include="res\textures\darkmarble\dark-marbled-stone_s.jpg" />
     <Image Include="res\textures\grass.jpg" />
+    <Image Include="res\textures\metal_plate\metal_plate_diff_2k.jpg" />
+    <Image Include="res\textures\metal_plate\metal_plate_metal_2k.jpg" />
+    <Image Include="res\textures\metal_plate\metal_plate_rough_2k.jpg" />
+    <Image Include="res\textures\metal_plate\metal_plate_spec_2k.jpg" />
     <Image Include="res\textures\moon.png" />
     <Image Include="res\textures\pluto.png" />
     <Image Include="res\textures\santa_hat\bump.jpg" />
@@ -200,6 +211,8 @@ IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-inte
     <Image Include="res\textures\santa_hat\normalmap.jpg" />
     <Image Include="res\textures\santa_hat\softnessmap.jpg" />
     <Image Include="res\textures\santa_hat\specular.jpg" />
+    <Image Include="res\textures\snow_field_aerial\snow_field_aerial_diff_2k.jpg" />
+    <Image Include="res\textures\snow_field_aerial\snow_field_aerial_rough_2k.jpg" />
     <Image Include="res\textures\starlights\starlights.jpg" />
     <Image Include="res\textures\starlights\starlights_ao.jpg" />
     <Image Include="res\textures\starlights\starlights_d.jpg" />
@@ -214,12 +227,6 @@ IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-inte
     <ProjectReference Include="..\Magnefu\Magnefu.vcxproj">
       <Project>{4831CE14-B410-4DB0-BD28-D8862987B311}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\SandboxApp.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src\SandboxApp.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
