@@ -58,6 +58,8 @@ NOTE - Spot and Direction lights are temporarily disabled as I fix some issues w
 - Lights
     - Area
     - Light Attenuation
+- Normal Map
+- Emissive Map
 - Shadows
     - Shadow Mapping
         - Cascaded
