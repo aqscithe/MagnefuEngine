@@ -213,7 +213,7 @@ namespace Magnefu
             0
         };
 
-        m_AvailableMaterials["Water"] = {
+        m_AvailableMaterials["MetalPlate"] = {
             true, true, 0,
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
@@ -229,7 +229,7 @@ namespace Magnefu
             0
         };
 
-        m_AvailableMaterials["Grass"] = {
+        m_AvailableMaterials["OldCopper"] = {
             true, true, 1,
             { 1.f, 1.f, 1.f },
             { 1.f, 1.f, 1.f },
@@ -244,12 +244,11 @@ namespace Magnefu
             { 1.f, 1.f, 1.f },
             0
         };
-        
 
-        m_ActiveMaterial = &m_AvailableMaterials["Grass"]; 
+        m_ActiveMaterial = &m_AvailableMaterials["MetalPlate"]; 
 
-        m_AvailableMaterials["Grass"].Ka = Maths::vec3(0.01f);
-        m_AvailableMaterials["Water"].Ka = Maths::vec3(0.01f);
+        m_AvailableMaterials["MetalPlate"].Ka = Maths::vec3(0.01f);
+        m_AvailableMaterials["OldCopper"].Ka = Maths::vec3(0.01f);
 
         // Lights
 
@@ -271,6 +270,8 @@ namespace Magnefu
         m_lightScaling = { 0.1f, 0.1f, 0.1f };
 
         m_RadiantFlux = 3.f;
+
+        m_Reflectance = 1.f;
         
         m_angleRot = 360.f;
         m_rotationAxis = { 0.f, 0.f, 0.f };
@@ -304,16 +305,41 @@ namespace Magnefu
         m_TextureCubeShader = std::make_unique <Shader>("res/shaders/TestLighting-Texture.shader");
         m_TextureCubeShader->Bind();
 
+        // need a way to read in all the textures I want by selecting a directory or something.
+        // like in model loading
 
         std::array<std::string, 8> textureList = {
-            "res/textures/metal_plate/metal_plate_diff_2k.jpg",
-            "res/textures/snow_field_aerial/snow_field_aerial_diff_2k.jpg",
-            "res/textures/metal_plate/metal_plate_spec_2k.jpg",
+            //"res/textures/metal_plate/metal_plate_diff_2k.jpg",
+            //"res/textures/old_copper/2K_old_copper_base_color.png",
+            "res/textures/aluminium_foil-2K/2K-aluminium_foil_1_base_color.png",
+            //"res/textures/Lava_03-2K/Lava_03_emissive-2K.png",
+            //"res/textures/leaf_1-2K/2K-leaf_1-diffuse.jpg",
+            "res/textures/amethyst_texture_1-2K/2K-amethyst_1-diffuse.jpg",
+            //"res/textures/snow_field_aerial/snow_field_aerial_diff_2k.jpg",
+
+            //"res/textures/metal_plate/metal_plate_spec_2k.jpg",
+            //"res/textures/old_copper/2K_old_copper_specular_level.png",
+            "res/textures/aluminium_foil-2K/2k-aluminum-spec.jpg",
+            //"res/textures/Lava_03-2K/Lava_03_spec.jpg",
+            //"res/textures/leaf_1-2K/2K-leaf_1-specular.jpg",
+            "res/textures/amethyst_texture_1-2K/2K-amethyst_1-specular.jpg",
+            //"res/textures/snow_field_aerial/snow_f_a_spec.jpg",
+
+            //"res/textures/metal_plate/metal_plate_rough_2k.jpg",
+            //"res/textures/old_copper/2K_old_copper_roughness.png",
+            "res/textures/aluminium_foil-2K/2K-aluminium_foil_1_roughness.png",
+            //"res/textures/Lava_03-2K/Lava_03_roughness-2K.png",
+            //"res/textures/leaf_1-2K/leaf-rough.png",    // NEED TO GENERATE ROUGHNESS 
+            "res/textures/amethyst_texture_1-2K/amethyst-rough.png", // NEED TO GENERATE ROUGHNESS 
+            //"res/textures/snow_field_aerial/snow_field_aerial_rough_2k.jpg",
+
+            //"res/textures/metal_plate/metal_plate_metal_2k.jpg",
+            //"res/textures/old_copper/2K_old_copper_metallic.png",
+            "res/textures/aluminium_foil-2K/2K-aluminium_foil_1_metallic.png",
+            //"res/textures/Lava_03-2K/Lava_03_metallic-2K.png",
+            //"res/textures/colors/black.jpg",
             "res/textures/colors/black.jpg",
-            "res/textures/metal_plate/metal_plate_rough_2k.jpg",
-            "res/textures/snow_field_aerial/snow_field_aerial_rough_2k.jpg",
-            "res/textures/metal_plate/metal_plate_metal_2k.jpg",
-            "res/textures/colors/black.jpg"
+            //"res/textures/colors/black.jpg",
         };
 
         m_Textures.reserve(textureList.size());
@@ -327,6 +353,7 @@ namespace Magnefu
 
         int diffuseTextureLocations[2] = { 0, 1 };
         m_TextureCubeShader->SetUniform1iv("u_material.Diffuse", diffuseTextureLocations);
+
         int specularTextureLocations[2] = { 2, 3 };
         m_TextureCubeShader->SetUniform1iv("u_material.Specular", specularTextureLocations);
 
@@ -506,8 +533,12 @@ namespace Magnefu
                     if (ImGui::Button("Modified Phong")) m_ReflectionModel = 1;
                     ImGui::SameLine();
                     if (ImGui::Button("Blinn-Phong")) m_ReflectionModel = 2;
+                    ImGui::SameLine();
+                    if (ImGui::Button("Micro Facet")) m_ReflectionModel = 3;
 
                     ImGui::SliderFloat("Radiant Flux ", &m_RadiantFlux, 0.f, 100.f);
+
+                    ImGui::SliderFloat("Reflectance(MicroFacet Param)", &m_Reflectance, 0.f, 1.f);
 
                     ImGui::Text("Shading Technique");
                     ImGui::SameLine();
@@ -538,8 +569,8 @@ namespace Magnefu
                 ImGui::SameLine();
                 if (ImGui::ColorButton("Black Rubber", { 0.01f, 0.01f, 0.01f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Black Rubber"];
 
-                if (ImGui::ColorButton("Water", { 0.f, 0.45f, 1.f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["Water"]; ImGui::SameLine();
-                if (ImGui::ColorButton("Grass", { 0.f, 1.f, 0.1f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["Grass"];
+                if (ImGui::ColorButton("MetalPlate", { 0.25f, 0.45f, 1.f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["MetalPlate"]; ImGui::SameLine();
+                if (ImGui::ColorButton("OldCopper", { 0.f, 1.f, 0.1f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["OldCopper"]; ImGui::SameLine();
 
                 if (m_ActiveMaterial->Preset && !m_ActiveMaterial->Textured)
                 {
@@ -720,6 +751,7 @@ namespace Magnefu
 
         m_TextureCubeShader->SetUniform1f("u_PointLightRadius", m_PointLightRadius);
         m_TextureCubeShader->SetUniform1f("u_RadiantFlux", m_RadiantFlux);
+        m_TextureCubeShader->SetUniform1f("u_Reflectance", m_Reflectance);
 
         for (int i = 0; i < m_PointLights.size(); i++)
         {

@@ -41,12 +41,12 @@ struct Material
 	unsigned int TexID;
 	sampler2D    Diffuse[2];
 	sampler2D    Specular[2];
+	sampler2D	 Roughness[2];
+	sampler2D    Metallic[2];
 	vec3        Ka;
 	vec3        Kd;
 	vec3        Ks;
 	float        Ns;
-	//float Roughness;
-	//float Opacity;
 };
 
 uniform Material u_material;
@@ -94,6 +94,8 @@ uniform vec3 u_CameraPos;
 uniform int u_ShadingTechnique;
 uniform int u_ReflectionModel;
 
+uniform float u_Reflectance;
+
 float PI = 3.1415926535897932384626;
 
 in vec4 VertexColor;
@@ -101,7 +103,6 @@ in vec3 Normal;
 in vec3 FragPos;
 in vec2 TexCoords;
 
-in vec3 GoraudReflectionResult;
 
 out vec4 FragColor;
 
@@ -194,6 +195,87 @@ out vec4 FragColor;
 //	return GetCombined(DiffuseLight, SpecularLight) * Attenuation;
 //}
 
+vec3 FresnelSchlick(vec3 F0, float cosTheta)
+{
+	return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+float D_GGX(float roughness, float NoH)
+{
+	float r_squared = roughness * roughness;
+	return r_squared / (PI * pow((NoH * NoH) * (r_squared - 1.0) + 1.0, 2));
+}
+
+float G_Schlick_GGX(float roughness, float cosTheta)
+{
+	float k = roughness / 2.0;
+	return max(cosTheta, 0.001) / (cosTheta * (1.0 - k) + k);
+}
+
+float G_Smith(float roughness, float NoL, float NoV)
+{
+	return G_Schlick_GGX(roughness, NoL) * G_Schlick_GGX(roughness, NoV);
+}
+
+float F_Schlick90(float cosTheta, float F0, float F90)
+{
+	return F0 + (F90 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+float disneyDiffFactor(float roughness, float NoV, float NoL, float VoH)
+{
+	float r_squared = roughness * roughness;
+	float F90 = 0.5 + 2.0 * r_squared * VoH * VoH;
+	float FIn = F_Schlick90(NoL, 1.0, F90);
+	float FOut = F_Schlick90(NoV, 1.0, F90);
+	return FIn * FOut;
+}
+
+// Cook-Torrance
+vec3 CalcMicroFacetBRDF(vec3 LightVector, vec3 ViewVector)
+{
+	// Fresnel Reflectance
+	float metallic = float(texture(u_material.Metallic[u_material.TexID], TexCoords));
+	vec3 HalfwayVector = normalize(LightVector + ViewVector);
+	vec3 F0 = vec3(0.16 * (u_Reflectance * u_Reflectance));
+	F0 = mix(F0, vec3(texture(u_material.Diffuse[u_material.TexID], TexCoords)), metallic);
+	float VoH = clamp(dot(ViewVector, HalfwayVector), 0.0, 1.0);
+	vec3 F = FresnelSchlick(F0, VoH );
+
+	// Normal Distribution Function
+	float roughness = float(texture(u_material.Roughness[u_material.TexID], TexCoords));
+	float D = D_GGX(roughness, clamp(dot(Normal, HalfwayVector), 0.0, 1.0));
+
+	// Geometry Term
+	float NoL = clamp(dot(Normal, LightVector), 0.0, 1.0);
+	float NoV = clamp(dot(Normal, ViewVector), 0.0, 1.0);
+	float G = G_Smith(roughness, NoL, NoV);
+
+	vec3 spec = F * D * G / 4.0 * max(NoL, 0.001) * max(NoV, 0.001);
+
+	// not using material strength values for now - not sure they should be used w/ pbr
+
+	vec3 rhod = vec3(texture(u_material.Diffuse[u_material.TexID], TexCoords));
+	rhod *= vec3(1.0) - F;
+
+	//optional disney diffuse factor(more expensive)
+	//rhod *= disneyDiffFactor(roughness, NoV, NoL, VoH);
+
+	rhod *= (1.0 - metallic);
+
+	vec3 diff = rhod / PI;
+
+	return diff + spec;
+}
+
+vec3 CalcBlinnPhongBRDF(vec3 LightVector, vec3 ViewVector)
+{
+	vec3 color = vec3(texture(u_material.Diffuse[u_material.TexID], TexCoords)) * u_material.Kd;
+	vec3 HalfwayVector = normalize(LightVector + ViewVector);
+	color += pow(max(dot(Normal, HalfwayVector), 0.0), u_material.Ns) * vec3(texture(u_material.Specular[u_material.TexID], TexCoords)) * u_material.Ks;
+	return  color;
+}
+
 //satisfies energy conservation unlike classic Phong
 vec3 CalcModifiedPhongBRDF(vec3 LightVector, vec3 ViewVector)
 {
@@ -225,7 +307,26 @@ vec3 CalcPointLightRadiance(int index)
 	float Irradiance = u_RadiantFlux * max(dot(LightVector, Normal), 0.0) / (4.0 * PI * distance * distance);
 
 	// Calculate Selected BRDF
-	vec3 BRDF = u_ReflectionModel == 0 ? CalcPhongBRDF(LightVector, ViewVector) : CalcModifiedPhongBRDF(LightVector, ViewVector);
+	vec3 BRDF;
+	
+	switch (u_ReflectionModel)
+	{
+		case 0:
+			BRDF = CalcPhongBRDF(LightVector, ViewVector);
+			break;
+		case 1:
+			BRDF = CalcModifiedPhongBRDF(LightVector, ViewVector);
+			break;
+		case 2:
+			BRDF = CalcBlinnPhongBRDF(LightVector, ViewVector);
+			break;
+		case 3:
+			BRDF = CalcMicroFacetBRDF(LightVector, ViewVector);
+			break;
+		default:
+			BRDF = CalcBlinnPhongBRDF(LightVector, ViewVector);
+			break;
+	}
 
 	Radiance += BRDF * Irradiance * u_PointLights[index].Color;
 

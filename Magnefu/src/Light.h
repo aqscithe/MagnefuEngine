@@ -8,6 +8,7 @@ enum class ReflectionModel
 	PHONG,
 	MODIFIED_PHONG,
 	BLINN_PHONG,
+	MICRO_FACET,
 };
 
 struct Light

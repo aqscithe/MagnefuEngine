@@ -62,6 +62,8 @@ namespace Magnefu
 			int m_ShadingTechnique;
 			int m_ReflectionModel;
 
+			float m_Reflectance;
+
 			Renderer m_Renderer;
 			std::unique_ptr<VertexBuffer> m_VBO;
 			std::unique_ptr<VertexArray> m_ModelCubeVAO;
