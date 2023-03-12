@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Vectors.h"
 #include "Texture.h"
+
+#include "MathsCommon.h"
 #include <string>
 #include <memory>
-
 
 template <typename T>
 struct Material

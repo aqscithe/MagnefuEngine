@@ -1,11 +1,8 @@
  #pragma once
 
-#include <unordered_map>
+#include <string>
 
-#include "Globals.h"
-#include "Vectors.h"
-#include "Matrices.h"
-
+using String = std::string;
 
 enum class ShadingTechnique
 {

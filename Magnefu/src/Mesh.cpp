@@ -1,7 +1,8 @@
+#include "mfpch.h"
+
 #include "Mesh.h"
 #include "VertexBufferAttribsLayout.h"
 
-#include "Magnefu/Log.h"
 
 
 static std::vector<unsigned int> SetIndices(std::vector<Face>& faces)

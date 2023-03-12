@@ -6,7 +6,6 @@
 #include "Renderer.h"
 #include "Texture.h"
 #include "Shader.h"
-#include "Quaternion.h"
 #include "Camera.h"
 
 #include "Light.h"
@@ -15,13 +14,8 @@
 #include "Mesh.h"
 
 #include "Quaternion.h"
-#include "Vectors.h"
-#include "Matrices.h"
 
-#include <memory>
-#include <vector>
-#include <future>
-#include <mutex>
+
 
 
 // TODO:

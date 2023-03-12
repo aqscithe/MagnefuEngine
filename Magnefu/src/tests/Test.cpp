@@ -1,6 +1,7 @@
+#include "mfpch.h"
+
 #include "Test.h"
 
-#include "Globals.h"
 #include <GL/glew.h>
 #include "imgui/imgui.h"
 
@@ -19,6 +20,7 @@ namespace Magnefu
 				m_ActiveTest = test.second();
 		}
 	}
+
 }
 
 

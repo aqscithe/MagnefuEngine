@@ -1,3 +1,5 @@
+#include "mfpch.h"
+
 #include "TestModelLoading.h"
 
 #include "imgui/imgui.h"
@@ -16,9 +18,6 @@
 #include "Primitive3D.h"
 #include "Timer.h"
 
-#include <iostream>
-#include <chrono>
-#include <numeric>
 #include <cstdio>
 #include <filesystem>
 

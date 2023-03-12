@@ -1,5 +1,6 @@
+#include "mfpch.h"
+
 #include "VertexBuffer.h"
-#include "Globals.h"
 #include <GL/glew.h>
 
 VertexBuffer::VertexBuffer(unsigned int size, const void* data)

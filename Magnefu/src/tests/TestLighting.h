@@ -6,7 +6,6 @@
 #include "Renderer.h"
 #include "Texture.h"
 #include "Shader.h"
-#include "Quaternion.h"
 #include "Camera.h"
 #include "VertexArray.h"
 #include "IndexBuffer.h"
@@ -14,12 +13,6 @@
 #include "Material.h"
 
 #include "Quaternion.h"
-#include "Vectors.h"
-#include "Matrices.h"
-
-#include <memory>
-#include <vector>
-#include <future>
 
 
 // TODO:

@@ -1,5 +1,6 @@
+#include "mfpch.h"
+
 #include "Model.h"
-#include "Magnefu/Log.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
@@ -9,6 +10,7 @@
 
 Model::Model(std::string& filepath, Cache& matCache, std::mutex& mutex)
 {
+    // TODO: Implement Fast Format for faster string parsing
     m_Filepath = "res/meshes/" + filepath;
     std::ifstream stream(m_Filepath);
     std::string line;
@@ -326,6 +328,8 @@ std::array<Maths::vec3i, 4> Model::GetFaceData(std::string& line, uint32_t& vert
     // maybe i shoudl make a 3x4 matrix
     int faceData[12];
 
+    // TODO: Implement Fast Format for faster string parsing
+    // http://www.fastformat.org/documentation/index.html
     std::stringstream ss;
     ss.str(faceLine);
 

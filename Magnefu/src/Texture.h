@@ -1,6 +1,8 @@
 #pragma once
 
-#include "Globals.h"
+#include <string>
+
+using String = std::string;
 
 class Texture
 {

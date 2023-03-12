@@ -5,7 +5,6 @@
 
 #ifdef MF_PLATFORM_WINDOWS
 
-#include <memory>
 
 extern "C"
 {

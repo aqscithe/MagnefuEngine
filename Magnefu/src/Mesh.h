@@ -10,12 +10,7 @@
 #include "Renderer.h"
 
 #include <vector>
-#include <string>
-#include <memory>
-#include <map>
-#include <unordered_map>
 #include <fstream>
-#include <sstream>
 
 
 struct SubMaterialStream

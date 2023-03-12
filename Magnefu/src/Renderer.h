@@ -5,7 +5,6 @@
 #include "VertexBuffer.h"
 #include "Texture.h"
 #include "Shader.h"
-#include "Vectors.h"
 
 class Renderer
 {

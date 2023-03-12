@@ -7,20 +7,33 @@ workspace "Magnefu"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 resourcedir = "%{prj.name}/res"
 
+IncludeDir = {}
+IncludeDir["GLFW"] = "Magnefu/vendor/GLFW/include"
+
+LibDir = {}
+LibDir["GLFW"] = "Magnefu/vendor/GLFW/lib-vc2022"
+
+include "Magnefu/vendor/GLFW"
+
 prebuildcommands {
     "{MKDIR} ../bin/" .. outputdir .. "/Sandbox",
     "{MKDIR} ../bin/" .. outputdir .. "/Magnefu",
     "{MKDIR} ../bin-intermediates/" .. outputdir .. "/Sandbox",
     "{MKDIR} ../bin-intermediates/" .. outputdir .. "/Magnefu",
+    "{MKDIR} ../bin/" .. outputdir .. "/GLFW",
+    "{MKDIR} ../bin-intermediates/" .. outputdir .. "/GLFW"
 }
 
 project "Magnefu"
     location "Magnefu"
-    kind "SharedLib" -- means dynamic linked lib
+    kind "SharedLib" -- means dynamically linked lib
     language "C++"
 
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-intermediates/" .. outputdir .. "/%{prj.name}")
+
+    pchheader "mfpch.h"
+    pchsource "Magnefu/src/mfpch.cpp"
 
     files {
         "%{prj.name}/src/**.h",
@@ -37,12 +50,12 @@ project "Magnefu"
         "%{prj.name}/src/Maths",
         "Dependencies/",
         "Dependencies/GLEW_2.1.0/include",
-        "Dependencies/GLFW/include",
+        "%{IncludeDir.GLFW}"
     }
 
     libdirs { 
         "Dependencies/GLEW_2.1.0/lib/Release/x64",
-        "Dependencies/GLFW/lib-vc2022",
+        "%{LibDir.GLFW}",
     }
 
     links {
@@ -93,11 +106,6 @@ project "Sandbox"
         "%{prj.name}/src/**.h",
         "%{prj.name}/src/**.cpp",
         resourcedir .. "/**",
-    }
-
-    -- temporary
-    removefiles {
-        "%{prj.name}/src/Application.*"
     }
 
     includedirs {

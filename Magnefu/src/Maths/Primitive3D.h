@@ -1,7 +1,6 @@
 #pragma once
 
 #include "PrimitiveCommon.h"
-#include "Vectors.h"
 #include <array>
 
 

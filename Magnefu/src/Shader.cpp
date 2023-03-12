@@ -1,9 +1,9 @@
+#include "mfpch.h"
+
 #include "Shader.h"
 #include <GL/glew.h>
-#include "Magnefu/Log.h"
 
 #include <fstream>
-#include <sstream>
 
 
 

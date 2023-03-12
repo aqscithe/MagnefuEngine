@@ -10,11 +10,8 @@
 #include "VertexArray.h"
 #include "IndexBuffer.h"
 
-#include "Vectors.h"
-#include "Matrices.h"
 #include "Quaternion.h"
 
-#include <memory>
 
 
 namespace Magnefu

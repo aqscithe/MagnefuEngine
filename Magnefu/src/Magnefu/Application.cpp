@@ -1,8 +1,11 @@
+#include "mfpch.h"
+
 #include "Application.h"
-#include "Log.h"
-#include "Globals.h"
+
 #include "Renderer.h"
-#include "Vectors.h"
+
+#include "Events/MouseEvent.h"
+
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -18,65 +21,70 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-#include <chrono>
-#include <iostream>
-
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-    Globals& global = Globals::Get();
-
-    global.fovY -= (float)yoffset;
-    if (global.fovY < 1.0f)
-        global.fovY = 1.0f;
-    if (global.fovY > 100.f)
-        global.fovY = 100.f;
-}
-
-void processInput(GLFWwindow* window, bool& flightMode)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-    flightMode = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS || glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_REPEAT);
-    if (flightMode)
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    else
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-}
-
-void MouseUpdates(GLFWwindow* window, float& mouseDeltaX, double& mouseX, float& mouseDeltaY, double& mouseY, float sensitivity, const bool& flightMode)
-{
-    Globals& global = Globals::Get();
-
-    double newMouseX, newMouseY;
-    glfwGetCursorPos(window, &newMouseX, &newMouseY);
-    mouseDeltaX = (float)(newMouseX - mouseX);
-    mouseDeltaY = (float)(newMouseY - mouseY);
-    mouseX = newMouseX;
-    mouseY = newMouseY;
-
-    mouseDeltaX *= sensitivity;
-    mouseDeltaY *= sensitivity;
-
-
-    if (!flightMode) return;
-
-    global.yaw += mouseDeltaX;
-    global.pitch += mouseDeltaY;
-
-    if (global.pitch > Maths::toRadians(89.0f))
-        global.pitch = Maths::toRadians(89.0f);
-    if (global.pitch < Maths::toRadians(-89.0f))
-        global.pitch = Maths::toRadians(-89.0f);
-}
 
 namespace Magnefu
 {
+
+    void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+    {
+        glViewport(0, 0, width, height);
+    }
+
+    void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+    {
+        Globals& global = Globals::Get();   
+
+         MouseScrolledEvent event((float)xoffset, (float)yoffset);
+
+         if(event.IsInCategory(EventCategoryMouse))
+            MF_TRACE(event);
+    
+
+        global.fovY -= (float)yoffset;
+        if (global.fovY < 1.0f)
+            global.fovY = 1.0f;
+        if (global.fovY > 100.f)
+            global.fovY = 100.f;
+    }
+
+    void processInput(GLFWwindow* window, bool& flightMode)
+    {
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+            glfwSetWindowShouldClose(window, true);
+        flightMode = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS || glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_REPEAT);
+        if (flightMode)
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        else
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+
+    void MouseUpdates(GLFWwindow* window, float& mouseDeltaX, double& mouseX, float& mouseDeltaY, double& mouseY, float sensitivity, const bool& flightMode)
+    {
+        Globals& global = Globals::Get();
+
+        double newMouseX, newMouseY;
+        glfwGetCursorPos(window, &newMouseX, &newMouseY);
+        mouseDeltaX = (float)(newMouseX - mouseX);
+        mouseDeltaY = (float)(newMouseY - mouseY);
+        mouseX = newMouseX;
+        mouseY = newMouseY;
+
+        mouseDeltaX *= sensitivity;
+        mouseDeltaY *= sensitivity;
+
+
+        if (!flightMode) return;
+
+        global.yaw += mouseDeltaX;
+        global.pitch += mouseDeltaY;
+
+        if (global.pitch > Maths::toRadians(89.0f))
+            global.pitch = Maths::toRadians(89.0f);
+        if (global.pitch < Maths::toRadians(-89.0f))
+            global.pitch = Maths::toRadians(-89.0f);
+    }
+
+
 	Application::Application()
 	{
 	}

@@ -1,3 +1,5 @@
+#include "mfpch.h"
+
 #include "Test2DTexture.h"
 
 #include "imgui/imgui.h"
@@ -11,9 +13,7 @@
 #include "Shader.h"
 #include "VertexBufferAttribsLayout.h"
 #include "Renderer.h"
-#include "Globals.h"
 
-#include <chrono>
 
 
 namespace Magnefu

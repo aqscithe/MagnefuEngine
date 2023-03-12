@@ -1,5 +1,4 @@
 #include "SandboxApp.h"
-#include <iostream>
 
 
 Sandbox::Sandbox()

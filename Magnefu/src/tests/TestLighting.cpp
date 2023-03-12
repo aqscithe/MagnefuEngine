@@ -1,3 +1,5 @@
+#include "mfpch.h"
+
 #include "TestLighting.h"
 
 #include "imgui/imgui.h"
@@ -11,14 +13,11 @@
 #include "Shader.h"
 #include "VertexBufferAttribsLayout.h"
 #include "Renderer.h"
-#include "Globals.h"
 
 #include "Primitive3D.h"
 #include "Timer.h"
 
 #include <array>
-#include <iostream>
-#include <chrono>
 
 
 namespace Magnefu

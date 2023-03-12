@@ -1,6 +1,4 @@
-#include "Vectors.h"
-
-#include <sstream>
+#include "mfpch.h"
 
 namespace Maths
 {

@@ -1,3 +1,5 @@
+#include "mfpch.h"
+
 #include "TestBatchRendering.h"
 
 #include "imgui/imgui.h"
@@ -11,7 +13,6 @@
 #include "Shader.h"
 #include "VertexBufferAttribsLayout.h"
 #include "Renderer.h"
-#include "Globals.h"
 
 #include "Primitive2D.h"
 

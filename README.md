@@ -71,6 +71,7 @@ NOTE - Spot and Direction lights are temporarily disabled as I fix some issues w
 - Loading of OBJ meshes w/o predefined normals
 - Physics
     - Collision
+- Procedural Textures
 
 
 

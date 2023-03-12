@@ -76,10 +76,11 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>GLEW_STATIC;_GLFW_USE_HYBRID_HPG;MF_PLATFORM_WINDOWS;MF_BUILD_DLL;MF_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor\spdlog;vendor;src;src\Maths;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;..\Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor\spdlog;vendor;src;src\Maths;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;vendor\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -90,25 +91,20 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>glfw3_mt.lib;glew32s.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\Dependencies\GLEW_2.1.0\lib\Release\x64;..\Dependencies\GLFW\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\Dependencies\GLEW_2.1.0\lib\Release\x64;vendor\GLFW\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImportLibrary>..\bin\Debug-windows-x86_64\Magnefu\Magnefu.lib</ImportLibrary>
     </Link>
-    <PreBuildEvent>
-      <Command>IF NOT EXIST ..\bin\Debug-windows-x86_64\Sandbox (mkdir ..\bin\Debug-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin\Debug-windows-x86_64\Magnefu (mkdir ..\bin\Debug-windows-x86_64\Magnefu)
-IF NOT EXIST ..\bin-intermediates\Debug-windows-x86_64\Sandbox (mkdir ..\bin-intermediates\Debug-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin-intermediates\Debug-windows-x86_64\Magnefu (mkdir ..\bin-intermediates\Debug-windows-x86_64\Magnefu)</Command>
-    </PreBuildEvent>
     <PostBuildEvent>
       <Command>copy /B /Y ..\bin\Debug-windows-x86_64\Magnefu\Magnefu.dll ..\bin\Debug-windows-x86_64\Sandbox</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>GLEW_STATIC;_GLFW_USE_HYBRID_HPG;MF_PLATFORM_WINDOWS;MF_BUILD_DLL;MF_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor\spdlog;vendor;src;src\Maths;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;..\Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor\spdlog;vendor;src;src\Maths;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;vendor\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -123,25 +119,20 @@ IF NOT EXIST ..\bin-intermediates\Debug-windows-x86_64\Magnefu (mkdir ..\bin-int
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>glfw3_mt.lib;glew32s.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\Dependencies\GLEW_2.1.0\lib\Release\x64;..\Dependencies\GLFW\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\Dependencies\GLEW_2.1.0\lib\Release\x64;vendor\GLFW\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImportLibrary>..\bin\Release-windows-x86_64\Magnefu\Magnefu.lib</ImportLibrary>
     </Link>
-    <PreBuildEvent>
-      <Command>IF NOT EXIST ..\bin\Release-windows-x86_64\Sandbox (mkdir ..\bin\Release-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin\Release-windows-x86_64\Magnefu (mkdir ..\bin\Release-windows-x86_64\Magnefu)
-IF NOT EXIST ..\bin-intermediates\Release-windows-x86_64\Sandbox (mkdir ..\bin-intermediates\Release-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin-intermediates\Release-windows-x86_64\Magnefu (mkdir ..\bin-intermediates\Release-windows-x86_64\Magnefu)</Command>
-    </PreBuildEvent>
     <PostBuildEvent>
       <Command>copy /B /Y ..\bin\Release-windows-x86_64\Magnefu\Magnefu.dll ..\bin\Release-windows-x86_64\Sandbox</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>GLEW_STATIC;_GLFW_USE_HYBRID_HPG;MF_PLATFORM_WINDOWS;MF_BUILD_DLL;MF_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor\spdlog;vendor;src;src\Maths;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;..\Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor\spdlog;vendor;src;src\Maths;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;vendor\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -156,15 +147,9 @@ IF NOT EXIST ..\bin-intermediates\Release-windows-x86_64\Magnefu (mkdir ..\bin-i
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>glfw3_mt.lib;glew32s.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\Dependencies\GLEW_2.1.0\lib\Release\x64;..\Dependencies\GLFW\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\Dependencies\GLEW_2.1.0\lib\Release\x64;vendor\GLFW\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImportLibrary>..\bin\Dist-windows-x86_64\Magnefu\Magnefu.lib</ImportLibrary>
     </Link>
-    <PreBuildEvent>
-      <Command>IF NOT EXIST ..\bin\Dist-windows-x86_64\Sandbox (mkdir ..\bin\Dist-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin\Dist-windows-x86_64\Magnefu (mkdir ..\bin\Dist-windows-x86_64\Magnefu)
-IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Sandbox (mkdir ..\bin-intermediates\Dist-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-intermediates\Dist-windows-x86_64\Magnefu)</Command>
-    </PreBuildEvent>
     <PostBuildEvent>
       <Command>copy /B /Y ..\bin\Dist-windows-x86_64\Magnefu\Magnefu.dll ..\bin\Dist-windows-x86_64\Sandbox</Command>
     </PostBuildEvent>
@@ -178,9 +163,13 @@ IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-inte
     <ClInclude Include="src\Magnefu\Application.h" />
     <ClInclude Include="src\Magnefu\Core.h" />
     <ClInclude Include="src\Magnefu\Entrypoint.h" />
+    <ClInclude Include="src\Magnefu\Events\ApplicationEvent.h" />
+    <ClInclude Include="src\Magnefu\Events\Event.h" />
+    <ClInclude Include="src\Magnefu\Events\KeyEvent.h" />
+    <ClInclude Include="src\Magnefu\Events\MouseEvent.h" />
     <ClInclude Include="src\Magnefu\Log.h" />
     <ClInclude Include="src\Material.h" />
-    <ClInclude Include="src\Maths\Common.h" />
+    <ClInclude Include="src\Maths\MathsCommon.h" />
     <ClInclude Include="src\Maths\Matrices.h" />
     <ClInclude Include="src\Maths\Primitive2D.h" />
     <ClInclude Include="src\Maths\Primitive3D.h" />
@@ -196,6 +185,7 @@ IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-inte
     <ClInclude Include="src\VertexArray.h" />
     <ClInclude Include="src\VertexBuffer.h" />
     <ClInclude Include="src\VertexBufferAttribsLayout.h" />
+    <ClInclude Include="src\mfpch.h" />
     <ClInclude Include="src\tests\Test.h" />
     <ClInclude Include="src\tests\Test2DTexture.h" />
     <ClInclude Include="src\tests\Test3DRender.h" />
@@ -203,6 +193,27 @@ IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-inte
     <ClInclude Include="src\tests\TestClearColor.h" />
     <ClInclude Include="src\tests\TestLighting.h" />
     <ClInclude Include="src\tests\TestModelLoading.h" />
+    <ClInclude Include="vendor\GLFW\include\GLFW\glfw3.h" />
+    <ClInclude Include="vendor\GLFW\include\GLFW\glfw3native.h" />
+    <ClInclude Include="vendor\GLFW\src\cocoa_joystick.h" />
+    <ClInclude Include="vendor\GLFW\src\cocoa_platform.h" />
+    <ClInclude Include="vendor\GLFW\src\cocoa_time.h" />
+    <ClInclude Include="vendor\GLFW\src\internal.h" />
+    <ClInclude Include="vendor\GLFW\src\linux_joystick.h" />
+    <ClInclude Include="vendor\GLFW\src\mappings.h" />
+    <ClInclude Include="vendor\GLFW\src\null_joystick.h" />
+    <ClInclude Include="vendor\GLFW\src\null_platform.h" />
+    <ClInclude Include="vendor\GLFW\src\platform.h" />
+    <ClInclude Include="vendor\GLFW\src\posix_poll.h" />
+    <ClInclude Include="vendor\GLFW\src\posix_thread.h" />
+    <ClInclude Include="vendor\GLFW\src\posix_time.h" />
+    <ClInclude Include="vendor\GLFW\src\win32_joystick.h" />
+    <ClInclude Include="vendor\GLFW\src\win32_platform.h" />
+    <ClInclude Include="vendor\GLFW\src\win32_thread.h" />
+    <ClInclude Include="vendor\GLFW\src\win32_time.h" />
+    <ClInclude Include="vendor\GLFW\src\wl_platform.h" />
+    <ClInclude Include="vendor\GLFW\src\x11_platform.h" />
+    <ClInclude Include="vendor\GLFW\src\xkb_unicode.h" />
     <ClInclude Include="vendor\imgui\imconfig.h" />
     <ClInclude Include="vendor\imgui\imgui.h" />
     <ClInclude Include="vendor\imgui\imgui_impl_glfw.h" />
@@ -325,7 +336,6 @@ IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-inte
     <ClCompile Include="src\Magnefu\Core.cpp" />
     <ClCompile Include="src\Magnefu\Log.cpp" />
     <ClCompile Include="src\Material.cpp" />
-    <ClCompile Include="src\Maths\Examples.cpp" />
     <ClCompile Include="src\Maths\Matrices.cpp" />
     <ClCompile Include="src\Maths\Primitive2D.cpp" />
     <ClCompile Include="src\Maths\Primitive3D.cpp" />
@@ -340,6 +350,9 @@ IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-inte
     <ClCompile Include="src\VertexArray.cpp" />
     <ClCompile Include="src\VertexBuffer.cpp" />
     <ClCompile Include="src\VertexBufferAttribsLayout.cpp" />
+    <ClCompile Include="src\mfpch.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="src\tests\Test.cpp" />
     <ClCompile Include="src\tests\Test2DTexture.cpp" />
     <ClCompile Include="src\tests\Test3DRender.cpp" />

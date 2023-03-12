@@ -1,8 +1,6 @@
 #pragma once
 
 #include "Vectors.h"
-
-#include <vector>
 #include <array>
 
 
@@ -36,7 +34,6 @@ struct ObjModelVertex
     Maths::vec2  TextureCoords;
     unsigned int TextureID;
 };
-
 
 struct Face
 {

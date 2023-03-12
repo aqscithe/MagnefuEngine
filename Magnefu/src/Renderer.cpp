@@ -1,7 +1,7 @@
+#include "mfpch.h"
+
 #include "Renderer.h"
-#include "Globals.h"
 #include <GL/glew.h>
-#include "Magnefu/Log.h"
 
 
 void Renderer::Draw(const VertexArray& vao, const IndexBuffer& ibo, const Shader& shader) const

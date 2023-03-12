@@ -1,7 +1,8 @@
+#include "mfpch.h"
+
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 #include "VertexBufferAttribsLayout.h"
-#include "Globals.h"
 #include <GL/glew.h>
 
 VertexArray::VertexArray()

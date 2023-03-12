@@ -7,6 +7,9 @@
     <Filter Include="src\Magnefu">
       <UniqueIdentifier>{5F31081E-CBE6-8013-54DB-7AEAC08F7717}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Magnefu\Events">
+      <UniqueIdentifier>{63BCAA16-4FA0-6B6C-B800-66BFA40356EE}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Maths">
       <UniqueIdentifier>{599964B3-C503-192A-0E42-CACF7AEBF67E}</UniqueIdentifier>
     </Filter>
@@ -15,6 +18,18 @@
     </Filter>
     <Filter Include="vendor">
       <UniqueIdentifier>{B3738122-9F15-ACF8-88D0-BF4C74113349}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\GLFW">
+      <UniqueIdentifier>{D27667C1-3E2C-E0B6-C720-DA8D33D5D6BA}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\GLFW\include">
+      <UniqueIdentifier>{45501F1D-B1B1-FC2A-3A1F-43DDA67F33EA}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\GLFW\include\GLFW">
+      <UniqueIdentifier>{A4FE9F69-9023-EFE9-B96E-D479A5F2ED07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\GLFW\src">
+      <UniqueIdentifier>{E94D2683-55D9-9347-5EEA-163CCAF4EF47}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor\imgui">
       <UniqueIdentifier>{5D3BD0F0-499E-5F95-F223-984BDE652B18}</UniqueIdentifier>
@@ -66,13 +81,25 @@
     <ClInclude Include="src\Magnefu\Entrypoint.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Events\ApplicationEvent.h">
+      <Filter>src\Magnefu\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Events\Event.h">
+      <Filter>src\Magnefu\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Events\KeyEvent.h">
+      <Filter>src\Magnefu\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Events\MouseEvent.h">
+      <Filter>src\Magnefu\Events</Filter>
+    </ClInclude>
     <ClInclude Include="src\Magnefu\Log.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
     <ClInclude Include="src\Material.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\Maths\Common.h">
+    <ClInclude Include="src\Maths\MathsCommon.h">
       <Filter>src\Maths</Filter>
     </ClInclude>
     <ClInclude Include="src\Maths\Matrices.h">
@@ -120,6 +147,9 @@
     <ClInclude Include="src\VertexBufferAttribsLayout.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\mfpch.h">
+      <Filter>src</Filter>
+    </ClInclude>
     <ClInclude Include="src\tests\Test.h">
       <Filter>src\tests</Filter>
     </ClInclude>
@@ -140,6 +170,69 @@
     </ClInclude>
     <ClInclude Include="src\tests\TestModelLoading.h">
       <Filter>src\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\include\GLFW\glfw3.h">
+      <Filter>vendor\GLFW\include\GLFW</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\include\GLFW\glfw3native.h">
+      <Filter>vendor\GLFW\include\GLFW</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\src\cocoa_joystick.h">
+      <Filter>vendor\GLFW\src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\src\cocoa_platform.h">
+      <Filter>vendor\GLFW\src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\src\cocoa_time.h">
+      <Filter>vendor\GLFW\src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\src\internal.h">
+      <Filter>vendor\GLFW\src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\src\linux_joystick.h">
+      <Filter>vendor\GLFW\src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\src\mappings.h">
+      <Filter>vendor\GLFW\src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\src\null_joystick.h">
+      <Filter>vendor\GLFW\src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\src\null_platform.h">
+      <Filter>vendor\GLFW\src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\src\platform.h">
+      <Filter>vendor\GLFW\src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\src\posix_poll.h">
+      <Filter>vendor\GLFW\src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\src\posix_thread.h">
+      <Filter>vendor\GLFW\src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\src\posix_time.h">
+      <Filter>vendor\GLFW\src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\src\win32_joystick.h">
+      <Filter>vendor\GLFW\src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\src\win32_platform.h">
+      <Filter>vendor\GLFW\src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\src\win32_thread.h">
+      <Filter>vendor\GLFW\src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\src\win32_time.h">
+      <Filter>vendor\GLFW\src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\src\wl_platform.h">
+      <Filter>vendor\GLFW\src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\src\x11_platform.h">
+      <Filter>vendor\GLFW\src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\src\xkb_unicode.h">
+      <Filter>vendor\GLFW\src</Filter>
     </ClInclude>
     <ClInclude Include="vendor\imgui\imconfig.h">
       <Filter>vendor\imgui</Filter>
@@ -503,9 +596,6 @@
     <ClCompile Include="src\Material.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\Maths\Examples.cpp">
-      <Filter>src\Maths</Filter>
-    </ClCompile>
     <ClCompile Include="src\Maths\Matrices.cpp">
       <Filter>src\Maths</Filter>
     </ClCompile>
@@ -546,6 +636,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\VertexBufferAttribsLayout.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mfpch.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\tests\Test.cpp">
