@@ -106,7 +106,7 @@ namespace Magnefu
 			exit(-1);
 		}
 
-        const char* glsl_version = "#version 460";
+        
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -137,6 +137,7 @@ namespace Magnefu
         ImGui::StyleColorsDark();
 
         // Setup Platform/Renderer backends
+        const char* glsl_version = "#version 460";
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init(glsl_version);
 

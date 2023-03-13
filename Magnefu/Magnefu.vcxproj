@@ -168,6 +168,7 @@
     <ClInclude Include="src\Magnefu\Events\KeyEvent.h" />
     <ClInclude Include="src\Magnefu\Events\MouseEvent.h" />
     <ClInclude Include="src\Magnefu\Log.h" />
+    <ClInclude Include="src\Magnefu\Window.h" />
     <ClInclude Include="src\Material.h" />
     <ClInclude Include="src\Maths\MathsCommon.h" />
     <ClInclude Include="src\Maths\Matrices.h" />
@@ -326,6 +327,7 @@
     <ClInclude Include="vendor\spdlog\tweakme.h" />
     <ClInclude Include="vendor\spdlog\version.h" />
     <ClInclude Include="vendor\stb_image\stb_image.h" />
+    <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Camera.cpp" />
@@ -368,6 +370,7 @@
     <ClCompile Include="vendor\imgui\imgui_tables.cpp" />
     <ClCompile Include="vendor\imgui\imgui_widgets.cpp" />
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
+    <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
