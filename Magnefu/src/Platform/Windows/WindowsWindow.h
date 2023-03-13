@@ -2,6 +2,7 @@
 
 #include "Magnefu/Window.h"
 
+#include "Globals.h"
 #include <GLFW/glfw3.h>
 
 namespace Magnefu
@@ -42,6 +43,26 @@ namespace Magnefu
 		};
 
 		WindowData m_Data;
+
+		// ALL BELOW IS TEMPORARY
+
+		struct MouseData
+		{
+			int displayWidth, displayHeight;
+			float lastX;
+			float lastY;
+			float sensitivity;
+			float DeltaX;
+			float DeltaY;
+			double	X;
+			double	Y;
+			bool flightMode;
+		};
+
+		MouseData m_Mouse;
+
+		void processInput();
+		void MouseUpdates();
 	};
 }
 
