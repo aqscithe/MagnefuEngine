@@ -9,11 +9,13 @@ resourcedir = "%{prj.name}/res"
 
 IncludeDir = {}
 IncludeDir["GLFW"] = "Magnefu/vendor/GLFW/include"
+IncludeDir["GLAD"] = "Magnefu/vendor/GLAD/include"
 
 LibDir = {}
 LibDir["GLFW"] = "Magnefu/vendor/GLFW/lib-vc2022"
 
 include "Magnefu/vendor/GLFW"
+include "Magnefu/vendor/GLAD"
 
 prebuildcommands {
     "{MKDIR} ../bin/" .. outputdir .. "/Sandbox",
@@ -21,7 +23,9 @@ prebuildcommands {
     "{MKDIR} ../bin-intermediates/" .. outputdir .. "/Sandbox",
     "{MKDIR} ../bin-intermediates/" .. outputdir .. "/Magnefu",
     "{MKDIR} ../bin/" .. outputdir .. "/GLFW",
-    "{MKDIR} ../bin-intermediates/" .. outputdir .. "/GLFW"
+    "{MKDIR} ../bin-intermediates/" .. outputdir .. "/GLFW",
+    "{MKDIR} ../bin/" .. outputdir .. "/GLAD",
+    "{MKDIR} ../bin-intermediates/" .. outputdir .. "/GLAD"
 }
 
 project "Magnefu"
@@ -44,23 +48,20 @@ project "Magnefu"
     }
 
     includedirs {
-        "%{prj.name}/vendor/spdlog",
         "%{prj.name}/vendor",
         "%{prj.name}/src",
         "%{prj.name}/src/Maths",
-        "Dependencies/",
-        "Dependencies/GLEW_2.1.0/include",
-        "%{IncludeDir.GLFW}"
+        "%{IncludeDir.GLFW}",
+        "%{IncludeDir.GLAD}"
     }
 
     libdirs { 
-        "Dependencies/GLEW_2.1.0/lib/Release/x64",
         "%{LibDir.GLFW}",
     }
 
     links {
-        "glfw3_mt",
-        "glew32s",
+        "glfw3",
+        "GLAD",
         "opengl32"
     }
 
@@ -71,10 +72,10 @@ project "Magnefu"
         systemversion "latest"
 
         defines {
-            "GLEW_STATIC",
-            "_GLFW_USE_HYBRID_HPG",
             "MF_PLATFORM_WINDOWS",
             "MF_BUILD_DLL",
+            "_GLFW_USE_HYBRID_HPG",
+            "GLFW_INCLUDE_NONE"
         }
 
     postbuildcommands {
@@ -82,15 +83,21 @@ project "Magnefu"
     }
 
     filter "configurations:Debug"
-        defines "MF_DEBUG"
+        defines {
+            "MF_DEBUG",
+            "MF_ENABLE_ASSERTS"
+        }
+        buildoptions "/MDd"
         symbols "On"
 
     filter "configurations:Release"
         defines  "MF_RELEASE"
+        buildoptions "/MD"
         optimize "On"
 
     filter "configurations:Dist"
         defines  "MF_DIST"
+        buildoptions "/MD"
         optimize "On"
 
 
@@ -114,9 +121,6 @@ project "Sandbox"
         "Magnefu/vendor/spdlog/include",
         "Magnefu/src/Maths",
         "%{prj.name}/src",
-        "Dependencies/",
-        "Dependencies/GLEW_2.1.0/include",
-        "Dependencies/GLFW/include",
     }
 
     links {
@@ -129,7 +133,7 @@ project "Sandbox"
         systemversion "latest"
 
         defines {
-            "MF_PLATFORM_WINDOWS",
+            "MF_PLATFORM_WINDOWS"
         }
 
     postbuildcommands {
@@ -138,15 +142,21 @@ project "Sandbox"
     }
 
     filter "configurations:Debug"
-        defines "MF_DEBUG"
+        defines {
+            "MF_DEBUG",
+            "MF_ENABLE_ASSERTS"
+        }
+        buildoptions "/MDd"
         symbols "On"
 
     filter "configurations:Release"
         defines  "MF_RELEASE"
+        buildoptions "/MD"
         optimize "On"
 
     filter "configurations:Dist"
         defines  "MF_DIST"
+        buildoptions "/MD"
         optimize "On"
 
 

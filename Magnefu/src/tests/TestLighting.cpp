@@ -2,9 +2,9 @@
 
 #include "TestLighting.h"
 
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
+//#include "imgui/imgui.h"
+//#include "imgui/imgui_impl_glfw.h"
+//#include "imgui/imgui_impl_opengl3.h"
 
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
@@ -494,195 +494,195 @@ namespace Magnefu
 	{
         Globals& global = Globals::Get();
 
-        if (ImGui::CollapsingHeader("Test Lighting", ImGuiTreeNodeFlags_DefaultOpen))
-        {
-            if (ImGui::TreeNode("Options"))
-            {
-                if (ImGui::TreeNode("Camera Settings"))
-                {
-                    ImGui::Text("Camera");
-                    ImGui::DragFloat("CameraSpeed", &m_Camera->m_Speed, 0.05f, 15.f);
-                    ImGui::SliderFloat3("Camera Translation", m_Camera->m_Position.e, -10.f, 10.f);
+        //if (ImGui::CollapsingHeader("Test Lighting", ImGuiTreeNodeFlags_DefaultOpen))
+        //{
+        //    if (ImGui::TreeNode("Options"))
+        //    {
+        //        if (ImGui::TreeNode("Camera Settings"))
+        //        {
+        //            ImGui::Text("Camera");
+        //            ImGui::DragFloat("CameraSpeed", &m_Camera->m_Speed, 0.05f, 15.f);
+        //            ImGui::SliderFloat3("Camera Translation", m_Camera->m_Position.e, -10.f, 10.f);
 
-                    ImGui::Text("Projection");
-                    ImGui::SliderFloat("Near", &m_Camera->m_Properties.Near, 0.01f, 10.f);
-                    ImGui::SliderFloat("Far", &m_Camera->m_Properties.Far, 10.f, 100.f);
+        //            ImGui::Text("Projection");
+        //            ImGui::SliderFloat("Near", &m_Camera->m_Properties.Near, 0.01f, 10.f);
+        //            ImGui::SliderFloat("Far", &m_Camera->m_Properties.Far, 10.f, 100.f);
 
-                    ImGui::Checkbox("Toggle Projection Mode", &m_Camera->m_Properties.IsOrtho);
-                    if (m_Camera->m_Properties.IsOrtho)
-                    {
-                        ImGui::SliderFloat("Top", &m_Camera->m_Properties.Top, 3.f, 15.f);
-                        ImGui::Text("Left %.2f", m_Camera->m_Properties.Left);
-                        ImGui::Text("Right %.2f", m_Camera->m_Properties.Right);
-                        ImGui::Text("Bottom %.2f", m_Camera->m_Properties.Bottom);
-                    }
-                    else
-                    {
-                        ImGui::SliderFloat("FOV", &global.fovY, 1.f, 100.f);
-                    }
-                    ImGui::TreePop();
-                }
-                
-                if (ImGui::TreeNode("Lighting & Shading"))
-                {
-                    ImGui::Text("Reflection Model: ");
-                    ImGui::SameLine();
-                    if (ImGui::Button("Phong ")) m_ReflectionModel = 0;
-                    ImGui::SameLine();
-                    if (ImGui::Button("Modified Phong")) m_ReflectionModel = 1;
-                    ImGui::SameLine();
-                    if (ImGui::Button("Blinn-Phong")) m_ReflectionModel = 2;
-                    ImGui::SameLine();
-                    if (ImGui::Button("Micro Facet")) m_ReflectionModel = 3;
+        //            ImGui::Checkbox("Toggle Projection Mode", &m_Camera->m_Properties.IsOrtho);
+        //            if (m_Camera->m_Properties.IsOrtho)
+        //            {
+        //                ImGui::SliderFloat("Top", &m_Camera->m_Properties.Top, 3.f, 15.f);
+        //                ImGui::Text("Left %.2f", m_Camera->m_Properties.Left);
+        //                ImGui::Text("Right %.2f", m_Camera->m_Properties.Right);
+        //                ImGui::Text("Bottom %.2f", m_Camera->m_Properties.Bottom);
+        //            }
+        //            else
+        //            {
+        //                ImGui::SliderFloat("FOV", &global.fovY, 1.f, 100.f);
+        //            }
+        //            ImGui::TreePop();
+        //        }
+        //        
+        //        if (ImGui::TreeNode("Lighting & Shading"))
+        //        {
+        //            ImGui::Text("Reflection Model: ");
+        //            ImGui::SameLine();
+        //            if (ImGui::Button("Phong ")) m_ReflectionModel = 0;
+        //            ImGui::SameLine();
+        //            if (ImGui::Button("Modified Phong")) m_ReflectionModel = 1;
+        //            ImGui::SameLine();
+        //            if (ImGui::Button("Blinn-Phong")) m_ReflectionModel = 2;
+        //            ImGui::SameLine();
+        //            if (ImGui::Button("Micro Facet")) m_ReflectionModel = 3;
 
-                    ImGui::SliderFloat("Radiant Flux ", &m_RadiantFlux, 0.f, 100.f);
+        //            ImGui::SliderFloat("Radiant Flux ", &m_RadiantFlux, 0.f, 100.f);
 
-                    ImGui::SliderFloat("Reflectance(MicroFacet Param)", &m_Reflectance, 0.f, 1.f);
+        //            ImGui::SliderFloat("Reflectance(MicroFacet Param)", &m_Reflectance, 0.f, 1.f);
 
-                    ImGui::Text("Shading Technique");
-                    ImGui::SameLine();
-                    if (ImGui::Button("Phong")) m_ShadingTechnique = 0;
-                    ImGui::TreePop();
-                }
-                
-                ImGui::TreePop();
-            }
+        //            ImGui::Text("Shading Technique");
+        //            ImGui::SameLine();
+        //            if (ImGui::Button("Phong")) m_ShadingTechnique = 0;
+        //            ImGui::TreePop();
+        //        }
+        //        
+        //        ImGui::TreePop();
+        //    }
 
-            if (ImGui::TreeNode("Material"))
-            {
-                if (ImGui::Button("Custom")) m_ActiveMaterial = &m_AvailableMaterials["Custom"];
-                ImGui::SameLine();
-                if (ImGui::ColorButton("Emerald", { 0.07568f, 0.61424f, 0.07568f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Emerald"];
-                ImGui::SameLine();
-                if (ImGui::ColorButton("Jade", { 0.54f, 0.89f, 0.63f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Jade"];
-                ImGui::SameLine();
-                if (ImGui::ColorButton("Obsidian", { 0.18275f, 0.17f, 0.22525f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Obsidian"];
-                ImGui::SameLine();
-                if (ImGui::ColorButton("Pearl", { 1.f, 0.829f, 0.829f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Pearl"];
-                ImGui::SameLine();
-                if (ImGui::ColorButton("Ruby", { 0.61424f, 0.04136f, 0.04136f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Ruby"];
-                ImGui::SameLine();
-                if (ImGui::ColorButton("Chrome", { 0.4f, 0.4f, 0.4f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Chrome"];
-                ImGui::SameLine();
-                if (ImGui::ColorButton("White Plastic", { 0.55f, 0.55f, 0.55f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["White Plastic"];
-                ImGui::SameLine();
-                if (ImGui::ColorButton("Black Rubber", { 0.01f, 0.01f, 0.01f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Black Rubber"];
+        //    if (ImGui::TreeNode("Material"))
+        //    {
+        //        if (ImGui::Button("Custom")) m_ActiveMaterial = &m_AvailableMaterials["Custom"];
+        //        ImGui::SameLine();
+        //        if (ImGui::ColorButton("Emerald", { 0.07568f, 0.61424f, 0.07568f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Emerald"];
+        //        ImGui::SameLine();
+        //        if (ImGui::ColorButton("Jade", { 0.54f, 0.89f, 0.63f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Jade"];
+        //        ImGui::SameLine();
+        //        if (ImGui::ColorButton("Obsidian", { 0.18275f, 0.17f, 0.22525f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Obsidian"];
+        //        ImGui::SameLine();
+        //        if (ImGui::ColorButton("Pearl", { 1.f, 0.829f, 0.829f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Pearl"];
+        //        ImGui::SameLine();
+        //        if (ImGui::ColorButton("Ruby", { 0.61424f, 0.04136f, 0.04136f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Ruby"];
+        //        ImGui::SameLine();
+        //        if (ImGui::ColorButton("Chrome", { 0.4f, 0.4f, 0.4f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Chrome"];
+        //        ImGui::SameLine();
+        //        if (ImGui::ColorButton("White Plastic", { 0.55f, 0.55f, 0.55f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["White Plastic"];
+        //        ImGui::SameLine();
+        //        if (ImGui::ColorButton("Black Rubber", { 0.01f, 0.01f, 0.01f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Black Rubber"];
 
-                if (ImGui::ColorButton("MetalPlate", { 0.25f, 0.45f, 1.f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["MetalPlate"]; ImGui::SameLine();
-                if (ImGui::ColorButton("OldCopper", { 0.f, 1.f, 0.1f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["OldCopper"]; ImGui::SameLine();
+        //        if (ImGui::ColorButton("MetalPlate", { 0.25f, 0.45f, 1.f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["MetalPlate"]; ImGui::SameLine();
+        //        if (ImGui::ColorButton("OldCopper", { 0.f, 1.f, 0.1f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["OldCopper"]; ImGui::SameLine();
 
-                if (m_ActiveMaterial->Preset && !m_ActiveMaterial->Textured)
-                {
-                    ImGui::Text("Ambient: %.4f %.4f %.4f", m_ActiveMaterial->Ambient.r, m_ActiveMaterial->Ambient.g, m_ActiveMaterial->Ambient.b);
-                    ImGui::Text("Diffuse: %.4f %.4f %.4f", m_ActiveMaterial->Diffuse.r, m_ActiveMaterial->Diffuse.g, m_ActiveMaterial->Diffuse.b);
-                    ImGui::Text("Specular: %.4f %.4f %.4f", m_ActiveMaterial->Specular.r, m_ActiveMaterial->Specular.g, m_ActiveMaterial->Specular.b);
-                    ImGui::Text("Ns: %.2f", m_ActiveMaterial->Ns);
-                    //ImGui::SliderFloat("Roughness")
-                    //ImGui::SliderFloat("Opacity")  
-                }
-                else if(!m_ActiveMaterial->Preset)
-                {
-                    ImGui::ColorEdit3("Diffuse", m_ActiveMaterial->Diffuse.e);
-                    ImGui::ColorEdit3("Specular", m_ActiveMaterial->Specular.e);
-                    ImGui::SliderFloat("Ns", &m_ActiveMaterial->Ns, 0.01f, 255.f);
-                }
-                ImGui::SliderFloat3("Ambient Strength", m_ActiveMaterial->Ka.e, 0.f, 1.f);
-                ImGui::SliderFloat3("Diffuse Strength", m_ActiveMaterial->Kd.e, 0.f, 1.f);
-                ImGui::SliderFloat3("Specular Strength", m_ActiveMaterial->Ks.e, 0.f, 1.f);
-                              
-                ImGui::TreePop();
-            }
-            if (ImGui::TreeNode("Scene Lights"))
-            {
-                if (ImGui::TreeNode("Directional Lights"))
-                {
-                    for (int i = 0; i < m_DirectionLights.size(); i++)
-                    {
-                        std::string name = "Directional Light: " + std::to_string(i);
-                        if (ImGui::TreeNode(name.c_str()))
-                        {
-                            ImGui::Checkbox("Toggle Light", &m_DirectionLights[i].Enabled);
-                            if (m_DirectionLights[i].Enabled)
-                            {
-                                ImGui::SliderFloat3("Light Direction ", m_DirectionLights[i].Direction.e, -1.f, 1.f);
-                                ImGui::ColorEdit3("Color", m_DirectionLights[i].Color.e);
-                                ImGui::Text("Attenuation Controls");
-                                ImGui::Text("Att Constant (Should be 1.0): %f", m_DirectionLights[i].constant);
-                                ImGui::SliderFloat("Att Linear", &m_DirectionLights[i].linear, 0.f, 1.f);
-                                ImGui::SliderFloat("Att Quadratic", &m_DirectionLights[i].quadratic, 0.f, 2.f);
-                            }
-                            ImGui::TreePop();
-                        }
-                    }
-                    ImGui::TreePop();
-                }
-                if (ImGui::TreeNode("Point Lights"))
-                {
-                    ImGui::SliderFloat("Point Light Radius ", &m_PointLightRadius, 0.f, 20.f);
+        //        if (m_ActiveMaterial->Preset && !m_ActiveMaterial->Textured)
+        //        {
+        //            ImGui::Text("Ambient: %.4f %.4f %.4f", m_ActiveMaterial->Ambient.r, m_ActiveMaterial->Ambient.g, m_ActiveMaterial->Ambient.b);
+        //            ImGui::Text("Diffuse: %.4f %.4f %.4f", m_ActiveMaterial->Diffuse.r, m_ActiveMaterial->Diffuse.g, m_ActiveMaterial->Diffuse.b);
+        //            ImGui::Text("Specular: %.4f %.4f %.4f", m_ActiveMaterial->Specular.r, m_ActiveMaterial->Specular.g, m_ActiveMaterial->Specular.b);
+        //            ImGui::Text("Ns: %.2f", m_ActiveMaterial->Ns);
+        //            //ImGui::SliderFloat("Roughness")
+        //            //ImGui::SliderFloat("Opacity")  
+        //        }
+        //        else if(!m_ActiveMaterial->Preset)
+        //        {
+        //            ImGui::ColorEdit3("Diffuse", m_ActiveMaterial->Diffuse.e);
+        //            ImGui::ColorEdit3("Specular", m_ActiveMaterial->Specular.e);
+        //            ImGui::SliderFloat("Ns", &m_ActiveMaterial->Ns, 0.01f, 255.f);
+        //        }
+        //        ImGui::SliderFloat3("Ambient Strength", m_ActiveMaterial->Ka.e, 0.f, 1.f);
+        //        ImGui::SliderFloat3("Diffuse Strength", m_ActiveMaterial->Kd.e, 0.f, 1.f);
+        //        ImGui::SliderFloat3("Specular Strength", m_ActiveMaterial->Ks.e, 0.f, 1.f);
+        //                      
+        //        ImGui::TreePop();
+        //    }
+        //    if (ImGui::TreeNode("Scene Lights"))
+        //    {
+        //        if (ImGui::TreeNode("Directional Lights"))
+        //        {
+        //            for (int i = 0; i < m_DirectionLights.size(); i++)
+        //            {
+        //                std::string name = "Directional Light: " + std::to_string(i);
+        //                if (ImGui::TreeNode(name.c_str()))
+        //                {
+        //                    ImGui::Checkbox("Toggle Light", &m_DirectionLights[i].Enabled);
+        //                    if (m_DirectionLights[i].Enabled)
+        //                    {
+        //                        ImGui::SliderFloat3("Light Direction ", m_DirectionLights[i].Direction.e, -1.f, 1.f);
+        //                        ImGui::ColorEdit3("Color", m_DirectionLights[i].Color.e);
+        //                        ImGui::Text("Attenuation Controls");
+        //                        ImGui::Text("Att Constant (Should be 1.0): %f", m_DirectionLights[i].constant);
+        //                        ImGui::SliderFloat("Att Linear", &m_DirectionLights[i].linear, 0.f, 1.f);
+        //                        ImGui::SliderFloat("Att Quadratic", &m_DirectionLights[i].quadratic, 0.f, 2.f);
+        //                    }
+        //                    ImGui::TreePop();
+        //                }
+        //            }
+        //            ImGui::TreePop();
+        //        }
+        //        if (ImGui::TreeNode("Point Lights"))
+        //        {
+        //            ImGui::SliderFloat("Point Light Radius ", &m_PointLightRadius, 0.f, 20.f);
 
-                    for (int i = 0; i < m_PointLights.size(); i++)
-                    {
-                        std::string name = "Point Light: " + std::to_string(i);
-                        if (ImGui::TreeNode(name.c_str()))
-                        {
-                            ImGui::Checkbox("Toggle Light", &m_PointLights[i].Enabled);
-                            if (m_PointLights[i].Enabled)
-                            {
-                                ImGui::SliderFloat3("Light Position ", m_PointLights[i].Position.e, -10.f, 10.f);
-                                ImGui::SliderFloat3("Light Scale", m_lightScaling.e, -10.f, 10.f);
-                                ImGui::ColorEdit3("Color", m_PointLights[i].Color.e);
-                                ImGui::Text("Attenuation Controls");
-                                ImGui::Text("Att Constant (Should be 1.0): %f", m_PointLights[i].constant);
-                                ImGui::SliderFloat("Att Linear", &m_PointLights[i].linear, 0.f, 1.f);
-                                ImGui::SliderFloat("Att Quadratic", &m_PointLights[i].quadratic, 0.f, 2.f);
-                            }
-                            ImGui::TreePop();
-                        }
-                    }
-                    ImGui::TreePop();
-                }
-                if (ImGui::TreeNode("Spot Lights"))
-                {
-                    for (int i = 0; i < m_SpotLights.size(); i++)
-                    {
-                        std::string name = "Spot Light: " + std::to_string(i);
-                        if (ImGui::TreeNode(name.c_str()))
-                        {
-                            ImGui::Checkbox("Toggle Light", &m_SpotLights[i].Enabled);
-                            if (m_SpotLights[i].Enabled)
-                            {
-                                ImGui::SliderFloat3("Light Direction ", m_SpotLights[i].Direction.e, -10.f, 10.f);
-                                ImGui::SliderFloat3("Light Position ", m_SpotLights[i].Position.e, -10.f, 10.f);
-                                ImGui::ColorEdit3("Color", m_SpotLights[i].Color.e);
-                                ImGui::SliderFloat("Inner Cutoff", &m_SpotLights[i].innerCutoff, 0.f, 1.f);
-                                ImGui::SliderFloat("Outer Cutoff", &m_SpotLights[i].outerCutoff, 0.f, 1.f);
-                                ImGui::Text("Attenuation Controls");
-                                ImGui::Text("Att Constant (Should be 1.0): %f", m_SpotLights[i].constant);
-                                ImGui::SliderFloat("Att Linear", &m_SpotLights[i].linear, 0.f, 1.f);
-                                ImGui::SliderFloat("Att Quadratic", &m_SpotLights[i].quadratic, 0.f, 2.f);
-                            }
-                            ImGui::TreePop();
-                        }
-                    }
-                    ImGui::TreePop();
-                }
-                ImGui::TreePop();
-            }
-            
-            if (ImGui::TreeNode("Transform"))
-            {
-                ImGui::Checkbox("Edit Transform", &m_bShowTransform);
-                if (m_bShowTransform)
-                {
-                    ImGui::Text("Transform");
-                    ImGui::SliderFloat3("Model Translation", m_translation.e, -10.f, 10.f);
-                    ImGui::SliderFloat3("Model Rotation", m_rotationAxis.e, 0.f, 1.f);
-                    ImGui::SliderFloat("Model Rotation Angle", &m_angleRot, -360.f, 360.f);
-                    ImGui::SliderFloat3("Model Scale", m_scaling.e, 0.f, 10.f);
-                }
-                ImGui::TreePop();
-            }
-        }
+        //            for (int i = 0; i < m_PointLights.size(); i++)
+        //            {
+        //                std::string name = "Point Light: " + std::to_string(i);
+        //                if (ImGui::TreeNode(name.c_str()))
+        //                {
+        //                    ImGui::Checkbox("Toggle Light", &m_PointLights[i].Enabled);
+        //                    if (m_PointLights[i].Enabled)
+        //                    {
+        //                        ImGui::SliderFloat3("Light Position ", m_PointLights[i].Position.e, -10.f, 10.f);
+        //                        ImGui::SliderFloat3("Light Scale", m_lightScaling.e, -10.f, 10.f);
+        //                        ImGui::ColorEdit3("Color", m_PointLights[i].Color.e);
+        //                        ImGui::Text("Attenuation Controls");
+        //                        ImGui::Text("Att Constant (Should be 1.0): %f", m_PointLights[i].constant);
+        //                        ImGui::SliderFloat("Att Linear", &m_PointLights[i].linear, 0.f, 1.f);
+        //                        ImGui::SliderFloat("Att Quadratic", &m_PointLights[i].quadratic, 0.f, 2.f);
+        //                    }
+        //                    ImGui::TreePop();
+        //                }
+        //            }
+        //            ImGui::TreePop();
+        //        }
+        //        if (ImGui::TreeNode("Spot Lights"))
+        //        {
+        //            for (int i = 0; i < m_SpotLights.size(); i++)
+        //            {
+        //                std::string name = "Spot Light: " + std::to_string(i);
+        //                if (ImGui::TreeNode(name.c_str()))
+        //                {
+        //                    ImGui::Checkbox("Toggle Light", &m_SpotLights[i].Enabled);
+        //                    if (m_SpotLights[i].Enabled)
+        //                    {
+        //                        ImGui::SliderFloat3("Light Direction ", m_SpotLights[i].Direction.e, -10.f, 10.f);
+        //                        ImGui::SliderFloat3("Light Position ", m_SpotLights[i].Position.e, -10.f, 10.f);
+        //                        ImGui::ColorEdit3("Color", m_SpotLights[i].Color.e);
+        //                        ImGui::SliderFloat("Inner Cutoff", &m_SpotLights[i].innerCutoff, 0.f, 1.f);
+        //                        ImGui::SliderFloat("Outer Cutoff", &m_SpotLights[i].outerCutoff, 0.f, 1.f);
+        //                        ImGui::Text("Attenuation Controls");
+        //                        ImGui::Text("Att Constant (Should be 1.0): %f", m_SpotLights[i].constant);
+        //                        ImGui::SliderFloat("Att Linear", &m_SpotLights[i].linear, 0.f, 1.f);
+        //                        ImGui::SliderFloat("Att Quadratic", &m_SpotLights[i].quadratic, 0.f, 2.f);
+        //                    }
+        //                    ImGui::TreePop();
+        //                }
+        //            }
+        //            ImGui::TreePop();
+        //        }
+        //        ImGui::TreePop();
+        //    }
+        //    
+        //    if (ImGui::TreeNode("Transform"))
+        //    {
+        //        ImGui::Checkbox("Edit Transform", &m_bShowTransform);
+        //        if (m_bShowTransform)
+        //        {
+        //            ImGui::Text("Transform");
+        //            ImGui::SliderFloat3("Model Translation", m_translation.e, -10.f, 10.f);
+        //            ImGui::SliderFloat3("Model Rotation", m_rotationAxis.e, 0.f, 1.f);
+        //            ImGui::SliderFloat("Model Rotation Angle", &m_angleRot, -360.f, 360.f);
+        //            ImGui::SliderFloat3("Model Scale", m_scaling.e, 0.f, 10.f);
+        //        }
+        //        ImGui::TreePop();
+        //    }
+        //}
 	}
 
     void TestLighting::SetShaderUniforms()

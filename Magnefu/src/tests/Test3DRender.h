@@ -2,7 +2,7 @@
 
 #include "Test.h"
 
-#include <GL/glew.h>
+#include <GLAD/glad.h>
 #include "Renderer.h"
 #include "Texture.h"
 #include "Shader.h"

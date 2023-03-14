@@ -1,7 +1,7 @@
 #include "mfpch.h"
 
 #include "Texture.h"
-#include <GL/glew.h>
+#include <GLAD/glad.h>
 #include "stb_image/stb_image.h"
 
 

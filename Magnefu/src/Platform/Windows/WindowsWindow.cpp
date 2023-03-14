@@ -4,6 +4,8 @@
 #include "Magnefu/Events/MouseEvent.h"
 #include "Magnefu/Events/KeyEvent.h"
 
+#include <GLAD/glad.h>
+
 namespace Magnefu
 {
 	static bool s_GLFWInitialized = false;
@@ -49,9 +51,16 @@ namespace Magnefu
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 		m_Window = glfwCreateWindow(m_Data.Width, m_Data.Height, m_Data.Title.c_str(), NULL, NULL);
-		//MF_CORE_ASSERT(m_Window, "Failed to create GLFW window");
+		MF_CORE_ASSERT(m_Window, "Failed to create GLFW window");
 
 		glfwMakeContextCurrent(m_Window);
+		int success = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+		MF_CORE_ASSERT(success, "Failed to initialize GLAD");
+
+		MF_CORE_DEBUG((const char*)glGetString(GL_VERSION));
+		MF_CORE_DEBUG((const char*)glGetString(GL_VENDOR));
+		MF_CORE_DEBUG((const char*)glGetString(GL_RENDERER));
+
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		SetVSync(true);
 
@@ -177,9 +186,9 @@ namespace Magnefu
 
 	void WindowsWindow::OnUpdate()
 	{
-		glfwPollEvents();
 		MouseUpdates();
 		processInput();
+		glfwPollEvents();
 		
 		glfwSwapBuffers(m_Window);
 
@@ -204,6 +213,7 @@ namespace Magnefu
 	{
 		if (glfwGetKey(m_Window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		{
+			//glfwSetWindowShouldClose(m_Window, GLFW_TRUE);
 			WindowCloseEvent event;
 			m_Data.EventCallback(event);
 		}

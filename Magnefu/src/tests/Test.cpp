@@ -2,8 +2,8 @@
 
 #include "Test.h"
 
-#include <GL/glew.h>
-#include "imgui/imgui.h"
+#include <GLAD/glad.h>
+//#include "imgui/imgui.h"
 
 namespace Magnefu
 {
@@ -16,8 +16,8 @@ namespace Magnefu
 	{
 		for (auto& test : m_Tests)
 		{
-			if (ImGui::Button(test.first.c_str()))
-				m_ActiveTest = test.second();
+			//if (ImGui::Button(test.first.c_str()))
+			//	m_ActiveTest = test.second();
 		}
 	}
 

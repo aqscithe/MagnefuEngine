@@ -1,12 +1,7 @@
 #include "mfpch.h"
 
 #include "Application.h"
-
 #include "Renderer.h"
-
-
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 
 //#include "tests/TestClearColor.h"
 //#include "tests/Test3DRender.h"
@@ -40,7 +35,15 @@ namespace Magnefu
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
 
         MF_CORE_TRACE("{0}", event);
+
+        for (auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )
+        {
+            (*--it)->OnEvent(event);
+            if (event.IsHandled())
+                break;
+        }
     }
+
 
 	void Application::Run()
 	{
@@ -59,15 +62,10 @@ namespace Magnefu
         //ImGui_ImplGlfw_InitForOpenGL(, true);
         //ImGui_ImplOpenGL3_Init(glsl_version);
 
-        // Must be initialized after contex has been created
-        if (glewInit() != GLEW_OK)
-            MF_ERROR("GLEW initialization failed");
-        else
-            MF_INFO("GLEW initialization succeeded");
 
-        std::cout << glGetString(GL_VERSION) << std::endl;
-        std::cout << glGetString(GL_VENDOR) << std::endl;
-        std::cout << glGetString(GL_RENDERER) << std::endl;
+        // Must be initialized after contex has been created
+
+        
 
 
         
@@ -100,6 +98,9 @@ namespace Magnefu
                 /*ImGui_ImplOpenGL3_NewFrame();
                 ImGui_ImplGlfw_NewFrame();
                 ImGui::NewFrame();*/
+
+                for (Layer* layer : m_LayerStack)
+                    layer->OnUpdate();
 
                 m_Window->OnUpdate();
 
@@ -164,5 +165,15 @@ namespace Magnefu
     {
         m_Running = false;
         return true;
+    }
+
+    void Application::PushLayer(Layer* layer)
+    {
+        m_LayerStack.PushLayer(layer);
+    }
+
+    void Application::PushOverlay(Layer* overlay)
+    {
+        m_LayerStack.PushOverlay(overlay);
     }
 }

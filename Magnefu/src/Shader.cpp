@@ -1,7 +1,7 @@
 #include "mfpch.h"
 
 #include "Shader.h"
-#include <GL/glew.h>
+#include <GLAD/glad.h>
 
 #include <fstream>
 

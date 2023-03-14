@@ -2,9 +2,10 @@
 
 #include "Core.h"
 #include "Window.h"
-#include "Events/ApplicationEvent.h"
-#include "Events/MouseEvent.h"
-#include "Events/KeyEvent.h"
+#include "Magnefu/LayerStack.h"
+#include "Magnefu/Events/ApplicationEvent.h"
+#include "Magnefu/Events/MouseEvent.h"
+#include "Magnefu/Events/KeyEvent.h"
 
 #include <memory>
 
@@ -20,12 +21,15 @@ namespace Magnefu
 
 		void OnEvent(Event& event);
 
+		void PushLayer(Layer* layer);
+		void PushOverlay(Layer* overlay);
+
 	private:
 		bool OnWindowClose(WindowCloseEvent& event);
 
 		std::unique_ptr<Window> m_Window;
 		bool m_Running;
-		
+		LayerStack m_LayerStack;
 	};
 
 	// to be defined in client

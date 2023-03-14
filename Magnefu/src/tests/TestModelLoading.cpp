@@ -2,9 +2,9 @@
 
 #include "TestModelLoading.h"
 
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
+//#include "imgui/imgui.h"
+//#include "imgui/imgui_impl_glfw.h"
+//#include "imgui/imgui_impl_opengl3.h"
 
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
@@ -221,9 +221,9 @@ namespace Magnefu
 
         bool isopen = true;
 
-        ImGui::Begin("Model Loader", &isopen, ImGuiWindowFlags_MenuBar);
+        //ImGui::Begin("Model Loader", &isopen, ImGuiWindowFlags_MenuBar);
 
-        if (ImGui::BeginTabBar("Model Load Options", ImGuiTabBarFlags_None))
+        /*if (ImGui::BeginTabBar("Model Load Options", ImGuiTabBarFlags_None))
         {
             if (ImGui::BeginTabItem("Select OBJ to Load: "))
             {
@@ -426,7 +426,7 @@ namespace Magnefu
                 }
                 ImGui::TreePop();
             }
-        }
+        }*/
 	}
 
     void TestModelLoading::SetShaderUniforms()

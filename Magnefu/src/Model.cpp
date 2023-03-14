@@ -2,9 +2,9 @@
 
 #include "Model.h"
 
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
+//#include "imgui/imgui.h"
+//#include "imgui/imgui_impl_glfw.h"
+//#include "imgui/imgui_impl_opengl3.h"
 
 
 
@@ -152,7 +152,7 @@ void Model::SetShaderUniforms(std::unique_ptr<Shader>& shader, Cache& materialCa
 
 void Model::OnImGUIRender()
 {
-    ImGui::Text("Model Materials - %s", m_Filepath.c_str());
+    /*ImGui::Text("Model Materials - %s", m_Filepath.c_str());
     
     for (auto& material : m_MaterialList)
     {
@@ -176,7 +176,7 @@ void Model::OnImGUIRender()
             ImGui::TreePop();
         }
             
-    }
+    }*/
 
     for (auto& mesh : m_Meshes)
         mesh->OnImGUIRender();

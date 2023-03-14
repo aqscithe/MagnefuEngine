@@ -1,7 +1,7 @@
 #include "mfpch.h"
 
 #include "Renderer.h"
-#include <GL/glew.h>
+#include <GLAD/glad.h>
 
 
 void Renderer::Draw(const VertexArray& vao, const IndexBuffer& ibo, const Shader& shader) const

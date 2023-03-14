@@ -2,7 +2,7 @@
 
 #include "IndexBuffer.h"
 
-#include <GL/glew.h>
+#include <GLAD/glad.h>
 
 IndexBuffer::IndexBuffer(unsigned int count, const unsigned int* data)
     : m_Count(count)

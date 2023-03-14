@@ -2,9 +2,9 @@
 
 #include "Test3DRender.h"
 
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
+//#include "imgui/imgui.h"
+//#include "imgui/imgui_impl_glfw.h"
+//#include "imgui/imgui_impl_opengl3.h"
 
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
@@ -152,7 +152,7 @@ namespace Magnefu
 	{
         Globals& global = Globals::Get();
 
-        ImGui::Text("Transform");
+        /*ImGui::Text("Transform");
         ImGui::SliderFloat3("Model Translation", m_translation.e, -10.f, 10.f);
         ImGui::SliderFloat3("Model Rotation", m_rotationAxis.e, 0.f, 1.f);
         ImGui::SliderFloat("Model Rotation Angle", &m_angleRot, -360.f, 360.f);
@@ -176,6 +176,6 @@ namespace Magnefu
         else
         {
             ImGui::SliderFloat("FOV", &global.fovY, 1.f, 100.f);
-        }
+        }*/
 	}
 }

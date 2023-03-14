@@ -2,10 +2,10 @@
 
 #include "TestClearColor.h"
 
-#include <GL/glew.h>
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
+#include <GLAD/glad.h>
+//#include "imgui/imgui.h"
+//#include "imgui/imgui_impl_glfw.h"
+//#include "imgui/imgui_impl_opengl3.h"
 
 namespace Magnefu
 {
@@ -32,6 +32,6 @@ namespace Magnefu
 
 	void TestClearColor::OnImGUIRender()
 	{
-		ImGui::ColorEdit4("Clear Color", m_ClearColor.e);
+		//ImGui::ColorEdit4("Clear Color", m_ClearColor.e);
 	}
 }
