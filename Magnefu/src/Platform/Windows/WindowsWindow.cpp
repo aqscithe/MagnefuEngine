@@ -191,8 +191,6 @@ namespace Magnefu
 		glfwPollEvents();
 		
 		glfwSwapBuffers(m_Window);
-
-		//glfwGetFramebufferSize(window, &displayWidth, &displayHeight);
 	}
 
 	void WindowsWindow::Shutdown()

@@ -1,5 +1,4 @@
 #include "mfpch.h"
-
 #include "Camera.h"
 
 #include <GLFW/glfw3.h>

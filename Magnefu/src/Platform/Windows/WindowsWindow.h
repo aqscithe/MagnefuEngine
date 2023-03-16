@@ -17,6 +17,7 @@ namespace Magnefu
 
 		uint16_t GetWidth() const override { return m_Data.Width; }
 		uint16_t GetHeight() const override { return m_Data.Height; }
+		void* GetNativeWindow() const override { return m_Window; }
 
 		// Window attributes
 		void SetEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; }

@@ -26,5 +26,5 @@
 #include "Magnefu/Log.h"
 
 #ifdef MF_PLATFORM_WINDOWS
-	#include <Windows.h>
+#include <Windows.h>
 #endif

@@ -28,9 +28,14 @@ void Renderer::Clear() const
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Renderer::ClearColor(Maths::vec4& clearColor) const
+void Renderer::ClearColor(const Maths::vec4& clearColor) const
 {
     glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+}
+
+void Renderer::ClearColor(float r, float g, float b, float a) const
+{
+    glClearColor(r, g, b, a);
 }
 
 void Renderer::EnableDepthTest() const

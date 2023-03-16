@@ -10,22 +10,18 @@ resourcedir = "%{prj.name}/res"
 IncludeDir = {}
 IncludeDir["GLFW"] = "Magnefu/vendor/GLFW/include"
 IncludeDir["GLAD"] = "Magnefu/vendor/GLAD/include"
+IncludeDir["ImGui"] = "Magnefu/vendor/imgui"
 
 LibDir = {}
-LibDir["GLFW"] = "Magnefu/vendor/GLFW/lib-vc2022"
+LibDir["GLFW"] = "Magnefu/vendor/GLAD/lib"
 
 include "Magnefu/vendor/GLFW"
 include "Magnefu/vendor/GLAD"
+include "Magnefu/vendor/imgui"
 
 prebuildcommands {
     "{MKDIR} ../bin/" .. outputdir .. "/Sandbox",
-    "{MKDIR} ../bin/" .. outputdir .. "/Magnefu",
-    "{MKDIR} ../bin-intermediates/" .. outputdir .. "/Sandbox",
-    "{MKDIR} ../bin-intermediates/" .. outputdir .. "/Magnefu",
-    "{MKDIR} ../bin/" .. outputdir .. "/GLFW",
-    "{MKDIR} ../bin-intermediates/" .. outputdir .. "/GLFW",
-    "{MKDIR} ../bin/" .. outputdir .. "/GLAD",
-    "{MKDIR} ../bin-intermediates/" .. outputdir .. "/GLAD"
+    "{MKDIR} ../bin-intermediates/" .. outputdir .. "/Sandbox"
 }
 
 project "Magnefu"
@@ -47,21 +43,40 @@ project "Magnefu"
         resourcedir .. "/**",
     }
 
+    removefiles {
+        "%{prj.name}/vendor/imgui/misc/**.h",
+        "%{prj.name}/vendor/imgui/misc/**.cpp",
+        "%{prj.name}/vendor/imgui/examples/**.h",
+        "%{prj.name}/vendor/imgui/examples/**.cpp",
+        "%{prj.name}/vendor/imgui/backends/**.h",
+        "%{prj.name}/vendor/imgui/backends/**.cpp",
+    }
+
+    files {
+        "%{prj.name}/vendor/imgui/backends/imgui_impl_glfw.h",
+        "%{prj.name}/vendor/imgui/backends/imgui_impl_glfw.cpp",
+        "%{prj.name}/vendor/imgui/backends/imgui_impl_opengl3.h",
+        "%{prj.name}/vendor/imgui/backends/imgui_impl_opengl3.cpp"
+    }
+
     includedirs {
         "%{prj.name}/vendor",
         "%{prj.name}/src",
         "%{prj.name}/src/Maths",
         "%{IncludeDir.GLFW}",
-        "%{IncludeDir.GLAD}"
+        "%{IncludeDir.GLAD}",
+        "%{IncludeDir.ImGui}"
     }
 
-    libdirs { 
-        "%{LibDir.GLFW}",
+    libdirs {
+        "%{LibDir.GLFW}"
     }
 
     links {
-        "glfw3",
+        "GLFW",
+        "glfw3_mt",
         "GLAD",
+        "ImGui",
         "opengl32"
     }
 

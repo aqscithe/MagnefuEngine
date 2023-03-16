@@ -10,6 +10,9 @@
     <Filter Include="src\Magnefu\Events">
       <UniqueIdentifier>{63BCAA16-4FA0-6B6C-B800-66BFA40356EE}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Magnefu\ImGui">
+      <UniqueIdentifier>{C9F18D6D-3508-8C03-7E7F-1725EAD45C8B}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Maths">
       <UniqueIdentifier>{599964B3-C503-192A-0E42-CACF7AEBF67E}</UniqueIdentifier>
     </Filter>
@@ -40,6 +43,18 @@
     <Filter Include="vendor\GLFW">
       <UniqueIdentifier>{D27667C1-3E2C-E0B6-C720-DA8D33D5D6BA}</UniqueIdentifier>
     </Filter>
+    <Filter Include="vendor\GLFW\deps">
+      <UniqueIdentifier>{2D9CE7E7-1995-063A-42C7-EBBE2E1FE645}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\GLFW\deps\glad">
+      <UniqueIdentifier>{54138E41-C07F-493C-8973-E199F59E6BA4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\GLFW\deps\mingw">
+      <UniqueIdentifier>{DEA3BB73-CA9D-E4C5-B30A-7BD69FA34A32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\GLFW\deps\vs2008">
+      <UniqueIdentifier>{AFA8C100-1BE0-0998-24EA-6DBB90A03091}</UniqueIdentifier>
+    </Filter>
     <Filter Include="vendor\GLFW\include">
       <UniqueIdentifier>{45501F1D-B1B1-FC2A-3A1F-43DDA67F33EA}</UniqueIdentifier>
     </Filter>
@@ -48,6 +63,12 @@
     </Filter>
     <Filter Include="vendor\GLFW\src">
       <UniqueIdentifier>{E94D2683-55D9-9347-5EEA-163CCAF4EF47}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\imgui">
+      <UniqueIdentifier>{5D3BD0F0-499E-5F95-F223-984BDE652B18}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\imgui\backends">
+      <UniqueIdentifier>{27CEAEAF-933A-6AAA-5C2E-0208C8598C12}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor\spdlog">
       <UniqueIdentifier>{8BBC5F22-F77C-DB58-C0B7-24D62C372035}</UniqueIdentifier>
@@ -107,6 +128,9 @@
     </ClInclude>
     <ClInclude Include="src\Magnefu\Events\MouseEvent.h">
       <Filter>src\Magnefu\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\ImGui\ImGuiLayer.h">
+      <Filter>src\Magnefu\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Layer.h">
       <Filter>src\Magnefu</Filter>
@@ -204,6 +228,45 @@
     <ClInclude Include="vendor\GLAD\include\glad\glad.h">
       <Filter>vendor\GLAD\include\glad</Filter>
     </ClInclude>
+    <ClInclude Include="vendor\GLFW\deps\getopt.h">
+      <Filter>vendor\GLFW\deps</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\deps\glad\gl.h">
+      <Filter>vendor\GLFW\deps\glad</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\deps\glad\gles2.h">
+      <Filter>vendor\GLFW\deps\glad</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\deps\glad\vulkan.h">
+      <Filter>vendor\GLFW\deps\glad</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\deps\linmath.h">
+      <Filter>vendor\GLFW\deps</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\deps\mingw\_mingw_dxhelper.h">
+      <Filter>vendor\GLFW\deps\mingw</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\deps\mingw\dinput.h">
+      <Filter>vendor\GLFW\deps\mingw</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\deps\mingw\xinput.h">
+      <Filter>vendor\GLFW\deps\mingw</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\deps\nuklear.h">
+      <Filter>vendor\GLFW\deps</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\deps\nuklear_glfw_gl2.h">
+      <Filter>vendor\GLFW\deps</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\deps\stb_image_write.h">
+      <Filter>vendor\GLFW\deps</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\deps\tinycthread.h">
+      <Filter>vendor\GLFW\deps</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\deps\vs2008\stdint.h">
+      <Filter>vendor\GLFW\deps\vs2008</Filter>
+    </ClInclude>
     <ClInclude Include="vendor\GLFW\include\GLFW\glfw3.h">
       <Filter>vendor\GLFW\include\GLFW</Filter>
     </ClInclude>
@@ -266,6 +329,30 @@
     </ClInclude>
     <ClInclude Include="vendor\GLFW\src\xkb_unicode.h">
       <Filter>vendor\GLFW\src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\backends\imgui_impl_glfw.h">
+      <Filter>vendor\imgui\backends</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\backends\imgui_impl_opengl3.h">
+      <Filter>vendor\imgui\backends</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imconfig.h">
+      <Filter>vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui.h">
+      <Filter>vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui_internal.h">
+      <Filter>vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imstb_rectpack.h">
+      <Filter>vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imstb_textedit.h">
+      <Filter>vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imstb_truetype.h">
+      <Filter>vendor\imgui</Filter>
     </ClInclude>
     <ClInclude Include="vendor\spdlog\async.h">
       <Filter>vendor\spdlog</Filter>
@@ -599,6 +686,9 @@
     <ClCompile Include="src\Magnefu\Core.cpp">
       <Filter>src\Magnefu</Filter>
     </ClCompile>
+    <ClCompile Include="src\Magnefu\ImGui\ImGuiLayer.cpp">
+      <Filter>src\Magnefu\ImGui</Filter>
+    </ClCompile>
     <ClCompile Include="src\Magnefu\Layer.cpp">
       <Filter>src\Magnefu</Filter>
     </ClCompile>
@@ -679,6 +769,27 @@
     </ClCompile>
     <ClCompile Include="src\tests\TestModelLoading.cpp">
       <Filter>src\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\backends\imgui_impl_glfw.cpp">
+      <Filter>vendor\imgui\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\backends\imgui_impl_opengl3.cpp">
+      <Filter>vendor\imgui\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui.cpp">
+      <Filter>vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_demo.cpp">
+      <Filter>vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_draw.cpp">
+      <Filter>vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_tables.cpp">
+      <Filter>vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_widgets.cpp">
+      <Filter>vendor\imgui</Filter>
     </ClCompile>
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
