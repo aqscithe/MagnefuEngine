@@ -1,10 +1,9 @@
 #include "mfpch.h"
 
 #include "Test2DTexture.h"
+#include "Magnefu/Application.h"
 
-//#include "imgui/imgui.h"
-//#include "imgui/imgui_impl_glfw.h"
-//#include "imgui/imgui_impl_opengl3.h"
+#include "imgui/imgui.h"
 
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
@@ -13,6 +12,8 @@
 #include "Shader.h"
 #include "VertexBufferAttribsLayout.h"
 #include "Renderer.h"
+
+#include "ResourceCache.h"
 
 
 
@@ -35,7 +36,7 @@ namespace Magnefu
             0, 1, 2,
             2, 3, 0
         };
-
+        
 
         VertexBuffer vbo(7 * 4 * sizeof(float), vertices);
 
@@ -49,7 +50,13 @@ namespace Magnefu
 
         m_IBO = std::make_unique<IndexBuffer>(sizeof(indices) / sizeof(unsigned int), indices);
 
-        m_Shader = std::make_unique <Shader>("res/shaders/Texture2D.shader");
+        std::string shaderPath = "res/shaders/Texture2D.shader";
+
+        Application& app = Application::Get();
+        ResourceCache& cache = app.GetResourceCache();
+        Shader shader = cache.RequestResource<Shader>(shaderPath);
+
+        m_Shader = std::make_unique <Shader>(shaderPath);
         m_Texture = std::make_unique<Texture>("res/textures/moon.png");
         
         m_Shader->Bind();
@@ -121,7 +128,7 @@ namespace Magnefu
 
 	void Test2DTexture::OnRender()
 	{
-        m_Renderer.Clear();
+        //m_Renderer.Clear();
 
         m_Shader->Bind();
 
@@ -137,7 +144,7 @@ namespace Magnefu
 	{
         Globals& global = Globals::Get();
 
-        /*ImGui::Text("Transform");
+        ImGui::Text("Transform");
         ImGui::SliderFloat3("Model Translation", m_translation.e, -10.f, 10.f);
         ImGui::SliderFloat3("Model Rotation", m_rotationAxis.e, 0.f, 1.f);
         ImGui::SliderFloat("Model Rotation Angle", &m_angleRot, -360.f, 360.f);
@@ -161,6 +168,6 @@ namespace Magnefu
         else
         {
             ImGui::SliderFloat("FOV", &global.fovY, 1.f, 100.f);
-        }*/
+        }
 	}
 }

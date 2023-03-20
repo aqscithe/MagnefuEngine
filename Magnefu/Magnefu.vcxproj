@@ -83,8 +83,7 @@
       <AdditionalIncludeDirectories>vendor;src;src\Maths;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalOptions>/MDd %(AdditionalOptions)</AdditionalOptions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -111,8 +110,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalOptions>/MD %(AdditionalOptions)</AdditionalOptions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -140,8 +138,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalOptions>/MD %(AdditionalOptions)</AdditionalOptions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -158,6 +155,8 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\ResourceCache.h" />
+    <ClInclude Include="src\CacheableResource.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Globals.h" />
     <ClInclude Include="src\IndexBuffer.h" />
@@ -198,7 +197,6 @@
     <ClInclude Include="src\tests\Test2DTexture.h" />
     <ClInclude Include="src\tests\Test3DRender.h" />
     <ClInclude Include="src\tests\TestBatchRendering.h" />
-    <ClInclude Include="src\tests\TestClearColor.h" />
     <ClInclude Include="src\tests\TestLighting.h" />
     <ClInclude Include="src\tests\TestModelLoading.h" />
     <ClInclude Include="vendor\GLAD\include\KHR\khrplatform.h" />
@@ -237,6 +235,8 @@
     <ClInclude Include="vendor\GLFW\src\wl_platform.h" />
     <ClInclude Include="vendor\GLFW\src\x11_platform.h" />
     <ClInclude Include="vendor\GLFW\src\xkb_unicode.h" />
+    <ClInclude Include="vendor\glm\glm.hpp" />
+    <ClInclude Include="vendor\glm\gtx\hash.hpp" />
     <ClInclude Include="vendor\imgui\backends\imgui_impl_glfw.h" />
     <ClInclude Include="vendor\imgui\backends\imgui_impl_opengl3.h" />
     <ClInclude Include="vendor\imgui\imconfig.h" />
@@ -351,6 +351,7 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\ResourceCache.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\Globals.cpp" />
     <ClCompile Include="src\IndexBuffer.cpp" />
@@ -384,7 +385,6 @@
     <ClCompile Include="src\tests\Test2DTexture.cpp" />
     <ClCompile Include="src\tests\Test3DRender.cpp" />
     <ClCompile Include="src\tests\TestBatchRendering.cpp" />
-    <ClCompile Include="src\tests\TestClearColor.cpp" />
     <ClCompile Include="src\tests\TestLighting.cpp" />
     <ClCompile Include="src\tests\TestModelLoading.cpp" />
     <ClCompile Include="vendor\imgui\backends\imgui_impl_glfw.cpp" />
@@ -406,6 +406,9 @@
     <ProjectReference Include="vendor\imgui\ImGui.vcxproj">
       <Project>{C0FF640D-2C14-8DBE-F595-301E616989EF}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="vendor\glm\gtx\hash.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

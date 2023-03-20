@@ -2,9 +2,7 @@
 
 #include "TestBatchRendering.h"
 
-//#include "imgui/imgui.h"
-//#include "imgui/imgui_impl_glfw.h"
-//#include "imgui/imgui_impl_opengl3.h"
+#include "imgui/imgui.h"
 
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
@@ -173,7 +171,7 @@ namespace Magnefu
 	{
         Globals& global = Globals::Get();
 
-        /*ImGui::SliderInt("Quad Count", &m_QuadCount, 0, 20);
+        ImGui::SliderInt("Quad Count", &m_QuadCount, 0, 20);
 
         ImGui::Text("Transform");
         ImGui::SliderFloat3("Model Translation", m_translation.e, -10.f, 10.f);
@@ -199,6 +197,6 @@ namespace Magnefu
         else
         {
             ImGui::SliderFloat("FOV", &global.fovY, 1.f, 100.f);
-        }*/
+        }
 	}
 }

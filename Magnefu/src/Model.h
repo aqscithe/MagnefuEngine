@@ -22,15 +22,15 @@ public:
 	Model(std::string& filepath, Cache& matCache, std::mutex& mutex);
 
 	void Init(std::unique_ptr<Shader>& shader, Cache& textureCache, Cache& materialCache);
-	void Draw(std::unique_ptr<Shader>& shader, Cache& textureCache, Cache& materialCache);
-	void OnImGUIRender();
-	void ClearFromCache(Cache& textureCache, Cache& materialCache);
-
 	std::string m_Filepath;
 
 	std::vector<std::unique_ptr<Mesh>> m_Meshes;
 
 	std::vector<MaterialData>            m_MaterialList;
+	void Draw(std::unique_ptr<Shader>& shader, Cache& textureCache, Cache& materialCache);
+	void OnImGUIRender();
+	void ClearFromCache(Cache& textureCache, Cache& materialCache);
+
 	std::unordered_map<std::string, int> m_MaterialIndices;
 
 	std::vector<TextureLabel> m_Textures;

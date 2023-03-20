@@ -213,9 +213,6 @@
     <ClInclude Include="src\tests\TestBatchRendering.h">
       <Filter>src\tests</Filter>
     </ClInclude>
-    <ClInclude Include="src\tests\TestClearColor.h">
-      <Filter>src\tests</Filter>
-    </ClInclude>
     <ClInclude Include="src\tests\TestLighting.h">
       <Filter>src\tests</Filter>
     </ClInclude>
@@ -666,6 +663,10 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
+    <ClInclude Include="src\CacheableResource.h" />
+    <ClInclude Include="src\ResourceCache.h" />
+    <ClInclude Include="vendor\glm\glm.hpp" />
+    <ClInclude Include="vendor\glm\gtx\hash.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Camera.cpp">
@@ -761,9 +762,6 @@
     <ClCompile Include="src\tests\TestBatchRendering.cpp">
       <Filter>src\tests</Filter>
     </ClCompile>
-    <ClCompile Include="src\tests\TestClearColor.cpp">
-      <Filter>src\tests</Filter>
-    </ClCompile>
     <ClCompile Include="src\tests\TestLighting.cpp">
       <Filter>src\tests</Filter>
     </ClCompile>
@@ -794,5 +792,9 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
+    <ClCompile Include="src\ResourceCache.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="vendor\glm\gtx\hash.inl" />
   </ItemGroup>
 </Project>

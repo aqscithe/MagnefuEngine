@@ -2,9 +2,7 @@
 
 #include "Model.h"
 
-//#include "imgui/imgui.h"
-//#include "imgui/imgui_impl_glfw.h"
-//#include "imgui/imgui_impl_opengl3.h"
+#include "imgui/imgui.h"
 
 
 
@@ -147,12 +145,13 @@ void Model::SetShaderUniforms(std::unique_ptr<Shader>& shader, Cache& materialCa
         shader->SetUniform3fv(matLabel + "Kd", material.MaterialProperties.Kd);
         shader->SetUniform3fv(matLabel + "Ks", material.MaterialProperties.Ks);
         shader->SetUniform1f(matLabel + "Ns", material.MaterialProperties.Ns);
+        shader->SetUniform1f(matLabel + "Ni", material.MaterialProperties.Ni);
     }
 }
 
 void Model::OnImGUIRender()
 {
-    /*ImGui::Text("Model Materials - %s", m_Filepath.c_str());
+    ImGui::Text("Model Materials - %s", m_Filepath.c_str());
     
     for (auto& material : m_MaterialList)
     {
@@ -168,15 +167,20 @@ void Model::OnImGUIRender()
                 ImGui::Text("Diffuse - Texture: %s | Render ID: %d", material.MaterialProperties.Diffuse->GetFilepath().c_str(), material.MaterialProperties.Diffuse->GetRendererID());
             if (material.MaterialProperties.Specular)
                 ImGui::Text("Specular - Texture: %s | Render ID: %d", material.MaterialProperties.Specular->GetFilepath().c_str(), material.MaterialProperties.Specular->GetRendererID());
+            if (material.MaterialProperties.Roughness)
+                ImGui::Text("Roughness - Texture: %s | Render ID: %d", material.MaterialProperties.Roughness->GetFilepath().c_str(), material.MaterialProperties.Roughness->GetRendererID());
+            if (material.MaterialProperties.Metallic)
+                ImGui::Text("Metallic - Texture: %s | Render ID: %d", material.MaterialProperties.Metallic->GetFilepath().c_str(), material.MaterialProperties.Metallic->GetRendererID());
 
             ImGui::SliderFloat3("Ka", material.MaterialProperties.Ka.e, 0.f, 1.f);
             ImGui::SliderFloat3("Kd", material.MaterialProperties.Kd.e, 0.f, 1.f);
             ImGui::SliderFloat3("Ks", material.MaterialProperties.Ks.e, 0.f, 1.f);
-            ImGui::SliderFloat("Ns", &material.MaterialProperties.Ns, 0.f, 128.f);
+            ImGui::SliderFloat("Ns", &material.MaterialProperties.Ns, 0.f, 256.f);
+            ImGui::SliderFloat("Ni", &material.MaterialProperties.Ni, 0.f, 256.f);
             ImGui::TreePop();
         }
             
-    }*/
+    }
 
     for (auto& mesh : m_Meshes)
         mesh->OnImGUIRender();
@@ -203,6 +207,16 @@ void Model::ClearFromCache(Cache& textureCache, Cache& materialCache)
         {
             textureCache.erase(material.MaterialProperties.Specular->GetFilepath());
             MF_CORE_DEBUG("Clearing texture {} from cache", material.MaterialProperties.Specular->GetFilepath());
+        }
+        if (material.MaterialProperties.Roughness)
+        {
+            textureCache.erase(material.MaterialProperties.Roughness->GetFilepath());
+            MF_CORE_DEBUG("Clearing texture {} from cache", material.MaterialProperties.Roughness->GetFilepath());
+        }
+        if (material.MaterialProperties.Metallic)
+        {
+            textureCache.erase(material.MaterialProperties.Metallic->GetFilepath());
+            MF_CORE_DEBUG("Clearing texture {} from cache", material.MaterialProperties.Metallic->GetFilepath());
         }
             
     }
@@ -237,6 +251,10 @@ void Model::Init(std::unique_ptr<Shader>& shader, Cache& textureCache, Cache& ma
             material.MaterialProperties.Diffuse->GenerateTexture();
         if (material.MaterialProperties.Specular && !material.MaterialProperties.Specular->GetGenerationStatus())
             material.MaterialProperties.Specular->GenerateTexture();
+        if (material.MaterialProperties.Roughness && !material.MaterialProperties.Roughness->GetGenerationStatus())
+            material.MaterialProperties.Roughness->GenerateTexture();
+        if (material.MaterialProperties.Metallic && !material.MaterialProperties.Metallic->GetGenerationStatus())
+            material.MaterialProperties.Metallic->GenerateTexture();
     }
 
 
@@ -268,6 +286,22 @@ void Model::Init(std::unique_ptr<Shader>& shader, Cache& textureCache, Cache& ma
             MF_CORE_DEBUG("TEXTURE -- Specular texture {0} bound to slot {1}", material.MaterialProperties.Specular->GetFilepath(), textureSlot);
             textureSlot++;
         }
+
+        if (material.MaterialProperties.Roughness && !textureCache.contains(material.MaterialProperties.Roughness->GetFilepath()))
+        {
+            material.MaterialProperties.Roughness->Bind(textureSlot);
+            textureCache[material.MaterialProperties.Roughness->GetFilepath()] = textureSlot;
+            MF_CORE_DEBUG("TEXTURE -- Roughness texture {0} bound to slot {1}", material.MaterialProperties.Roughness->GetFilepath(), textureSlot);
+            textureSlot++;
+        }
+
+        if (material.MaterialProperties.Metallic && !textureCache.contains(material.MaterialProperties.Metallic->GetFilepath()))
+        {
+            material.MaterialProperties.Metallic->Bind(textureSlot);
+            textureCache[material.MaterialProperties.Metallic->GetFilepath()] = textureSlot;
+            MF_CORE_DEBUG("TEXTURE -- Metallic texture {0} bound to slot {1}", material.MaterialProperties.Metallic->GetFilepath(), textureSlot);
+            textureSlot++;
+        }
     }
 
     // send texture uniforms
@@ -278,15 +312,18 @@ void Model::Init(std::unique_ptr<Shader>& shader, Cache& textureCache, Cache& ma
         if (material.MaterialProperties.Ambient)
         {
             shader->SetUniform1i(matLabel + "Ambient", textureCache[material.MaterialProperties.Ambient->GetFilepath()]);
+            //shader->SetUniform3fv(matLabel + "Ka", material.MaterialProperties.Ka);
             MF_CORE_DEBUG(
                 "SHADER -- Set Ambient Texture {0} from Material {1} to Material Index {2}",
                 material.MaterialProperties.Ambient->GetFilepath(), material.SubMaterialName, materialCache[material.SubMaterialName]
             );
+            
         }
                      
         if (material.MaterialProperties.Diffuse)
         {
             shader->SetUniform1i(matLabel + "Diffuse", textureCache[material.MaterialProperties.Diffuse->GetFilepath()]);
+            //shader->SetUniform3fv(matLabel + "Kd", material.MaterialProperties.Kd);
             MF_CORE_DEBUG(
                 "SHADER -- Set Diffuse Texture {0} from Material {1} to Material Index {2}",
                 material.MaterialProperties.Diffuse->GetFilepath(), material.SubMaterialName, materialCache[material.SubMaterialName]
@@ -296,9 +333,28 @@ void Model::Init(std::unique_ptr<Shader>& shader, Cache& textureCache, Cache& ma
         if (material.MaterialProperties.Specular)
         {
             shader->SetUniform1i(matLabel + "Specular", textureCache[material.MaterialProperties.Specular->GetFilepath()]);
+            //shader->SetUniform3fv(matLabel + "Ks", material.MaterialProperties.Ks);
             MF_CORE_DEBUG(
                 "SHADER -- Set Specular Texture {0} from Material {1} to Material Index {2}",
                 material.MaterialProperties.Specular->GetFilepath(), material.SubMaterialName, materialCache[material.SubMaterialName]
+            );
+        }
+
+        if (material.MaterialProperties.Roughness)
+        {
+            shader->SetUniform1i(matLabel + "Roughness", textureCache[material.MaterialProperties.Roughness->GetFilepath()]);
+            MF_CORE_DEBUG(
+                "SHADER -- Set Roughness Texture {0} from Material {1} to Material Index {2}",
+                material.MaterialProperties.Roughness->GetFilepath(), material.SubMaterialName, materialCache[material.SubMaterialName]
+            );
+        }
+
+        if (material.MaterialProperties.Metallic)
+        {
+            shader->SetUniform1i(matLabel + "Metallic", textureCache[material.MaterialProperties.Metallic->GetFilepath()]);
+            MF_CORE_DEBUG(
+                "SHADER -- Set Metallic Texture {0} from Material {1} to Material Index {2}",
+                material.MaterialProperties.Metallic->GetFilepath(), material.SubMaterialName, materialCache[material.SubMaterialName]
             );
         }
             
@@ -316,6 +372,10 @@ void Model::Init(std::unique_ptr<Shader>& shader, Cache& textureCache, Cache& ma
             material.MaterialProperties.Diffuse->Unbind();
         if (material.MaterialProperties.Specular)
             material.MaterialProperties.Specular->Unbind();
+        if (material.MaterialProperties.Roughness)
+            material.MaterialProperties.Roughness->Unbind();
+        if (material.MaterialProperties.Metallic)
+            material.MaterialProperties.Metallic->Unbind();
     }
 
     shader->Unbind();
@@ -411,6 +471,7 @@ Material<std::shared_ptr<Texture>> Model::CreateMaterial(const std::string& matF
 
 
         size_t pos;
+        
         if ((pos = line.find("Ns ")) == 1 || (pos = line.find("Ns ")) == 0)
             Ns = std::stof(line.substr(pos + 3));
 
@@ -420,28 +481,28 @@ Material<std::shared_ptr<Texture>> Model::CreateMaterial(const std::string& matF
         else if ((pos = line.find("d ")) == 1 || (pos = line.find("d ")) == 0)
             Opacity = std::stof(line.substr(pos + 2));
 
-        else if ((pos = line.find("Tr ")) == 1 && Opacity < 0.f)
+        else if (((pos = line.find("Tr ")) == 1 || (pos = line.find("Tr ")) == 0) && Opacity < 0.f)
             Opacity = 1.f - std::stof(line.substr(pos + 3));
 
-        else if ((pos = line.find("Tf ")) == 1)
+        else if ((pos = line.find("Tf ")) == 1 || (pos = line.find("Tf ")) == 0)
             Tf = Maths::StrtoVec3(line.substr(pos + 3));
 
-        else if ((pos = line.find("illum ")) == 1)
+        else if ((pos = line.find("illum ")) == 1 || (pos = line.find("illum ")) == 0)
             Illum = std::stoi(line.substr(pos + 6));
 
-        else if ((pos = line.find("Ka ")) == 1)
+        else if ((pos = line.find("Ka ")) == 1 || (pos = line.find("Ka ")) == 0)
             Ka = Maths::StrtoVec3(line.substr(pos + 3));
 
-        else if ((pos = line.find("Kd ")) == 1)
+        else if ((pos = line.find("Kd ")) == 1 || (pos = line.find("Kd ")) == 0)
             Kd = Maths::StrtoVec3(line.substr(pos + 3));
 
-        else if ((pos = line.find("Ks ")) == 1)
+        else if ((pos = line.find("Ks ")) == 1 || (pos = line.find("Ks ")) == 0)
             Ks = Maths::StrtoVec3(line.substr(pos + 3));
 
-        else if ((pos = line.find("Ke ")) == 1)
+        else if ((pos = line.find("Ke ")) == 1 || (pos = line.find("Ke ")) == 0)
             Ke = Maths::StrtoVec3(line.substr(pos + 3));
 
-        else if ((pos = line.find("map_")) == 1)
+        else if ((pos = line.find("map_")) != String::npos)
         {
             std::stringstream ss;
             ss.str(line);
@@ -458,11 +519,17 @@ Material<std::shared_ptr<Texture>> Model::CreateMaterial(const std::string& matF
             }
 
             TextureType type;
-            if (line.find("map_Ka") == 1) type = TextureType::AMBIENT;
-            else if (line.find("map_Kd") == 1) type = TextureType::DIFFUSE;
-            else if (line.find("map_Ks") == 1) type = TextureType::SPECULAR;
-            else if (line.find("map_Ke") == 1) type = TextureType::EMISSIVE;
-            else if (line.find("map_bump") == 1 || line.find("map_Bump") == 1)
+            if (line.find("Ka") != String::npos) type = TextureType::AMBIENT;
+            else if (line.find("Kd") != String::npos) type = TextureType::DIFFUSE;
+            else if (line.find("Ks") != String::npos) type = TextureType::SPECULAR;
+            else if (line.find("Ke") != String::npos) type = TextureType::EMISSIVE;
+            else if (line.find("Ns") != String::npos) type = TextureType::ROUGHNESS;
+            else if (line.find("refl") != String::npos)
+            {
+                type = TextureType::METALLIC;
+                file = line.substr(pos + 9);
+            }
+            else if (line.find("bump") != String::npos || line.find("Bump") != String::npos)
             {
                 type = TextureType::BUMP;
                 file = line.substr(pos + 9);

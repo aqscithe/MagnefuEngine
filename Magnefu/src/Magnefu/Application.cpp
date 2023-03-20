@@ -2,17 +2,16 @@
 
 #include "Application.h"
 
-//#include "tests/TestClearColor.h"
-//#include "tests/Test3DRender.h"
-//#include "tests/Test2DTexture.h"
-//#include "tests/TestBatchRendering.h"
-//#include "tests/TestLighting.h"
-//#include "tests/TestModelLoading.h"
+#include "Globals.h"
+
+#include "tests/Test3DRender.h"
+#include "tests/Test2DTexture.h"
+#include "tests/TestBatchRendering.h"
+#include "tests/TestLighting.h"
+#include "tests/TestModelLoading.h"
 
 //TEMP
 #include "imgui/imgui.h"
-//#include "imgui/imgui_impl_glfw.h"
-//#include "imgui/imgui_impl_opengl3.h"
 
 
 namespace Magnefu
@@ -30,6 +29,8 @@ namespace Magnefu
 
         m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);
+
+        m_ResourceCache = std::unique_ptr<ResourceCache>(ResourceCache::Create());
 	}
 
 	Application::~Application()
@@ -62,8 +63,6 @@ namespace Magnefu
         EventDispatcher dispatcher(event);
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
 
-        MF_CORE_TRACE("{0}", event);
-
         for (auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )
         {
             (*--it)->OnEvent(event);
@@ -75,19 +74,18 @@ namespace Magnefu
 
 	void Application::Run()
 	{
+        Globals& global = Globals::Get();
         
-
-        /*Magnefu::Test* activeTest = nullptr;
+        Magnefu::Test* activeTest = nullptr;
         Magnefu::TestMenu* testMenu = new Magnefu::TestMenu(activeTest);
 
         activeTest = testMenu;
 
-        testMenu->RegisterTest<Magnefu::TestClearColor>("Clear Color");
         testMenu->RegisterTest<Magnefu::Test2DTexture>("2D Texture");
         testMenu->RegisterTest<Magnefu::Test3DRender>("Cube Render");
         testMenu->RegisterTest<Magnefu::TestBatchRendering>("Batching");
         testMenu->RegisterTest<Magnefu::TestLighting>("Lighting");
-        testMenu->RegisterTest <Magnefu::TestModelLoading>("3D Models");*/
+        testMenu->RegisterTest <Magnefu::TestModelLoading>("3D Models");
 
         auto lastTime = std::chrono::high_resolution_clock::now();
         while (m_Running)
@@ -98,19 +96,19 @@ namespace Magnefu
 
             m_Window->OnUpdate();
 
-            if(m_ImGuiLayer)
+            if (m_ImGuiLayer)
                 m_ImGuiLayer->BeginFrame();
 
-            //for (Layer* layer : m_LayerStack)
-            //    layer->OnUpdate();
+            for (Layer* layer : m_LayerStack)
+                layer->OnUpdate();
 
-            
+
 
             ImGui::Begin("Application");
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            ////ImGui::Text("MousePos: %.1f %.1f", mouseX, mouseY);
-            //ImGui::Text("Yaw: %.2f, | Pitch: %.2f", global.yaw, global.pitch);
-            //ImGui::Separator();
+            //ImGui::Text("MousePos: %.1f %.1f", , mouseY);
+            ImGui::Text("Yaw: %.2f, | Pitch: %.2f", global.yaw, global.pitch);
+            ImGui::Separator();
             if (ImGui::TreeNode("CONTROLS"))
             {
                 ImGui::Text("APP CONTROLS");
@@ -129,9 +127,9 @@ namespace Magnefu
             }
             ImGui::End();
 
-            /*if (activeTest)
+            if (activeTest)
             {
-                activeTest->OnUpdate(m_Window->GetWindow(), std::chrono::duration<float>(elapsedTime).count());
+                activeTest->OnUpdate(static_cast<GLFWwindow*>(m_Window->GetNativeWindow()), std::chrono::duration<float>(elapsedTime).count());
                 activeTest->OnRender();
                 ImGui::Begin("Tests");
                 if (activeTest != testMenu && ImGui::Button("<-"))
@@ -141,21 +139,17 @@ namespace Magnefu
                 }
                 activeTest->OnImGUIRender();
                 ImGui::End();
-            }*/
+            }
 
-            
-                
             if (m_ImGuiLayer)
                 m_ImGuiLayer->EndFrame();
 
-            
-                
-
         }
 
-           /*if (activeTest != testMenu)
-               delete testMenu;
-           delete activeTest;*/
+        if (activeTest != testMenu)
+            delete testMenu;
+        delete activeTest;
+           
     }
         
       

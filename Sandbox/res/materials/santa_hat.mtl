@@ -10,6 +10,7 @@ newmtl white
 	map_Ka maps\color.jpg
 	map_Kd maps\color.jpg
 	map_Ks maps\specular.jpg
+	map_Ns maps\rough.png
 
 newmtl red
 	Ns 9.999999
@@ -21,3 +22,4 @@ newmtl red
 	map_Ka maps\color.jpg
 	map_Kd maps\color.jpg
 	map_Ks maps\specular.jpg
+	map_Ns maps\rough.png

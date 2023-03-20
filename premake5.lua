@@ -27,6 +27,7 @@ prebuildcommands {
 project "Magnefu"
     location "Magnefu"
     kind "SharedLib" -- means dynamically linked lib
+    staticruntime "off"
     language "C++"
 
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
@@ -83,7 +84,6 @@ project "Magnefu"
 
     filter "system:windows"
         cppdialect "C++20"
-        staticruntime "On"
         systemversion "latest"
 
         defines {
@@ -102,23 +102,24 @@ project "Magnefu"
             "MF_DEBUG",
             "MF_ENABLE_ASSERTS"
         }
-        buildoptions "/MDd"
+        runtime "Debug"
         symbols "On"
 
     filter "configurations:Release"
         defines  "MF_RELEASE"
-        buildoptions "/MD"
+        runtime "Release"
         optimize "On"
 
     filter "configurations:Dist"
         defines  "MF_DIST"
-        buildoptions "/MD"
+        runtime "Release"
         optimize "On"
 
 
 project "Sandbox"
     location "Sandbox"
     kind "ConsoleApp" 
+    staticruntime "off"
     language "C++"
 
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
@@ -144,7 +145,6 @@ project "Sandbox"
 
     filter "system:windows"
         cppdialect "C++20"
-        staticruntime "On"
         systemversion "latest"
 
         defines {
@@ -158,20 +158,16 @@ project "Sandbox"
 
     filter "configurations:Debug"
         defines {
-            "MF_DEBUG",
-            "MF_ENABLE_ASSERTS"
+            "MF_DEBUG"
         }
-        buildoptions "/MDd"
         symbols "On"
 
     filter "configurations:Release"
         defines  "MF_RELEASE"
-        buildoptions "/MD"
         optimize "On"
 
     filter "configurations:Dist"
         defines  "MF_DIST"
-        buildoptions "/MD"
         optimize "On"
 
 

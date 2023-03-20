@@ -1,5 +1,7 @@
  #pragma once
 
+#include "CacheableResource.h"
+
 #include <string>
 
 using String = std::string;
@@ -17,7 +19,7 @@ struct ShaderProgramSource
 };
 
 
-class Shader
+class Shader : public CacheableResource
 {
 private:
 	String m_filepath;
@@ -27,6 +29,7 @@ private:
 
 public:
 	Shader(const String& filepath);
+	//Shader(const Shader&) = delete;
 	~Shader();
 
 	void Bind()   const;

@@ -55,11 +55,6 @@ namespace Magnefu
 			std::vector<DirLightModel> m_DirectionLights;
 			std::vector<SpotLightModel> m_SpotLights;
 
-
-			Maths::vec3 m_AmbientIntensity;
-			Maths::vec3 m_DiffusionIntensity;
-			Maths::vec3 m_SpecularIntensity;
-
 			std::vector<ObjModelVertex> m_TempVertices;
 			std::vector<unsigned int>   m_TempIndices;
 			std::unique_ptr<Mesh> m_Mesh;
@@ -73,8 +68,6 @@ namespace Magnefu
 			std::mutex m_ModelMutex;
 
 			std::vector<std::string> m_Objs;
-
-			
 
 
 			std::unordered_map<std::string, int> m_TextureCache;
@@ -100,8 +93,10 @@ namespace Magnefu
 
 			bool m_bShowTransform;
 
-			ReflectionModel m_ReflectionModel;
-			ShadingTechnique m_ShadingTechnique;
-			
+			int m_ReflectionModel;
+			int m_ShadingTechnique;
+
+			float m_RadiantFlux;
+			float m_Reflectance;
 	};
 }

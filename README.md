@@ -49,13 +49,17 @@ NOTE - Spot and Direction lights are temporarily disabled as I fix some issues w
 - Test Scenes
 
 
-### Upcoming
+### Upcoming/TODO
+- Cleaner material and texture cache
+- Fix issues with texture when loading multiple models at once
+- Manipulate separate meshes on a model
 - Adaptive Window Resolution / Screen Resolution Options
 - BRDF
     - Cook-Torrance Microfacet
     - Blinn-Phong
 - Anti Aliasing
 - Lights
+    - Visual Light Representations
     - Area
     - Light Attenuation
 - Normal Map

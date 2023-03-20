@@ -2,6 +2,7 @@
 
 #include "Core.h"
 #include "Window.h"
+#include "ResourceCache.h"
 #include "Magnefu/LayerStack.h"
 #include "Magnefu/ImGui/ImGuiLayer.h"
 #include "Magnefu/Events/ApplicationEvent.h"
@@ -26,6 +27,7 @@ namespace Magnefu
 		void PushOverlay(Layer* overlay);
 
 		inline Window& GetWindow() { return *m_Window; }
+		inline ResourceCache& GetResourceCache() { return *m_ResourceCache; }
 
 		inline static Application& Get() { return *s_Instance; }
 
@@ -37,7 +39,11 @@ namespace Magnefu
 		LayerStack m_LayerStack;
 		ImGuiLayer* m_ImGuiLayer;
 
+		std::unique_ptr<ResourceCache> m_ResourceCache;
+
 		static Application* s_Instance;
+
+		
 	};
 
 	// to be defined in client

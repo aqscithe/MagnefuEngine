@@ -15,4 +15,5 @@ newmtl Cat
 	map_Ka Cat_diffuse.jpg
 	map_Kd Cat_diffuse.jpg
 	map_bump Cat_bump.jpg
+	map_Ns Cat_rough.png
 	bump Cat_bump.jpg

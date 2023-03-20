@@ -11,6 +11,7 @@ enum class ReflectionModel
 	MICRO_FACET,
 };
 
+// TODO: add RadiantFlux value
 struct Light
 {
 	bool Enabled;

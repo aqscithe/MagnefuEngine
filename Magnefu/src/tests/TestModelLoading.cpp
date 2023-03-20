@@ -2,9 +2,7 @@
 
 #include "TestModelLoading.h"
 
-//#include "imgui/imgui.h"
-//#include "imgui/imgui_impl_glfw.h"
-//#include "imgui/imgui_impl_opengl3.h"
+#include "imgui/imgui.h"
 
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
@@ -53,8 +51,8 @@ namespace Magnefu
 
         // LOAD MESHES
         std::vector<std::string> objFiles = {
-            //"wooden_watch_tower2.obj",
-            "santa_hat(DEFAULT).obj",
+            "wooden_watch_tower2.obj",
+            //"santa_hat(DEFAULT).obj",
             //12221_Cat_v1_l3.obj",
         };
                 
@@ -86,25 +84,24 @@ namespace Magnefu
         m_Camera->m_Properties.IsOrtho = false;
 
         // LIGHTS
-        m_ReflectionModel = ReflectionModel::PHONG;
-        m_ShadingTechnique = ShadingTechnique::PHONG;
+        m_ReflectionModel = static_cast<int>(ReflectionModel::PHONG);
+        m_ShadingTechnique = static_cast<int>(ShadingTechnique::PHONG);
+
+        m_RadiantFlux = 3.f;
+        m_Reflectance = 1.f;
 
         m_PointLights.emplace_back(CreatePointLight(), Maths::identity());
-        m_PointLights.back().Enabled = false;
+        m_PointLights.back().Enabled = true;
 
         m_DirectionLights.reserve(1);
         m_DirectionLights.emplace_back(CreateDirLight(), Maths::identity());
+        m_DirectionLights.back().Enabled = false;
 
         m_SpotLights.reserve(1);
         m_SpotLights.emplace_back(CreateSpotLight(), Maths::identity());
         m_SpotLights.back().Enabled = false;
 
         m_lightScaling = { 0.1f, 0.1f, 0.1f };
-
-        m_AmbientIntensity = 0.5f;
-        m_DiffusionIntensity = 1.f;
-        m_SpecularIntensity = 0.8f;
-
 
         // SHADERS & TEXTURES
 
@@ -204,8 +201,6 @@ namespace Magnefu
 
 	void TestModelLoading::OnRender()
 	{
-        m_Renderer.Clear();
-
         m_Shader->Bind();
         SetShaderUniforms();
         for (auto& model : m_Models)
@@ -221,9 +216,9 @@ namespace Magnefu
 
         bool isopen = true;
 
-        //ImGui::Begin("Model Loader", &isopen, ImGuiWindowFlags_MenuBar);
+        ImGui::Begin("Model Loader", &isopen, ImGuiWindowFlags_MenuBar);
 
-        /*if (ImGui::BeginTabBar("Model Load Options", ImGuiTabBarFlags_None))
+        if (ImGui::BeginTabBar("Model Load Options", ImGuiTabBarFlags_None))
         {
             if (ImGui::BeginTabItem("Select OBJ to Load: "))
             {
@@ -286,25 +281,22 @@ namespace Magnefu
                 {
                     ImGui::Text("Reflection Model: ");
                     ImGui::SameLine();
-                    if (ImGui::Button("Phong ")) m_ReflectionModel = ReflectionModel::PHONG;
+                    if (ImGui::Button("Phong ")) m_ReflectionModel = 0;
                     ImGui::SameLine();
-                    if (ImGui::Button("Blinn-Phong")) m_ReflectionModel = ReflectionModel::BLINN_PHONG;
+                    if (ImGui::Button("Modified Phong")) m_ReflectionModel = 1;
+                    ImGui::SameLine();
+                    if (ImGui::Button("Blinn-Phong")) m_ReflectionModel = 2;
+                    ImGui::SameLine();
+                    if (ImGui::Button("Micro Facet")) m_ReflectionModel = 3;
+
+                    ImGui::SliderFloat("Radiant Flux ", &m_RadiantFlux, 0.f, 100.f);
 
                     ImGui::Text("Shading Technique");
                     ImGui::SameLine();
-                    if (ImGui::Button("Phong")) m_ShadingTechnique = ShadingTechnique::PHONG;
+                    if (ImGui::Button("Phong")) m_ShadingTechnique = 0;
                     ImGui::TreePop();
                 }
 
-                ImGui::TreePop();
-            }
-            ImGui::Separator();
-
-            if (ImGui::TreeNode("Material"))
-            {
-                ImGui::SliderFloat3("Ambient Intensity", m_AmbientIntensity.e, 0.f, 1.f);
-                ImGui::SliderFloat3("Diffuse Intensity", m_DiffusionIntensity.e, 0.f, 1.f);
-                ImGui::SliderFloat3("Specular Intensity", m_SpecularIntensity.e, 0.f, 1.f);            
                 ImGui::TreePop();
             }
             ImGui::Separator();
@@ -426,19 +418,18 @@ namespace Magnefu
                 }
                 ImGui::TreePop();
             }
-        }*/
+        }
 	}
 
     void TestModelLoading::SetShaderUniforms()
     {
         m_Shader->SetUniformMatrix4fv("u_MVP", m_MVP);
 
-        m_Shader->SetUniform3fv("u_Intensity.Ambient",  m_AmbientIntensity);
-        m_Shader->SetUniform3fv("u_Intensity.Diffuse",  m_DiffusionIntensity);
-        m_Shader->SetUniform3fv("u_Intensity.Specular", m_SpecularIntensity);
+        m_Shader->SetUniform1i("u_ShadingTechnique", m_ShadingTechnique);
+        m_Shader->SetUniform1i("u_ReflectionModel", m_ReflectionModel);
 
-        m_Shader->SetUniform1i("u_ShadingTechnique", static_cast<int>(m_ShadingTechnique));
-        m_Shader->SetUniform1i("u_ReflectionModel", static_cast<int>(m_ReflectionModel));
+        //m_Shader->SetUniform1f("u_PointLightRadius", m_PointLightRadius);
+        m_Shader->SetUniform1f("u_RadiantFlux", m_RadiantFlux);
 
         for (int i = 0; i < m_PointLights.size(); i++)
         {

@@ -3,7 +3,6 @@
 
 Sandbox::Sandbox()
 {
-	//PushOverlay(new Magnefu::ImGuiLayer());
 }
 
 Sandbox::~Sandbox()
