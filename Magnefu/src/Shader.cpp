@@ -166,3 +166,8 @@ void Shader::SetUniform1ui(const String& name, const unsigned int value)
 {
     glUniform1ui(GetUniformLocation(name), (GLuint)value);
 }
+
+void Shader::ClearCache()
+{
+    m_uniformLocationAndNameMap.clear();
+}

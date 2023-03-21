@@ -51,13 +51,13 @@ namespace Magnefu
         m_IBO = std::make_unique<IndexBuffer>(sizeof(indices) / sizeof(unsigned int), indices);
 
         std::string shaderPath = "res/shaders/Texture2D.shader";
+        std::string texturePath = "res/textures/moon.png";
 
         Application& app = Application::Get();
         ResourceCache& cache = app.GetResourceCache();
-        Shader shader = cache.RequestResource<Shader>(shaderPath);
+        m_Shader = cache.RequestResource<Shader>(shaderPath);
 
-        m_Shader = std::make_unique <Shader>(shaderPath);
-        m_Texture = std::make_unique<Texture>("res/textures/moon.png");
+        m_Texture = cache.RequestResource<Texture>(texturePath);
         
         m_Shader->Bind();
         m_Texture->Bind();

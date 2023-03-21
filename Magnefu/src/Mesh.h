@@ -50,7 +50,7 @@ class Mesh
 public:
 	Mesh(MeshData& meshData);
 
-	void Draw(std::unique_ptr<Shader>& shader);
+	void Draw(Shader* shader);
 	void OnImGUIRender();
 
 	void Init();

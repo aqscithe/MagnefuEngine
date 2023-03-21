@@ -1,10 +1,11 @@
 #pragma once
 
+#include "CacheableResource.h"
 #include <string>
 
 using String = std::string;
 
-class Texture
+class Texture : public CacheableResource
 {
 private:
 	unsigned int m_RendererID;
@@ -16,6 +17,7 @@ private:
 	bool m_Bound;
 
 public:
+	Texture() = default;
 	Texture(const String& filepath, bool async = false);
 	~Texture();
 

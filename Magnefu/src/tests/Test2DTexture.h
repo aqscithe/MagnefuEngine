@@ -31,8 +31,8 @@ namespace Magnefu
 			Renderer m_Renderer;
 			std::unique_ptr<VertexArray> m_VAO;
 			std::unique_ptr<IndexBuffer> m_IBO;
-			std::unique_ptr<Shader> m_Shader;
-			std::unique_ptr<Texture> m_Texture;
+			Shader* m_Shader;
+			Texture* m_Texture;
 
 
 			std::unique_ptr <Maths::Quaternion> m_Quat;

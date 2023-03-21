@@ -62,11 +62,11 @@ namespace Magnefu
 			std::unique_ptr<VertexArray> m_ModelCubeVAO;
 			std::unique_ptr<VertexArray> m_LightCubeVAO;
 			std::unique_ptr<IndexBuffer> m_IBO;
-			std::unique_ptr<Shader> m_ModelCubeShader;
-			std::unique_ptr<Shader> m_LightCubeShader;
-			std::unique_ptr<Shader> m_TextureCubeShader;
+			Shader* m_ModelCubeShader;
+			Shader* m_LightCubeShader;
+			Shader* m_TextureCubeShader;
 
-			std::vector<std::unique_ptr<Texture>> m_Textures;
+			std::vector<Texture*> m_Textures;
 			std::vector<std::future<void>> m_Futures;
 
 

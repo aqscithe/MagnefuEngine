@@ -21,15 +21,10 @@ struct ShaderProgramSource
 
 class Shader : public CacheableResource
 {
-private:
-	String m_filepath;
-	unsigned int m_RendererID;
-	std::unordered_map<String, int> m_uniformLocationAndNameMap;
-
-
 public:
+	Shader() = default;
 	Shader(const String& filepath);
-	//Shader(const Shader&) = delete;
+	Shader(const Shader&) = delete;
 	~Shader();
 
 	void Bind()   const;
@@ -44,6 +39,8 @@ public:
 	void SetUniform1iv(const String& name, const int* value);
 	void SetUniform1ui(const String& name, const unsigned int value);
 
+	void ClearCache();
+
 private:
 	ShaderProgramSource ParseShader(const String& filepath);
 
@@ -51,5 +48,10 @@ private:
 	unsigned int CompileShader(unsigned int type, const String& source);
 
 	int GetUniformLocation(const String& name);
+
+private:
+	String m_filepath;
+	unsigned int m_RendererID;
+	std::unordered_map<String, int> m_uniformLocationAndNameMap;
 
 };

@@ -34,7 +34,7 @@ namespace Magnefu
 
 	public:
 		template <typename T, typename... Args>
-		T& RequestResource(Args& ...args)
+		T* RequestResource(Args& ...args)
 		{
 			static_assert(std::is_base_of<CacheableResource, T>::value, "Class must be derived from CacheableResource");
 
@@ -51,7 +51,7 @@ namespace Magnefu
 
 			// if we find the resource, return it
 			if (resource_it != resourceHashMap.end())
-				return *dynamic_cast<T*>(resource_it->second.get());
+				return dynamic_cast<T*>(resource_it->second.get());
 
 			// otherwise create the resource
 			auto newResource = std::make_unique<T>(args...);
@@ -61,7 +61,7 @@ namespace Magnefu
 			resourceHashMap.emplace(seed, std::move(newResource));
 
 			//return *dynamic_cast<T*>(it->second.get());
-			return *dynamic_cast<T*>(resourceHashMap[seed].get());
+			return dynamic_cast<T*>(resourceHashMap[seed].get());
 		}
 
 		static ResourceCache* Create();

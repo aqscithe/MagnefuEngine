@@ -1,6 +1,8 @@
 #include "mfpch.h"
 
 #include "TestBatchRendering.h"
+#include "Magnefu/Application.h"
+#include "ResourceCache.h"
 
 #include "imgui/imgui.h"
 
@@ -41,9 +43,15 @@ namespace Magnefu
 
         m_IBO = std::make_unique<IndexBuffer>(sizeof(unsigned int) * 6 * 100, nullptr);
 
-        m_Shader = std::make_unique <Shader>("res/shaders/BatchRender.shader");
-        m_Texture0 = std::make_unique<Texture>("res/textures/wall.jpg");
-        m_Texture1 = std::make_unique<Texture>("res/textures/pluto.png");
+        Application& app = Application::Get();
+        ResourceCache& cache = app.GetResourceCache();
+
+        std::string shaderPath = "res/shaders/BatchRender.shader";
+        std::string texturePath0 = "res/textures/wall.jpg";
+        std::string texturePath1 = "res/textures/pluto.png";
+        m_Shader = cache.RequestResource<Shader>(shaderPath);
+        m_Texture0 = cache.RequestResource<Texture>(texturePath0);
+        m_Texture1 = cache.RequestResource<Texture>(texturePath1);
         
         m_Shader->Bind();
         

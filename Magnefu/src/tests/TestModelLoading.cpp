@@ -1,6 +1,8 @@
 #include "mfpch.h"
 
 #include "TestModelLoading.h"
+#include "Magnefu/Application.h"
+#include "ResourceCache.h"
 
 #include "imgui/imgui.h"
 
@@ -105,8 +107,12 @@ namespace Magnefu
 
         // SHADERS & TEXTURES
 
+        Application& app = Application::Get();
+        ResourceCache& cache = app.GetResourceCache();
+
         // should this be an async call?
-        m_Shader = std::make_unique <Shader>("res/shaders/TestModelLoading.shader"); 
+        std::string shader1 = "res/shaders/TestModelLoading.shader";
+        m_Shader = cache.RequestResource <Shader>(shader1); 
         m_Shader->Bind();
         SetShaderUniforms();
         m_Shader->Unbind();

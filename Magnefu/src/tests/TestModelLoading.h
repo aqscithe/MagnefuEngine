@@ -77,8 +77,8 @@ namespace Magnefu
 
 			Renderer m_Renderer;
 			
-			std::unique_ptr<Shader> m_Shader;
-			std::unique_ptr<Shader> m_LightCubeShader;
+			Shader* m_Shader;
+			Shader* m_LightCubeShader;
 
 
 			std::unique_ptr <Maths::Quaternion> m_Quat;

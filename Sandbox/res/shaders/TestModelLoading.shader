@@ -201,9 +201,7 @@ vec3 CalcMicroFacetBRDF(vec3 LightVector, vec3 ViewVector)
 	float NoV = clamp(dot(Normal, ViewVector), 0.0, 1.0);
 	float G = G_Smith(roughness, NoL, NoV);
 
-	// not sure if I should be multiplying by the specular texture here
-	vec3 spec = F * D * G / 4.0 * max(NoL, 0.001) * max(NoV, 0.001) * u_material[int(MatID)].Ks; // multiply by diffuse color?
-	//vec3 spec = (F * D * G / 4.0 * max(NoL, 0.001) * max(NoV, 0.001)) * vec3(texture(u_material[int(MatID)].Specular, TexCoords)) * u_material[int(MatID)].Ks;
+	vec3 spec = F * D * G / 4.0 * max(NoL, 0.001) * max(NoV, 0.001) * u_material[int(MatID)].Ks;
 
 	vec3 rhod = vec3(texture(u_material[int(MatID)].Diffuse, TexCoords)) * u_material[int(MatID)].Kd;
 	rhod *= vec3(1.0) - F;

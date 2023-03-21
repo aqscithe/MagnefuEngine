@@ -1,6 +1,8 @@
 #include "mfpch.h"
 
 #include "TestLighting.h"
+#include "Magnefu/Application.h"
+#include "ResourceCache.h"
 
 #include "imgui/imgui.h"
 
@@ -292,14 +294,19 @@ namespace Magnefu
 
 
         m_MVP = Maths::identity();
+
+        Application& app = Application::Get();
+        ResourceCache& cache = app.GetResourceCache();
         
-        m_ModelCubeShader = std::make_unique <Shader>("res/shaders/TestLighting.shader");
+        std::string shader1 = "res/shaders/TestLighting.shader";
+        std::string shader2 = "res/shaders/TestLighting-Texture.shader";
+        m_ModelCubeShader = cache.RequestResource<Shader>(shader1);
         m_ModelCubeShader->Bind();
         SetShaderUniforms();
         m_ModelCubeShader->Unbind();
 
 
-        m_TextureCubeShader = std::make_unique <Shader>("res/shaders/TestLighting-Texture.shader");
+        m_TextureCubeShader = cache.RequestResource<Shader>(shader2);
         m_TextureCubeShader->Bind();
 
         // need a way to read in all the textures I want by selecting a directory or something.
@@ -344,7 +351,7 @@ namespace Magnefu
         // single threaded version
         for (int i = 0; i < textureList.size(); i++)
         {
-            m_Textures.emplace_back(std::make_unique<Texture>(textureList[i]));
+            m_Textures.emplace_back(cache.RequestResource<Texture>(textureList[i]));
             m_Textures[i]->Bind(i);
         }
 
@@ -367,8 +374,8 @@ namespace Magnefu
 
         m_TextureCubeShader->Unbind();
         
-
-        m_LightCubeShader = std::make_unique <Shader>("res/shaders/LightCube.shader");
+        std::string shaderpath3 = "res/shaders/LightCube.shader";
+        m_LightCubeShader = cache.RequestResource <Shader>(shaderpath3);
 
         //Set Uniforms
 
