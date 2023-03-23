@@ -2,11 +2,10 @@
 
 #include "Test.h"
 
-#include <GL/glew.h>
+#include <GLAD/glad.h>
 #include "Renderer.h"
 #include "Texture.h"
 #include "Shader.h"
-#include "Quaternion.h"
 #include "Camera.h"
 
 #include "Light.h"
@@ -15,13 +14,8 @@
 #include "Mesh.h"
 
 #include "Quaternion.h"
-#include "Vectors.h"
-#include "Matrices.h"
 
-#include <memory>
-#include <vector>
-#include <future>
-#include <mutex>
+
 
 
 // TODO:
@@ -61,11 +55,6 @@ namespace Magnefu
 			std::vector<DirLightModel> m_DirectionLights;
 			std::vector<SpotLightModel> m_SpotLights;
 
-
-			Maths::vec3 m_AmbientIntensity;
-			Maths::vec3 m_DiffusionIntensity;
-			Maths::vec3 m_SpecularIntensity;
-
 			std::vector<ObjModelVertex> m_TempVertices;
 			std::vector<unsigned int>   m_TempIndices;
 			std::unique_ptr<Mesh> m_Mesh;
@@ -80,18 +69,12 @@ namespace Magnefu
 
 			std::vector<std::string> m_Objs;
 
-			
-
-
-			std::unordered_map<std::string, int> m_TextureCache;
-			std::unordered_map<std::string, int> m_MaterialCache;
-
 			std::string m_MatFilePath;
 
 			Renderer m_Renderer;
 			
-			std::unique_ptr<Shader> m_Shader;
-			std::unique_ptr<Shader> m_LightCubeShader;
+			Shader* m_Shader;
+			Shader* m_LightCubeShader;
 
 
 			std::unique_ptr <Maths::Quaternion> m_Quat;
@@ -106,8 +89,10 @@ namespace Magnefu
 
 			bool m_bShowTransform;
 
-			ReflectionModel m_ReflectionModel;
-			ShadingTechnique m_ShadingTechnique;
-			
+			int m_ReflectionModel;
+			int m_ShadingTechnique;
+
+			float m_RadiantFlux;
+			float m_Reflectance;
 	};
 }

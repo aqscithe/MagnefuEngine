@@ -6,14 +6,16 @@
 enum class ReflectionModel
 {
 	PHONG,
-	BLINN_PHONG
+	MODIFIED_PHONG,
+	BLINN_PHONG,
+	MICRO_FACET,
 };
 
+// TODO: add RadiantFlux value
 struct Light
 {
 	bool Enabled;
-	Maths::vec3 Diffuse;
-	Maths::vec3 Specular;
+	Maths::vec3 Color;
 	float constant;
 	float linear;
 	float quadratic;

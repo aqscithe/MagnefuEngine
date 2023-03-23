@@ -77,9 +77,10 @@ Plugins/*/Intermediate/*
 DerivedDataCache/*
 
 # Dependencies
-Dependencies/*
 bin/*
 bin-intermediates/*
+Magnefu/vendor/*/bin/*
+Magnefu/vendor/*/bin-intermediates/*
 */.vs
 
 # Vendor

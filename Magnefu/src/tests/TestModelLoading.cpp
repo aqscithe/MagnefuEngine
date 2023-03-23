@@ -1,8 +1,10 @@
+#include "mfpch.h"
+
 #include "TestModelLoading.h"
+#include "Magnefu/Application.h"
+#include "ResourceCache.h"
 
 #include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
 
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
@@ -16,18 +18,15 @@
 #include "Primitive3D.h"
 #include "Timer.h"
 
-#include <iostream>
-#include <chrono>
-#include <numeric>
 #include <cstdio>
 #include <filesystem>
 
 namespace Magnefu
 {
-    static std::unique_ptr<Model> LoadModel(std::string& filepath, std::unordered_map<std::string, int>& matCache, std::mutex& mutex)
+    static std::unique_ptr<Model> LoadModel(std::string& filepath)
     {
         Timer timer;
-        return std::make_unique<Model>(filepath, matCache, mutex);
+        return std::make_unique<Model>(filepath);
     }
 
 	TestModelLoading::TestModelLoading()
@@ -54,13 +53,13 @@ namespace Magnefu
 
         // LOAD MESHES
         std::vector<std::string> objFiles = {
-            //"wooden_watch_tower2.obj",
-            "santa_hat(DEFAULT).obj",
+            "wooden_watch_tower2.obj",
+            //"santa_hat(DEFAULT).obj",
             //12221_Cat_v1_l3.obj",
         };
                 
         for(std::string& obj : objFiles)
-            m_ModelWorkers[m_ModelWorkers.size()] = Worker<Model>{ false, std::async(std::launch::async, LoadModel, std::ref(obj), std::ref(m_MaterialCache), std::ref(m_ModelMutex) )};
+            m_ModelWorkers[m_ModelWorkers.size()] = Worker<Model>{ false, std::async(std::launch::async, LoadModel, std::ref(obj))};
 
         // TRANSFORM
         m_bShowTransform = false;
@@ -87,14 +86,18 @@ namespace Magnefu
         m_Camera->m_Properties.IsOrtho = false;
 
         // LIGHTS
-        m_ReflectionModel = ReflectionModel::PHONG;
-        m_ShadingTechnique = ShadingTechnique::PHONG;
+        m_ReflectionModel = static_cast<int>(ReflectionModel::PHONG);
+        m_ShadingTechnique = static_cast<int>(ShadingTechnique::PHONG);
+
+        m_RadiantFlux = 3.f;
+        m_Reflectance = 1.f;
 
         m_PointLights.emplace_back(CreatePointLight(), Maths::identity());
-        m_PointLights.back().Enabled = false;
+        m_PointLights.back().Enabled = true;
 
         m_DirectionLights.reserve(1);
         m_DirectionLights.emplace_back(CreateDirLight(), Maths::identity());
+        m_DirectionLights.back().Enabled = false;
 
         m_SpotLights.reserve(1);
         m_SpotLights.emplace_back(CreateSpotLight(), Maths::identity());
@@ -102,15 +105,14 @@ namespace Magnefu
 
         m_lightScaling = { 0.1f, 0.1f, 0.1f };
 
-        m_AmbientIntensity = 0.5f;
-        m_DiffusionIntensity = 1.f;
-        m_SpecularIntensity = 0.8f;
-
-
         // SHADERS & TEXTURES
 
+        Application& app = Application::Get();
+        ResourceCache& cache = app.GetResourceCache();
+
         // should this be an async call?
-        m_Shader = std::make_unique <Shader>("res/shaders/TestModelLoading.shader"); 
+        std::string shader1 = "res/shaders/TestModelLoading.shader";
+        m_Shader = cache.RequestResource <Shader>(shader1); 
         m_Shader->Bind();
         SetShaderUniforms();
         m_Shader->Unbind();
@@ -142,7 +144,7 @@ namespace Magnefu
                 modelWorker.WasAccessed = true;
                 m_InactiveThreads++;
                 m_Models.push_back(modelWorker.Thread.get());
-                m_Models.back()->Init(m_Shader, m_TextureCache, m_MaterialCache);
+                m_Models.back()->Init(m_Shader);
             }
         }
 
@@ -205,12 +207,10 @@ namespace Magnefu
 
 	void TestModelLoading::OnRender()
 	{
-        m_Renderer.Clear();
-
         m_Shader->Bind();
         SetShaderUniforms();
         for (auto& model : m_Models)
-            model->Draw(m_Shader, m_TextureCache, m_MaterialCache);
+            model->Draw(m_Shader);
         m_Shader->Unbind();
         
 	}
@@ -231,7 +231,7 @@ namespace Magnefu
                 for (auto& obj : m_Objs)
                 {
                     if (ImGui::Button(obj.c_str()))
-                        m_ModelWorkers[m_ModelWorkers.size()] = Worker<Model>{ false, std::async(std::launch::async, LoadModel, std::ref(obj), std::ref(m_MaterialCache), std::ref(m_ModelMutex)) };
+                        m_ModelWorkers[m_ModelWorkers.size()] = Worker<Model>{ false, std::async(std::launch::async, LoadModel, std::ref(obj)) };
                 }
                 ImGui::EndTabItem();
             }
@@ -241,7 +241,11 @@ namespace Magnefu
                 for (int i = 0; i < m_Models.size(); i++)
                 {
                     if (ImGui::Button(m_Models[i]->m_Filepath.c_str()))
+                    {
+                        //m_Models[i]->ClearFromCache();
                         m_Models.erase(m_Models.begin() + i);
+                    }
+                        
                 }
                 ImGui::EndTabItem();
             }
@@ -283,25 +287,22 @@ namespace Magnefu
                 {
                     ImGui::Text("Reflection Model: ");
                     ImGui::SameLine();
-                    if (ImGui::Button("Phong ")) m_ReflectionModel = ReflectionModel::PHONG;
+                    if (ImGui::Button("Phong ")) m_ReflectionModel = 0;
                     ImGui::SameLine();
-                    if (ImGui::Button("Blinn-Phong")) m_ReflectionModel = ReflectionModel::BLINN_PHONG;
+                    if (ImGui::Button("Modified Phong")) m_ReflectionModel = 1;
+                    ImGui::SameLine();
+                    if (ImGui::Button("Blinn-Phong")) m_ReflectionModel = 2;
+                    ImGui::SameLine();
+                    if (ImGui::Button("Micro Facet")) m_ReflectionModel = 3;
+
+                    ImGui::SliderFloat("Radiant Flux ", &m_RadiantFlux, 0.f, 100.f);
 
                     ImGui::Text("Shading Technique");
                     ImGui::SameLine();
-                    if (ImGui::Button("Phong")) m_ShadingTechnique = ShadingTechnique::PHONG;
+                    if (ImGui::Button("Phong")) m_ShadingTechnique = 0;
                     ImGui::TreePop();
                 }
 
-                ImGui::TreePop();
-            }
-            ImGui::Separator();
-
-            if (ImGui::TreeNode("Material"))
-            {
-                ImGui::SliderFloat3("Ambient Intensity", m_AmbientIntensity.e, 0.f, 1.f);
-                ImGui::SliderFloat3("Diffuse Intensity", m_DiffusionIntensity.e, 0.f, 1.f);
-                ImGui::SliderFloat3("Specular Intensity", m_SpecularIntensity.e, 0.f, 1.f);            
                 ImGui::TreePop();
             }
             ImGui::Separator();
@@ -327,8 +328,7 @@ namespace Magnefu
                             if (m_DirectionLights[i].Enabled)
                             {
                                 ImGui::SliderFloat3("Light Direction ", m_DirectionLights[i].Direction.e, -1.f, 1.f);
-                                ImGui::ColorEdit3("Diffuse Color", m_DirectionLights[i].Diffuse.e);
-                                ImGui::ColorEdit3("Specular Color", m_DirectionLights[i].Specular.e);
+                                ImGui::ColorEdit3("Color", m_DirectionLights[i].Color.e);
                                 ImGui::Text("Attenuation Controls");
                                 ImGui::Text("Att Constant (Should be 1.0): %f", m_DirectionLights[i].constant);
                                 ImGui::SliderFloat("Att Linear", &m_DirectionLights[i].linear, 0.f, 1.f);
@@ -351,8 +351,7 @@ namespace Magnefu
                             {
                                 ImGui::SliderFloat3("Light Position ", m_PointLights[i].Position.e, -10.f, 10.f);
                                 ImGui::SliderFloat3("Light Scale", m_lightScaling.e, -10.f, 10.f);
-                                ImGui::ColorEdit3("Diffuse Color", m_PointLights[i].Diffuse.e);
-                                ImGui::ColorEdit3("Specular Color", m_PointLights[i].Specular.e);
+                                ImGui::ColorEdit3("Color", m_PointLights[i].Color.e);
                                 ImGui::Text("Attenuation Controls");
                                 ImGui::Text("Att Constant (Should be 1.0): %f", m_PointLights[i].constant);
                                 ImGui::SliderFloat("Att Linear", &m_PointLights[i].linear, 0.f, 1.f);
@@ -375,8 +374,7 @@ namespace Magnefu
                             {
                                 ImGui::SliderFloat3("Light Direction ", m_SpotLights[i].Direction.e, -10.f, 10.f);
                                 ImGui::SliderFloat3("Light Position ", m_SpotLights[i].Position.e, -10.f, 10.f);
-                                ImGui::ColorEdit3("Diffuse Color", m_SpotLights[i].Diffuse.e);
-                                ImGui::ColorEdit3("Specular Color", m_SpotLights[i].Specular.e);
+                                ImGui::ColorEdit3("Color", m_SpotLights[i].Color.e);
                                 ImGui::SliderFloat("Inner Cutoff", &m_SpotLights[i].innerCutoff, 0.f, 1.f);
                                 ImGui::SliderFloat("Outer Cutoff", &m_SpotLights[i].outerCutoff, 0.f, 1.f);
                                 ImGui::Text("Attenuation Controls");
@@ -433,20 +431,18 @@ namespace Magnefu
     {
         m_Shader->SetUniformMatrix4fv("u_MVP", m_MVP);
 
-        m_Shader->SetUniform3fv("u_Intensity.Ambient",  m_AmbientIntensity);
-        m_Shader->SetUniform3fv("u_Intensity.Diffuse",  m_DiffusionIntensity);
-        m_Shader->SetUniform3fv("u_Intensity.Specular", m_SpecularIntensity);
+        m_Shader->SetUniform1i("u_ShadingTechnique", m_ShadingTechnique);
+        m_Shader->SetUniform1i("u_ReflectionModel", m_ReflectionModel);
 
-        m_Shader->SetUniform1i("u_ShadingTechnique", static_cast<int>(m_ShadingTechnique));
-        m_Shader->SetUniform1i("u_ReflectionModel", static_cast<int>(m_ReflectionModel));
+        //m_Shader->SetUniform1f("u_PointLightRadius", m_PointLightRadius);
+        m_Shader->SetUniform1f("u_RadiantFlux", m_RadiantFlux);
 
         for (int i = 0; i < m_PointLights.size(); i++)
         {
             std::string lightLabel = "u_PointLights[" + std::to_string(i) + "].";
             m_Shader->SetUniform1i(lightLabel + "Enabled", m_PointLights[i].Enabled);
             m_Shader->SetUniform3fv(lightLabel + "Position", m_PointLights[i].Position);
-            m_Shader->SetUniform3fv(lightLabel + "Diffuse", m_PointLights[i].Diffuse);
-            m_Shader->SetUniform3fv(lightLabel + "Specular", m_PointLights[i].Specular);
+            m_Shader->SetUniform3fv(lightLabel + "Color", m_PointLights[i].Color);
             m_Shader->SetUniform1f(lightLabel + "Constant", m_PointLights[i].constant);
             m_Shader->SetUniform1f(lightLabel + "Linear", m_PointLights[i].linear);
             m_Shader->SetUniform1f(lightLabel + "Quadratic", m_PointLights[i].quadratic);
@@ -457,8 +453,7 @@ namespace Magnefu
             std::string lightLabel = "u_DirectionLights[" + std::to_string(i) + "].";
             m_Shader->SetUniform1i(lightLabel + "Enabled", m_DirectionLights[i].Enabled);
             m_Shader->SetUniform3fv(lightLabel + "Direction", m_DirectionLights[i].Direction);
-            m_Shader->SetUniform3fv(lightLabel + "Diffuse", m_DirectionLights[i].Diffuse);
-            m_Shader->SetUniform3fv(lightLabel + "Specular", m_DirectionLights[i].Specular);
+            m_Shader->SetUniform3fv(lightLabel + "Color", m_DirectionLights[i].Color);
         }
 
         for (int i = 0; i < m_SpotLights.size(); i++)
@@ -467,8 +462,7 @@ namespace Magnefu
             m_Shader->SetUniform1i(lightLabel + "Enabled", m_SpotLights[i].Enabled);
             m_Shader->SetUniform3fv(lightLabel + "Direction", m_SpotLights[i].Direction);
             m_Shader->SetUniform3fv(lightLabel + "Position", m_SpotLights[i].Position);
-            m_Shader->SetUniform3fv(lightLabel + "Diffuse", m_SpotLights[i].Diffuse);
-            m_Shader->SetUniform3fv(lightLabel + "Specular", m_SpotLights[i].Specular);
+            m_Shader->SetUniform3fv(lightLabel + "Color", m_SpotLights[i].Color);
             m_Shader->SetUniform1f(lightLabel + "Constant", m_SpotLights[i].constant);
             m_Shader->SetUniform1f(lightLabel + "Linear", m_SpotLights[i].linear);
             m_Shader->SetUniform1f(lightLabel + "Quadratic", m_SpotLights[i].quadratic);

@@ -1,476 +1,467 @@
+#include "mfpch.h"
+
 #include "Model.h"
+#include "Magnefu/Application.h"
+#include "ResourceCache.h"
 
 #include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
 
 
-
-Model::Model(std::string& filepath, Cache& matCache, std::mutex& mutex)
+namespace Magnefu
 {
-    m_Filepath = "res/meshes/" + filepath;
-    std::ifstream stream(m_Filepath);
-    std::string line;
 
-    std::string mtl;
-    std::string matFile;
-
-    std::vector<Maths::vec3> tempPositions;
-    std::vector<Maths::vec3> tempNormals;
-    std::vector<Maths::vec2> tempTexCoords;
-    std::vector<Face> tempFaces;
-
-    VertexCount vCount = { 0, 0, 0 };
-    VertexCount vCountLast = vCount;
-
-    std::vector<SubMaterialStream> ss;
-    while (std::getline(stream, line))
+    Model::Model(std::string& filepath)
     {
-        if (line.find("mtllib ") == 0)
-        {
-            matFile = line.substr(7);
-            std::string filepath = "res/materials/" + matFile;
-            //std::string filepath = MATERIAL_PATH + matFile;
-            ParseMaterial(filepath, ss);
+        Application& app = Application::Get();
+        ResourceCache& cache = app.GetResourceCache();
 
-            
-            std::lock_guard<std::mutex> guard(mutex);
-            
-            for (auto& matData : ss)
-            {
-                m_MaterialList.emplace_back(matFile, matData.SubMatName, CreateMaterial(matFile, matData.StrData, matData.SubMatName, matCache.size()));
-                matCache.emplace(matData.SubMatName, matCache.size());
-            }
-        }
-        else
+        // TODO: Implement Fast Format for faster string parsing
+        m_Filepath = "res/meshes/" + filepath;
+        std::ifstream stream(m_Filepath);
+        std::string line;
+
+        std::string mtl;
+        std::string matFile;
+
+        std::unordered_map<std::string, uint32_t> matNameIDMap;
+        std::vector<Maths::vec3> tempPositions;
+        std::vector<Maths::vec3> tempNormals;
+        std::vector<Maths::vec2> tempTexCoords;
+        std::vector<Face> tempFaces;
+
+        VertexCount vCount = { 0, 0, 0 };
+        VertexCount vCountLast = vCount;
+
+        std::vector<SubMaterialStream> ss;
+        while (std::getline(stream, line))
         {
-            // need to create a new mesh every time we finish getting data for a set of vertices
-            if (line.find("v ") == 0)
+            if (line.find("mtllib ") == 0)
             {
-                if (!tempFaces.empty())
+                matFile = line.substr(7);
+                std::string filepath = "res/materials/" + matFile;
+                ParseMaterial(filepath, ss);
+
+                for (auto& matData : ss)
                 {
-                    LoadMesh(tempPositions, tempNormals, tempTexCoords, tempFaces);
-                    vCountLast.normalCount += vCount.normalCount;
-                    vCountLast.posCount += vCount.posCount;
-                    vCountLast.uvCount += vCount.uvCount;
-
-                    vCount = { 0,0,0 };
+                    m_Materials.emplace_back(cache.RequestResource<Material>(matFile, matData.StrData, matData.SubMatName));
+                    matNameIDMap[matData.SubMatName] = m_Materials.back()->ID;
                 }
-                    
-                tempPositions.emplace_back(GetVertexData(line, 3));
-                vCount.posCount++;
             }
-                
-            else if (line.find("vn ") == 0)
+            else
             {
-                tempNormals.emplace_back(GetVertexData(line, 3));
-                vCount.normalCount++;
-            }
-            else if (line.find("vt ") == 0)
-            {
-                tempTexCoords.emplace_back(GetVertexData(line, 2).uv);
-                vCount.uvCount++;
-            }
-            else if (line.find("f ") == 0)
-            {
-                uint32_t vertexCount;
-                auto faceData = GetFaceData(line, vertexCount);
-                if (m_Meshes.size() > 0)
+                // need to create a new mesh every time we finish getting data for a set of vertices
+                if (line.find("v ") == 0)
                 {
-                    for (uint32_t i = 0; i < vertexCount; i++)
+                    if (!tempFaces.empty())
                     {
-                        if (faceData[i].v < vCountLast.posCount)
-                            int j = 1;
-                        faceData[i].v -= vCountLast.posCount; //- faceData[i].v;
-                        faceData[i].vn -= vCountLast.normalCount; //- faceData[i].vn;
-                        faceData[i].vt -= vCountLast.uvCount; //- faceData[i].vt;
+                        LoadMesh(tempPositions, tempNormals, tempTexCoords, tempFaces);
+                        vCountLast.normalCount += vCount.normalCount;
+                        vCountLast.posCount += vCount.posCount;
+                        vCountLast.uvCount += vCount.uvCount;
+
+                        vCount = { 0,0,0 };
                     }
+
+                    tempPositions.emplace_back(GetVertexData(line, 3));
+                    vCount.posCount++;
                 }
-                tempFaces.emplace_back(faceData, matCache[mtl], vertexCount);
+
+                else if (line.find("vn ") == 0)
+                {
+                    tempNormals.emplace_back(GetVertexData(line, 3));
+                    vCount.normalCount++;
+                }
+                else if (line.find("vt ") == 0)
+                {
+                    tempTexCoords.emplace_back(GetVertexData(line, 2).uv);
+                    vCount.uvCount++;
+                }
+                else if (line.find("f ") == 0)
+                {
+                    uint32_t vertexCount;
+                    auto faceData = GetFaceData(line, vertexCount);
+                    if (m_Meshes.size() > 0)
+                    {
+                        for (uint32_t i = 0; i < vertexCount; i++)
+                        {
+                            if (faceData[i].v < vCountLast.posCount)
+                                int j = 1;
+                            faceData[i].v -= vCountLast.posCount; //- faceData[i].v;
+                            faceData[i].vn -= vCountLast.normalCount; //- faceData[i].vn;
+                            faceData[i].vt -= vCountLast.uvCount; //- faceData[i].vt;
+                        }
+                    }
+                    tempFaces.emplace_back(faceData, matNameIDMap[mtl], vertexCount);
+                }
+
+                else if (line.find("usemtl ") == 0)
+                    mtl = line.substr(7);
             }
-                
-            else if (line.find("usemtl ") == 0)
-                mtl = line.substr(7);
+        }
+        // For the last mesh
+        if (!tempFaces.empty())
+            LoadMesh(tempPositions, tempNormals, tempTexCoords, tempFaces);
+
+    }
+
+    Model::~Model()
+    {
+    }
+
+    void Model::Draw(Shader* shader)
+    {
+
+        BindTextures();
+        SetShaderUniforms(shader);
+
+        for (auto& mesh : m_Meshes)
+            mesh->Draw(shader);
+
+        // TRY UNBINDING TEXTURES
+        UnbindTextures();
+    }
+
+    void Model::BindTextures()
+    {
+        for (auto& material : m_Materials)
+        {
+            if (material->Ambient)
+                material->Ambient->Bind();
+            if (material->Diffuse)
+                material->Diffuse->Bind();
+            if (material->Specular)
+                material->Specular->Bind();
         }
     }
-    // For the last mesh
-    if (!tempFaces.empty())
-        LoadMesh(tempPositions, tempNormals, tempTexCoords, tempFaces);
 
-}
-
-void Model::Draw(std::unique_ptr<Shader>& shader, Cache& textureCache, Cache& materialCache)
-{
-
-    BindTextures(textureCache);
-    SetShaderUniforms(shader, materialCache);
-
-    for (auto& mesh : m_Meshes)
-        mesh->Draw(shader);
-
-    // TRY UNBINDING TEXTURES
-    //UnbindTextures(textureCache);
-    for (auto& material : m_MaterialList)
+    void Model::UnbindTextures()
     {
-        if (material.MaterialProperties.Ambient)
-            material.MaterialProperties.Ambient->Unbind();
-        if (material.MaterialProperties.Diffuse)
-            material.MaterialProperties.Diffuse->Unbind();
-        if (material.MaterialProperties.Specular)
-            material.MaterialProperties.Specular->Unbind();
+        for (auto& material : m_Materials)
+        {
+            if (material->Ambient)
+                material->Ambient->Unbind();
+            if (material->Diffuse)
+                material->Diffuse->Unbind();
+            if (material->Specular)
+                material->Specular->Unbind();
+        }
+    }
+
+    void Model::SetShaderUniforms(Shader* shader)
+    {
+        for (auto& material : m_Materials)
+        {
+            std::string matLabel = "u_material[" + std::to_string(material->ID) + "].";
+
+            shader->SetUniform3fv(matLabel + "Ka", material->Ka);
+            shader->SetUniform3fv(matLabel + "Kd", material->Kd);
+            shader->SetUniform3fv(matLabel + "Ks", material->Ks);
+            shader->SetUniform1f(matLabel + "Ns", material->Ns);
+            shader->SetUniform1f(matLabel + "Ni", material->Ni);
+        }
+    }
+
+    void Model::OnImGUIRender()
+    {
+        ImGui::Text("Model Materials - %s", m_Filepath.c_str());
+
+        for (auto& material : m_Materials)
+        {
+            std::string name = "Material Name: " + material->Name;
+            if (ImGui::TreeNode(name.c_str()))
+            {
+                ImGui::Text("Material Lib: %s", material->Library.c_str());
+                ImGui::Text("Material ID: %d", material->ID);
+
+                if (material->Ambient)
+                    ImGui::Text("Ambient - Texture: %s | Render ID: %d", material->Ambient->GetFilepath().c_str(), material->Ambient->GetRendererID());
+                if (material->Diffuse)
+                    ImGui::Text("Diffuse - Texture: %s | Render ID: %d", material->Diffuse->GetFilepath().c_str(), material->Diffuse->GetRendererID());
+                if (material->Specular)
+                    ImGui::Text("Specular - Texture: %s | Render ID: %d", material->Specular->GetFilepath().c_str(), material->Specular->GetRendererID());
+                if (material->Roughness)
+                    ImGui::Text("Roughness - Texture: %s | Render ID: %d", material->Roughness->GetFilepath().c_str(), material->Roughness->GetRendererID());
+                if (material->Metallic)
+                    ImGui::Text("Metallic - Texture: %s | Render ID: %d", material->Metallic->GetFilepath().c_str(), material->Metallic->GetRendererID());
+
+                ImGui::SliderFloat3("Ka", material->Ka.e, 0.f, 1.f);
+                ImGui::SliderFloat3("Kd", material->Kd.e, 0.f, 1.f);
+                ImGui::SliderFloat3("Ks", material->Ks.e, 0.f, 1.f);
+                ImGui::SliderFloat("Ns", &material->Ns, 0.f, 256.f);
+                ImGui::SliderFloat("Ni", &material->Ni, 0.f, 256.f);
+                ImGui::TreePop();
+            }
+
+        }
+
+        for (auto& mesh : m_Meshes)
+            mesh->OnImGUIRender();
+    }
+
+    //void Model::ClearFromCache()
+    //{
+    //    for (auto& material : m_Materials)
+    //    {
+    //        materialCache.erase(material->Name);
+    //        MF_CORE_DEBUG("Clearing material {} from cache.", material->Name);
+
+    //        if (material->Ambient)
+    //        {
+    //            textureCache.erase(material->Ambient->GetFilepath());
+    //            MF_CORE_DEBUG("Clearing texture {} from cache", material->Ambient->GetFilepath());
+    //        }
+    //        if (material->Diffuse)
+    //        {
+    //            textureCache.erase(material->Diffuse->GetFilepath());
+    //            MF_CORE_DEBUG("Clearing texture {} from cache", material->Diffuse->GetFilepath());
+    //        }
+    //        if (material->Specular)
+    //        {
+    //            textureCache.erase(material->Specular->GetFilepath());
+    //            MF_CORE_DEBUG("Clearing texture {} from cache", material->Specular->GetFilepath());
+    //        }
+    //        if (material->Roughness)
+    //        {
+    //            textureCache.erase(material->Roughness->GetFilepath());
+    //            MF_CORE_DEBUG("Clearing texture {} from cache", material->Roughness->GetFilepath());
+    //        }
+    //        if (material->Metallic)
+    //        {
+    //            textureCache.erase(material->Metallic->GetFilepath());
+    //            MF_CORE_DEBUG("Clearing texture {} from cache", material->Metallic->GetFilepath());
+    //        }
+
+    //    }
+    //}
+
+    void Model::LoadMesh(std::vector<Maths::vec3>& tempPositions, std::vector<Maths::vec3>& tempNormals, std::vector<Maths::vec2>& tempTexCoords, std::vector<Face>& tempFaces)
+    {
+        MeshData meshData = {
+            tempPositions, tempNormals, tempTexCoords, tempFaces
+        };
+
+        m_Meshes.emplace_back(std::make_unique<Mesh>(meshData));
+
+        tempPositions.clear();
+        tempNormals.clear();
+        tempTexCoords.clear();
+        tempFaces.clear();
+    }
+
+    void Model::Init(Shader* shader)
+    {
+        shader->Bind();
+        for (auto& mesh : m_Meshes)
+            mesh->Init();
+
+        // generate textures
+        for (auto& material : m_Materials)
+        {
+            if (material->Ambient && !material->Ambient->GetGenerationStatus())
+                material->Ambient->GenerateTexture();
+            if (material->Diffuse && !material->Diffuse->GetGenerationStatus())
+                material->Diffuse->GenerateTexture();
+            if (material->Specular && !material->Specular->GetGenerationStatus())
+                material->Specular->GenerateTexture();
+            if (material->Roughness && !material->Roughness->GetGenerationStatus())
+                material->Roughness->GenerateTexture();
+            if (material->Metallic && !material->Metallic->GetGenerationStatus())
+                material->Metallic->GenerateTexture();
+        }
+
+
+        // bind textures
+        for (auto& material : m_Materials)
+        {
+            if (material->Ambient) //should i check if texture has been bound
+            {
+                material->Ambient->Bind();
+                MF_CORE_DEBUG("TEXTURE -- Ambient texture {0} bound to slot {1}", material->Ambient->GetFilepath(), material->Ambient->GetSlot());
+            }
+
+            if (material->Diffuse)
+            {
+                material->Diffuse->Bind();
+                MF_CORE_DEBUG("TEXTURE -- Diffuse texture {0} bound to slot {1}", material->Diffuse->GetFilepath(), material->Diffuse->GetSlot());
+            }
+
+            if (material->Specular)
+            {
+                material->Specular->Bind();
+                MF_CORE_DEBUG("TEXTURE -- Specular texture {0} bound to slot {1}", material->Specular->GetFilepath(), material->Specular->GetSlot());
+            }
+
+            if (material->Roughness)
+            {
+                material->Roughness->Bind();
+                MF_CORE_DEBUG("TEXTURE -- Roughness texture {0} bound to slot {1}", material->Roughness->GetFilepath(), material->Roughness->GetSlot());
+            }
+
+            if (material->Metallic)
+            {
+                material->Metallic->Bind();
+                MF_CORE_DEBUG("TEXTURE -- Metallic texture {0} bound to slot {1}", material->Metallic->GetFilepath(), material->Metallic->GetSlot());
+            }
+        }
+
+        // send texture uniforms
+        for (auto& material : m_Materials)
+        {
+            std::string matLabel = "u_material[" + std::to_string(material->ID) + "].";
+
+            if (material->Ambient)
+            {
+                shader->SetUniform1i(matLabel + "Ambient", (int)material->Ambient->GetSlot());
+                MF_CORE_DEBUG(
+                    "SHADER -- Set Ambient Texture {0} from Material {1} to Material Index {2}",
+                    material->Ambient->GetFilepath(), material->Name, material->ID
+                );
+
+            }
+
+            if (material->Diffuse)
+            {
+                shader->SetUniform1i(matLabel + "Diffuse", (int)material->Diffuse->GetSlot());
+                //shader->SetUniform3fv(matLabel + "Kd", material->Kd);
+                MF_CORE_DEBUG(
+                    "SHADER -- Set Diffuse Texture {0} from Material {1} to Material Index {2}",
+                    material->Diffuse->GetFilepath(), material->Name, material->ID
+                );
+            }
+
+            if (material->Specular)
+            {
+                shader->SetUniform1i(matLabel + "Specular", (int)material->Specular->GetSlot());
+                //shader->SetUniform3fv(matLabel + "Ks", material->Ks);
+                MF_CORE_DEBUG(
+                    "SHADER -- Set Specular Texture {0} from Material {1} to Material Index {2}",
+                    material->Specular->GetFilepath(), material->Name, material->ID
+                );
+            }
+
+            if (material->Roughness)
+            {
+                shader->SetUniform1i(matLabel + "Roughness", (int)material->Roughness->GetSlot());
+                MF_CORE_DEBUG(
+                    "SHADER -- Set Roughness Texture {0} from Material {1} to Material Index {2}",
+                    material->Roughness->GetFilepath(), material->Name, material->ID
+                );
+            }
+
+            if (material->Metallic)
+            {
+                shader->SetUniform1i(matLabel + "Metallic", (int)material->Metallic->GetSlot());
+                MF_CORE_DEBUG(
+                    "SHADER -- Set Metallic Texture {0} from Material {1} to Material Index {2}",
+                    material->Metallic->GetFilepath(), material->Name, material->ID
+                );
+            }
+
+
+
+
+        }
+
+        // unbind textures
+        for (auto& material : m_Materials)
+        {
+            if (material->Ambient)
+                material->Ambient->Unbind();
+            if (material->Diffuse)
+                material->Diffuse->Unbind();
+            if (material->Specular)
+                material->Specular->Unbind();
+            if (material->Roughness)
+                material->Roughness->Unbind();
+            if (material->Metallic)
+                material->Metallic->Unbind();
+        }
+
+        shader->Unbind();
+    }
+
+
+    std::array<Maths::vec3i, 4> Model::GetFaceData(std::string& line, uint32_t& vertexCount)
+    {
+        std::string faceLine = line.substr(2);
+        // maybe i shoudl make a 3x4 matrix
+        int faceData[12];
+
+        // TODO: Implement Fast Format for faster string parsing
+        // http://www.fastformat.org/documentation/index.html
+        std::stringstream ss;
+        ss.str(faceLine);
+
+        int vertexIndex = 0;
+        std::string del;
+        while (std::getline(ss, del, ' '))
+        {
+            int elementIndex = 0;
+            std::stringstream ssB(del);
+            std::string delB;
+            while (std::getline(ssB, delB, '/'))
+            {
+                // subtract 1 b/c face indices start at 1 instead of 0 in obj file
+                faceData[vertexIndex * 3 + elementIndex] = std::stoi(delB) - 1;
+                elementIndex++;
+            }
+            vertexIndex++;
+        }
+
+        vertexCount = vertexIndex;
+
+        return {
+            Maths::vec3i(faceData[0], faceData[1], faceData[2]),
+            Maths::vec3i(faceData[3], faceData[4], faceData[5]),
+            Maths::vec3i(faceData[6], faceData[7], faceData[8]),
+            Maths::vec3i(faceData[9], faceData[10], faceData[11])
+        };
+
+    }
+
+    void Model::ParseMaterial(const std::string& filepath, std::vector<SubMaterialStream>& ss)
+    {
+        using String = std::string;
+
+        std::ifstream stream(filepath);
+
+        String line;
+        String newmtl;
+        std::stringstream matProperties;
+        while (std::getline(stream, line))
+        {
+            if (line.find("newmtl ") != String::npos)
+            {
+                if (!newmtl.empty())
+                {
+                    ss.push_back(SubMaterialStream{ newmtl, matProperties.str() });
+                    matProperties.clear();
+                }
+                newmtl = line.substr(7);
+            }
+            else if (!newmtl.empty())
+                matProperties << line << '\n';
+        }
+        ss.push_back(SubMaterialStream{ newmtl, matProperties.str() });
+    }
+
+    Maths::vec3 Model::GetVertexData(std::string& line, int elementCount)
+    {
+        std::string vertexLine = line.substr(3);
+        Maths::vec3 v;
+
+        std::stringstream ss;
+        ss.str(vertexLine);
+
+        int index = 0;
+        std::string del;
+        while (std::getline(ss, del, ' '))
+        {
+            v.e[index] = std::stof(del);
+            index++;
+        }
+        return v;
     }
 }
 
-void Model::BindTextures(Model::Cache& textureCache)
-{
-    for (auto& material : m_MaterialList)
-    {
-        if (material.MaterialProperties.Ambient)
-            material.MaterialProperties.Ambient->Bind(textureCache[material.MaterialProperties.Ambient->GetFilepath()]);
-        if (material.MaterialProperties.Diffuse)
-            material.MaterialProperties.Diffuse->Bind(textureCache[material.MaterialProperties.Diffuse->GetFilepath()]);
-        if (material.MaterialProperties.Specular)
-            material.MaterialProperties.Specular->Bind(textureCache[material.MaterialProperties.Specular->GetFilepath()]);
-    }
-}
-
-void Model::SetShaderUniforms(std::unique_ptr<Shader>& shader, Cache& materialCache)
-{
-    for (auto& material : m_MaterialList)
-    {
-        std::string matLabel = "u_material[" + std::to_string(materialCache[material.SubMaterialName]) + "].";
-
-        shader->SetUniform3fv(matLabel + "Ka", material.MaterialProperties.Ka);
-        shader->SetUniform3fv(matLabel + "Kd", material.MaterialProperties.Kd);
-        shader->SetUniform3fv(matLabel + "Ks", material.MaterialProperties.Ks);
-        shader->SetUniform1f(matLabel + "Ns", material.MaterialProperties.Ns);
-    }
-}
-
-void Model::OnImGUIRender()
-{
-    ImGui::Text("Model Materials - %s", m_Filepath.c_str());
     
-    for (auto& material : m_MaterialList)
-    {
-        std::string name = "Material Name: " + material.SubMaterialName;
-        if (ImGui::TreeNode(name.c_str()))
-        {
-            ImGui::Text("Material Lib: %s", material.MaterialLibrary.c_str());
-            ImGui::Text("Material ID: %d", material.MaterialProperties.ID);
-
-            if (material.MaterialProperties.Ambient)
-                ImGui::Text("Ambient - Texture: %s | Render ID: %d", material.MaterialProperties.Ambient->GetFilepath().c_str(), material.MaterialProperties.Ambient->GetRendererID());
-            if (material.MaterialProperties.Diffuse)
-                ImGui::Text("Diffuse - Texture: %s | Render ID: %d", material.MaterialProperties.Diffuse->GetFilepath().c_str(), material.MaterialProperties.Diffuse->GetRendererID());
-            if (material.MaterialProperties.Specular)
-                ImGui::Text("Specular - Texture: %s | Render ID: %d", material.MaterialProperties.Specular->GetFilepath().c_str(), material.MaterialProperties.Specular->GetRendererID());
-
-            ImGui::SliderFloat3("Ka", material.MaterialProperties.Ka.e, 0.f, 1.f);
-            ImGui::SliderFloat3("Kd", material.MaterialProperties.Kd.e, 0.f, 1.f);
-            ImGui::SliderFloat3("Ks", material.MaterialProperties.Ks.e, 0.f, 1.f);
-            ImGui::SliderFloat("Ns", &material.MaterialProperties.Ns, 0.f, 128.f);
-            ImGui::TreePop();
-        }
-            
-    }
-
-    for (auto& mesh : m_Meshes)
-        mesh->OnImGUIRender();
-}
-
-void Model::LoadMesh(std::vector<Maths::vec3>& tempPositions, std::vector<Maths::vec3>& tempNormals, std::vector<Maths::vec2>& tempTexCoords, std::vector<Face>& tempFaces)
-{
-    MeshData meshData = {
-        tempPositions, tempNormals, tempTexCoords, tempFaces
-    };
-
-    m_Meshes.emplace_back(std::make_unique<Mesh>(meshData));
-
-    tempPositions.clear();
-    tempNormals.clear();
-    tempTexCoords.clear();
-    tempFaces.clear();
-}
-
-void Model::Init(std::unique_ptr<Shader>& shader, Cache& textureCache, Cache& materialCache)
-{
-    shader->Bind();
-    for (auto& mesh : m_Meshes)
-        mesh->Init();
-      
-    // generate textures
-    for (auto& material : m_MaterialList)
-    {
-        if (material.MaterialProperties.Ambient && !material.MaterialProperties.Ambient->GetGenerationStatus())
-            material.MaterialProperties.Ambient->GenerateTexture();
-        if (material.MaterialProperties.Diffuse && !material.MaterialProperties.Diffuse->GetGenerationStatus())
-            material.MaterialProperties.Diffuse->GenerateTexture();
-        if (material.MaterialProperties.Specular && !material.MaterialProperties.Specular->GetGenerationStatus())
-            material.MaterialProperties.Specular->GenerateTexture();
-    }
-
-
-    // bind textures
-    //int textureSlot = m_MaterialList.size();
-    int textureSlot = textureCache.size();
-    for (auto& material : m_MaterialList)
-    {
-        if (material.MaterialProperties.Ambient && !textureCache.contains(material.MaterialProperties.Ambient->GetFilepath()))
-        {
-            material.MaterialProperties.Ambient->Bind(textureSlot);
-            textureCache[material.MaterialProperties.Ambient->GetFilepath()] = textureSlot;
-            textureSlot++;    
-        }
-               
-        if (material.MaterialProperties.Diffuse && !textureCache.contains(material.MaterialProperties.Diffuse->GetFilepath()))
-        {
-            material.MaterialProperties.Diffuse->Bind(textureSlot);
-            textureCache[material.MaterialProperties.Diffuse->GetFilepath()] = textureSlot;
-            textureSlot++;        
-        }
-
-        if (material.MaterialProperties.Specular && !textureCache.contains(material.MaterialProperties.Specular->GetFilepath()))
-        {
-            material.MaterialProperties.Specular->Bind(textureSlot);
-            textureCache[material.MaterialProperties.Specular->GetFilepath()] = textureSlot;
-            textureSlot++;
-        }
-    }
-
-    // send texture uniforms
-    for (auto& material : m_MaterialList)
-    {
-        std::string matLabel = "u_material[" + std::to_string(materialCache[material.SubMaterialName]) + "].";
-                
-        if(material.MaterialProperties.Ambient)
-            shader->SetUniform1i(matLabel + "Ambient", textureCache[material.MaterialProperties.Ambient->GetFilepath()]);
-        if (material.MaterialProperties.Diffuse)
-            shader->SetUniform1i(matLabel + "Diffuse", textureCache[material.MaterialProperties.Diffuse->GetFilepath()]);
-        if (material.MaterialProperties.Specular)
-            shader->SetUniform1i(matLabel + "Specular", textureCache[material.MaterialProperties.Specular->GetFilepath()]);
-    }
-
-    // unbind textures
-    for (auto& material : m_MaterialList)
-    {
-        if (material.MaterialProperties.Ambient)
-            material.MaterialProperties.Ambient->Unbind();
-        if (material.MaterialProperties.Diffuse)
-            material.MaterialProperties.Diffuse->Unbind();
-        if (material.MaterialProperties.Specular)
-            material.MaterialProperties.Specular->Unbind();
-    }
-
-    shader->Unbind();
-}
-
-
-std::array<Maths::vec3i, 4> Model::GetFaceData(std::string& line, uint32_t& vertexCount)
-{
-    std::string faceLine = line.substr(2);
-    // maybe i shoudl make a 3x4 matrix
-    int faceData[12];
-
-    std::stringstream ss;
-    ss.str(faceLine);
-
-    int vertexIndex = 0;
-    std::string del;
-    while (std::getline(ss, del, ' '))
-    {
-        int elementIndex = 0;
-        std::stringstream ssB(del);
-        std::string delB;
-        while (std::getline(ssB, delB, '/'))
-        {
-            // subtract 1 b/c face indices start at 1 instead of 0 in obj file
-            faceData[vertexIndex * 3 + elementIndex] = std::stoi(delB) - 1;
-            elementIndex++;
-        }
-        vertexIndex++;
-    }
-
-    vertexCount = vertexIndex;
-
-    return {
-        Maths::vec3i(faceData[0], faceData[1], faceData[2]),
-        Maths::vec3i(faceData[3], faceData[4], faceData[5]),
-        Maths::vec3i(faceData[6], faceData[7], faceData[8]),
-        Maths::vec3i(faceData[9], faceData[10], faceData[11])
-    };
-
-}
-
-void Model::ParseMaterial(const std::string& filepath, std::vector<SubMaterialStream>& ss)
-{
-    using String = std::string;
-
-    std::ifstream stream(filepath);
-
-    String line;
-    String newmtl;
-    std::stringstream matProperties;
-    while (std::getline(stream, line))
-    {
-        if (line.find("newmtl ") != String::npos)
-        {
-            if (!newmtl.empty())
-            {
-                ss.push_back(SubMaterialStream{ newmtl, matProperties.str() });
-                matProperties.clear();
-            }
-            newmtl = line.substr(7);
-        }
-        else if (!newmtl.empty())
-            matProperties << line << '\n';
-    }
-    ss.push_back(SubMaterialStream{ newmtl, matProperties.str() });
-}
-
-Material<std::shared_ptr<Texture>> Model::CreateMaterial(const std::string& matFile, const std::string& matData, const std::string& matName, unsigned int matID)
-{
-    using String = std::string;
-
-    std::stringstream stream(matData);
-
-    String line;
-
-
-    float Ns = 32.f, Ni = 1.f, Opacity = 1.f;
-    Maths::vec3 Tf{ 0.f }, Ka{ 0.f }, Kd{ 0.f }, Ke{ 0.f }, Ks{ 0.f };
-    int Illum = 0;
-    std::shared_ptr<Texture> Ambient = nullptr;
-    std::shared_ptr<Texture> Diffuse = nullptr;
-    std::shared_ptr<Texture> Specular = nullptr;
-
-    while (std::getline(stream, line))
-    {
-        // this looks horrendous
-        // can i make this work with a switch?
-
-
-        size_t pos;
-        if ((pos = line.find("Ns ")) == 1 || (pos = line.find("Ns ")) == 0)
-            Ns = std::stof(line.substr(pos + 3));
-
-        else if ((pos = line.find("Ni ")) == 1 || (pos = line.find("Ni ")) == 0)
-            Ni = std::stof(line.substr(pos + 3));
-
-        else if ((pos = line.find("d ")) == 1 || (pos = line.find("d ")) == 0)
-            Opacity = std::stof(line.substr(pos + 2));
-
-        else if ((pos = line.find("Tr ")) == 1 && Opacity < 0.f)
-            Opacity = 1.f - std::stof(line.substr(pos + 3));
-
-        else if ((pos = line.find("Tf ")) == 1)
-            Tf = Maths::StrtoVec3(line.substr(pos + 3));
-
-        else if ((pos = line.find("illum ")) == 1)
-            Illum = std::stoi(line.substr(pos + 6));
-
-        else if ((pos = line.find("Ka ")) == 1)
-            Ka = Maths::StrtoVec3(line.substr(pos + 3));
-
-        else if ((pos = line.find("Kd ")) == 1)
-            Kd = Maths::StrtoVec3(line.substr(pos + 3));
-
-        else if ((pos = line.find("Ks ")) == 1)
-            Ks = Maths::StrtoVec3(line.substr(pos + 3));
-
-        else if ((pos = line.find("Ke ")) == 1)
-            Ke = Maths::StrtoVec3(line.substr(pos + 3));
-
-        else if ((pos = line.find("map_")) == 1)
-        {
-            std::stringstream ss;
-            ss.str(line);
-            String del;
-
-            String file = line.substr(pos + 7);
-
-            if (line.find("\\") != String::npos)
-            {
-                while (std::getline(ss, del, '\\'))
-                {
-                    file = del;
-                }
-            }
-
-            TextureType type;
-            if (line.find("map_Ka") == 1) type = TextureType::AMBIENT;
-            else if (line.find("map_Kd") == 1) type = TextureType::DIFFUSE;
-            else if (line.find("map_Ks") == 1) type = TextureType::SPECULAR;
-            else if (line.find("map_Ke") == 1) type = TextureType::EMISSIVE;
-            else if (line.find("map_bump") == 1 || line.find("map_Bump") == 1)
-            {
-                type = TextureType::BUMP;
-                file = line.substr(pos + 9);
-
-                if (line.find("\\") != String::npos)
-                {
-                    while (std::getline(ss, del, '\\'))
-                    {
-                        file = del;
-                    }
-                }
-            }
-
-
-            String filepath = "res/textures/" + matFile.substr(0, matFile.find(".")) + "/" + file;
-
-            // i should use a struct for the key!!! {string, TextureType}
-            if (!m_TextureCache.contains(file))
-                m_TextureCache.emplace(file, std::make_shared<Texture>(filepath, true));
-            m_Textures.emplace_back(file, type);
-
-
-            switch (type)
-            {
-            case NONE:
-                break;
-            case AMBIENT:
-                Ambient = m_TextureCache[file];
-                break;
-            case DIFFUSE:
-                Diffuse = m_TextureCache[file];
-                break;
-            case SPECULAR:
-                Specular = m_TextureCache[file];
-                break;
-            case EMISSIVE:
-                break;
-            case BUMP:
-                break;
-            default:
-                break;
-            }
-
-        }
-    }
-
-    return {
-        false, false, matID,
-        Ambient, Diffuse, Specular,
-        Ka, Kd, Ks, Ke,
-        Ni, Ns, Opacity, Tf, Illum
-    };
-}
-
-Maths::vec3 Model::GetVertexData(std::string& line, int elementCount)
-{
-    std::string vertexLine = line.substr(3);
-    Maths::vec3 v;
-
-    std::stringstream ss;
-    ss.str(vertexLine);
-
-    int index = 0;
-    std::string del;
-    while (std::getline(ss, del, ' '))
-    {
-        v.e[index] = std::stof(del);
-        index++;
-    }
-    return v;
-}

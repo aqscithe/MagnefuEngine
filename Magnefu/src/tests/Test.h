@@ -1,9 +1,8 @@
 #pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
 #include <functional>
-#include <utility>
 
 struct GLFWwindow;
 

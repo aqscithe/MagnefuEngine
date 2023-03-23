@@ -1,8 +1,10 @@
+#include "mfpch.h"
+
 #include "Test3DRender.h"
+#include "Magnefu/Application.h"
+#include "ResourceCache.h"
 
 #include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
 
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
@@ -11,9 +13,6 @@
 #include "Shader.h"
 #include "VertexBufferAttribsLayout.h"
 #include "Renderer.h"
-#include "Globals.h"
-
-#include <chrono>
 
 
 namespace Magnefu
@@ -62,15 +61,18 @@ namespace Magnefu
 
         m_IBO = std::make_unique<IndexBuffer>(sizeof(indices) / sizeof(unsigned int), indices);
 
-        m_Shader = std::make_unique <Shader>("res/shaders/Test.shader");
-        m_Texture0 = std::make_unique<Texture>("res/textures/grass.jpg");
-        m_Texture1 = std::make_unique<Texture>("res/textures/moon.png");
+        Application& app = Application::Get();
+        ResourceCache& cache = app.GetResourceCache();
+
+        std::string texturePath = "res/textures/moon.png";
+        std::string shaderPath = "res/shaders/Test.shader";
+
+        m_Shader = cache.RequestResource <Shader>(shaderPath);
+        m_Texture = cache.RequestResource<Texture>(texturePath);
         
         m_Shader->Bind();
-        m_Texture0->Bind();
-        m_Texture1->Bind(1);
-        m_Shader->SetUniform1i("u_Texture0", 0);
-        m_Shader->SetUniform1i("u_Texture1", 1);
+        m_Texture->Bind();
+        m_Shader->SetUniform1i("u_Texture", (int)m_Texture->GetSlot());
 
         
         m_angleRot = 0.f;
@@ -101,14 +103,14 @@ namespace Magnefu
         m_Shader->Unbind();
         vbo.Unbind();
         m_IBO->Unbind();
-        m_Texture0->Unbind();
-        m_Texture1->Unbind();
+        m_Texture->Unbind();
 
         glEnable(GL_DEPTH_TEST);
 	}
 
 	Test3DRender::~Test3DRender()
 	{
+        m_Texture->Unbind();
         glDisable(GL_DEPTH_TEST);
 	}
 
@@ -142,8 +144,7 @@ namespace Magnefu
 
         m_Shader->SetUniformMatrix4fv("u_MVP", m_MVP);
 
-        m_Texture0->Bind();
-        m_Texture1->Bind(1);
+        m_Texture->Bind();
 
         m_Renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
 

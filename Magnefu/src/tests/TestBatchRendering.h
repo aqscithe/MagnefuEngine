@@ -2,20 +2,15 @@
 
 #include "Test.h"
 
-#include <GL/glew.h>
+#include <GLAD/glad.h>
 #include "Renderer.h"
 #include "Texture.h"
 #include "Shader.h"
-#include "Quaternion.h"
 #include "Camera.h"
 #include "VertexArray.h"
 #include "IndexBuffer.h"
 
 #include "Quaternion.h"
-#include "Vectors.h"
-#include "Matrices.h"
-
-#include <memory>
 
 namespace Magnefu
 {
@@ -35,9 +30,9 @@ namespace Magnefu
 			std::unique_ptr<VertexBuffer> m_VBO;
 			std::unique_ptr<VertexArray> m_VAO;
 			std::unique_ptr<IndexBuffer> m_IBO;
-			std::unique_ptr<Shader> m_Shader;
-			std::unique_ptr<Texture> m_Texture0;
-			std::unique_ptr<Texture> m_Texture1;
+			Shader* m_Shader;
+			Texture* m_Texture0;
+			Texture* m_Texture1;
 
 
 			std::unique_ptr <Maths::Quaternion> m_Quat;

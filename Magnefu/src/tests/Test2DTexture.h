@@ -2,7 +2,7 @@
 
 #include "Test.h"
 
-#include <GL/glew.h>
+#include <GLAD/glad.h>
 #include "Renderer.h"
 #include "Texture.h"
 #include "Shader.h"
@@ -10,11 +10,8 @@
 #include "VertexArray.h"
 #include "IndexBuffer.h"
 
-#include "Vectors.h"
-#include "Matrices.h"
 #include "Quaternion.h"
 
-#include <memory>
 
 
 namespace Magnefu
@@ -34,8 +31,8 @@ namespace Magnefu
 			Renderer m_Renderer;
 			std::unique_ptr<VertexArray> m_VAO;
 			std::unique_ptr<IndexBuffer> m_IBO;
-			std::unique_ptr<Shader> m_Shader;
-			std::unique_ptr<Texture> m_Texture;
+			Shader* m_Shader;
+			Texture* m_Texture;
 
 
 			std::unique_ptr <Maths::Quaternion> m_Quat;

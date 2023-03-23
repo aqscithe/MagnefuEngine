@@ -1,3 +1,5 @@
+#include "mfpch.h"
+
 #include "Quaternion.h"
 
 namespace Maths

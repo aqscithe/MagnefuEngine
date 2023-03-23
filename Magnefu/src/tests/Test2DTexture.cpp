@@ -1,8 +1,9 @@
+#include "mfpch.h"
+
 #include "Test2DTexture.h"
+#include "Magnefu/Application.h"
 
 #include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
 
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
@@ -11,9 +12,9 @@
 #include "Shader.h"
 #include "VertexBufferAttribsLayout.h"
 #include "Renderer.h"
-#include "Globals.h"
 
-#include <chrono>
+#include "ResourceCache.h"
+
 
 
 namespace Magnefu
@@ -35,7 +36,7 @@ namespace Magnefu
             0, 1, 2,
             2, 3, 0
         };
-
+        
 
         VertexBuffer vbo(7 * 4 * sizeof(float), vertices);
 
@@ -49,12 +50,19 @@ namespace Magnefu
 
         m_IBO = std::make_unique<IndexBuffer>(sizeof(indices) / sizeof(unsigned int), indices);
 
-        m_Shader = std::make_unique <Shader>("res/shaders/Texture2D.shader");
-        m_Texture = std::make_unique<Texture>("res/textures/moon.png");
+        std::string shaderPath = "res/shaders/Texture2D.shader";
+        std::string texturePath = "res/textures/moon.png";
+
+        Application& app = Application::Get();
+        ResourceCache& cache = app.GetResourceCache();
+        m_Shader = cache.RequestResource<Shader>(shaderPath);
+
+        
+        m_Texture = cache.RequestResource<Texture>(texturePath);
         
         m_Shader->Bind();
         m_Texture->Bind();
-        m_Shader->SetUniform1i("u_Texture", 0);
+        m_Shader->SetUniform1i("u_Texture", (int)m_Texture->GetSlot());
 
         
         m_angleRot = 0.f;
@@ -94,6 +102,7 @@ namespace Magnefu
 
 	Test2DTexture::~Test2DTexture()
 	{
+        m_Texture->Unbind();
         glDisable(GL_BLEND);
 	}
 
@@ -121,7 +130,7 @@ namespace Magnefu
 
 	void Test2DTexture::OnRender()
 	{
-        m_Renderer.Clear();
+        //m_Renderer.Clear();
 
         m_Shader->Bind();
 
@@ -130,7 +139,7 @@ namespace Magnefu
         m_Texture->Bind();
 
         m_Renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
-
+        m_Texture->Unbind();
 	}
 	
 	void Test2DTexture::OnImGUIRender()

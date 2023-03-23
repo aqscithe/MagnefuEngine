@@ -1,5 +1,6 @@
+#include "mfpch.h"
+
 #include "Timer.h"
-#include "Magnefu/Log.h"
 
 
 Timer::Timer()

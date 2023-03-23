@@ -1,8 +1,7 @@
+#include "mfpch.h"
 #include "Camera.h"
-#include <GLFW/glfw3.h>
-#include "Globals.h"
 
-#include "Common.h"
+#include <GLFW/glfw3.h>
 
 
 

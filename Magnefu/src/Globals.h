@@ -1,14 +1,8 @@
 #pragma once
 
-#include <string>
-
 
 #define ASSERT(x) if(!(x)) __debugbreak();
 
-
-
-
-typedef std::string String;
 
 class Globals
 {

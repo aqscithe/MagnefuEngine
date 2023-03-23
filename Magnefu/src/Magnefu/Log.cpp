@@ -1,5 +1,4 @@
-#include "Log.h"
-
+#include "mfpch.h"
 
 namespace Magnefu
 {

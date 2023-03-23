@@ -1,6 +1,4 @@
-#include "Matrices.h"
-
-#include "Common.h"
+#include "mfpch.h"
 
 namespace Maths
 {
@@ -99,32 +97,32 @@ namespace Maths
         };
     }
 
-    mat4 perspective(float fovY, float aspect, float near, float far)
+    mat4 perspective(float fovY, float aspect, float _near, float _far)
     {
-        float top = near * tan(fovY / 2.f);
+        float top = _near * tan(fovY / 2.f);
         float right = top * aspect;
-        return frustum(-right, right, -top, top, near, far);
+        return frustum(-right, right, -top, top, _near, _far);
     }
 
-    mat4 orthographic(float left, float right, float bottom, float top, float near, float far)
+    mat4 orthographic(float left, float right, float bottom, float top, float _near, float _far)
     {
         return
         {
             2 / (right - left),                 0.f,                               0.f,                         0.f,
             0.f,                                2 / (top - bottom),                0.f,                         0.f,
-            0.f,                                0.f,                              -2 / (far - near),            0.f,
-            -(right + left) / (right - left),   -(top + bottom) / (top - bottom), -(far + near) / (far - near), 1.f
+            0.f,                                0.f,                              -2 / (_far - _near),            0.f,
+            -(right + left) / (right - left),   -(top + bottom) / (top - bottom), -(_far + _near) / (_far - _near), 1.f
         };
     }
 
-    mat4 frustum(float left, float right, float bottom, float top, float near, float far)
+    mat4 frustum(float left, float right, float bottom, float top, float _near, float _far)
     {
         return
         {
-            (near * 2.f) / (right - left),   0.f,                              0.f,                               0.f,
-            0.f,                             (near * 2.f) / (top - bottom),    0.f,                               0.f,
-            (right + left) / (right - left), (top + bottom) / (top - bottom), -(far + near) / (far - near),      -1.f,
-            0.f,                             0.f,                             -(far * near * 2.f) / (far - near), 0.f
+            (_near * 2.f) / (right - left),   0.f,                              0.f,                               0.f,
+            0.f,                             (_near * 2.f) / (top - bottom),    0.f,                               0.f,
+            (right + left) / (right - left), (top + bottom) / (top - bottom), -(_far + _near) / (_far - _near),      -1.f,
+            0.f,                             0.f,                             -(_far * _near * 2.f) / (_far - _near), 0.f
         };
     }
 

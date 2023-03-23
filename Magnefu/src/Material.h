@@ -1,40 +1,63 @@
 #pragma once
 
-#include "Vectors.h"
 #include "Texture.h"
+#include "CacheableResource.h"
+
+#include "MathsCommon.h"
 #include <string>
-#include <memory>
 
 
-template <typename T>
-struct Material
+namespace Magnefu
 {
-	bool		 Preset;
-	bool		 Textured;
-	unsigned int ID;
-	T            Ambient;
-	T            Diffuse;
-	T            Specular;
-	Maths::vec3  Ka;
-	Maths::vec3  Kd;
-	Maths::vec3  Ks;
-	Maths::vec3  Ke;
-	float        Ni;       // Index of refraction
-	float        Ns;
-	float        Opacity;  // d OR 1 - Tr
-	Maths::vec3  Tf;       // Transmission filter color
-	int          Illum;
-	// AO
-	//float       Roughness;
-	//float		  Displacement
-	
-	//float       Metallic	
-};
+	struct TextureProps
+	{
+		TextureProps();
 
+		Texture* Ambient;
+		Texture* Diffuse;
+		Texture* Specular;
+		Texture* Roughness;
+		Texture* Metallic;
+		Texture* Emissive;
+	};
 
-struct MaterialData
-{
-	std::string MaterialLibrary;
-	std::string SubMaterialName;
-	Material<std::shared_ptr<Texture>> MaterialProperties;
-};
+	class Material : public CacheableResource
+	{
+	public:
+        Material() = default;
+		Material(const TextureProps&, const std::string&);
+        Material(const std::string& matFile, const std::string& matData, const std::string& matName);
+
+		void Bind();
+		void Unbind();
+		void NullifyTextures();
+		
+
+	public:
+		std::string Name;
+		std::string Library;
+		uint32_t      ID;
+		Texture*      Ambient;
+		Texture*      Diffuse;
+		Texture*      Specular;
+		Texture*	  Roughness;
+		Texture*	  Metallic;
+		Texture*      Emissive;
+		Maths::vec3   Ka;
+		Maths::vec3   Kd;
+		Maths::vec3   Ks;
+		Maths::vec3   Ke;
+		float         Ni;       // Index of refraction
+		float         Ns;
+		float         Opacity;  // d OR 1 - Tr
+		Maths::vec3   Tf;       // Transmission filter color
+		int           Illum;
+	};
+
+	struct MaterialData
+	{
+		String Library;
+		String Name;
+		Material Props;
+	};
+}

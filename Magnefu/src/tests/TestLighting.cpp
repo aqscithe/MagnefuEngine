@@ -1,8 +1,10 @@
+#include "mfpch.h"
+
 #include "TestLighting.h"
+#include "Magnefu/Application.h"
+#include "ResourceCache.h"
 
 #include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
 
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
@@ -11,26 +13,15 @@
 #include "Shader.h"
 #include "VertexBufferAttribsLayout.h"
 #include "Renderer.h"
-#include "Globals.h"
 
 #include "Primitive3D.h"
 #include "Timer.h"
 
 #include <array>
-#include <iostream>
-#include <chrono>
 
 
 namespace Magnefu
 {    
-
-    static void InitTexture(std::vector<std::unique_ptr<Texture>>& textures, std::string& filepath)
-    {
-        //std::lock_guard<std::mutex> lock(s_TextureMutex);
-        textures.emplace_back(std::make_unique<Texture>(filepath));
-
-    }
-
 	TestLighting::TestLighting()
 	{
         Timer timer;
@@ -63,177 +54,12 @@ namespace Magnefu
         m_LightCubeVAO->AddBuffer(*m_VBO, layout);
         m_LightCubeVAO->Unbind();
 
-        
-
-        m_AvailableMaterials["Custom"] = {
-            false, false, 99,
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            1.f, 32.f, 1.f,
-            { 1.f, 1.f, 1.f },
-            0       
-        };
-
-        m_AvailableMaterials["Emerald"] = {
-            true, false, 99,
-            { 0.0215f, 0.1745f, 0.0215f },
-            { 0.07568f, 0.61424f, 0.07568f},
-            { 0.633f, 0.727811f, 0.633f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            1.f, 0.6f * 128, 1.f,
-            { 1.f, 1.f, 1.f },
-            0
-
-        };
-
-        m_AvailableMaterials["Jade"] = {
-            true, false, 99,
-            { 0.135f, 0.2225f, 0.1575f },
-            { 0.54f, 0.89f, 0.63f},
-            { 0.316228f, 0.316228f, 0.316228f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            1.f,0.1f * 128, 1.f,
-            { 1.f, 1.f, 1.f },
-            0
-
-        };
-
-        m_AvailableMaterials["Obsidian"] = {
-            true, false, 99,
-            { 0.05375f, 0.05f, 0.06625f },
-            { 0.18275f, 0.17f, 0.22525f},
-            { 0.332741f, 0.328634f, 0.346435f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            1.f,0.3f * 128, 1.f,
-            { 1.f, 1.f, 1.f },
-            0
-
-        };
-
-        m_AvailableMaterials["Pearl"] = {
-            true, false, 99,
-            { 0.25f, 0.20725f, 0.20725f },
-            { 1.f, 0.829f, 0.829f},
-            { 0.296648f, 0.296648f, 0.296648f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            1.f,
-            0.088f * 128, 1.f,
-            { 1.f, 1.f, 1.f },
-            0
-            };
-
-        m_AvailableMaterials["Ruby"] = {
-            true, false, 99,
-            { 0.1745f, 0.01175f, 0.01175f },
-            { 0.61424f, 0.04136f, 0.04136f},
-            { 0.727811f, 0.626959f, 0.626959f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            1.f, 0.6f * 128, 1.f,
-            { 1.f, 1.f, 1.f },
-            0
-        };
-
-        m_AvailableMaterials["Chrome"] = {
-            true, false, 99,
-            { 0.25f, 0.25f, 0.25f },
-            { 0.4f, 0.4f, 0.4f},
-            { 0.774597f, 0.774597f, 0.774597f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            1.f, 0.6f * 128, 1.f,
-            { 1.f, 1.f, 1.f },
-            0
-        };
-
-        m_AvailableMaterials["White Plastic"] = {
-            true, false, 99,
-            { 0.f, 0.f, 0.f },
-            { 0.55f, 0.55f, 0.55f},
-            { 0.70f, 0.70f, 0.70f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            1.f, 0.25f * 128, 1.f,
-            { 1.f, 1.f, 1.f },
-            0
-        };
-
-        m_AvailableMaterials["Black Rubber"] = {
-            true, false, 99,
-            { 0.02f, 0.02f, 0.02f },
-            { 0.01f, 0.01f, 0.01f},
-            { 0.4f, 0.4f, 0.4f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            1.f, 0.078125f * 128, 1.f,
-            { 1.f, 1.f, 1.f },
-            0
-        };
-
-        m_AvailableMaterials["Water"] = {
-            true, true, 0,
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            1.f, 200.f, 1.f,
-            { 1.f, 1.f, 1.f },
-            0
-        };
-
-        m_AvailableMaterials["Grass"] = {
-            true, true, 1,
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            { 1.f, 1.f, 1.f },
-            1.f, 200.f, 1.f,
-            { 1.f, 1.f, 1.f },
-            0
-        };
-        
-
-        m_ActiveMaterial = &m_AvailableMaterials["Grass"]; 
-
-        m_AmbientIntensity = { 0.1f, 0.1f, 0.1f };
-        m_DiffusionIntensity = { 1.f, 1.f, 1.f };
-        m_SpecularIntensity = { 1.f, 1.f, 1.f };
-
         // Lights
 
         m_ShadingTechnique = static_cast<int>(ShadingTechnique::PHONG);
         m_ReflectionModel = static_cast<int>(ReflectionModel::PHONG);
+
+        m_PointLightRadius = -1.f;
 
         m_PointLights.reserve(5);
         m_PointLights.emplace_back(CreatePointLight(), Maths::identity());
@@ -247,6 +73,9 @@ namespace Magnefu
 
         m_lightScaling = { 0.1f, 0.1f, 0.1f };
 
+        m_RadiantFlux = 3.f;
+
+        m_Reflectance = 1.f;
         
         m_angleRot = 360.f;
         m_rotationAxis = { 0.f, 0.f, 0.f };
@@ -270,43 +99,93 @@ namespace Magnefu
 
 
         m_MVP = Maths::identity();
+
+        Application& app = Application::Get();
+        ResourceCache& cache = app.GetResourceCache();
         
-        m_ModelCubeShader = std::make_unique <Shader>("res/shaders/TestLighting.shader");
-        m_ModelCubeShader->Bind();
-        SetShaderUniforms();
-        m_ModelCubeShader->Unbind();
+        std::string shader2 = "res/shaders/TestLighting-Texture.shader";
 
-
-        m_TextureCubeShader = std::make_unique <Shader>("res/shaders/TestLighting-Texture.shader");
+        m_TextureCubeShader = cache.RequestResource<Shader>(shader2);
         m_TextureCubeShader->Bind();
 
+        // need a way to read in all the textures I want by selecting a directory or something.
+        // like in model loading
 
-        std::array<std::string, 4> textureList = {
-            "res/textures/starlights/starlights_d.jpg",
-            "res/textures/darkmarble/dark-marbled-stone_d.jpg",
-            "res/textures/starlights/starlights_s.jpg",
-            "res/textures/darkmarble/dark-marbled-stone_s.jpg"
+        std::array<std::string, 8> textureList = {
+            //"res/textures/metal_plate/metal_plate_diff_2k.jpg",
+            //"res/textures/old_copper/2K_old_copper_base_color.png",
+            "res/textures/aluminium_foil-2K/2K-aluminium_foil_1_base_color.png",
+            //"res/textures/Lava_03-2K/Lava_03_emissive-2K.png",
+            //"res/textures/leaf_1-2K/2K-leaf_1-diffuse.jpg",
+            "res/textures/amethyst_texture_1-2K/2K-amethyst_1-diffuse.jpg",
+            //"res/textures/snow_field_aerial/snow_field_aerial_diff_2k.jpg",
+
+            //"res/textures/metal_plate/metal_plate_spec_2k.jpg",
+            //"res/textures/old_copper/2K_old_copper_specular_level.png",
+            "res/textures/aluminium_foil-2K/2k-aluminum-spec.jpg",
+            //"res/textures/Lava_03-2K/Lava_03_spec.jpg",
+            //"res/textures/leaf_1-2K/2K-leaf_1-specular.jpg",
+            "res/textures/amethyst_texture_1-2K/2K-amethyst_1-specular.jpg",
+            //"res/textures/snow_field_aerial/snow_f_a_spec.jpg",
+
+            //"res/textures/metal_plate/metal_plate_rough_2k.jpg",
+            //"res/textures/old_copper/2K_old_copper_roughness.png",
+            "res/textures/aluminium_foil-2K/2K-aluminium_foil_1_roughness.png",
+            //"res/textures/Lava_03-2K/Lava_03_roughness-2K.png",
+            //"res/textures/leaf_1-2K/leaf-rough.png",    // NEED TO GENERATE ROUGHNESS 
+            "res/textures/amethyst_texture_1-2K/amethyst-rough.png", // NEED TO GENERATE ROUGHNESS 
+            //"res/textures/snow_field_aerial/snow_field_aerial_rough_2k.jpg",
+
+            //"res/textures/metal_plate/metal_plate_metal_2k.jpg",
+            //"res/textures/old_copper/2K_old_copper_metallic.png",
+            "res/textures/aluminium_foil-2K/2K-aluminium_foil_1_metallic.png",
+            //"res/textures/Lava_03-2K/Lava_03_metallic-2K.png",
+            //"res/textures/colors/black.jpg",
+            "res/textures/colors/black.jpg",
+            //"res/textures/colors/black.jpg",
         };
 
         m_Textures.reserve(textureList.size());
 
-        // multithreaded version
-        /*for (auto& texturePath : textureList)
-        {
-            m_Futures.emplace_back(std::async(std::launch::async, InitTexture, std::ref(m_Textures), std::ref(texturePath)));
-        }*/
-
         // single threaded version
+        
         for (int i = 0; i < textureList.size(); i++)
         {
-            m_Textures.emplace_back(std::make_unique<Texture>(textureList[i]));
-            m_Textures[i]->Bind(i);
+            m_Textures.emplace_back(cache.RequestResource<Texture>(textureList[i]));
+            m_Textures[i]->Bind();
         }
 
-        int diffuseTextureLocations[2] = { 0, 1 };
+        String name = "aluminum";
+        TextureProps aluminum;
+        //aluminum.Ambient = nullptr;
+        aluminum.Diffuse = m_Textures[0];
+        aluminum.Specular = m_Textures[2];
+        aluminum.Roughness = m_Textures[4];
+        aluminum.Metallic = m_Textures[6];
+
+        String name2 = "amethyst";
+        TextureProps amethyst;
+        //amethyst.Ambient = nullptr;
+        amethyst.Diffuse = m_Textures[1];
+        amethyst.Specular = m_Textures[3];
+        amethyst.Roughness = m_Textures[5];
+        amethyst.Metallic = m_Textures[7];
+
+        m_Materials.emplace_back(cache.RequestResource<Material>(aluminum, name));
+        m_Materials.emplace_back(cache.RequestResource<Material>(amethyst, name2));
+        m_ActiveMaterial = m_Materials[0];
+
+        int diffuseTextureLocations[2] = { m_Textures[0]->GetSlot(), m_Textures[1]->GetSlot() };
         m_TextureCubeShader->SetUniform1iv("u_material.Diffuse", diffuseTextureLocations);
-        int specularTextureLocations[2] = { 2, 3 };
+
+        int specularTextureLocations[2] = { m_Textures[2]->GetSlot(), m_Textures[3]->GetSlot() };
         m_TextureCubeShader->SetUniform1iv("u_material.Specular", specularTextureLocations);
+
+        int roughTextureLocs[2] = { m_Textures[4]->GetSlot(), m_Textures[5]->GetSlot() };
+        m_TextureCubeShader->SetUniform1iv("u_material.Roughness", roughTextureLocs);
+
+        int metalTextureLocs[2] = { m_Textures[6]->GetSlot(), m_Textures[7]->GetSlot() };
+        m_TextureCubeShader->SetUniform1iv("u_material.Metallic", metalTextureLocs);
 
         for (int i = 0; i < m_Textures.size(); i++)
             m_Textures[i]->Unbind();
@@ -315,8 +194,8 @@ namespace Magnefu
 
         m_TextureCubeShader->Unbind();
         
-
-        m_LightCubeShader = std::make_unique <Shader>("res/shaders/LightCube.shader");
+        std::string shaderpath3 = "res/shaders/LightCube.shader";
+        m_LightCubeShader = cache.RequestResource <Shader>(shaderpath3);
 
         //Set Uniforms
 
@@ -325,12 +204,18 @@ namespace Magnefu
         m_LightCubeVAO->Unbind();
         m_VBO->Unbind();
         
-        glEnable(GL_DEPTH_TEST);
+        m_Renderer.EnableDepthTest();
 	}
 
 	TestLighting::~TestLighting()
 	{
-        glDisable(GL_DEPTH_TEST);
+        for (auto material : m_Materials)
+        {
+            material->Unbind();
+        }
+
+        m_Renderer.DisableDepthTest();
+
 	}
 
 	void TestLighting::OnUpdate(GLFWwindow* window, float deltaTime)
@@ -382,11 +267,7 @@ namespace Magnefu
         if (Maths::invert(modelMatrix.e, inverted.e))
             normalMatrix = Maths::transpose(inverted);
 
-        m_ModelCubeShader->Bind();
-        m_ModelCubeShader->SetUniformMatrix4fv("u_ModelMatrix", modelMatrix);
-        m_ModelCubeShader->SetUniformMatrix4fv("u_NormalMatrix", normalMatrix);
-        m_ModelCubeShader->SetUniform3fv("u_CameraPos", m_Camera->GetPosition());
-        m_ModelCubeShader->Unbind();
+        
 
         m_TextureCubeShader->Bind();
         m_TextureCubeShader->SetUniformMatrix4fv("u_ModelMatrix", modelMatrix);
@@ -400,22 +281,14 @@ namespace Magnefu
 
         m_Renderer.Clear();
 
-        if (m_ActiveMaterial->Textured)
+        if (m_ActiveMaterial)
         {
             m_TextureCubeShader->Bind();
-            for (int i = 0; i < m_Textures.size(); i++)
-                m_Textures[i]->Bind(i);
+            m_ActiveMaterial->Bind();
             SetTextureShaderUniforms();
             m_Renderer.DrawCube(*m_ModelCubeVAO, *m_TextureCubeShader);
 
             m_TextureCubeShader->Unbind();
-        }
-        else
-        {
-            m_ModelCubeShader->Bind();
-            SetShaderUniforms();
-            m_Renderer.DrawCube(*m_ModelCubeVAO, *m_ModelCubeShader);
-            m_ModelCubeShader->Unbind();
         }
             
 
@@ -475,7 +348,15 @@ namespace Magnefu
                     ImGui::SameLine();
                     if (ImGui::Button("Phong ")) m_ReflectionModel = 0;
                     ImGui::SameLine();
-                    if (ImGui::Button("Blinn-Phong")) m_ReflectionModel = 1;
+                    if (ImGui::Button("Modified Phong")) m_ReflectionModel = 1;
+                    ImGui::SameLine();
+                    if (ImGui::Button("Blinn-Phong")) m_ReflectionModel = 2;
+                    ImGui::SameLine();
+                    if (ImGui::Button("Micro Facet")) m_ReflectionModel = 3;
+
+                    ImGui::SliderFloat("Radiant Flux ", &m_RadiantFlux, 0.f, 100.f);
+
+                    ImGui::SliderFloat("Reflectance(MicroFacet Param)", &m_Reflectance, 0.f, 10.f);
 
                     ImGui::Text("Shading Technique");
                     ImGui::SameLine();
@@ -488,47 +369,26 @@ namespace Magnefu
 
             if (ImGui::TreeNode("Material"))
             {
-                if (ImGui::Button("Custom")) m_ActiveMaterial = &m_AvailableMaterials["Custom"];
-                ImGui::SameLine();
-                if (ImGui::ColorButton("Emerald", { 0.07568f, 0.61424f, 0.07568f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Emerald"];
-                ImGui::SameLine();
-                if (ImGui::ColorButton("Jade", { 0.54f, 0.89f, 0.63f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Jade"];
-                ImGui::SameLine();
-                if (ImGui::ColorButton("Obsidian", { 0.18275f, 0.17f, 0.22525f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Obsidian"];
-                ImGui::SameLine();
-                if (ImGui::ColorButton("Pearl", { 1.f, 0.829f, 0.829f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Pearl"];
-                ImGui::SameLine();
-                if (ImGui::ColorButton("Ruby", { 0.61424f, 0.04136f, 0.04136f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Ruby"];
-                ImGui::SameLine();
-                if (ImGui::ColorButton("Chrome", { 0.4f, 0.4f, 0.4f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Chrome"];
-                ImGui::SameLine();
-                if (ImGui::ColorButton("White Plastic", { 0.55f, 0.55f, 0.55f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["White Plastic"];
-                ImGui::SameLine();
-                if (ImGui::ColorButton("Black Rubber", { 0.01f, 0.01f, 0.01f, 1.f})) m_ActiveMaterial = &m_AvailableMaterials["Black Rubber"];
-
-                if (ImGui::ColorButton("Water", { 0.f, 0.45f, 1.f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["Water"]; ImGui::SameLine();
-                if (ImGui::ColorButton("Grass", { 0.f, 1.f, 0.1f, 1.f })) m_ActiveMaterial = &m_AvailableMaterials["Grass"];
-
-                if (m_ActiveMaterial->Preset && !m_ActiveMaterial->Textured)
+                for (size_t i = 0; i < m_Materials.size(); i++)
                 {
-                    ImGui::Text("Ambient: %.4f %.4f %.4f", m_ActiveMaterial->Ambient.r, m_ActiveMaterial->Ambient.g, m_ActiveMaterial->Ambient.b);
-                    ImGui::Text("Diffuse: %.4f %.4f %.4f", m_ActiveMaterial->Diffuse.r, m_ActiveMaterial->Diffuse.g, m_ActiveMaterial->Diffuse.b);
-                    ImGui::Text("Specular: %.4f %.4f %.4f", m_ActiveMaterial->Specular.r, m_ActiveMaterial->Specular.g, m_ActiveMaterial->Specular.b);
-                    ImGui::Text("Ns: %.2f", m_ActiveMaterial->Ns);
-                    //ImGui::SliderFloat("Roughness")
-                    //ImGui::SliderFloat("Opacity")  
+                    if (ImGui::ColorButton(m_Materials[i]->Name.c_str(), {0.07568f, 0.61424f, 0.07568f, 1.f})) 
+                        m_ActiveMaterial = m_Materials[i];
+                    ImGui::SameLine();
                 }
-                else if(!m_ActiveMaterial->Preset)
+
+                if (m_ActiveMaterial)
                 {
-                    ImGui::ColorEdit3("Diffuse", m_ActiveMaterial->Diffuse.e);
-                    ImGui::ColorEdit3("Specular", m_ActiveMaterial->Specular.e);
-                    ImGui::SliderFloat("Ns", &m_ActiveMaterial->Ns, 0.01f, 255.f);
+                    ImGui::Text("ID: %d", m_ActiveMaterial->ID);
+                    ImGui::SliderFloat("Shininess", &m_ActiveMaterial->Ns, 0.001f, 300.f);
+
+                    if(m_ReflectionModel == static_cast<int>(ReflectionModel::MICRO_FACET))
+                        ImGui::SliderFloat("Index of Refraction", &m_ActiveMaterial->Ni, 0.f, 4.f);
+
+                    ImGui::SliderFloat3("Ambient Strength", m_ActiveMaterial->Ka.e, 0.f, 1.f);
+                    ImGui::SliderFloat3("Diffuse Strength", m_ActiveMaterial->Kd.e, 0.f, 1.f);
+                    ImGui::SliderFloat3("Specular Strength", m_ActiveMaterial->Ks.e, 0.f, 1.f);
                 }
-                ImGui::SliderFloat3("Ambient Intensity", m_AmbientIntensity.e, 0.f, 1.f);
-                ImGui::SliderFloat3("Diffuse Intensity", m_DiffusionIntensity.e, 0.f, 1.f);
-                ImGui::SliderFloat3("Specular Intensity", m_SpecularIntensity.e, 0.f, 1.f);
-                ImGui::SliderFloat3("Diffuse & Ambient Strength", m_ActiveMaterial->Kd.e, 0.f, 1.f);
-                ImGui::SliderFloat3("Specular Strength", m_ActiveMaterial->Ks.e, 0.f, 1.f);
+                
                               
                 ImGui::TreePop();
             }
@@ -545,8 +405,7 @@ namespace Magnefu
                             if (m_DirectionLights[i].Enabled)
                             {
                                 ImGui::SliderFloat3("Light Direction ", m_DirectionLights[i].Direction.e, -1.f, 1.f);
-                                ImGui::ColorEdit3("Diffuse Color", m_DirectionLights[i].Diffuse.e);
-                                ImGui::ColorEdit3("Specular Color", m_DirectionLights[i].Specular.e);
+                                ImGui::ColorEdit3("Color", m_DirectionLights[i].Color.e);
                                 ImGui::Text("Attenuation Controls");
                                 ImGui::Text("Att Constant (Should be 1.0): %f", m_DirectionLights[i].constant);
                                 ImGui::SliderFloat("Att Linear", &m_DirectionLights[i].linear, 0.f, 1.f);
@@ -559,6 +418,8 @@ namespace Magnefu
                 }
                 if (ImGui::TreeNode("Point Lights"))
                 {
+                    ImGui::SliderFloat("Point Light Radius ", &m_PointLightRadius, 0.f, 20.f);
+
                     for (int i = 0; i < m_PointLights.size(); i++)
                     {
                         std::string name = "Point Light: " + std::to_string(i);
@@ -569,8 +430,7 @@ namespace Magnefu
                             {
                                 ImGui::SliderFloat3("Light Position ", m_PointLights[i].Position.e, -10.f, 10.f);
                                 ImGui::SliderFloat3("Light Scale", m_lightScaling.e, -10.f, 10.f);
-                                ImGui::ColorEdit3("Diffuse Color", m_PointLights[i].Diffuse.e);
-                                ImGui::ColorEdit3("Specular Color", m_PointLights[i].Specular.e);
+                                ImGui::ColorEdit3("Color", m_PointLights[i].Color.e);
                                 ImGui::Text("Attenuation Controls");
                                 ImGui::Text("Att Constant (Should be 1.0): %f", m_PointLights[i].constant);
                                 ImGui::SliderFloat("Att Linear", &m_PointLights[i].linear, 0.f, 1.f);
@@ -593,8 +453,7 @@ namespace Magnefu
                             {
                                 ImGui::SliderFloat3("Light Direction ", m_SpotLights[i].Direction.e, -10.f, 10.f);
                                 ImGui::SliderFloat3("Light Position ", m_SpotLights[i].Position.e, -10.f, 10.f);
-                                ImGui::ColorEdit3("Diffuse Color", m_SpotLights[i].Diffuse.e);
-                                ImGui::ColorEdit3("Specular Color", m_SpotLights[i].Specular.e);
+                                ImGui::ColorEdit3("Color", m_SpotLights[i].Color.e);
                                 ImGui::SliderFloat("Inner Cutoff", &m_SpotLights[i].innerCutoff, 0.f, 1.f);
                                 ImGui::SliderFloat("Outer Cutoff", &m_SpotLights[i].outerCutoff, 0.f, 1.f);
                                 ImGui::Text("Attenuation Controls");
@@ -626,61 +485,6 @@ namespace Magnefu
         }
 	}
 
-    void TestLighting::SetShaderUniforms()
-    {
-        m_ModelCubeShader->SetUniformMatrix4fv("u_MVP", m_MVP);
-
-        m_ModelCubeShader->SetUniform3fv("u_material.Ambient",  m_ActiveMaterial->Ambient);
-        m_ModelCubeShader->SetUniform3fv("u_material.Diffuse",  m_ActiveMaterial->Diffuse);
-        m_ModelCubeShader->SetUniform3fv("u_material.Specular", m_ActiveMaterial->Specular);
-        m_ModelCubeShader->SetUniform1f("u_material.Ns", m_ActiveMaterial->Ns);
-        m_ModelCubeShader->SetUniform3fv("u_material.Kd",       m_ActiveMaterial->Kd);
-        m_ModelCubeShader->SetUniform3fv("u_material.Ks",       m_ActiveMaterial->Ks);
-
-        m_ModelCubeShader->SetUniform3fv("u_Intensity.Ambient",  m_AmbientIntensity);
-        m_ModelCubeShader->SetUniform3fv("u_Intensity.Diffuse",  m_DiffusionIntensity);
-        m_ModelCubeShader->SetUniform3fv("u_Intensity.Specular", m_SpecularIntensity);
-
-        m_ModelCubeShader->SetUniform1i("u_ShadingTechnique", m_ShadingTechnique);
-        m_ModelCubeShader->SetUniform1i("u_ReflectionModel",  m_ReflectionModel);
-
-        for (int i = 0; i < m_PointLights.size(); i++)
-        {
-            std::string lightLabel = "u_PointLights[" + std::to_string(i) + "].";
-            m_ModelCubeShader->SetUniform1i(lightLabel + "Enabled", m_PointLights[i].Enabled);
-            m_ModelCubeShader->SetUniform3fv(lightLabel + "Position", m_PointLights[i].Position);
-            m_ModelCubeShader->SetUniform3fv(lightLabel + "Diffuse", m_PointLights[i].Diffuse);
-            m_ModelCubeShader->SetUniform3fv(lightLabel + "Specular", m_PointLights[i].Specular);
-            m_ModelCubeShader->SetUniform1f(lightLabel + "Constant", m_PointLights[i].constant);
-            m_ModelCubeShader->SetUniform1f(lightLabel + "Linear", m_PointLights[i].linear);
-            m_ModelCubeShader->SetUniform1f(lightLabel + "Quadratic", m_PointLights[i].quadratic);
-        }
-
-        for (int i = 0; i < m_DirectionLights.size(); i++)
-        {
-            std::string lightLabel = "u_DirectionLights[" + std::to_string(i) + "].";
-            m_ModelCubeShader->SetUniform1i(lightLabel + "Enabled", m_DirectionLights[i].Enabled);
-            m_ModelCubeShader->SetUniform3fv(lightLabel + "Direction", m_DirectionLights[i].Direction);
-            m_ModelCubeShader->SetUniform3fv(lightLabel + "Diffuse", m_DirectionLights[i].Diffuse);
-            m_ModelCubeShader->SetUniform3fv(lightLabel + "Specular", m_DirectionLights[i].Specular);
-        }
-
-        for (int i = 0; i < m_SpotLights.size(); i++)
-        {
-            std::string lightLabel = "u_SpotLights[" + std::to_string(i) + "].";
-            m_ModelCubeShader->SetUniform1i(lightLabel + "Enabled", m_SpotLights[i].Enabled);
-            m_ModelCubeShader->SetUniform3fv(lightLabel + "Direction", m_SpotLights[i].Direction);
-            m_ModelCubeShader->SetUniform3fv(lightLabel + "Position", m_SpotLights[i].Position);
-            m_ModelCubeShader->SetUniform3fv(lightLabel + "Diffuse", m_SpotLights[i].Diffuse);
-            m_ModelCubeShader->SetUniform3fv(lightLabel + "Specular", m_SpotLights[i].Specular);
-            m_ModelCubeShader->SetUniform1f(lightLabel + "Constant", m_SpotLights[i].constant);
-            m_ModelCubeShader->SetUniform1f(lightLabel + "Linear", m_SpotLights[i].linear);
-            m_ModelCubeShader->SetUniform1f(lightLabel + "Quadratic", m_SpotLights[i].quadratic);
-            m_ModelCubeShader->SetUniform1f(lightLabel + "InnerCutoff", m_SpotLights[i].innerCutoff);
-            m_ModelCubeShader->SetUniform1f(lightLabel + "OuterCutoff", m_SpotLights[i].outerCutoff);
-        }
-    }
-
     void TestLighting::SetTextureShaderUniforms()
     {
         m_TextureCubeShader->SetUniformMatrix4fv("u_MVP", m_MVP);
@@ -688,23 +492,23 @@ namespace Magnefu
         m_TextureCubeShader->SetUniform1ui("u_material.TexID", m_ActiveMaterial->ID);
         
         m_TextureCubeShader->SetUniform1f("u_material.Ns", m_ActiveMaterial->Ns);
+        m_TextureCubeShader->SetUniform3fv("u_material.Ka",       m_ActiveMaterial->Ka);
         m_TextureCubeShader->SetUniform3fv("u_material.Kd",       m_ActiveMaterial->Kd);
         m_TextureCubeShader->SetUniform3fv("u_material.Ks",       m_ActiveMaterial->Ks);
 
-        m_TextureCubeShader->SetUniform3fv("u_Intensity.Ambient",  m_AmbientIntensity);
-        m_TextureCubeShader->SetUniform3fv("u_Intensity.Diffuse",  m_DiffusionIntensity);
-        m_TextureCubeShader->SetUniform3fv("u_Intensity.Specular", m_SpecularIntensity);
-
         m_TextureCubeShader->SetUniform1i("u_ShadingTechnique", m_ShadingTechnique);
         m_TextureCubeShader->SetUniform1i("u_ReflectionModel",  m_ReflectionModel);
+
+        m_TextureCubeShader->SetUniform1f("u_PointLightRadius", m_PointLightRadius);
+        m_TextureCubeShader->SetUniform1f("u_RadiantFlux", m_RadiantFlux);
+        m_TextureCubeShader->SetUniform1f("u_Reflectance", m_Reflectance);
 
         for (int i = 0; i < m_PointLights.size(); i++)
         {
             std::string lightLabel = "u_PointLights[" + std::to_string(i) + "].";
             m_TextureCubeShader->SetUniform1i(lightLabel + "Enabled", m_PointLights[i].Enabled);
             m_TextureCubeShader->SetUniform3fv(lightLabel + "Position", m_PointLights[i].Position);
-            m_TextureCubeShader->SetUniform3fv(lightLabel + "Diffuse", m_PointLights[i].Diffuse);
-            m_TextureCubeShader->SetUniform3fv(lightLabel + "Specular", m_PointLights[i].Specular);
+            m_TextureCubeShader->SetUniform3fv(lightLabel + "Color", m_PointLights[i].Color);
             m_TextureCubeShader->SetUniform1f(lightLabel + "Constant", m_PointLights[i].constant);
             m_TextureCubeShader->SetUniform1f(lightLabel + "Linear", m_PointLights[i].linear);
             m_TextureCubeShader->SetUniform1f(lightLabel + "Quadratic", m_PointLights[i].quadratic);
@@ -715,8 +519,7 @@ namespace Magnefu
             std::string lightLabel = "u_DirectionLights[" + std::to_string(i) + "].";
             m_TextureCubeShader->SetUniform1i(lightLabel + "Enabled", m_DirectionLights[i].Enabled);
             m_TextureCubeShader->SetUniform3fv(lightLabel + "Direction", m_DirectionLights[i].Direction);
-            m_TextureCubeShader->SetUniform3fv(lightLabel + "Diffuse", m_DirectionLights[i].Diffuse);
-            m_TextureCubeShader->SetUniform3fv(lightLabel + "Specular", m_DirectionLights[i].Specular);
+            m_TextureCubeShader->SetUniform3fv(lightLabel + "Color", m_DirectionLights[i].Color);
         }
 
         for (int i = 0; i < m_SpotLights.size(); i++)
@@ -725,8 +528,7 @@ namespace Magnefu
             m_TextureCubeShader->SetUniform1i(lightLabel + "Enabled", m_SpotLights[i].Enabled);
             m_TextureCubeShader->SetUniform3fv(lightLabel + "Direction", m_SpotLights[i].Direction);
             m_TextureCubeShader->SetUniform3fv(lightLabel + "Position", m_SpotLights[i].Position);
-            m_TextureCubeShader->SetUniform3fv(lightLabel + "Diffuse", m_SpotLights[i].Diffuse);
-            m_TextureCubeShader->SetUniform3fv(lightLabel + "Specular", m_SpotLights[i].Specular);
+            m_TextureCubeShader->SetUniform3fv(lightLabel + "Color", m_SpotLights[i].Color);
             m_TextureCubeShader->SetUniform1f(lightLabel + "Constant", m_SpotLights[i].constant);
             m_TextureCubeShader->SetUniform1f(lightLabel + "Linear", m_SpotLights[i].linear);
             m_TextureCubeShader->SetUniform1f(lightLabel + "Quadratic", m_SpotLights[i].quadratic);

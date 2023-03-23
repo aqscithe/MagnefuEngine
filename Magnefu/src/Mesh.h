@@ -10,12 +10,7 @@
 #include "Renderer.h"
 
 #include <vector>
-#include <string>
-#include <memory>
-#include <map>
-#include <unordered_map>
 #include <fstream>
-#include <sstream>
 
 
 struct SubMaterialStream
@@ -24,21 +19,7 @@ struct SubMaterialStream
 	std::string StrData;
 };
 
-enum TextureType
-{
-	NONE = -1,
-	AMBIENT,
-	DIFFUSE,
-	SPECULAR,
-	EMISSIVE,
-	BUMP
-};
 
-struct TextureLabel
-{
-	std::string Name;
-	TextureType Type;
-};
 
 struct MeshData
 {
@@ -53,7 +34,7 @@ class Mesh
 public:
 	Mesh(MeshData& meshData);
 
-	void Draw(std::unique_ptr<Shader>& shader);
+	void Draw(Shader* shader);
 	void OnImGUIRender();
 
 	void Init();

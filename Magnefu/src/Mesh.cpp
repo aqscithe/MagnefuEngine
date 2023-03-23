@@ -1,7 +1,8 @@
+#include "mfpch.h"
+
 #include "Mesh.h"
 #include "VertexBufferAttribsLayout.h"
 
-#include "Magnefu/Log.h"
 
 
 static std::vector<unsigned int> SetIndices(std::vector<Face>& faces)
@@ -82,7 +83,7 @@ void Mesh::Init()
     m_VAO->AddBuffer(*m_VBO, layout);
 }
 
-void Mesh::Draw(std::unique_ptr<Shader>& shader)
+void Mesh::Draw(Shader* shader)
 {
     m_Renderer.Draw(*m_VAO, *m_IBO, *shader);
 }

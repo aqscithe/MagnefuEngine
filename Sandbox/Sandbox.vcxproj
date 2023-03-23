@@ -79,10 +79,10 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;..\Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -90,12 +90,6 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
-    <PreBuildEvent>
-      <Command>IF NOT EXIST ..\bin\Debug-windows-x86_64\Sandbox (mkdir ..\bin\Debug-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin\Debug-windows-x86_64\Sandbox (mkdir ..\bin\Debug-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin-intermediates\Debug-windows-x86_64\Sandbox (mkdir ..\bin-intermediates\Debug-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin-intermediates\Debug-windows-x86_64\Magnefu (mkdir ..\bin-intermediates\Debug-windows-x86_64\Magnefu)</Command>
-    </PreBuildEvent>
     <PostBuildEvent>
       <Command>xcopy /Q /E /Y /I $(ProjectDir)\res\* $(TargetDir)\res</Command>
     </PostBuildEvent>
@@ -105,13 +99,13 @@ IF NOT EXIST ..\bin-intermediates\Debug-windows-x86_64\Magnefu (mkdir ..\bin-int
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;..\Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -120,12 +114,6 @@ IF NOT EXIST ..\bin-intermediates\Debug-windows-x86_64\Magnefu (mkdir ..\bin-int
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
-    <PreBuildEvent>
-      <Command>IF NOT EXIST ..\bin\Release-windows-x86_64\Sandbox (mkdir ..\bin\Release-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin\Release-windows-x86_64\Sandbox (mkdir ..\bin\Release-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin-intermediates\Release-windows-x86_64\Sandbox (mkdir ..\bin-intermediates\Release-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin-intermediates\Release-windows-x86_64\Magnefu (mkdir ..\bin-intermediates\Release-windows-x86_64\Magnefu)</Command>
-    </PreBuildEvent>
     <PostBuildEvent>
       <Command>xcopy /Q /E /Y /I $(ProjectDir)\res\* $(TargetDir)\res</Command>
     </PostBuildEvent>
@@ -135,13 +123,13 @@ IF NOT EXIST ..\bin-intermediates\Release-windows-x86_64\Magnefu (mkdir ..\bin-i
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Dependencies;..\Dependencies\GLEW_2.1.0\include;..\Dependencies\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -150,24 +138,22 @@ IF NOT EXIST ..\bin-intermediates\Release-windows-x86_64\Magnefu (mkdir ..\bin-i
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
-    <PreBuildEvent>
-      <Command>IF NOT EXIST ..\bin\Dist-windows-x86_64\Sandbox (mkdir ..\bin\Dist-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin\Dist-windows-x86_64\Sandbox (mkdir ..\bin\Dist-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Sandbox (mkdir ..\bin-intermediates\Dist-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-intermediates\Dist-windows-x86_64\Magnefu)</Command>
-    </PreBuildEvent>
     <PostBuildEvent>
       <Command>xcopy /Q /E /Y /I $(ProjectDir)\res\* $(TargetDir)\res</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="src\SandboxApp.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\SandboxApp.cpp" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="res\materials\12221_Cat_v1_l3.mtl" />
     <None Include="res\materials\T-rex.mtl" />
     <None Include="res\materials\santa_hat.mtl" />
     <None Include="res\materials\wooden_watch_tower2.mtl" />
     <None Include="res\meshes\12221_Cat_v1_l3.obj" />
-    <None Include="res\meshes\T-rex.obj" />
-    <None Include="res\meshes\graph.txt" />
     <None Include="res\meshes\primitives\3D\cube.obj" />
     <None Include="res\meshes\santa_hat(BLENDER).obj" />
     <None Include="res\meshes\santa_hat(DEFAULT).obj" />
@@ -185,7 +171,29 @@ IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-inte
   <ItemGroup>
     <Image Include="res\textures\12221_Cat_v1_l3\Cat_bump.jpg" />
     <Image Include="res\textures\12221_Cat_v1_l3\Cat_diffuse.jpg" />
+    <Image Include="res\textures\Lava_03-2K\Lava_03_ambientocclusion-2K.png" />
+    <Image Include="res\textures\Lava_03-2K\Lava_03_basecolor-2K.png" />
+    <Image Include="res\textures\Lava_03-2K\Lava_03_emissive-2K.png" />
+    <Image Include="res\textures\Lava_03-2K\Lava_03_height-2K.png" />
+    <Image Include="res\textures\Lava_03-2K\Lava_03_metallic-2K.png" />
+    <Image Include="res\textures\Lava_03-2K\Lava_03_normal-2K.png" />
+    <Image Include="res\textures\Lava_03-2K\Lava_03_roughness-2K.png" />
+    <Image Include="res\textures\Lava_03-2K\Lava_03_spec.jpg" />
     <Image Include="res\textures\T-rex\755688691_2048x2048.png" />
+    <Image Include="res\textures\aluminium_foil-2K\2K-aluminium_foil_1_ao.png" />
+    <Image Include="res\textures\aluminium_foil-2K\2K-aluminium_foil_1_base_color.png" />
+    <Image Include="res\textures\aluminium_foil-2K\2K-aluminium_foil_1_displacement.png" />
+    <Image Include="res\textures\aluminium_foil-2K\2K-aluminium_foil_1_metallic.png" />
+    <Image Include="res\textures\aluminium_foil-2K\2K-aluminium_foil_1_normal.png" />
+    <Image Include="res\textures\aluminium_foil-2K\2K-aluminium_foil_1_roughness.png" />
+    <Image Include="res\textures\aluminium_foil-2K\2k-aluminum-spec.jpg" />
+    <Image Include="res\textures\amethyst_texture_1-2K\2K-amethyst_1-ao.jpg" />
+    <Image Include="res\textures\amethyst_texture_1-2K\2K-amethyst_1-diffuse.jpg" />
+    <Image Include="res\textures\amethyst_texture_1-2K\2K-amethyst_1-displacement.jpg" />
+    <Image Include="res\textures\amethyst_texture_1-2K\2K-amethyst_1-normal.jpg" />
+    <Image Include="res\textures\amethyst_texture_1-2K\2K-amethyst_1-specular.jpg" />
+    <Image Include="res\textures\amethyst_texture_1-2K\amethyst-rough.png" />
+    <Image Include="res\textures\colors\black.jpg" />
     <Image Include="res\textures\container_specular.png" />
     <Image Include="res\textures\darkmarble\dark-marbled-stone.jpg" />
     <Image Include="res\textures\darkmarble\dark-marbled-stone_ao.jpg" />
@@ -193,13 +201,34 @@ IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-inte
     <Image Include="res\textures\darkmarble\dark-marbled-stone_n.jpg" />
     <Image Include="res\textures\darkmarble\dark-marbled-stone_s.jpg" />
     <Image Include="res\textures\grass.jpg" />
+    <Image Include="res\textures\leaf_1-2K\2K-leaf_1-ao.jpg" />
+    <Image Include="res\textures\leaf_1-2K\2K-leaf_1-diffuse.jpg" />
+    <Image Include="res\textures\leaf_1-2K\2K-leaf_1-displacement.jpg" />
+    <Image Include="res\textures\leaf_1-2K\2K-leaf_1-normal.jpg" />
+    <Image Include="res\textures\leaf_1-2K\2K-leaf_1-specular.jpg" />
+    <Image Include="res\textures\leaf_1-2K\leaf-rough.png" />
+    <Image Include="res\textures\metal_plate\metal_plate_diff_2k.jpg" />
+    <Image Include="res\textures\metal_plate\metal_plate_metal_2k.jpg" />
+    <Image Include="res\textures\metal_plate\metal_plate_rough_2k.jpg" />
+    <Image Include="res\textures\metal_plate\metal_plate_spec_2k.jpg" />
     <Image Include="res\textures\moon.png" />
+    <Image Include="res\textures\old_copper\2K_old_copper_ambient_occlusion.png" />
+    <Image Include="res\textures\old_copper\2K_old_copper_base_color.png" />
+    <Image Include="res\textures\old_copper\2K_old_copper_diffuse.png" />
+    <Image Include="res\textures\old_copper\2K_old_copper_height.png" />
+    <Image Include="res\textures\old_copper\2K_old_copper_metallic.png" />
+    <Image Include="res\textures\old_copper\2K_old_copper_normal.png" />
+    <Image Include="res\textures\old_copper\2K_old_copper_roughness.png" />
+    <Image Include="res\textures\old_copper\2K_old_copper_specular_level.png" />
     <Image Include="res\textures\pluto.png" />
     <Image Include="res\textures\santa_hat\bump.jpg" />
     <Image Include="res\textures\santa_hat\color.jpg" />
     <Image Include="res\textures\santa_hat\normalmap.jpg" />
     <Image Include="res\textures\santa_hat\softnessmap.jpg" />
     <Image Include="res\textures\santa_hat\specular.jpg" />
+    <Image Include="res\textures\snow_field_aerial\snow_f_a_spec.jpg" />
+    <Image Include="res\textures\snow_field_aerial\snow_field_aerial_diff_2k.jpg" />
+    <Image Include="res\textures\snow_field_aerial\snow_field_aerial_rough_2k.jpg" />
     <Image Include="res\textures\starlights\starlights.jpg" />
     <Image Include="res\textures\starlights\starlights_ao.jpg" />
     <Image Include="res\textures\starlights\starlights_d.jpg" />
@@ -214,12 +243,6 @@ IF NOT EXIST ..\bin-intermediates\Dist-windows-x86_64\Magnefu (mkdir ..\bin-inte
     <ProjectReference Include="..\Magnefu\Magnefu.vcxproj">
       <Project>{4831CE14-B410-4DB0-BD28-D8862987B311}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\SandboxApp.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src\SandboxApp.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,9 +1,9 @@
+#include "mfpch.h"
+
 #include "Shader.h"
-#include <GL/glew.h>
-#include "Magnefu/Log.h"
+#include <GLAD/glad.h>
 
 #include <fstream>
-#include <sstream>
 
 
 
@@ -165,4 +165,9 @@ void Shader::SetUniform1iv(const String& name, const int* value)
 void Shader::SetUniform1ui(const String& name, const unsigned int value)
 {
     glUniform1ui(GetUniformLocation(name), (GLuint)value);
+}
+
+void Shader::ClearCache()
+{
+    m_uniformLocationAndNameMap.clear();
 }

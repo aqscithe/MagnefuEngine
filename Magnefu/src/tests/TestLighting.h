@@ -2,11 +2,10 @@
 
 #include "Test.h"
 
-#include <GL/glew.h>
+#include <GLAD/glad.h>
 #include "Renderer.h"
 #include "Texture.h"
 #include "Shader.h"
-#include "Quaternion.h"
 #include "Camera.h"
 #include "VertexArray.h"
 #include "IndexBuffer.h"
@@ -14,12 +13,6 @@
 #include "Material.h"
 
 #include "Quaternion.h"
-#include "Vectors.h"
-#include "Matrices.h"
-
-#include <memory>
-#include <vector>
-#include <future>
 
 
 // TODO:
@@ -41,38 +34,41 @@ namespace Magnefu
 		private:
 			void UpdateLights();
 			void UpdateMVP();
-			void SetShaderUniforms();
+			//void SetShaderUniforms();
 			void SetTextureShaderUniforms();
 
 			Maths::vec3 m_lightScaling;
 
+			float m_RadiantFlux;
+
+			float m_PointLightRadius;
 			std::vector<PointLightModel> m_PointLights;
 			std::vector<DirLightModel> m_DirectionLights;
 			std::vector<SpotLightModel> m_SpotLights;
 
 
-			Maths::vec3 m_AmbientIntensity;
-			Maths::vec3 m_DiffusionIntensity;
-			Maths::vec3 m_SpecularIntensity;
-			Material<Maths::vec3>* m_ActiveMaterial;
-			std::unordered_map<std::string, Material<Maths::vec3>> m_AvailableMaterials;
 
 			float m_shininess;
 
 			int m_ShadingTechnique;
 			int m_ReflectionModel;
 
+			float m_Reflectance;
+
 			Renderer m_Renderer;
 			std::unique_ptr<VertexBuffer> m_VBO;
 			std::unique_ptr<VertexArray> m_ModelCubeVAO;
 			std::unique_ptr<VertexArray> m_LightCubeVAO;
 			std::unique_ptr<IndexBuffer> m_IBO;
-			std::unique_ptr<Shader> m_ModelCubeShader;
-			std::unique_ptr<Shader> m_LightCubeShader;
-			std::unique_ptr<Shader> m_TextureCubeShader;
+			Shader* m_ModelCubeShader;
+			Shader* m_LightCubeShader;
+			Shader* m_TextureCubeShader;
 
-			std::vector<std::unique_ptr<Texture>> m_Textures;
+			std::vector<Texture*> m_Textures;
 			std::vector<std::future<void>> m_Futures;
+
+			Material* m_ActiveMaterial;
+			std::vector<Material*> m_Materials;
 
 
 			std::unique_ptr <Maths::Quaternion> m_Quat;

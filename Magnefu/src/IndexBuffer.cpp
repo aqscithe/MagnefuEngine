@@ -1,6 +1,8 @@
+#include "mfpch.h"
+
 #include "IndexBuffer.h"
-#include "Globals.h"
-#include <GL/glew.h>
+
+#include <GLAD/glad.h>
 
 IndexBuffer::IndexBuffer(unsigned int count, const unsigned int* data)
     : m_Count(count)

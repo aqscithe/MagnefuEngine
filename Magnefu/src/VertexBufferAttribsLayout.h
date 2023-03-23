@@ -1,8 +1,9 @@
 #pragma once
 
-#include "Globals.h"
+#include <GLAD/glad.h>
+
 #include <vector>
-#include <GL/glew.h>
+#include "Globals.h"
 
 struct VertexBufferAttribute
 {

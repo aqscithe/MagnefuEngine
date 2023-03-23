@@ -1,7 +1,7 @@
 #pragma once
+
 #include "Vectors.h"
 #include "Matrices.h"
-
 
 //TODO: Implement lerp functions for quaternions
 
@@ -23,7 +23,7 @@ namespace Maths
 		vec4 MultiplyQuat(const vec4& q1, const vec4& q2);
 
 		static vec4 CreateQuatConjugate(const vec4& q1);
-		static vec3 RotateVector(const vec3& v, const vec3& rotAxis, float angle);
+		//static vec3 RotateVector(const vec3& v, const vec3& rotAxis, float angle);
 
 		vec4 quat_from_axis_angle(vec3 axis, float angle);
 
