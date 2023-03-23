@@ -167,13 +167,6 @@ namespace Magnefu
 				global.fovY = 100.f;
 		});
 
-		//glfwSetFramebufferSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
-		//{
-		//		//is this what i should be running here?
-		//	//glViewport(0, 0, width, height);
-		//	
-		//});
-
 		Globals& global = Globals::Get();
 
 		m_Mouse.lastX = global.WIDTH / 2.f;

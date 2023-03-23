@@ -1,6 +1,8 @@
 #include "mfpch.h"
 #include "Camera.h"
 
+#include "Magnefu/Input.h"
+
 #include <GLFW/glfw3.h>
 
 
@@ -47,6 +49,8 @@ void Camera::ProcessInput(GLFWwindow* window, float deltaTime)
 {
 
 	Globals& global = Globals::Get();
+
+
 	
 	float cameraSpeed = m_Speed * deltaTime;
 	float forwardMovement = 0.f;

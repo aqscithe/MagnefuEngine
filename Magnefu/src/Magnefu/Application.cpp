@@ -1,6 +1,7 @@
 #include "mfpch.h"
 
 #include "Application.h"
+#include "Magnefu/Input.h"
 
 #include "Globals.h"
 
@@ -86,6 +87,7 @@ namespace Magnefu
         testMenu->RegisterTest<Magnefu::TestBatchRendering>("Batching");
         testMenu->RegisterTest<Magnefu::TestLighting>("Lighting");
         testMenu->RegisterTest <Magnefu::TestModelLoading>("3D Models");
+
 
         auto lastTime = std::chrono::high_resolution_clock::now();
         while (m_Running)

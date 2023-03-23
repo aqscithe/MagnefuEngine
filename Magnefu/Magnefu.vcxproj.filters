@@ -667,6 +667,8 @@
     <ClInclude Include="src\ResourceCache.h" />
     <ClInclude Include="vendor\glm\glm.hpp" />
     <ClInclude Include="vendor\glm\gtx\hash.hpp" />
+    <ClInclude Include="src\Magnefu\Input.h" />
+    <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Camera.cpp">
@@ -793,6 +795,7 @@
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
     <ClCompile Include="src\ResourceCache.cpp" />
+    <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\glm\gtx\hash.inl" />
