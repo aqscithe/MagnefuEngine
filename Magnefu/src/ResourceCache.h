@@ -2,6 +2,7 @@
 
 #include "CacheableResource.h"
 #include "Texture.h"
+#include "Material.h"
 #include "Shader.h"
 
 #include <typeindex>
@@ -13,14 +14,23 @@
 #include "glm/gtx/hash.hpp"
 
 
+template <>
+struct std::hash<Magnefu::TextureProps> {
+	size_t operator()(const Magnefu::TextureProps& props) {
+		return 0; 
+	}
+};
 
 
 namespace Magnefu
 {
+	
+
 	class ResourceCache
 	{
 		using CacheState = std::unordered_map<std::type_index, std::unordered_map<size_t, std::unique_ptr<CacheableResource>>>;
 		using MutexMap = std::unordered_map<std::type_index, std::mutex>;
+
 
 	public:
 		ResourceCache() = default;
@@ -62,6 +72,13 @@ namespace Magnefu
 
 			//return *dynamic_cast<T*>(it->second.get());
 			return dynamic_cast<T*>(resourceHashMap[seed].get());
+		}
+
+		template <typename T>
+		size_t size()
+		{
+			static_assert(std::is_base_of<CacheableResource, T>::value, "Class must be derived from CacheableResource");
+			return m_State[typeid(T)].size();
 		}
 
 		static ResourceCache* Create();

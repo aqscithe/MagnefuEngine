@@ -67,14 +67,12 @@ namespace Magnefu
         std::string texturePath = "res/textures/moon.png";
         std::string shaderPath = "res/shaders/Test.shader";
 
-        //m_Shader = std::make_unique <Shader>("res/shaders/Test.shader");
         m_Shader = cache.RequestResource <Shader>(shaderPath);
-        //m_Texture = std::make_unique<Texture>(texturePath);
         m_Texture = cache.RequestResource<Texture>(texturePath);
         
         m_Shader->Bind();
         m_Texture->Bind();
-        m_Shader->SetUniform1i("u_Texture", 0);
+        m_Shader->SetUniform1i("u_Texture", (int)m_Texture->GetSlot());
 
         
         m_angleRot = 0.f;
@@ -112,6 +110,7 @@ namespace Magnefu
 
 	Test3DRender::~Test3DRender()
 	{
+        m_Texture->Unbind();
         glDisable(GL_DEPTH_TEST);
 	}
 

@@ -3,37 +3,61 @@
 #include "CacheableResource.h"
 #include <string>
 
-using String = std::string;
-
-class Texture : public CacheableResource
+namespace Magnefu
 {
-private:
-	unsigned int m_RendererID;
-	String m_filepath;
-	unsigned char* m_texData;
-	int m_width, m_height, m_BPP;
+	using String = std::string;
 
-	bool m_HasGenerated;
-	bool m_Bound;
+	enum TextureType
+	{
+		NONE = -1,
+		AMBIENT,
+		DIFFUSE,
+		SPECULAR,
+		EMISSIVE,
+		BUMP,
+		ROUGHNESS,
+		METALLIC
+	};
 
-public:
-	Texture() = default;
-	Texture(const String& filepath, bool async = false);
-	~Texture();
+	struct TextureLabel
+	{
+		std::string Name;
+		TextureType Type;
+	};
 
-	void Bind(unsigned int slot = 0)   const;
-	void Unbind() const;
+	class Texture : public CacheableResource
+	{
+	private:
+		unsigned int m_RendererID;
+		String m_filepath;
+		unsigned char* m_texData;
+		int m_width, m_height, m_BPP;
 
-	unsigned int GetRendererID() const { return m_RendererID; };
-	bool GetGenerationStatus() const { return m_HasGenerated; };
-	String GetFilepath() const { return m_filepath; };
+		bool m_HasGenerated;
+		bool m_Bound;
+		uint32_t m_Slot;
 
-	void GenerateTexture();
+	public:
+		Texture() = default;
+		Texture(const String& filepath, bool async = false);
+		~Texture();
 
-private:
-	void SetTextureOptions();
-	void LoadTexture();
-	void GenerateTexImage();
-	
+		void Bind(unsigned int slot = 0);
+		void Unbind();
 
-};
+		unsigned int GetRendererID() const { return m_RendererID; };
+		bool GetGenerationStatus() const { return m_HasGenerated; };
+		String GetFilepath() const { return m_filepath; };
+		uint32_t GetSlot() const { return m_Slot; }
+
+		void GenerateTexture();
+
+	private:
+		void SetTextureOptions();
+		void LoadTexture();
+		void GenerateTexImage();
+
+
+	};
+}
+

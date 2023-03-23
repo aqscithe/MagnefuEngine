@@ -57,11 +57,12 @@ namespace Magnefu
         ResourceCache& cache = app.GetResourceCache();
         m_Shader = cache.RequestResource<Shader>(shaderPath);
 
+        
         m_Texture = cache.RequestResource<Texture>(texturePath);
         
         m_Shader->Bind();
         m_Texture->Bind();
-        m_Shader->SetUniform1i("u_Texture", 0);
+        m_Shader->SetUniform1i("u_Texture", (int)m_Texture->GetSlot());
 
         
         m_angleRot = 0.f;
@@ -101,6 +102,7 @@ namespace Magnefu
 
 	Test2DTexture::~Test2DTexture()
 	{
+        m_Texture->Unbind();
         glDisable(GL_BLEND);
 	}
 
@@ -137,7 +139,7 @@ namespace Magnefu
         m_Texture->Bind();
 
         m_Renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
-
+        m_Texture->Unbind();
 	}
 	
 	void Test2DTexture::OnImGUIRender()

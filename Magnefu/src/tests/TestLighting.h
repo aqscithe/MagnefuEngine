@@ -34,7 +34,7 @@ namespace Magnefu
 		private:
 			void UpdateLights();
 			void UpdateMVP();
-			void SetShaderUniforms();
+			//void SetShaderUniforms();
 			void SetTextureShaderUniforms();
 
 			Maths::vec3 m_lightScaling;
@@ -47,8 +47,6 @@ namespace Magnefu
 			std::vector<SpotLightModel> m_SpotLights;
 
 
-			Material<Maths::vec3>* m_ActiveMaterial;
-			std::unordered_map<std::string, Material<Maths::vec3>> m_AvailableMaterials;
 
 			float m_shininess;
 
@@ -68,6 +66,9 @@ namespace Magnefu
 
 			std::vector<Texture*> m_Textures;
 			std::vector<std::future<void>> m_Futures;
+
+			Material* m_ActiveMaterial;
+			std::vector<Material*> m_Materials;
 
 
 			std::unique_ptr <Maths::Quaternion> m_Quat;

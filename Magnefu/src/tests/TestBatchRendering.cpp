@@ -50,15 +50,16 @@ namespace Magnefu
         std::string texturePath0 = "res/textures/wall.jpg";
         std::string texturePath1 = "res/textures/pluto.png";
         m_Shader = cache.RequestResource<Shader>(shaderPath);
+
         m_Texture0 = cache.RequestResource<Texture>(texturePath0);
         m_Texture1 = cache.RequestResource<Texture>(texturePath1);
         
         m_Shader->Bind();
         
         m_Texture0->Bind();
-        m_Texture1->Bind(1);
+        m_Texture1->Bind();
 
-        int textureLocations[2] = { 0, 1 };
+        int textureLocations[2] = { m_Texture0->GetSlot(), m_Texture1->GetSlot()};
         m_Shader->SetUniform1iv("u_Texture", textureLocations);
         
         
@@ -98,6 +99,8 @@ namespace Magnefu
 
 	TestBatchRendering::~TestBatchRendering()
 	{
+        m_Texture0->Unbind();
+        m_Texture1->Unbind();
 	}
 
     static std::vector<unsigned int> SetIndices(int quadCount)

@@ -23,10 +23,10 @@
 
 namespace Magnefu
 {
-    static std::unique_ptr<Model> LoadModel(std::string& filepath, std::unordered_map<std::string, int>& matCache, std::mutex& mutex)
+    static std::unique_ptr<Model> LoadModel(std::string& filepath)
     {
         Timer timer;
-        return std::make_unique<Model>(filepath, matCache, mutex);
+        return std::make_unique<Model>(filepath);
     }
 
 	TestModelLoading::TestModelLoading()
@@ -59,7 +59,7 @@ namespace Magnefu
         };
                 
         for(std::string& obj : objFiles)
-            m_ModelWorkers[m_ModelWorkers.size()] = Worker<Model>{ false, std::async(std::launch::async, LoadModel, std::ref(obj), std::ref(m_MaterialCache), std::ref(m_ModelMutex) )};
+            m_ModelWorkers[m_ModelWorkers.size()] = Worker<Model>{ false, std::async(std::launch::async, LoadModel, std::ref(obj))};
 
         // TRANSFORM
         m_bShowTransform = false;
@@ -144,7 +144,7 @@ namespace Magnefu
                 modelWorker.WasAccessed = true;
                 m_InactiveThreads++;
                 m_Models.push_back(modelWorker.Thread.get());
-                m_Models.back()->Init(m_Shader, m_TextureCache, m_MaterialCache);
+                m_Models.back()->Init(m_Shader);
             }
         }
 
@@ -210,7 +210,7 @@ namespace Magnefu
         m_Shader->Bind();
         SetShaderUniforms();
         for (auto& model : m_Models)
-            model->Draw(m_Shader, m_TextureCache, m_MaterialCache);
+            model->Draw(m_Shader);
         m_Shader->Unbind();
         
 	}
@@ -231,7 +231,7 @@ namespace Magnefu
                 for (auto& obj : m_Objs)
                 {
                     if (ImGui::Button(obj.c_str()))
-                        m_ModelWorkers[m_ModelWorkers.size()] = Worker<Model>{ false, std::async(std::launch::async, LoadModel, std::ref(obj), std::ref(m_MaterialCache), std::ref(m_ModelMutex)) };
+                        m_ModelWorkers[m_ModelWorkers.size()] = Worker<Model>{ false, std::async(std::launch::async, LoadModel, std::ref(obj)) };
                 }
                 ImGui::EndTabItem();
             }
@@ -242,7 +242,7 @@ namespace Magnefu
                 {
                     if (ImGui::Button(m_Models[i]->m_Filepath.c_str()))
                     {
-                        m_Models[i]->ClearFromCache(m_TextureCache, m_MaterialCache);
+                        //m_Models[i]->ClearFromCache();
                         m_Models.erase(m_Models.begin() + i);
                     }
                         

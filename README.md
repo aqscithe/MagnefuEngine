@@ -76,7 +76,9 @@ NOTE - Spot and Direction lights are temporarily disabled as I fix some issues w
 - Physics
     - Collision
 - Procedural Textures
-
+- Source Radius(lights)
+- FLIP fluids
+- Full BSDF(BRDF + BTDF)
 
 
 

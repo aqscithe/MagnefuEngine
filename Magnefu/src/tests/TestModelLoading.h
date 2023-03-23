@@ -69,10 +69,6 @@ namespace Magnefu
 
 			std::vector<std::string> m_Objs;
 
-
-			std::unordered_map<std::string, int> m_TextureCache;
-			std::unordered_map<std::string, int> m_MaterialCache;
-
 			std::string m_MatFilePath;
 
 			Renderer m_Renderer;

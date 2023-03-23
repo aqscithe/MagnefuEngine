@@ -166,6 +166,9 @@ vec3 CalcMicroFacetBRDF(vec3 LightVector, vec3 ViewVector)
 	float metallic = float(texture(u_material.Metallic[u_material.TexID], TexCoords));
 	vec3 HalfwayVector = normalize(LightVector + ViewVector);
 	vec3 F0 = vec3(0.16 * (u_Reflectance * u_Reflectance));
+
+	// https://youtu.be/teTroOAGZjM
+	// section referring to BSDF lighting
 	F0 = mix(F0, vec3(texture(u_material.Diffuse[u_material.TexID], TexCoords)), metallic);
 	float VoH = clamp(dot(ViewVector, HalfwayVector), 0.0, 1.0);
 	vec3 F = FresnelSchlick(F0, VoH );

@@ -19,23 +19,7 @@ struct SubMaterialStream
 	std::string StrData;
 };
 
-enum TextureType
-{
-	NONE = -1,
-	AMBIENT,
-	DIFFUSE,
-	SPECULAR,
-	EMISSIVE,
-	BUMP,
-	ROUGHNESS,
-	METALLIC
-};
 
-struct TextureLabel
-{
-	std::string Name;
-	TextureType Type;
-};
 
 struct MeshData
 {
