@@ -114,7 +114,7 @@ namespace Magnefu
         glDisable(GL_DEPTH_TEST);
 	}
 
-	void Test3DRender::OnUpdate(GLFWwindow* window, float deltaTime)
+	void Test3DRender::OnUpdate(float deltaTime)
 	{
         Globals& global = Globals::Get();
         // Updating MVP
@@ -133,7 +133,7 @@ namespace Magnefu
         m_right = m_top * m_aspectRatio;
         m_left = -m_right;
 
-        m_Camera->ProcessInput(window, deltaTime);
+        m_Camera->ProcessInput(deltaTime);
 	}
 
 	void Test3DRender::OnRender()

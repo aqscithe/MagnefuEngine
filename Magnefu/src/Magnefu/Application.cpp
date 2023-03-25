@@ -23,6 +23,7 @@ namespace Magnefu
 
 	Application::Application()
 	{
+        MF_CORE_INFO("HELLO FROM APPLICATION");
         MF_CORE_ASSERT(!s_Instance, "Application instance already exists.");
         s_Instance = this;
         m_Window = std::unique_ptr<Window>(Window::Create());
@@ -131,7 +132,7 @@ namespace Magnefu
 
             if (activeTest)
             {
-                activeTest->OnUpdate(static_cast<GLFWwindow*>(m_Window->GetNativeWindow()), std::chrono::duration<float>(elapsedTime).count());
+                activeTest->OnUpdate(std::chrono::duration<float>(elapsedTime).count());
                 activeTest->OnRender();
                 ImGui::Begin("Tests");
                 if (activeTest != testMenu && ImGui::Button("<-"))
@@ -153,8 +154,6 @@ namespace Magnefu
         delete activeTest;
            
     }
-        
-      
 
       
 }

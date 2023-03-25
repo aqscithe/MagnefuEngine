@@ -1,12 +1,18 @@
 #pragma once
 
-//----For Magnefu App Use--------------
-#include "Magnefu/Application.h"
-#include "Magnefu/Layer.h"
-#include "Magnefu/ImGui/ImGuiLayer.h"
-#include "Magnefu/Log.h"
-//-------------------------------------
 
+#include "Magnefu/Application.h"
+#include "Magnefu/ImGui/ImGuiLayer.h"
+#include "Magnefu/Layer.h"
+#include "Magnefu/Log.h"
+
+
+
+//----Input----------------------------
+#include "Magnefu/Input.h"
+#include "Magnefu/KeyCodes.h"
+#include "Magnefu/MouseButtonCodes.h"
+//-------------------------------------
 
 
 

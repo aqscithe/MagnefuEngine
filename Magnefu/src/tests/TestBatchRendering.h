@@ -21,7 +21,7 @@ namespace Magnefu
 			TestBatchRendering();
 			~TestBatchRendering();
 
-			void OnUpdate(GLFWwindow* window, float deltaTime) override;
+			void OnUpdate(float deltaTime) override;
 			void OnRender()                override;
 			void OnImGUIRender()           override;
 

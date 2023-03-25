@@ -5,7 +5,7 @@
 
 namespace Maths
 {
-#pragma Union Declarations
+#pragma region Union Declarations
 
 	union mat2x4
 	{
@@ -20,7 +20,7 @@ namespace Maths
 	};
 #pragma endregion
 
-#pragma Operator Overloads
+#pragma region Operator Overloads
 	inline vec4 operator*(const mat4& m, const vec4& v)
 	{
 		return {
@@ -60,7 +60,7 @@ namespace Maths
 	}
 #pragma endregion
 
-#pragma Matrix Functions
+#pragma region Matrix Functions
 	mat4 identity();
 	mat4 axis(const vec3& right, const vec3& up, const vec3& forward);
 	mat4 translate(const vec3& t);

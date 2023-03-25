@@ -127,11 +127,11 @@ namespace Magnefu
         m_Renderer.DisableDepthTest();
 	}
 
-	void TestModelLoading::OnUpdate(GLFWwindow* window, float deltaTime)
+	void TestModelLoading::OnUpdate(float deltaTime)
 	{
         OnHandleThreads();
         UpdateMVP();
-        m_Camera->ProcessInput(window, deltaTime);
+        m_Camera->ProcessInput(deltaTime);
 	}
 
     void TestModelLoading::OnHandleThreads()
@@ -158,7 +158,7 @@ namespace Magnefu
 
     void TestModelLoading::UpdateLights()
     {
-        float moveRate = .000000001;
+        float moveRate = .000000001f;
         float moveScale = 1.5f;  // 1 means default sine wave of -1 to 1
         float moveAdjustment = 1.f;
 

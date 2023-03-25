@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Magnefu/Window.h"
+#include "Magnefu/Renderer/GraphicsContext.h"
 
 #include "Globals.h"
 #include <GLFW/glfw3.h>
@@ -31,6 +32,7 @@ namespace Magnefu
 
 	private:
 		GLFWwindow* m_Window;
+		GraphicsContext* m_Context;
 
 		// Here we store all the data that a window api like glfw might be interested in.
 		// this way we only have to pass the struct, not the entire class.

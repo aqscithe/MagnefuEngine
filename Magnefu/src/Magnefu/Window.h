@@ -20,7 +20,7 @@ namespace Magnefu
 
 	// interface system representing a desktop sytem based window
 
-	class MAGNEFU_API Window
+	class  Window
 	{
 	public:
 		using EventCallbackFn = std::function<void(Event& event)>;

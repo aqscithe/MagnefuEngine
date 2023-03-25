@@ -37,7 +37,7 @@ namespace Magnefu
 			TestModelLoading();
 			~TestModelLoading();
 
-			void OnUpdate(GLFWwindow* window, float deltaTime) override;
+			void OnUpdate(float deltaTime) override;
 			void OnHandleThreads();
 			void OnRender()                override;
 			void OnImGUIRender()           override;
@@ -74,7 +74,6 @@ namespace Magnefu
 			Renderer m_Renderer;
 			
 			Shader* m_Shader;
-			Shader* m_LightCubeShader;
 
 
 			std::unique_ptr <Maths::Quaternion> m_Quat;

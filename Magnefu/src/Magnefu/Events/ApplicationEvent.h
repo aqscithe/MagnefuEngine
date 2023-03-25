@@ -4,7 +4,7 @@
 
 namespace Magnefu
 {
-	class MAGNEFU_API WindowCloseEvent : public Event
+	class  WindowCloseEvent : public Event
 	{
 	public:
 		WindowCloseEvent() {}
@@ -22,7 +22,7 @@ namespace Magnefu
 	private:
 	};
 
-	class MAGNEFU_API WindowResizeEvent : public Event
+	class  WindowResizeEvent : public Event
 	{
 	public:
 		WindowResizeEvent(uint16_t width, uint16_t height) :
@@ -45,18 +45,18 @@ namespace Magnefu
 		uint16_t m_Width, m_Height;
 	};
 
-	class MAGNEFU_API WindowMovedEvent : public Event
+	class  WindowMovedEvent : public Event
 	{
 
 	};
 
 
-	class MAGNEFU_API WindowFocusEvent : public Event
+	class  WindowFocusEvent : public Event
 	{
 
 	};
 
-	class MAGNEFU_API WindowLostFocusEvent : public Event
+	class  WindowLostFocusEvent : public Event
 	{
 
 	};

@@ -59,7 +59,7 @@ namespace Magnefu
         m_Texture0->Bind();
         m_Texture1->Bind();
 
-        int textureLocations[2] = { m_Texture0->GetSlot(), m_Texture1->GetSlot()};
+        int textureLocations[2] = { static_cast<int>(m_Texture0->GetSlot()), static_cast<int>(m_Texture1->GetSlot())};
         m_Shader->SetUniform1iv("u_Texture", textureLocations);
         
         
@@ -116,7 +116,7 @@ namespace Magnefu
         return indices;
     }
 
-	void TestBatchRendering::OnUpdate(GLFWwindow* window, float deltaTime)
+	void TestBatchRendering::OnUpdate(float deltaTime)
 	{
         Globals& global = Globals::Get();
         // Updating MVP
@@ -135,7 +135,7 @@ namespace Magnefu
         m_left = -m_right;
 
 
-        m_Camera->ProcessInput(window, deltaTime);
+        m_Camera->ProcessInput(deltaTime);
 
 
         // dynamic buffer updates

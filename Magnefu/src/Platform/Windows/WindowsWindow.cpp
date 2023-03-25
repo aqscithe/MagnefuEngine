@@ -3,8 +3,8 @@
 #include "Magnefu/Events/ApplicationEvent.h"
 #include "Magnefu/Events/MouseEvent.h"
 #include "Magnefu/Events/KeyEvent.h"
+#include "Platform/OpenGL/OpenGLContext.h"
 
-#include <GLAD/glad.h>
 
 namespace Magnefu
 {
@@ -53,13 +53,10 @@ namespace Magnefu
 		m_Window = glfwCreateWindow(m_Data.Width, m_Data.Height, m_Data.Title.c_str(), NULL, NULL);
 		MF_CORE_ASSERT(m_Window, "Failed to create GLFW window");
 
-		glfwMakeContextCurrent(m_Window);
-		int success = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-		MF_CORE_ASSERT(success, "Failed to initialize GLAD");
+		m_Context = new OpenGLContext(m_Window);
 
-		MF_CORE_DEBUG((const char*)glGetString(GL_VERSION));
-		MF_CORE_DEBUG((const char*)glGetString(GL_VENDOR));
-		MF_CORE_DEBUG((const char*)glGetString(GL_RENDERER));
+		if(m_Context)
+			m_Context->Init();
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		SetVSync(true);
@@ -183,7 +180,7 @@ namespace Magnefu
 		processInput();
 		glfwPollEvents();
 		
-		glfwSwapBuffers(m_Window);
+		m_Context->SwapBuffers();
 	}
 
 	void WindowsWindow::Shutdown()

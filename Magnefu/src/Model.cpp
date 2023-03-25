@@ -393,16 +393,18 @@ namespace Magnefu
         ss.str(faceLine);
 
         int vertexIndex = 0;
-        std::string del;
-        while (std::getline(ss, del, ' '))
+        std::string vertexData;
+        char vertexDataDelimiter = ' ';
+        while (std::getline(ss, vertexData, vertexDataDelimiter))
         {
             int elementIndex = 0;
-            std::stringstream ssB(del);
-            std::string delB;
-            while (std::getline(ssB, delB, '/'))
+            std::stringstream ssB(vertexData);
+            std::string vertexElement;
+            char vertexElementDelimiter = '/';
+            while (std::getline(ssB, vertexElement, vertexElementDelimiter))
             {
                 // subtract 1 b/c face indices start at 1 instead of 0 in obj file
-                faceData[vertexIndex * 3 + elementIndex] = std::stoi(delB) - 1;
+                faceData[vertexIndex * 3 + elementIndex] = std::stoi(vertexElement) - 1;
                 elementIndex++;
             }
             vertexIndex++;

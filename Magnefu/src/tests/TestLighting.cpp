@@ -175,16 +175,16 @@ namespace Magnefu
         m_Materials.emplace_back(cache.RequestResource<Material>(amethyst, name2));
         m_ActiveMaterial = m_Materials[0];
 
-        int diffuseTextureLocations[2] = { m_Textures[0]->GetSlot(), m_Textures[1]->GetSlot() };
+        int diffuseTextureLocations[2] = { static_cast<int>(m_Textures[0]->GetSlot()), static_cast<int>(m_Textures[1]->GetSlot()) };
         m_TextureCubeShader->SetUniform1iv("u_material.Diffuse", diffuseTextureLocations);
 
-        int specularTextureLocations[2] = { m_Textures[2]->GetSlot(), m_Textures[3]->GetSlot() };
+        int specularTextureLocations[2] = { static_cast<int>(m_Textures[2]->GetSlot()), static_cast<int>(m_Textures[3]->GetSlot()) };
         m_TextureCubeShader->SetUniform1iv("u_material.Specular", specularTextureLocations);
 
-        int roughTextureLocs[2] = { m_Textures[4]->GetSlot(), m_Textures[5]->GetSlot() };
+        int roughTextureLocs[2] = { static_cast<int>(m_Textures[4]->GetSlot()), static_cast<int>(m_Textures[5]->GetSlot()) };
         m_TextureCubeShader->SetUniform1iv("u_material.Roughness", roughTextureLocs);
 
-        int metalTextureLocs[2] = { m_Textures[6]->GetSlot(), m_Textures[7]->GetSlot() };
+        int metalTextureLocs[2] = { static_cast<int>(m_Textures[6]->GetSlot()), static_cast<int>(m_Textures[7]->GetSlot()) };
         m_TextureCubeShader->SetUniform1iv("u_material.Metallic", metalTextureLocs);
 
         for (int i = 0; i < m_Textures.size(); i++)
@@ -218,16 +218,16 @@ namespace Magnefu
 
 	}
 
-	void TestLighting::OnUpdate(GLFWwindow* window, float deltaTime)
+	void TestLighting::OnUpdate(float deltaTime)
 	{
         UpdateLights();
         UpdateMVP();
-        m_Camera->ProcessInput(window, deltaTime);
+        m_Camera->ProcessInput(deltaTime);
 	}
 
     void TestLighting::UpdateLights()
     {
-        float moveRate = .000000001;
+        float moveRate = .000000001f;
         float moveScale = .5f;  // 1 means default sine wave of -1 to 1
         float moveAdjustment = 0.f;
 

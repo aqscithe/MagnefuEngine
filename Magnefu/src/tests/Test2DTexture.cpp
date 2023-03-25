@@ -106,7 +106,7 @@ namespace Magnefu
         glDisable(GL_BLEND);
 	}
 
-	void Test2DTexture::OnUpdate(GLFWwindow* window, float deltaTime)
+	void Test2DTexture::OnUpdate(float deltaTime)
 	{
         Globals& global = Globals::Get();
         // Updating MVP
@@ -125,7 +125,7 @@ namespace Magnefu
         m_right = m_top * m_aspectRatio;
         m_left = -m_right;
 
-        m_Camera->ProcessInput(window, deltaTime);
+        m_Camera->ProcessInput(deltaTime);
 	}
 
 	void Test2DTexture::OnRender()

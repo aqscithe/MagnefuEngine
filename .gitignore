@@ -78,9 +78,9 @@ DerivedDataCache/*
 
 # Dependencies
 bin/*
-bin-intermediates/*
+bin-int/*
 Magnefu/vendor/*/bin/*
-Magnefu/vendor/*/bin-intermediates/*
+Magnefu/vendor/*/bin-int/*
 */.vs
 
 # Vendor

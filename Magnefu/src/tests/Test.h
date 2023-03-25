@@ -4,7 +4,6 @@
 #include <vector>
 #include <functional>
 
-struct GLFWwindow;
 
 namespace Magnefu
 {
@@ -14,7 +13,7 @@ namespace Magnefu
 		Test() {}
 		virtual ~Test() {}
 
-		virtual void OnUpdate(GLFWwindow* window, float deltaTime) {}
+		virtual void OnUpdate(float deltaTime) {}
 		virtual void OnRender() {}
 		virtual void OnImGUIRender() {}
 	};

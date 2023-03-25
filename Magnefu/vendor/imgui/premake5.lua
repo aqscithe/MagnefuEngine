@@ -1,9 +1,11 @@
 project "ImGui"
 	kind "StaticLib"
 	language "C++"
-
+	cppdialect "C++17"
+	staticruntime "On"
+	
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-intermediates/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
 	files
 	{
@@ -34,18 +36,16 @@ project "ImGui"
 
 	filter "system:windows"
 		systemversion "latest"
-		cppdialect "C++17"
-		staticruntime "On"
 
 		defines {
-			"MF_PLATFORM_WINDOWS"
+			"MF_PLATFORM_WINDOWS",
+			"_CRT_SECURE_NO_WARNINGS"
 		}
 
 	filter "system:linux"
 		pic "On"
 		systemversion "latest"
-		cppdialect "C++17"
-		staticruntime "On"
+		
 
 	filter "configurations:Debug"
 		runtime "Debug"

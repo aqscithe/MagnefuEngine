@@ -1,4 +1,3 @@
-#include "mfpch.h"
 // dear imgui: Renderer + Platform Backend for Allegro 5
 // (Info: Allegro 5 is a cross-platform general purpose library for handling windows, inputs, graphics, etc.)
 

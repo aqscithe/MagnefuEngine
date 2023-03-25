@@ -50,6 +50,7 @@ NOTE - Spot and Direction lights are temporarily disabled as I fix some issues w
 
 
 ### Upcoming/TODO
+- Debugging matrices with ImGui & logging
 - Cleaner material and texture cache
 - Fix issues with texture when loading multiple models at once
 - Manipulate separate meshes on a model

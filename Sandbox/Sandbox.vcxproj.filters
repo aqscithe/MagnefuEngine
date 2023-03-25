@@ -31,6 +31,9 @@
     <Filter Include="res\textures\T-rex">
       <UniqueIdentifier>{01AD724A-ED90-33A0-56F1-2DF342F41D22}</UniqueIdentifier>
     </Filter>
+    <Filter Include="res\textures\Victorian_Painting">
+      <UniqueIdentifier>{191A47C9-85FD-5509-8E00-8445FA621C5A}</UniqueIdentifier>
+    </Filter>
     <Filter Include="res\textures\aluminium_foil-2K">
       <UniqueIdentifier>{B551C831-A177-9298-8ABD-17647682B764}</UniqueIdentifier>
     </Filter>
@@ -51,6 +54,9 @@
     </Filter>
     <Filter Include="res\textures\old_copper">
       <UniqueIdentifier>{98A1DD65-04D9-25FD-0DE3-892079994CF6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\retrotv0319">
+      <UniqueIdentifier>{541BB50D-4040-048E-698B-E91D550F03AC}</UniqueIdentifier>
     </Filter>
     <Filter Include="res\textures\santa_hat">
       <UniqueIdentifier>{844C2E74-7046-57C6-59B3-EDD6454CBD32}</UniqueIdentifier>
@@ -85,6 +91,12 @@
     <None Include="res\materials\T-rex.mtl">
       <Filter>res\materials</Filter>
     </None>
+    <None Include="res\materials\Victorian_Painting.mtl">
+      <Filter>res\materials</Filter>
+    </None>
+    <None Include="res\materials\retrotv0319.mtl">
+      <Filter>res\materials</Filter>
+    </None>
     <None Include="res\materials\santa_hat.mtl">
       <Filter>res\materials</Filter>
     </None>
@@ -94,16 +106,16 @@
     <None Include="res\meshes\12221_Cat_v1_l3.obj">
       <Filter>res\meshes</Filter>
     </None>
+    <None Include="res\meshes\Victorian_Painting.obj">
+      <Filter>res\meshes</Filter>
+    </None>
     <None Include="res\meshes\primitives\3D\cube.obj">
       <Filter>res\meshes\primitives\3D</Filter>
     </None>
-    <None Include="res\meshes\santa_hat(BLENDER).obj">
+    <None Include="res\meshes\retrotv0319.obj">
       <Filter>res\meshes</Filter>
     </None>
     <None Include="res\meshes\santa_hat(DEFAULT).obj">
-      <Filter>res\meshes</Filter>
-    </None>
-    <None Include="res\meshes\santa_hat(POSER).obj">
       <Filter>res\meshes</Filter>
     </None>
     <None Include="res\meshes\wooden_watch_tower2.obj">
@@ -135,10 +147,19 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\textures\12221_Cat_v1_l3\Cat_ao.jpg">
+      <Filter>res\textures\12221_Cat_v1_l3</Filter>
+    </Image>
     <Image Include="res\textures\12221_Cat_v1_l3\Cat_bump.jpg">
       <Filter>res\textures\12221_Cat_v1_l3</Filter>
     </Image>
     <Image Include="res\textures\12221_Cat_v1_l3\Cat_diffuse.jpg">
+      <Filter>res\textures\12221_Cat_v1_l3</Filter>
+    </Image>
+    <Image Include="res\textures\12221_Cat_v1_l3\Cat_normal.jpg">
+      <Filter>res\textures\12221_Cat_v1_l3</Filter>
+    </Image>
+    <Image Include="res\textures\12221_Cat_v1_l3\Cat_rough.png">
       <Filter>res\textures\12221_Cat_v1_l3</Filter>
     </Image>
     <Image Include="res\textures\Lava_03-2K\Lava_03_ambientocclusion-2K.png">
@@ -167,6 +188,18 @@
     </Image>
     <Image Include="res\textures\T-rex\755688691_2048x2048.png">
       <Filter>res\textures\T-rex</Filter>
+    </Image>
+    <Image Include="res\textures\Victorian_Painting\VictorianPaintings_BaseColor_Utility-sRGB-Texture.png">
+      <Filter>res\textures\Victorian_Painting</Filter>
+    </Image>
+    <Image Include="res\textures\Victorian_Painting\VictorianPaintings_Metallic_Utility-Raw.png">
+      <Filter>res\textures\Victorian_Painting</Filter>
+    </Image>
+    <Image Include="res\textures\Victorian_Painting\VictorianPaintings_Normal_Utility-Raw.png">
+      <Filter>res\textures\Victorian_Painting</Filter>
+    </Image>
+    <Image Include="res\textures\Victorian_Painting\VictorianPaintings_Roughness_Utility-Raw.png">
+      <Filter>res\textures\Victorian_Painting</Filter>
     </Image>
     <Image Include="res\textures\aluminium_foil-2K\2K-aluminium_foil_1_ao.png">
       <Filter>res\textures\aluminium_foil-2K</Filter>
@@ -291,6 +324,45 @@
     <Image Include="res\textures\pluto.png">
       <Filter>res\textures</Filter>
     </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Main_AO.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Main_BaseColor.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Main_Metallic.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Main_NormalDX.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Main_NormalGL.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Main_Roughness.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Screen_AO.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Screen_BaseColor.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Screen_BaseColor_noise.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Screen_Metallic.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Screen_NormalDX.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Screen_NormalGL.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Screen_Roughness.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
     <Image Include="res\textures\santa_hat\bump.jpg">
       <Filter>res\textures\santa_hat</Filter>
     </Image>
@@ -298,6 +370,9 @@
       <Filter>res\textures\santa_hat</Filter>
     </Image>
     <Image Include="res\textures\santa_hat\normalmap.jpg">
+      <Filter>res\textures\santa_hat</Filter>
+    </Image>
+    <Image Include="res\textures\santa_hat\rough.png">
       <Filter>res\textures\santa_hat</Filter>
     </Image>
     <Image Include="res\textures\santa_hat\softnessmap.jpg">

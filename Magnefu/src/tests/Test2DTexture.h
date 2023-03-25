@@ -23,7 +23,7 @@ namespace Magnefu
 			Test2DTexture();
 			~Test2DTexture();
 
-			void OnUpdate(GLFWwindow* window, float deltaTime) override;
+			void OnUpdate(float deltaTime) override;
 			void OnRender()                override;
 			void OnImGUIRender()           override;
 

@@ -35,7 +35,7 @@ namespace Magnefu {
 
 #define EVENT_CLASS_CATEGORY(category) int GetCategoryFlags() const override{ return category; }
 
-	class MAGNEFU_API Event 
+	class  Event 
 	{
 		friend class EventDispatcher;
 
@@ -54,7 +54,7 @@ namespace Magnefu {
 
 		inline bool IsHandled() const { return m_Handled; }
 
-	protected:
+	public:
 		bool m_Handled = false;
 
 	};
