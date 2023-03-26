@@ -1,16 +1,18 @@
 #pragma once
 
 #include "Test.h"
-
-#include <GLAD/glad.h>
-#include "Renderer.h"
+#include "Magnefu/Renderer/Renderer.h"
+#include "Magnefu/Renderer/VertexArray.h"
+#include "Magnefu/Renderer/Buffer.h"
 #include "Texture.h"
 #include "Shader.h"
 #include "Camera.h"
-#include "VertexArray.h"
-#include "IndexBuffer.h"
+
 
 #include "Quaternion.h"
+
+#include <GLAD/glad.h>
+
 
 
 

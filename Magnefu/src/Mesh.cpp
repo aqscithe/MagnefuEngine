@@ -52,6 +52,7 @@ void Mesh::Init()
     // Then in the Faces for loop, check the vertex count and set the indices based on that.
     // then append those indices to the array.
     std::vector<unsigned int> indices = SetIndices(m_MeshData.Faces);
+    vertices.reserve(4 * m_MeshData.Faces.size());
 
     for (Face& face : m_MeshData.Faces)
     {

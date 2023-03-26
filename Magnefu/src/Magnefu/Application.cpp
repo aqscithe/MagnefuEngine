@@ -5,11 +5,11 @@
 
 #include "Globals.h"
 
-#include "tests/Test3DRender.h"
+//#include "tests/Test3DRender.h"
 #include "tests/Test2DTexture.h"
-#include "tests/TestBatchRendering.h"
-#include "tests/TestLighting.h"
-#include "tests/TestModelLoading.h"
+//#include "tests/TestBatchRendering.h"
+//#include "tests/TestLighting.h"
+//#include "tests/TestModelLoading.h"
 
 //TEMP
 #include "imgui/imgui.h"
@@ -84,10 +84,10 @@ namespace Magnefu
         activeTest = testMenu;
 
         testMenu->RegisterTest<Magnefu::Test2DTexture>("2D Texture");
-        testMenu->RegisterTest<Magnefu::Test3DRender>("Cube Render");
-        testMenu->RegisterTest<Magnefu::TestBatchRendering>("Batching");
-        testMenu->RegisterTest<Magnefu::TestLighting>("Lighting");
-        testMenu->RegisterTest <Magnefu::TestModelLoading>("3D Models");
+        //testMenu->RegisterTest<Magnefu::Test3DRender>("Cube Render");
+        //testMenu->RegisterTest<Magnefu::TestBatchRendering>("Batching");
+        //testMenu->RegisterTest<Magnefu::TestLighting>("Lighting");
+        //testMenu->RegisterTest <Magnefu::TestModelLoading>("3D Models");
 
 
         auto lastTime = std::chrono::high_resolution_clock::now();

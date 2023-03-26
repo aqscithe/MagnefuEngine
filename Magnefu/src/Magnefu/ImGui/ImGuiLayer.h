@@ -3,7 +3,7 @@
 #include "Magnefu/Layer.h"
 #include "Magnefu/Events/KeyEvent.h"
 #include "Magnefu/Events/MouseEvent.h"
-#include "Renderer.h"
+#include "Magnefu/Renderer/Renderer.h"
 
 
 namespace Magnefu

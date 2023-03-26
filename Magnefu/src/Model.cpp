@@ -41,6 +41,7 @@ namespace Magnefu
                 std::string filepath = "res/materials/" + matFile;
                 ParseMaterial(filepath, ss);
 
+                m_Materials.reserve(ss.size());
                 for (auto& matData : ss)
                 {
                     m_Materials.emplace_back(cache.RequestResource<Material>(matFile, matData.StrData, matData.SubMatName));

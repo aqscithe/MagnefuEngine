@@ -5,13 +5,12 @@
 
 #include "imgui/imgui.h"
 
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
-#include "VertexArray.h"
+#include "Magnefu/Renderer/Buffer.h"
+#include "Magnefu/Renderer/VertexArray.h"
 #include "Texture.h"
 #include "Shader.h"
-#include "VertexBufferAttribsLayout.h"
-#include "Renderer.h"
+#include "Magnefu/Renderer/VertexBufferAttribsLayout.h"
+#include "Magnefu/Renderer/Renderer.h"
 
 #include "ResourceCache.h"
 
@@ -32,13 +31,17 @@ namespace Magnefu
 
         };
 
-        unsigned int indices[] = {
+        uint32_t indices[] = {
             0, 1, 2,
             2, 3, 0
         };
         
 
-        VertexBuffer vbo(7 * 4 * sizeof(float), vertices);
+
+        VertexBuffer* vbo = VertexBuffer::Create(sizeof(vertices), vertices);
+
+        ////////////////
+
 
         VertexBufferAttribsLayout layout;
         layout.Push<float>(2);
@@ -48,7 +51,7 @@ namespace Magnefu
         m_VAO = std::make_unique<VertexArray>();
         m_VAO->AddBuffer(vbo, layout);
 
-        m_IBO = std::make_unique<IndexBuffer>(sizeof(indices) / sizeof(unsigned int), indices);
+        m_IBO.reset(IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices));
 
         std::string shaderPath = "res/shaders/Texture2D.shader";
         std::string texturePath = "res/textures/moon.png";
@@ -91,9 +94,11 @@ namespace Magnefu
         // clear buffers
         m_VAO->Unbind();
         m_Shader->Unbind();
-        vbo.Unbind();
+        vbo->Unbind();
         m_IBO->Unbind();
         m_Texture->Unbind();
+
+        delete vbo;
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -138,7 +143,7 @@ namespace Magnefu
 
         m_Texture->Bind();
 
-        m_Renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
+        m_Renderer.Draw(*m_VAO, m_IBO.get(), *m_Shader);
         m_Texture->Unbind();
 	}
 	
