@@ -31,18 +31,18 @@ namespace Magnefu
 
 		private:
 			Renderer m_Renderer;
-			std::shared_ptr<VertexArray> m_VAO;
+			Ref<VertexArray> m_VAO;
 			Shader* m_Shader;
 			Texture* m_Texture;
 
 
-			std::unique_ptr <Maths::Quaternion> m_Quat;
+			Scope <Maths::Quaternion> m_Quat;
 			float m_angleRot = 0.f;
 			Maths::vec3 m_translation;
 			Maths::vec3 m_rotationAxis;
 			Maths::vec3 m_scaling;
 
-			std::unique_ptr<Camera> m_Camera;
+			Scope<Camera> m_Camera;
 
 			float m_aspectRatio;
 			float m_near;

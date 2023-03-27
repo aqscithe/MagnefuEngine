@@ -46,7 +46,7 @@ namespace Magnefu
 		glBindVertexArray(m_RendererID);
 	}
 
-	void OpenGLVertexArray::AddVertexBuffer(const std::shared_ptr<VertexBuffer>& vbo)
+	void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vbo)
 	{
 		MF_CORE_ASSERT(vbo->GetLayout().GetElements().size(), "OpenGL - Vertex Buffer missing layout");
 
@@ -128,7 +128,7 @@ namespace Magnefu
 
 	}
 
-	void OpenGLVertexArray::SetIndexBuffer(const std::shared_ptr<IndexBuffer>& ibo)
+	void OpenGLVertexArray::SetIndexBuffer(const Ref<IndexBuffer>& ibo)
 	{
 		glBindVertexArray(m_RendererID);
 		ibo->Bind();

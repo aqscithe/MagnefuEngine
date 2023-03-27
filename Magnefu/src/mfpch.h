@@ -24,6 +24,7 @@
 #include "Vectors.h"
 #include "Matrices.h"
 #include "Magnefu/Log.h"
+#include "Magnefu/Base.h"
 
 #ifdef MF_PLATFORM_WINDOWS
 #include <Windows.h>

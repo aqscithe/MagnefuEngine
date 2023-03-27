@@ -37,7 +37,7 @@ namespace Magnefu
         
 
 
-        std::shared_ptr<VertexBuffer> vbo = VertexBuffer::Create(sizeof(vertices), vertices);
+        Ref<VertexBuffer> vbo = VertexBuffer::Create(sizeof(vertices), vertices);
 
         BufferLayout layout = {
             {ShaderDataType::Float2, "aPosition"},
@@ -47,7 +47,7 @@ namespace Magnefu
 
         vbo->SetLayout(layout);
 
-        std::shared_ptr<IndexBuffer> ibo = IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices);
+        Ref<IndexBuffer> ibo = IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices);
 
         m_VAO = VertexArray::Create();
         m_VAO->AddVertexBuffer(vbo);
@@ -74,9 +74,9 @@ namespace Magnefu
         m_translation = { 0.f, 0.f, 0.f };
         m_scaling = { 1.f, 1.f, 1.f };
 
-        m_Quat = std::make_unique<Maths::Quaternion>(m_angleRot, m_rotationAxis);
+        m_Quat = CreateScope<Maths::Quaternion>(m_angleRot, m_rotationAxis);
 
-        m_Camera = std::make_unique<Camera>();
+        m_Camera = CreateScope<Camera>();
 
         Globals& global = Globals::Get();
 

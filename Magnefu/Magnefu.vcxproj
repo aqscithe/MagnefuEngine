@@ -149,6 +149,7 @@
     <ClInclude Include="src\CacheableResource.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Globals.h" />
+    <ClInclude Include="src\Magnefu\Base.h" />
     <ClInclude Include="src\Magnefu\Renderer\Buffer.h" />
     <ClInclude Include="src\Light.h" />
     <ClInclude Include="src\Magnefu.h" />
