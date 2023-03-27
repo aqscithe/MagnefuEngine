@@ -48,6 +48,8 @@ namespace Magnefu
 
 	void OpenGLVertexArray::AddVertexBuffer(const std::shared_ptr<VertexBuffer>& vbo)
 	{
+		MF_CORE_ASSERT(vbo->GetLayout().GetElements().size(), "OpenGL - Vertex Buffer missing layout");
+
 		Bind();
 		vbo->Bind();
 
@@ -117,7 +119,7 @@ namespace Magnefu
 					break;
 				}
 				default:
-					MF_CORE_ASSERT(false, "Unknown Shader data type!");
+					MF_CORE_ASSERT(false, "OpenGL - Unknown Shader data type!");
 
 			}
 		}

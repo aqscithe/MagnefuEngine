@@ -32,7 +32,6 @@ namespace Magnefu
 		private:
 			Renderer m_Renderer;
 			std::shared_ptr<VertexArray> m_VAO;
-			std::shared_ptr<IndexBuffer> m_IBO;
 			Shader* m_Shader;
 			Texture* m_Texture;
 

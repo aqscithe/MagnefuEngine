@@ -47,11 +47,11 @@ namespace Magnefu
 
         vbo->SetLayout(layout);
 
-        m_IBO = IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices);
+        std::shared_ptr<IndexBuffer> ibo = IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices);
 
         m_VAO = VertexArray::Create();
         m_VAO->AddVertexBuffer(vbo);
-        m_VAO->SetIndexBuffer(m_IBO);
+        m_VAO->SetIndexBuffer(ibo);
         
 
         std::string shaderPath = "res/shaders/Texture2D.shader";
@@ -91,15 +91,6 @@ namespace Magnefu
 
         m_MVP = Maths::identity();
         
-
-        // clear buffers
-        m_VAO->Unbind();
-        m_Shader->Unbind();
-        vbo->Unbind();
-        m_IBO->Unbind();
-        m_Texture->Unbind();
-
-        
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBlendEquation(GL_FUNC_ADD);
@@ -107,7 +98,6 @@ namespace Magnefu
 
 	Test2DTexture::~Test2DTexture()
 	{
-        m_Texture->Unbind();
         glDisable(GL_BLEND);
 	}
 
@@ -135,16 +125,10 @@ namespace Magnefu
 
 	void Test2DTexture::OnRender()
 	{
-        //m_Renderer.Clear();
-
         m_Shader->Bind();
-
         m_Shader->SetUniformMatrix4fv("u_MVP", m_MVP);
-
         m_Texture->Bind();
-
-        m_Renderer.Draw(*m_VAO, m_IBO.get(), *m_Shader);
-        m_Texture->Unbind();
+        m_Renderer.Draw(m_VAO);
 	}
 	
 	void Test2DTexture::OnImGUIRender()

@@ -11,14 +11,10 @@ namespace Magnefu
 {
     RendererAPI Renderer::s_RendererAPI = RendererAPI::OPENGL;
 
-    void Renderer::Draw(const VertexArray& vao, const IndexBuffer* ibo, const Shader& shader) const
+    void Renderer::Draw(const std::shared_ptr<VertexArray>& vao) const
     {
-        shader.Bind();
-
-        vao.Bind();
-        ibo->Bind();
-
-        glDrawElements(GL_TRIANGLES, ibo->GetCount(), GL_UNSIGNED_INT, nullptr);
+        vao->Bind();
+        glDrawElements(GL_TRIANGLES, vao->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
     }
 
 

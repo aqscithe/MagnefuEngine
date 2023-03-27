@@ -22,7 +22,7 @@ namespace Magnefu
 
 	public:
 
-		void Draw(const VertexArray&, const IndexBuffer*, const Shader&) const;
+		void Draw(const std::shared_ptr<VertexArray>&) const;
 		void DrawQuads(const VertexArray&, const IndexBuffer*, const Shader&) const;
 		void DrawCube(const VertexArray&, const Shader&) const;
 		void Clear() const;
