@@ -46,7 +46,7 @@ namespace Magnefu
 		glBindVertexArray(m_RendererID);
 	}
 
-	void OpenGLVertexArray::AddVertexBuffer(const VertexBuffer* vbo)
+	void OpenGLVertexArray::AddVertexBuffer(const std::shared_ptr<VertexBuffer>& vbo)
 	{
 		Bind();
 		vbo->Bind();
@@ -122,7 +122,14 @@ namespace Magnefu
 			}
 		}
 
-		m_VBO = vbo;
+		m_VertexBuffers.emplace_back(vbo);
 
+	}
+
+	void OpenGLVertexArray::SetIndexBuffer(const std::shared_ptr<IndexBuffer>& ibo)
+	{
+		glBindVertexArray(m_RendererID);
+		ibo->Bind();
+		m_IndexBuffer = ibo;
 	}
 }

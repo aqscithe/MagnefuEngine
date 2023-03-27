@@ -37,7 +37,7 @@ namespace Magnefu
         
 
 
-        VertexBuffer* vbo = VertexBuffer::Create(sizeof(vertices), vertices);
+        std::shared_ptr<VertexBuffer> vbo = VertexBuffer::Create(sizeof(vertices), vertices);
 
         BufferLayout layout = {
             {ShaderDataType::Float2, "aPosition"},
@@ -47,10 +47,12 @@ namespace Magnefu
 
         vbo->SetLayout(layout);
 
-        m_VAO.reset(VertexArray::Create());
-        m_VAO->AddVertexBuffer(vbo);
+        m_IBO = IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices);
 
-        m_IBO.reset(IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices));
+        m_VAO = VertexArray::Create();
+        m_VAO->AddVertexBuffer(vbo);
+        m_VAO->SetIndexBuffer(m_IBO);
+        
 
         std::string shaderPath = "res/shaders/Texture2D.shader";
         std::string texturePath = "res/textures/moon.png";

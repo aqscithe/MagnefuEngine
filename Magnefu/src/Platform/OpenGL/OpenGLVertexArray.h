@@ -20,10 +20,12 @@ namespace Magnefu
 		void Bind() const override;
 		void Unbind() const override;
 
-		void AddVertexBuffer(const VertexBuffer*) override;
+		void AddVertexBuffer(const std::shared_ptr<VertexBuffer>&) override;
+		void SetIndexBuffer(const std::shared_ptr<IndexBuffer>&) override;
 
 	private:
 		uint32_t m_RendererID;
-		const VertexBuffer* m_VBO;
+		std::vector<std::shared_ptr<VertexBuffer>> m_VertexBuffers;
+		std::shared_ptr<IndexBuffer> m_IndexBuffer;
 	};
 }

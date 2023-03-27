@@ -2,12 +2,13 @@
 
 #include "VertexArray.h"
 #include "Platform/OpenGL/OpenGLVertexArray.h"
+#include "Buffer.h"
 #include "Renderer.h"
 
 
 namespace Magnefu
 {
-	VertexArray* VertexArray::Create()
+	std::shared_ptr<VertexArray> VertexArray::Create()
 	{
 		switch (Renderer::GetAPI())
 		{
@@ -15,7 +16,7 @@ namespace Magnefu
 			MF_CORE_ASSERT(false, "RendererAPI::NONE VertexArray not supported");
 			return nullptr;
 		case RendererAPI::OPENGL:
-			return new OpenGLVertexArray();
+			return  std::make_shared<OpenGLVertexArray>();
 		}
 
 		MF_CORE_ASSERT(false, "Unknown Renderer API - VertexArray");
