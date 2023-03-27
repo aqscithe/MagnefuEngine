@@ -178,6 +178,7 @@
     <ClInclude Include="src\Maths\Vectors.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLBuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h" />
     <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
     <ClInclude Include="src\Magnefu\Renderer\Renderer.h" />
@@ -186,7 +187,6 @@
     <ClInclude Include="src\Texture.h" />
     <ClInclude Include="src\Timer.h" />
     <ClInclude Include="src\Magnefu\Renderer\VertexArray.h" />
-    <ClInclude Include="src\Magnefu\Renderer\VertexBufferAttribsLayout.h" />
     <ClInclude Include="src\mfpch.h" />
     <ClInclude Include="src\tests\Test.h" />
     <ClInclude Include="src\tests\Test2DTexture.h" />
@@ -370,6 +370,7 @@
     <ClCompile Include="src\Maths\Vectors.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Renderer.cpp" />
@@ -378,7 +379,6 @@
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\Timer.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\VertexArray.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\VertexBufferAttribsLayout.cpp" />
     <ClCompile Include="src\mfpch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

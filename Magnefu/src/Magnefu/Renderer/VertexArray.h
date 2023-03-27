@@ -1,23 +1,20 @@
 #pragma once
 
-
 namespace Magnefu
 {
 	class VertexBuffer;
-	class VertexBufferAttribsLayout;
 
 	class VertexArray
 	{
-	private:
-		unsigned int m_RendererID;
-
 	public:
-		VertexArray();
-		~VertexArray();
+		virtual ~VertexArray() = default;
 
-		void Unbind() const;
-		void Bind()   const;
+		virtual void Unbind() const = 0;
+		virtual void Bind()   const = 0;
 
-		void AddBuffer(const VertexBuffer* vb, const VertexBufferAttribsLayout& layout);
+		virtual void AddVertexBuffer(const VertexBuffer*) = 0;
+
+		static VertexArray* Create();
+
 	};
 }

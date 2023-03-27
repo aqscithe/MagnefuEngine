@@ -222,9 +222,6 @@
     <ClInclude Include="src\Magnefu\Renderer\VertexArray.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\VertexBufferAttribsLayout.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\mfpch.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -713,6 +710,7 @@
     </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\Buffer.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLBuffer.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Camera.cpp">
@@ -790,9 +788,6 @@
     <ClCompile Include="src\Magnefu\Renderer\VertexArray.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\VertexBufferAttribsLayout.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\mfpch.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -831,5 +826,6 @@
     </ClCompile>
     <ClCompile Include="src\Magnefu\Renderer\Buffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
   </ItemGroup>
 </Project>

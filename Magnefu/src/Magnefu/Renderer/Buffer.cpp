@@ -1,5 +1,4 @@
 #include "mfpch.h"
-//#include "Magnefu/Core.h"
 #include "Platform/OpenGL/OpenGLBuffer.h"
 #include "Renderer.h"
 
@@ -16,7 +15,7 @@ namespace Magnefu
 			return new OpenGLVertexBuffer(size);
 		}
 
-		MF_CORE_ASSERT(false, "Unknown VertexBuffer type.");
+		MF_CORE_ASSERT(false, "Unknown Renderer API - VertexBuffer");
 		return nullptr;
 	}
 
@@ -31,11 +30,11 @@ namespace Magnefu
 			return new OpenGLVertexBuffer(size, data);
 		}
 
-		MF_CORE_ASSERT(false, "Unknown VertexBuffer type.");
+		MF_CORE_ASSERT(false, "Unknown Renderer API - VertexBuffer");
 		return nullptr;
 	}
 
-	IndexBuffer* Magnefu::IndexBuffer::Create(uint32_t count, uint32_t* data)
+	IndexBuffer* IndexBuffer::Create(uint32_t count, uint32_t* data)
 	{
 		switch (Renderer::GetAPI())
 		{
@@ -46,7 +45,7 @@ namespace Magnefu
 			return new OpenGLIndexBuffer(count, data);
 		}
 
-		MF_CORE_ASSERT(false, "Unknown IndexBuffer type.");
+		MF_CORE_ASSERT(false, "Unknown Renderer API - IndexBuffer");
 		return nullptr;
 	}
 }

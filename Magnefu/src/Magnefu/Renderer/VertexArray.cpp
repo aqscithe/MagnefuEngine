@@ -1,54 +1,27 @@
 #include "mfpch.h"
 
 #include "VertexArray.h"
-#include "Buffer.h"
-#include "VertexBufferAttribsLayout.h"
-#include <GLAD/glad.h>
+#include "Platform/OpenGL/OpenGLVertexArray.h"
+#include "Renderer.h"
+
 
 namespace Magnefu
 {
-	VertexArray::VertexArray()
+	VertexArray* VertexArray::Create()
 	{
-		glGenVertexArrays(1, &m_RendererID);
-		glBindVertexArray(m_RendererID);
-	}
-
-	VertexArray::~VertexArray()
-	{
-		glDeleteVertexArrays(1, &m_RendererID);
-	}
-
-	void VertexArray::Unbind() const
-	{
-		glBindVertexArray(0);
-	}
-
-	void VertexArray::Bind() const
-	{
-		glBindVertexArray(m_RendererID);
-	}
-
-	void VertexArray::AddBuffer(const VertexBuffer* vbo, const VertexBufferAttribsLayout& layout)
-	{
-		Bind();
-		vbo->Bind();
-
-		const auto& attributes = layout.GetAttributes();
-		auto stride = layout.GetStride();
-
-		unsigned int offset = 0;
-
-		int index = 0;
-		for (const auto& attribute : attributes)
+		switch (Renderer::GetAPI())
 		{
-			glEnableVertexAttribArray(index);
-			glVertexAttribPointer(index, attribute.count, attribute.type, attribute.normalized, stride, (const void*)offset);
-
-			offset += attribute.count * VertexBufferAttribute::GetSizeOfType(attribute.type);
-			index += 1;
+		case RendererAPI::NONE:
+			MF_CORE_ASSERT(false, "RendererAPI::NONE VertexArray not supported");
+			return nullptr;
+		case RendererAPI::OPENGL:
+			return new OpenGLVertexArray();
 		}
 
+		MF_CORE_ASSERT(false, "Unknown Renderer API - VertexArray");
+		return nullptr;
 	}
+
 }
 
 

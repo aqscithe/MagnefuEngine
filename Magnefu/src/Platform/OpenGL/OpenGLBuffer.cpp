@@ -35,7 +35,6 @@ namespace Magnefu
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
-
 	//// INDEXBUFFER ////
 
 	OpenGLIndexBuffer::OpenGLIndexBuffer(uint32_t count, uint32_t* data) :

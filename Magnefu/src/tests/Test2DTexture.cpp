@@ -9,7 +9,6 @@
 #include "Magnefu/Renderer/VertexArray.h"
 #include "Texture.h"
 #include "Shader.h"
-#include "Magnefu/Renderer/VertexBufferAttribsLayout.h"
 #include "Magnefu/Renderer/Renderer.h"
 
 #include "ResourceCache.h"
@@ -40,16 +39,16 @@ namespace Magnefu
 
         VertexBuffer* vbo = VertexBuffer::Create(sizeof(vertices), vertices);
 
-        ////////////////
+        BufferLayout layout = {
+            {ShaderDataType::Float2, "aPosition"},
+            {ShaderDataType::Float3, "aColor"},
+            {ShaderDataType::Float2, "aTexCoords"}
+        };
 
+        vbo->SetLayout(layout);
 
-        VertexBufferAttribsLayout layout;
-        layout.Push<float>(2);
-        layout.Push<float>(3);
-        layout.Push<float>(2);
-
-        m_VAO = std::make_unique<VertexArray>();
-        m_VAO->AddBuffer(vbo, layout);
+        m_VAO.reset(VertexArray::Create());
+        m_VAO->AddVertexBuffer(vbo);
 
         m_IBO.reset(IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices));
 
@@ -98,8 +97,7 @@ namespace Magnefu
         m_IBO->Unbind();
         m_Texture->Unbind();
 
-        delete vbo;
-
+        
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBlendEquation(GL_FUNC_ADD);
