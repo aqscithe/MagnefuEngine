@@ -8,10 +8,10 @@ namespace Magnefu
 	{
 		switch (Renderer::GetAPI())
 		{
-		case RendererAPI::NONE:
-			MF_CORE_ASSERT(false, "RendererAPI::NONE VertexBuffer not supported");
+		case RendererAPI::API::NONE:
+			MF_CORE_ASSERT(false, "RendererAPI::API::NONE VertexBuffer not supported");
 			return nullptr;
-		case RendererAPI::OPENGL:
+		case RendererAPI::API::OPENGL:
 			return CreateRef<OpenGLVertexBuffer>(size);
 		}
 
@@ -23,10 +23,10 @@ namespace Magnefu
 	{
 		switch (Renderer::GetAPI())
 		{
-		case RendererAPI::NONE:
-			MF_CORE_ASSERT(false, "RendererAPI::NONE VertexBuffer not supported");
+		case RendererAPI::API::NONE:
+			MF_CORE_ASSERT(false, "RendererAPI::API::NONE VertexBuffer not supported");
 			return nullptr;
-		case RendererAPI::OPENGL:
+		case RendererAPI::API::OPENGL:
 			return CreateRef< OpenGLVertexBuffer>(size, data);
 		}
 
@@ -38,10 +38,10 @@ namespace Magnefu
 	{
 		switch (Renderer::GetAPI())
 		{
-		case RendererAPI::NONE:
-			MF_CORE_ASSERT(false, "RendererAPI::NONE IndexBuffer not supported");
+		case RendererAPI::API::NONE:
+			MF_CORE_ASSERT(false, "RendererAPI::API::NONE IndexBuffer not supported");
 			return nullptr;
-		case RendererAPI::OPENGL:
+		case RendererAPI::API::OPENGL:
 			return CreateRef<OpenGLIndexBuffer>(count, data);
 		}
 

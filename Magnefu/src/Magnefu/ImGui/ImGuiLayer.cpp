@@ -85,8 +85,8 @@ namespace Magnefu
 
 	void ImGuiLayer::BeginFrame()
 	{
-		m_Renderer.ClearColor(0.15f, 0.15, 0.15f, 1.f);
-		m_Renderer.Clear();
+		RenderCommand::ClearColor(0.12f, 0.12, 0.12f, 1.f);
+		RenderCommand::Clear();
 
 		ImGuiIO& io = ImGui::GetIO();
 		Application& app = Application::Get();

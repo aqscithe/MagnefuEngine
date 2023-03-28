@@ -125,10 +125,16 @@ namespace Magnefu
 
 	void Test2DTexture::OnRender()
 	{
-        m_Shader->Bind();
-        m_Shader->SetUniformMatrix4fv("u_MVP", m_MVP);
-        m_Texture->Bind();
-        m_Renderer.Draw(m_VAO);
+        Renderer::BeginScene();
+        {
+            // should be in begin scene
+            m_Shader->Bind();
+            m_Shader->SetUniformMatrix4fv("u_MVP", m_MVP);
+            m_Texture->Bind();
+        }
+
+        Renderer::Submit(m_VAO);
+        Renderer::EndScene();
 	}
 	
 	void Test2DTexture::OnImGUIRender()

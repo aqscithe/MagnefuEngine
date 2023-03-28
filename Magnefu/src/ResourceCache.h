@@ -28,7 +28,7 @@ namespace Magnefu
 
 	class ResourceCache
 	{
-		using CacheState = std::unordered_map<std::type_index, std::unordered_map<size_t, std::unique_ptr<CacheableResource>>>;
+		using CacheState = std::unordered_map<std::type_index, std::unordered_map<size_t, Scope<CacheableResource>>>;
 		using MutexMap = std::unordered_map<std::type_index, std::mutex>;
 
 
@@ -44,7 +44,7 @@ namespace Magnefu
 
 	public:
 		template <typename T, typename... Args>
-		T* RequestResource(Args& ...args)
+		T* RequestResource(Args&& ...args)
 		{
 			static_assert(std::is_base_of<CacheableResource, T>::value, "Class must be derived from CacheableResource");
 
@@ -64,7 +64,7 @@ namespace Magnefu
 				return dynamic_cast<T*>(resource_it->second.get());
 
 			// otherwise create the resource
-			auto newResource = std::make_unique<T>(args...);
+			auto newResource = std::make_unique<T>(std::forward<Args>(args)...);
 
 			// Move resource to hash map
 			//auto it = resourceHashMap.emplace(seed, std::move(newResource));

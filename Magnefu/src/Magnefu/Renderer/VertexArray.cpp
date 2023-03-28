@@ -12,10 +12,10 @@ namespace Magnefu
 	{
 		switch (Renderer::GetAPI())
 		{
-		case RendererAPI::NONE:
+		case RendererAPI::API::NONE:
 			MF_CORE_ASSERT(false, "RendererAPI::NONE VertexArray not supported");
 			return nullptr;
-		case RendererAPI::OPENGL:
+		case RendererAPI::API::OPENGL:
 			return  std::make_shared<OpenGLVertexArray>();
 		}
 
