@@ -101,7 +101,6 @@ namespace Magnefu
 
 	void ImGuiLayer::EndFrame()
 	{
-		//Render ImGui Tools
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

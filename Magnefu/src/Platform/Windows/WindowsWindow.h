@@ -23,6 +23,7 @@ namespace Magnefu
 		// Window attributes
 		void SetEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; }
 		void SetVSync(bool enabled) override;
+		void SetSceneCamera(const Ref<Camera>& cam) override;
 		bool IsVSync() const override { return m_Data.VSync; }
 
 	private:
@@ -43,9 +44,14 @@ namespace Magnefu
 			uint16_t Height;
 			bool VSync;
 			EventCallbackFn EventCallback;
+			CameraData* CamData;
 		};
 
 		WindowData m_Data;
+
+		// Need reference to scene camera here in window
+		Ref<Camera> m_SceneCamera;
+
 
 		// ALL BELOW IS TEMPORARY
 

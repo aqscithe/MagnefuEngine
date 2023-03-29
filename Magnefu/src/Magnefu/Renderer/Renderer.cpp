@@ -9,6 +9,7 @@
 
 namespace Magnefu
 {
+    // Camera should be a param here
     void Renderer::BeginScene()
     {
         // shader & texture bindings

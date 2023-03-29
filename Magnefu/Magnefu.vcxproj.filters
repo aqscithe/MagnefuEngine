@@ -111,7 +111,7 @@
     <ClInclude Include="src\CacheableResource.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\Camera.h">
+    <ClInclude Include="src\Magnefu\Scene\Camera.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\Globals.h">
@@ -715,9 +715,11 @@
     <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h" />
     <ClInclude Include="src\Magnefu\Renderer\RendererAPI.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h" />
+    <ClInclude Include="src\Magnefu\Scene\PerspectiveCamera.h" />
+    <ClInclude Include="src\Magnefu\Scene\OrthographicCamera.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Camera.cpp">
+    <ClCompile Include="src\Magnefu\Scene\Camera.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\Globals.cpp">
@@ -834,5 +836,7 @@
     <ClCompile Include="src\Magnefu\Renderer\RenderCommand.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\RendererAPI.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp" />
+    <ClCompile Include="src\Magnefu\Scene\PerspectiveCamera.cpp" />
+    <ClCompile Include="src\Magnefu\Scene\OrthographicCamera.cpp" />
   </ItemGroup>
 </Project>

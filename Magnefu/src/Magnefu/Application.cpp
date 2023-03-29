@@ -75,9 +75,7 @@ namespace Magnefu
 
 
 	void Application::Run()
-	{
-        Globals& global = Globals::Get();
-        
+	{        
         Magnefu::Test* activeTest = nullptr;
         Magnefu::TestMenu* testMenu = new Magnefu::TestMenu(activeTest);
 
@@ -95,6 +93,7 @@ namespace Magnefu
         {
             auto currentTime = std::chrono::high_resolution_clock::now();
             auto elapsedTime = currentTime - lastTime;
+            float deltaTime = std::chrono::duration<float>(elapsedTime).count();
             lastTime = currentTime;
 
             m_Window->OnUpdate();
@@ -104,15 +103,14 @@ namespace Magnefu
 
             for (Layer* layer : m_LayerStack)
                 layer->OnUpdate();
-
-
-
+            
             ImGui::Begin("Application");
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            //ImGui::Text("MousePos: %.1f %.1f", , mouseY);
-            ImGui::Text("Yaw: %.2f, | Pitch: %.2f", global.yaw, global.pitch);
+
+            // Shouldn't do this calculation every frame
+            //ImGui::Text("Frame time: %.3f ms/frame | Frame Rate: %.1f FPS", deltaTime * 1000.f, 1.f / deltaTime);
             ImGui::Separator();
-            if (ImGui::TreeNode("CONTROLS"))
+            if (ImGui::TreeNodeEx("CONTROLS", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 ImGui::Text("APP CONTROLS");
                 ImGui::Bullet(); ImGui::Text("Close App:      ESC  |");
@@ -132,7 +130,7 @@ namespace Magnefu
 
             if (activeTest)
             {
-                activeTest->OnUpdate(std::chrono::duration<float>(elapsedTime).count());
+                activeTest->OnUpdate(deltaTime);
                 activeTest->OnRender();
                 ImGui::Begin("Tests");
                 if (activeTest != testMenu && ImGui::Button("<-"))

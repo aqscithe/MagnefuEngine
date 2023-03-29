@@ -10,6 +10,7 @@
 #include "Texture.h"
 #include "Shader.h"
 #include "Magnefu/Renderer/Renderer.h"
+#include "Magnefu/Scene/Camera.h"
 
 #include "ResourceCache.h"
 
@@ -76,18 +77,11 @@ namespace Magnefu
 
         m_Quat = CreateScope<Maths::Quaternion>(m_angleRot, m_rotationAxis);
 
-        m_Camera = CreateScope<Camera>();
+        m_SceneCamera = Ref<Camera>(Camera::Create());
+
+        app.GetWindow().SetSceneCamera(m_SceneCamera);
 
         Globals& global = Globals::Get();
-
-        m_aspectRatio = (float)global.WIDTH / (float)global.HEIGHT;
-        m_near = 0.01f;
-        m_far = 100.f;
-        m_top = m_near * tan(global.fovY / 2.f);
-        m_bottom = -m_top;
-        m_right = m_top * m_aspectRatio;
-        m_left = -m_right;
-        m_IsOrtho = false;
 
         m_MVP = Maths::identity();
         
@@ -103,24 +97,9 @@ namespace Magnefu
 
 	void Test2DTexture::OnUpdate(float deltaTime)
 	{
-        Globals& global = Globals::Get();
-        // Updating MVP
-
-        //Maths::mat4 modelMatrix = Maths::translate(m_translation) * Maths::rotate(m_angleRot, m_rotationAxis) * Maths::scale(m_scaling);
         Maths::mat4 modelMatrix = Maths::translate(m_translation) * m_Quat->UpdateRotMatrix(m_angleRot, m_rotationAxis) * Maths::scale(m_scaling);
-        m_Camera->CalculateView();
-        Maths::mat4 projMatrix = m_IsOrtho ? Maths::orthographic(m_left, m_right, m_bottom, m_top, m_near, m_far)
-            : Maths::perspective(Maths::toRadians(global.fovY), m_aspectRatio, m_near, m_far);
-
-        m_MVP = projMatrix * m_Camera->GetView() * modelMatrix;
-
-        // Updating Projection Parameters
-        m_top = m_near * tan(global.fovY / 2.f);
-        m_bottom = -m_top;
-        m_right = m_top * m_aspectRatio;
-        m_left = -m_right;
-
-        m_Camera->ProcessInput(deltaTime);
+        m_MVP = m_SceneCamera->CalculateVP() * modelMatrix;
+        m_SceneCamera->ProcessInput(deltaTime);
 	}
 
 	void Test2DTexture::OnRender()
@@ -147,24 +126,7 @@ namespace Magnefu
         ImGui::SliderFloat("Model Rotation Angle", &m_angleRot, -360.f, 360.f);
         ImGui::SliderFloat3("Model Scale", m_scaling.e, 0.f, 10.f);
 
-        ImGui::Text("Camera");
-        ImGui::DragFloat("CameraSpeed", &m_Camera->m_Speed, 0.05f, 4.f);
-        ImGui::SliderFloat3("Camera Translation", m_Camera->m_Position.e, -10.f, 10.f);
-
-        ImGui::Text("Projection");
-        ImGui::Checkbox("Toggle Projection Mode", &m_IsOrtho);
-        ImGui::SliderFloat("Near", &m_near, 0.01f, 10.f);
-        ImGui::SliderFloat("Far", &m_far, 10.f, 100.f);
-        if (m_IsOrtho)
-        {
-            ImGui::SliderFloat("Left", &m_left, -(float)global.WIDTH, (float)global.WIDTH);
-            ImGui::SliderFloat("Right", &m_right, -(float)global.WIDTH, (float)global.WIDTH);
-            ImGui::SliderFloat("Bottom", &m_bottom, -(float)global.HEIGHT, (float)global.HEIGHT);
-            ImGui::SliderFloat("Top", &m_top, -(float)global.HEIGHT, (float)global.HEIGHT);
-        }
-        else
-        {
-            ImGui::SliderFloat("FOV", &global.fovY, 1.f, 100.f);
-        }
+        m_SceneCamera->OnImGuiRender();
+        
 	}
 }

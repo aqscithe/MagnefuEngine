@@ -6,8 +6,7 @@
 #include "Magnefu/Renderer/Buffer.h"
 #include "Texture.h"
 #include "Shader.h"
-#include "Camera.h"
-
+#include "Magnefu/Scene/Camera.h"
 
 #include "Quaternion.h"
 
@@ -42,17 +41,7 @@ namespace Magnefu
 			Maths::vec3 m_rotationAxis;
 			Maths::vec3 m_scaling;
 
-			Scope<Camera> m_Camera;
-
-			float m_aspectRatio;
-			float m_near;
-			float m_far;
-			float m_top;
-			float m_bottom;
-			float m_right;
-			float m_left;
-			bool m_IsOrtho;
-
+			Ref<Camera> m_SceneCamera;
 			Maths::mat4 m_MVP;
 
 

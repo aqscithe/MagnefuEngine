@@ -4,6 +4,7 @@
 
 #include "Core.h"
 #include "Events/Event.h"
+#include "Magnefu/Scene/Camera.h"
 
 
 namespace Magnefu
@@ -38,7 +39,7 @@ namespace Magnefu
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
 		virtual void SetVSync(bool enabled) = 0;
 		virtual bool IsVSync() const = 0;
-
+		virtual void SetSceneCamera(const Ref<Camera>&) = 0;
 
 		static Window* Create(const WindowProps& props = WindowProps());
 	};

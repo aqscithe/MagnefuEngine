@@ -147,7 +147,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\CacheableResource.h" />
-    <ClInclude Include="src\Camera.h" />
+    <ClInclude Include="src\Magnefu\Scene\Camera.h" />
     <ClInclude Include="src\Globals.h" />
     <ClInclude Include="src\Magnefu\Base.h" />
     <ClInclude Include="src\Magnefu\Renderer\Buffer.h" />
@@ -170,6 +170,8 @@
     <ClInclude Include="src\Magnefu\Renderer\GraphicsContext.h" />
     <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h" />
     <ClInclude Include="src\Magnefu\Renderer\RendererAPI.h" />
+    <ClInclude Include="src\Magnefu\Scene\OrthographicCamera.h" />
+    <ClInclude Include="src\Magnefu\Scene\PerspectiveCamera.h" />
     <ClInclude Include="src\Magnefu\Window.h" />
     <ClInclude Include="src\Material.h" />
     <ClInclude Include="src\Maths\MathsCommon.h" />
@@ -355,7 +357,7 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\Magnefu\Scene\Camera.cpp" />
     <ClCompile Include="src\Globals.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Buffer.cpp" />
     <ClCompile Include="src\Light.cpp" />
@@ -368,6 +370,8 @@
     <ClCompile Include="src\Magnefu\Log.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\RenderCommand.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\RendererAPI.cpp" />
+    <ClCompile Include="src\Magnefu\Scene\OrthographicCamera.cpp" />
+    <ClCompile Include="src\Magnefu\Scene\PerspectiveCamera.cpp" />
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\Maths\Matrices.cpp" />
     <ClCompile Include="src\Maths\Primitive2D.cpp" />
