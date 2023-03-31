@@ -4,11 +4,11 @@
 
 namespace Magnefu
 {
-	class PerspectiveCamera : public Camera
+	class SceneCamera : public Camera
 	{
 	public:
-		PerspectiveCamera(const CameraOrientation& orientation, const CameraProps& props);
-		~PerspectiveCamera();
+		SceneCamera(const CameraOrientation& orientation, const CameraProps& props);
+		~SceneCamera();
 
 		inline const Maths::mat4& GetView() const override { return m_View; }
 		inline const Maths::mat4& GetProjection() const override { return m_Projection; }
@@ -34,6 +34,9 @@ namespace Magnefu
 		Maths::mat4 m_VP;
 
 		CameraData m_Data;
+
+		bool m_IsOrtho;
+		bool m_IsPersp;
 
 	};
 }

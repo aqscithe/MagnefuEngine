@@ -72,8 +72,6 @@ namespace Magnefu
 	public:
 		virtual ~Camera() = default;
 
-		// just learned i don't need inline here - these functions are implicitly inline
-		// https://en.cppreference.com/w/cpp/language/inline
 		virtual const Maths::mat4& GetView() const = 0;
 		virtual const Maths::mat4& GetProjection() const = 0;
 		virtual const Maths::mat4& GetVP() const = 0;

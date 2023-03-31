@@ -170,8 +170,7 @@
     <ClInclude Include="src\Magnefu\Renderer\GraphicsContext.h" />
     <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h" />
     <ClInclude Include="src\Magnefu\Renderer\RendererAPI.h" />
-    <ClInclude Include="src\Magnefu\Scene\OrthographicCamera.h" />
-    <ClInclude Include="src\Magnefu\Scene\PerspectiveCamera.h" />
+    <ClInclude Include="src\Magnefu\Scene\SceneCamera.h" />
     <ClInclude Include="src\Magnefu\Window.h" />
     <ClInclude Include="src\Material.h" />
     <ClInclude Include="src\Maths\MathsCommon.h" />
@@ -370,8 +369,7 @@
     <ClCompile Include="src\Magnefu\Log.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\RenderCommand.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\RendererAPI.cpp" />
-    <ClCompile Include="src\Magnefu\Scene\OrthographicCamera.cpp" />
-    <ClCompile Include="src\Magnefu\Scene\PerspectiveCamera.cpp" />
+    <ClCompile Include="src\Magnefu\Scene\SceneCamera.cpp" />
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\Maths\Matrices.cpp" />
     <ClCompile Include="src\Maths\Primitive2D.cpp" />

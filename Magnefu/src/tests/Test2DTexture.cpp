@@ -104,7 +104,7 @@ namespace Magnefu
 
 	void Test2DTexture::OnRender()
 	{
-        Renderer::BeginScene();
+        
         {
             // should be in begin scene
             m_Shader->Bind();

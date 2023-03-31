@@ -131,6 +131,7 @@ namespace Magnefu
             if (activeTest)
             {
                 activeTest->OnUpdate(deltaTime);
+                //Renderer::BeginScene();
                 activeTest->OnRender();
                 ImGui::Begin("Tests");
                 if (activeTest != testMenu && ImGui::Button("<-"))

@@ -21,5 +21,7 @@ namespace Magnefu
 		inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 	private:
 
+		// Reference or pointer to scene camera data to be used
+
 	};
 }
