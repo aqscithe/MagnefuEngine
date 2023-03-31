@@ -7,6 +7,11 @@
 
 namespace Magnefu
 {
+	struct SceneData
+	{
+		Maths::mat4 MVP;
+	};
+
 	class Test
 	{
 	public:

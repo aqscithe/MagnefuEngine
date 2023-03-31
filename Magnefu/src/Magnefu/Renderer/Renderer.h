@@ -3,6 +3,7 @@
 #include "RenderCommand.h"
 #include "Texture.h"
 #include "Shader.h"
+#include "tests/Test.h"
 
 
 namespace Magnefu
@@ -14,14 +15,14 @@ namespace Magnefu
 
 	public:
 
-		static void BeginScene();
+		static void BeginScene(SceneData* data);
 		static void EndScene();
-		static void Submit(const Ref<VertexArray>&);
+		static void Submit(const Ref<VertexArray>&, const Ref<Shader>, Texture*);
 		
 		inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 	private:
 
-		// Reference or pointer to scene camera data to be used
+		static SceneData* m_SceneData;
 
 	};
 }

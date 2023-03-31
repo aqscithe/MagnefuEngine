@@ -82,6 +82,7 @@ namespace Magnefu
 		virtual Maths::mat4& CalculateVP() = 0;
 		virtual void ProcessInput(float deltaTime) = 0;
 		virtual void OnImGuiRender() = 0;
+		virtual void SetDefaultProps() = 0;
 
 		static Camera* Create(const CameraOrientation& orientation = CameraOrientation(), const CameraProps& props = CameraProps());
 

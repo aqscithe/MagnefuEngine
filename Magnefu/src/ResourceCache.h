@@ -28,7 +28,7 @@ namespace Magnefu
 
 	class ResourceCache
 	{
-		using CacheState = std::unordered_map<std::type_index, std::unordered_map<size_t, Scope<CacheableResource>>>;
+		using CacheState = std::unordered_map<std::type_index, std::unordered_map<size_t, Ref<CacheableResource>>>;
 		using MutexMap = std::unordered_map<std::type_index, std::mutex>;
 
 

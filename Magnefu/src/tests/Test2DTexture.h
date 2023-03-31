@@ -17,7 +17,6 @@
 
 namespace Magnefu
 {
-
 	class Test2DTexture : public Test
 	{
 		public:
@@ -31,7 +30,7 @@ namespace Magnefu
 		private:
 			Renderer m_Renderer;
 			Ref<VertexArray> m_VAO;
-			Shader* m_Shader;
+			Ref<Shader> m_Shader;
 			Texture* m_Texture;
 
 
@@ -42,9 +41,6 @@ namespace Magnefu
 			Maths::vec3 m_scaling;
 
 			Ref<Camera> m_SceneCamera;
-			Maths::mat4 m_MVP;
-
-
-			
+			SceneData m_SceneData;
 	};
 }

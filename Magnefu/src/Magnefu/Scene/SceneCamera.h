@@ -20,6 +20,7 @@ namespace Magnefu
 		Maths::mat4& CalculateVP() override;
 		void ProcessInput(float deltaTime) override;
 		void OnImGuiRender() override;
+		void SetDefaultProps() override;
 
 	protected:
 		void Init(const CameraOrientation& orientation, const CameraProps& props) override;

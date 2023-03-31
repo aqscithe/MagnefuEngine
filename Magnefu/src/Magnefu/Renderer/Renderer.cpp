@@ -3,27 +3,30 @@
 #include "Renderer.h"
 #include "Buffer.h"
 #include "VertexArray.h"
+#include "Shader.h"
+#include "Texture.h"
 
 #include <GLAD/glad.h>
 
 
 namespace Magnefu
 {
-    // Camera should be a param here
-    void Renderer::BeginScene()
+    SceneData* Renderer::m_SceneData = nullptr;
+
+    void Renderer::BeginScene(SceneData* data)
     {
-        // shader & texture bindings
-        // Get shader uniforms
-        // MVP matrix calculations
-        // & more
+        m_SceneData = data;
     }
 
     void Renderer::EndScene()
     {
     }
 
-    void Renderer::Submit(const Ref<VertexArray>& va)
+    void Renderer::Submit(const Ref<VertexArray>& va, const Ref<Shader> shader, Texture* texture )
     {
+        shader->Bind();
+        shader->SetUniformMatrix4fv("u_MVP", m_SceneData->MVP);
+        texture->Bind();
         RenderCommand::DrawIndexed(va);
     }
 

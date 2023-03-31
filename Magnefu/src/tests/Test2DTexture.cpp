@@ -60,7 +60,7 @@ namespace Magnefu
 
         Application& app = Application::Get();
         ResourceCache& cache = app.GetResourceCache();
-        m_Shader = cache.RequestResource<Shader>(shaderPath);
+        m_Shader = Ref<Shader>( cache.RequestResource<Shader>(shaderPath) );
 
         
         m_Texture = cache.RequestResource<Texture>(texturePath);
@@ -77,13 +77,9 @@ namespace Magnefu
 
         m_Quat = CreateScope<Maths::Quaternion>(m_angleRot, m_rotationAxis);
 
-        m_SceneCamera = Ref<Camera>(Camera::Create());
-
-        app.GetWindow().SetSceneCamera(m_SceneCamera);
-
-        Globals& global = Globals::Get();
-
-        m_MVP = Maths::identity();
+        m_SceneCamera = app.GetWindow().GetSceneCamera();
+        m_SceneCamera->SetDefaultProps();
+        
         
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -98,21 +94,14 @@ namespace Magnefu
 	void Test2DTexture::OnUpdate(float deltaTime)
 	{
         Maths::mat4 modelMatrix = Maths::translate(m_translation) * m_Quat->UpdateRotMatrix(m_angleRot, m_rotationAxis) * Maths::scale(m_scaling);
-        m_MVP = m_SceneCamera->CalculateVP() * modelMatrix;
+        m_SceneData.MVP = m_SceneCamera->CalculateVP() * modelMatrix;
         m_SceneCamera->ProcessInput(deltaTime);
 	}
 
 	void Test2DTexture::OnRender()
 	{
-        
-        {
-            // should be in begin scene
-            m_Shader->Bind();
-            m_Shader->SetUniformMatrix4fv("u_MVP", m_MVP);
-            m_Texture->Bind();
-        }
-
-        Renderer::Submit(m_VAO);
+        Renderer::BeginScene(&m_SceneData);
+        Renderer::Submit(m_VAO, m_Shader, m_Texture);
         Renderer::EndScene();
 	}
 	

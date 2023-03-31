@@ -33,10 +33,12 @@ namespace Magnefu
 
 	void WindowsWindow::Init(const WindowProps& props)
 	{
+		m_SceneCamera = Ref<Camera>(Camera::Create());
+
 		m_Data.Title = props.Title;
 		m_Data.Width = props.Width;
 		m_Data.Height = props.Height;
-		m_Data.CamData = nullptr;
+		m_Data.CamData = &m_SceneCamera->GetData();
 
 		MF_CORE_INFO("Launching Window: {0} - {1}x{2}", m_Data.Title, m_Data.Width, m_Data.Height);
 
