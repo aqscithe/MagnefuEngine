@@ -22,7 +22,7 @@ namespace Magnefu
     {
     }
 
-    void Renderer::Submit(const Ref<VertexArray>& va, const Ref<Shader> shader, Texture* texture )
+    void Renderer::Submit(const Ref<VertexArray>& va, Shader* shader, Texture* texture )
     {
         shader->Bind();
         shader->SetUniformMatrix4fv("u_MVP", m_SceneData->MVP);

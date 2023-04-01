@@ -22,6 +22,7 @@ namespace Magnefu
 		virtual void Run();
 
 		void OnEvent(Event& event);
+		void OnImGuiRender();
 
 		void PushLayer(Layer* layer);
 		void PushOverlay(Layer* overlay);

@@ -85,9 +85,6 @@ namespace Magnefu
 
 	void ImGuiLayer::BeginFrame()
 	{
-		RenderCommand::ClearColor(0.12f, 0.12, 0.12f, 1.f);
-		RenderCommand::Clear();
-
 		ImGuiIO& io = ImGui::GetIO();
 		Application& app = Application::Get();
 		io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());

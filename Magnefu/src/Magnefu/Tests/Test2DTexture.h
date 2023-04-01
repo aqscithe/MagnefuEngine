@@ -10,8 +10,7 @@
 
 #include "Quaternion.h"
 
-#include <GLAD/glad.h>
-
+#include "GLAD/glad.h"
 
 
 
@@ -30,7 +29,7 @@ namespace Magnefu
 		private:
 			Renderer m_Renderer;
 			Ref<VertexArray> m_VAO;
-			Ref<Shader> m_Shader;
+			Shader* m_Shader;
 			Texture* m_Texture;
 
 

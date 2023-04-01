@@ -16,6 +16,12 @@
     <Filter Include="src\Magnefu\Renderer">
       <UniqueIdentifier>{E56F4663-D1FE-CF2C-7A1D-E427668BE0D2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Magnefu\Scene">
+      <UniqueIdentifier>{BCE93D6E-2800-3C04-7177-C725DDCC0C8C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Magnefu\Tests">
+      <UniqueIdentifier>{6157516E-CD6D-4F04-16E5-DA25823A208C}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Maths">
       <UniqueIdentifier>{599964B3-C503-192A-0E42-CACF7AEBF67E}</UniqueIdentifier>
     </Filter>
@@ -27,9 +33,6 @@
     </Filter>
     <Filter Include="src\Platform\Windows">
       <UniqueIdentifier>{5B054582-4794-CE4B-F0B2-E246DC20DFF1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\tests">
-      <UniqueIdentifier>{CF8328B6-3BEE-DC2C-842C-8ED2F0D5BA81}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor">
       <UniqueIdentifier>{B3738122-9F15-ACF8-88D0-BF4C74113349}</UniqueIdentifier>
@@ -111,9 +114,6 @@
     <ClInclude Include="src\CacheableResource.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Scene\Camera.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\Globals.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -124,6 +124,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Application.h">
+      <Filter>src\Magnefu</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Base.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Core.h">
@@ -165,8 +168,35 @@
     <ClInclude Include="src\Magnefu\MouseButtonCodes.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\Buffer.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\GraphicsContext.h">
       <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\Renderer.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\RendererAPI.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\VertexArray.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Scene\Camera.h">
+      <Filter>src\Magnefu\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Scene\SceneCamera.h">
+      <Filter>src\Magnefu\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Tests\Test.h">
+      <Filter>src\Magnefu\Tests</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Tests\Test2DTexture.h">
+      <Filter>src\Magnefu\Tests</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Window.h">
       <Filter>src\Magnefu</Filter>
@@ -195,7 +225,16 @@
     <ClInclude Include="src\Maths\Vectors.h">
       <Filter>src\Maths</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLBuffer.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsInput.h">
@@ -203,9 +242,6 @@
     </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h">
       <Filter>src\Platform\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\Renderer.h">
-      <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\ResourceCache.h">
       <Filter>src</Filter>
@@ -219,17 +255,8 @@
     <ClInclude Include="src\Timer.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\VertexArray.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\mfpch.h">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\tests\Test.h">
-      <Filter>src\tests</Filter>
-    </ClInclude>
-    <ClInclude Include="src\tests\Test2DTexture.h">
-      <Filter>src\tests</Filter>
     </ClInclude>
     <ClInclude Include="vendor\GLAD\include\KHR\khrplatform.h">
       <Filter>vendor\GLAD\include\KHR</Filter>
@@ -708,19 +735,8 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\Buffer.h" />
-    <ClInclude Include="src\Platform\OpenGL\OpenGLBuffer.h" />
-    <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h" />
-    <ClInclude Include="src\Magnefu\Base.h" />
-    <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h" />
-    <ClInclude Include="src\Magnefu\Renderer\RendererAPI.h" />
-    <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h" />
-    <ClInclude Include="src\Magnefu\Scene\SceneCamera.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Magnefu\Scene\Camera.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\Globals.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -748,6 +764,33 @@
     <ClCompile Include="src\Magnefu\Log.cpp">
       <Filter>src\Magnefu</Filter>
     </ClCompile>
+    <ClCompile Include="src\Magnefu\Renderer\Buffer.cpp">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Renderer\RenderCommand.cpp">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Renderer\Renderer.cpp">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Renderer\RendererAPI.cpp">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Renderer\VertexArray.cpp">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Scene\Camera.cpp">
+      <Filter>src\Magnefu\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Scene\SceneCamera.cpp">
+      <Filter>src\Magnefu\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Tests\Test.cpp">
+      <Filter>src\Magnefu\Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Tests\Test2DTexture.cpp">
+      <Filter>src\Magnefu\Tests</Filter>
+    </ClCompile>
     <ClCompile Include="src\Material.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -766,7 +809,16 @@
     <ClCompile Include="src\Maths\Vectors.cpp">
       <Filter>src\Maths</Filter>
     </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
@@ -774,9 +826,6 @@
     </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp">
       <Filter>src\Platform\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\Renderer.cpp">
-      <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\ResourceCache.cpp">
       <Filter>src</Filter>
@@ -790,17 +839,8 @@
     <ClCompile Include="src\Timer.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\VertexArray.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\mfpch.cpp">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\tests\Test.cpp">
-      <Filter>src\tests</Filter>
-    </ClCompile>
-    <ClCompile Include="src\tests\Test2DTexture.cpp">
-      <Filter>src\tests</Filter>
     </ClCompile>
     <ClCompile Include="vendor\glm\detail\glm.cpp">
       <Filter>vendor\glm\detail</Filter>
@@ -829,12 +869,5 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\Buffer.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\RenderCommand.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\RendererAPI.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp" />
-    <ClCompile Include="src\Magnefu\Scene\SceneCamera.cpp" />
   </ItemGroup>
 </Project>

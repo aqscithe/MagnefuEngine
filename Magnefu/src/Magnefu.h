@@ -14,7 +14,12 @@
 #include "Magnefu/MouseButtonCodes.h"
 //-------------------------------------
 
+#include "Magnefu/Renderer/RenderCommand.h"
+#include "Magnefu/Renderer/Renderer.h"
 
+
+#include "Magnefu/Tests/Test.h"
+#include "Magnefu/Tests/Test2DTexture.h"
 
 // ----Entry Point---------------------
 #include "Magnefu/Entrypoint.h"

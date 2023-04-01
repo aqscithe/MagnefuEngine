@@ -3,7 +3,7 @@
 #include "RenderCommand.h"
 #include "Texture.h"
 #include "Shader.h"
-#include "tests/Test.h"
+#include "Magnefu/Tests/Test.h"
 
 
 namespace Magnefu
@@ -17,7 +17,7 @@ namespace Magnefu
 
 		static void BeginScene(SceneData* data);
 		static void EndScene();
-		static void Submit(const Ref<VertexArray>&, const Ref<Shader>, Texture*);
+		static void Submit(const Ref<VertexArray>&, Shader*, Texture*);
 		
 		inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 	private:

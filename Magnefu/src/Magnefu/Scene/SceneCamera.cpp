@@ -159,6 +159,7 @@ namespace Magnefu
 		m_Data.Yaw = 0.f;
 		m_Data.Pitch = 0.f;
 		m_Data.FOV = 45.f;
+		m_Data.Position = { 0.f, 0.f, 4.f };
 	}
 	
 }

@@ -60,7 +60,8 @@ namespace Magnefu
 
         Application& app = Application::Get();
         ResourceCache& cache = app.GetResourceCache();
-        m_Shader = Ref<Shader>( cache.RequestResource<Shader>(shaderPath) );
+
+        m_Shader = cache.RequestResource<Shader>(shaderPath);
 
         
         m_Texture = cache.RequestResource<Texture>(texturePath);

@@ -1,15 +1,6 @@
 #include "mfpch.h"
 
 #include "Application.h"
-#include "Magnefu/Input.h"
-
-#include "Globals.h"
-
-//#include "tests/Test3DRender.h"
-#include "tests/Test2DTexture.h"
-//#include "tests/TestBatchRendering.h"
-//#include "tests/TestLighting.h"
-//#include "tests/TestModelLoading.h"
 
 //TEMP
 #include "imgui/imgui.h"
@@ -76,18 +67,6 @@ namespace Magnefu
 
 	void Application::Run()
 	{        
-        Magnefu::Test* activeTest = nullptr;
-        Magnefu::TestMenu* testMenu = new Magnefu::TestMenu(activeTest);
-
-        activeTest = testMenu;
-
-        testMenu->RegisterTest<Magnefu::Test2DTexture>("2D Texture");
-        //testMenu->RegisterTest<Magnefu::Test3DRender>("Cube Render");
-        //testMenu->RegisterTest<Magnefu::TestBatchRendering>("Batching");
-        //testMenu->RegisterTest<Magnefu::TestLighting>("Lighting");
-        //testMenu->RegisterTest <Magnefu::TestModelLoading>("3D Models");
-
-
         auto lastTime = std::chrono::high_resolution_clock::now();
         while (m_Running)
         {
@@ -102,55 +81,41 @@ namespace Magnefu
                 m_ImGuiLayer->BeginFrame();
 
             for (Layer* layer : m_LayerStack)
-                layer->OnUpdate();
+                layer->OnUpdate(deltaTime);
             
-            ImGui::Begin("Application");
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-
-            // Shouldn't do this calculation every frame
-            //ImGui::Text("Frame time: %.3f ms/frame | Frame Rate: %.1f FPS", deltaTime * 1000.f, 1.f / deltaTime);
-            ImGui::Separator();
-            if (ImGui::TreeNodeEx("CONTROLS", ImGuiTreeNodeFlags_DefaultOpen))
-            {
-                ImGui::Text("APP CONTROLS");
-                ImGui::Bullet(); ImGui::Text("Close App:      ESC  |");
-                ImGui::Text("CAMERA CONTROLS");
-                ImGui::Bullet(); ImGui::Text("Camera Left:    A    | Left Arrow");
-                ImGui::Bullet(); ImGui::Text("Camera Right:   D    | Right Arrow");
-                ImGui::Bullet(); ImGui::Text("Camera Forward: W    | Up Arrow");
-                ImGui::Bullet(); ImGui::Text("Camera Back:    S    | Down Arrow");
-                ImGui::Bullet(); ImGui::Text("Camera Up:      E    |");
-                ImGui::Bullet(); ImGui::Text("Camera Down:    Q    |");
-                ImGui::Bullet(); ImGui::Text("Camera Rotate:  Right-Click + Move Mouse");
-                ImGui::Bullet(); ImGui::Text("Adjust FOV:     Rotate Middle Mouse Button");
-                ImGui::Separator();
-                ImGui::TreePop();
-            }
-            ImGui::End();
-
-            if (activeTest)
-            {
-                activeTest->OnUpdate(deltaTime);
-                activeTest->OnRender();
-                ImGui::Begin("Tests");
-                if (activeTest != testMenu && ImGui::Button("<-"))
-                {
-                    delete activeTest;
-                    activeTest = testMenu;
-                }
-                activeTest->OnImGUIRender();
-                ImGui::End();
-            }
+            OnImGuiRender();
 
             if (m_ImGuiLayer)
                 m_ImGuiLayer->EndFrame();
 
-        }
+        }   
+    }
 
-        if (activeTest != testMenu)
-            delete testMenu;
-        delete activeTest;
-           
+    void Application::OnImGuiRender()
+    {
+        ImGui::Begin("Application");
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+        // Shouldn't do this calculation every frame
+        //ImGui::Text("Frame time: %.3f ms/frame | Frame Rate: %.1f FPS", deltaTime * 1000.f, 1.f / deltaTime);
+        ImGui::Separator();
+        if (ImGui::TreeNodeEx("CONTROLS", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::Text("APP CONTROLS");
+            ImGui::Bullet(); ImGui::Text("Close App:      ESC  |");
+            ImGui::Text("CAMERA CONTROLS");
+            ImGui::Bullet(); ImGui::Text("Camera Left:    A    | Left Arrow");
+            ImGui::Bullet(); ImGui::Text("Camera Right:   D    | Right Arrow");
+            ImGui::Bullet(); ImGui::Text("Camera Forward: W    | Up Arrow");
+            ImGui::Bullet(); ImGui::Text("Camera Back:    S    | Down Arrow");
+            ImGui::Bullet(); ImGui::Text("Camera Up:      E    |");
+            ImGui::Bullet(); ImGui::Text("Camera Down:    Q    |");
+            ImGui::Bullet(); ImGui::Text("Camera Rotate:  Right-Click + Move Mouse");
+            ImGui::Bullet(); ImGui::Text("Adjust FOV:     Rotate Middle Mouse Button");
+            ImGui::Separator();
+            ImGui::TreePop();
+        }
+        ImGui::End();
     }
 
       

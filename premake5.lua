@@ -134,6 +134,7 @@ project "Sandbox"
         "Magnefu/vendor/spdlog/include",
         "Magnefu/src/Maths",
         "%{prj.name}/src",
+        "%{IncludeDir.GLAD}",
     }
 
     links {
