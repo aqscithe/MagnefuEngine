@@ -80,7 +80,10 @@ namespace Magnefu
 
         m_SceneCamera = app.GetWindow().GetSceneCamera();
         m_SceneCamera->SetDefaultProps();
-        
+
+        Maths::mat4 modelMatrix = Maths::translate(m_translation) * m_Quat->UpdateRotMatrix(m_angleRot, m_rotationAxis) * Maths::scale(m_scaling);
+        m_SceneData.MVP = m_SceneCamera->CalculateVP() * modelMatrix;
+        app.SetPreviousSceneData(m_SceneData);
         
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -94,14 +97,19 @@ namespace Magnefu
 
 	void Test2DTexture::OnUpdate(float deltaTime)
 	{
+        Application::Get().SetPreviousSceneData(m_SceneData);
+
         Maths::mat4 modelMatrix = Maths::translate(m_translation) * m_Quat->UpdateRotMatrix(m_angleRot, m_rotationAxis) * Maths::scale(m_scaling);
         m_SceneData.MVP = m_SceneCamera->CalculateVP() * modelMatrix;
         m_SceneCamera->ProcessInput(deltaTime);
+
+        Application::Get().SetCurrentSceneData(m_SceneData);
+
 	}
 
 	void Test2DTexture::OnRender()
 	{
-        Renderer::BeginScene(&m_SceneData);
+        Renderer::BeginScene(Application::Get().GetRenderData());
         Renderer::Submit(m_VAO, m_Shader, m_Texture);
         Renderer::EndScene();
 	}

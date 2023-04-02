@@ -37,12 +37,17 @@ public:
 
 	void OnUpdate(float deltaTime) override
 	{
+		if (m_ActiveTest)
+			m_ActiveTest->OnUpdate(deltaTime);
+	}
+
+	void OnRender() override
+	{
 		Magnefu::RenderCommand::ClearColor(0.08f, 0.08f, 0.08f, 1.f);
 		Magnefu::RenderCommand::Clear();
 
 		if (m_ActiveTest)
 		{
-			m_ActiveTest->OnUpdate(deltaTime);
 			m_ActiveTest->OnRender();
 			ImGui::Begin("Tests");
 			if (m_ActiveTest != m_TestMenu && ImGui::Button("<-"))

@@ -5,7 +5,7 @@
 #include "Magnefu/ImGui/ImGuiLayer.h"
 #include "Magnefu/Layer.h"
 #include "Magnefu/Log.h"
-
+#include "Magnefu/Core/TimeStep.h"
 
 
 //----Input----------------------------

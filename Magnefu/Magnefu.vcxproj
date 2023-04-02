@@ -153,6 +153,7 @@
     <ClInclude Include="src\Magnefu\Application.h" />
     <ClInclude Include="src\Magnefu\Base.h" />
     <ClInclude Include="src\Magnefu\Core.h" />
+    <ClInclude Include="src\Magnefu\Core\TimeStep.h" />
     <ClInclude Include="src\Magnefu\Entrypoint.h" />
     <ClInclude Include="src\Magnefu\Events\ApplicationEvent.h" />
     <ClInclude Include="src\Magnefu\Events\Event.h" />
@@ -360,6 +361,7 @@
     <ClCompile Include="src\Light.cpp" />
     <ClCompile Include="src\Magnefu\Application.cpp" />
     <ClCompile Include="src\Magnefu\Core.cpp" />
+    <ClCompile Include="src\Magnefu\Core\TimeStep.cpp" />
     <ClCompile Include="src\Magnefu\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\Magnefu\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\Magnefu\Layer.cpp" />

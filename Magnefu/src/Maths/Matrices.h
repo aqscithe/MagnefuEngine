@@ -53,6 +53,24 @@ namespace Maths
 		return a;
 	}
 
+	inline mat4 operator*(const mat4& a, float f)
+	{
+		mat4 res = {};
+		for (int c = 0; c < 4; ++c)
+			for (int r = 0; r < 4; ++r)
+				res.c[c].e[r] += a.c[c].e[r] * f;
+		return res;
+	}
+
+	inline mat4 operator+(const mat4& a, const mat4& b)
+	{
+		mat4 res = {};
+		for (int c = 0; c < 4; ++c)
+			for (int r = 0; r < 4; ++r)
+				res.c[c].e[r] = a.c[c].e[r] + b.c[c].e[r];
+		return res;
+	}
+
 	inline std::ostream& operator<<(std::ostream& os, const mat4& m)
 	{
 		os << "[" << std::endl << m.c[0] << std::endl << m.c[1] << std::endl << m.c[2] << std::endl << m.c[3] << std::endl << "]";

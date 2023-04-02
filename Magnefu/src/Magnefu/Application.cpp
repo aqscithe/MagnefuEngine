@@ -1,6 +1,7 @@
 #include "mfpch.h"
 
 #include "Application.h"
+#include "Magnefu/Core/TimeStep.h"
 
 //TEMP
 #include "imgui/imgui.h"
@@ -67,21 +68,34 @@ namespace Magnefu
 
 	void Application::Run()
 	{        
-        auto lastTime = std::chrono::high_resolution_clock::now();
+        TimeStep ts;
+            
         while (m_Running)
         {
-            auto currentTime = std::chrono::high_resolution_clock::now();
-            auto elapsedTime = currentTime - lastTime;
-            float deltaTime = std::chrono::duration<float>(elapsedTime).count();
-            lastTime = currentTime;
-
-            m_Window->OnUpdate();
+            ts.CalculateDeltaTime();
 
             if (m_ImGuiLayer)
                 m_ImGuiLayer->BeginFrame();
 
+            while (ts.TimeLeftInFrame())
+            {
+                m_Window->OnUpdate();
+
+                for (Layer* layer : m_LayerStack)
+                    layer->OnUpdate(ts.GetDeltaTime());
+
+                ts.DecrementTime();
+                // integration formulas to consult when you start physics simulation
+                // https://gafferongames.com/post/fix_your_timestep/
+            }
+            
+            const float alpha = ts.CalculateInterpolationCoeff();
+
+            m_RenderState.MVP = (m_CurrState.MVP * alpha) +
+                (m_PrevState.MVP * (1.0f - alpha));
+
             for (Layer* layer : m_LayerStack)
-                layer->OnUpdate(deltaTime);
+                layer->OnRender();
             
             OnImGuiRender();
 

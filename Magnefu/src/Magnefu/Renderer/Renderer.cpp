@@ -15,7 +15,7 @@ namespace Magnefu
 
     void Renderer::BeginScene(SceneData* data)
     {
-        m_SceneData = data;
+       m_SceneData = data;
     }
 
     void Renderer::EndScene()
