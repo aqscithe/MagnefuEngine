@@ -21,17 +21,18 @@ include "Magnefu/vendor/imgui"
 
 prebuildcommands {
     "{MKDIR} ../bin/" .. outputdir .. "/Sandbox",
-    "{MKDIR} ../bin-intermediates/" .. outputdir .. "/Sandbox"
+    "{MKDIR} ../bin-int/" .. outputdir .. "/Sandbox"
 }
 
 project "Magnefu"
     location "Magnefu"
-    kind "SharedLib" -- means dynamically linked lib
-    staticruntime "off"
+    kind "StaticLib"
+    staticruntime "on"
     language "C++"
+    cppdialect "C++20"
 
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-    objdir ("bin-intermediates/" .. outputdir .. "/%{prj.name}")
+    objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
     pchheader "mfpch.h"
     pchsource "Magnefu/src/mfpch.cpp"
@@ -83,47 +84,43 @@ project "Magnefu"
 
 
     filter "system:windows"
-        cppdialect "C++20"
         systemversion "latest"
 
         defines {
             "MF_PLATFORM_WINDOWS",
             "MF_BUILD_DLL",
             "_GLFW_USE_HYBRID_HPG",
-            "GLFW_INCLUDE_NONE"
+            "GLFW_INCLUDE_NONE",
+            "_CRT_SECURE_NO_WARNINGS"
         }
-
-    postbuildcommands {
-        "{COPYFILE} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/Sandbox"
-    }
 
     filter "configurations:Debug"
         defines {
-            "MF_DEBUG",
-            "MF_ENABLE_ASSERTS"
+            "MF_DEBUG"
         }
         runtime "Debug"
-        symbols "On"
+        symbols "on"
 
     filter "configurations:Release"
         defines  "MF_RELEASE"
         runtime "Release"
-        optimize "On"
+        optimize "on"
 
     filter "configurations:Dist"
         defines  "MF_DIST"
         runtime "Release"
-        optimize "On"
+        optimize "on"
 
 
 project "Sandbox"
     location "Sandbox"
     kind "ConsoleApp" 
-    staticruntime "off"
+    staticruntime "on"
     language "C++"
+    cppdialect "C++20"
 
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-    objdir ("bin-intermediates/" .. outputdir .. "/%{prj.name}")
+    objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
     files {
         "%{prj.name}/src/**.h",
@@ -137,6 +134,7 @@ project "Sandbox"
         "Magnefu/vendor/spdlog/include",
         "Magnefu/src/Maths",
         "%{prj.name}/src",
+        "%{IncludeDir.GLAD}",
     }
 
     links {
@@ -144,7 +142,6 @@ project "Sandbox"
     }
 
     filter "system:windows"
-        cppdialect "C++20"
         systemversion "latest"
 
         defines {
@@ -160,15 +157,15 @@ project "Sandbox"
         defines {
             "MF_DEBUG"
         }
-        symbols "On"
+        symbols "on"
 
     filter "configurations:Release"
         defines  "MF_RELEASE"
-        optimize "On"
+        optimize "on"
 
     filter "configurations:Dist"
         defines  "MF_DIST"
-        optimize "On"
+        optimize "on"
 
 
 

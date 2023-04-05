@@ -23,19 +23,19 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v143</PlatformToolset>
@@ -54,63 +54,58 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
     <OutDir>..\bin\Debug-windows-x86_64\Magnefu\</OutDir>
-    <IntDir>..\bin-intermediates\Debug-windows-x86_64\Magnefu\</IntDir>
+    <IntDir>..\bin-int\Debug-windows-x86_64\Magnefu\</IntDir>
     <TargetName>Magnefu</TargetName>
-    <TargetExt>.dll</TargetExt>
+    <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>false</LinkIncremental>
     <OutDir>..\bin\Release-windows-x86_64\Magnefu\</OutDir>
-    <IntDir>..\bin-intermediates\Release-windows-x86_64\Magnefu\</IntDir>
+    <IntDir>..\bin-int\Release-windows-x86_64\Magnefu\</IntDir>
     <TargetName>Magnefu</TargetName>
-    <TargetExt>.dll</TargetExt>
+    <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
-    <LinkIncremental>false</LinkIncremental>
     <OutDir>..\bin\Dist-windows-x86_64\Magnefu\</OutDir>
-    <IntDir>..\bin-intermediates\Dist-windows-x86_64\Magnefu\</IntDir>
+    <IntDir>..\bin-int\Dist-windows-x86_64\Magnefu\</IntDir>
     <TargetName>Magnefu</TargetName>
-    <TargetExt>.dll</TargetExt>
+    <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;MF_DEBUG;MF_ENABLE_ASSERTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>vendor;src;src\Maths;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
       <AdditionalDependencies>glfw3_mt.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>vendor\GLAD\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <ImportLibrary>..\bin\Debug-windows-x86_64\Magnefu\Magnefu.lib</ImportLibrary>
-    </Link>
-    <PostBuildEvent>
-      <Command>copy /B /Y ..\bin\Debug-windows-x86_64\Magnefu\Magnefu.dll ..\bin\Debug-windows-x86_64\Sandbox</Command>
-    </PostBuildEvent>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;MF_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>vendor;src;src\Maths;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -118,27 +113,25 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
       <AdditionalDependencies>glfw3_mt.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>vendor\GLAD\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <ImportLibrary>..\bin\Release-windows-x86_64\Magnefu\Magnefu.lib</ImportLibrary>
-    </Link>
-    <PostBuildEvent>
-      <Command>copy /B /Y ..\bin\Release-windows-x86_64\Magnefu\Magnefu.dll ..\bin\Release-windows-x86_64\Sandbox</Command>
-    </PostBuildEvent>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;MF_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>vendor;src;src\Maths;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -146,33 +139,43 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
       <AdditionalDependencies>glfw3_mt.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>vendor\GLAD\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <ImportLibrary>..\bin\Dist-windows-x86_64\Magnefu\Magnefu.lib</ImportLibrary>
-    </Link>
-    <PostBuildEvent>
-      <Command>copy /B /Y ..\bin\Dist-windows-x86_64\Magnefu\Magnefu.dll ..\bin\Dist-windows-x86_64\Sandbox</Command>
-    </PostBuildEvent>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\ResourceCache.h" />
     <ClInclude Include="src\CacheableResource.h" />
-    <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Globals.h" />
-    <ClInclude Include="src\IndexBuffer.h" />
     <ClInclude Include="src\Light.h" />
     <ClInclude Include="src\Magnefu.h" />
     <ClInclude Include="src\Magnefu\Application.h" />
+    <ClInclude Include="src\Magnefu\Base.h" />
     <ClInclude Include="src\Magnefu\Core.h" />
+    <ClInclude Include="src\Magnefu\Core\TimeStep.h" />
     <ClInclude Include="src\Magnefu\Entrypoint.h" />
     <ClInclude Include="src\Magnefu\Events\ApplicationEvent.h" />
     <ClInclude Include="src\Magnefu\Events\Event.h" />
     <ClInclude Include="src\Magnefu\Events\KeyEvent.h" />
     <ClInclude Include="src\Magnefu\Events\MouseEvent.h" />
     <ClInclude Include="src\Magnefu\ImGui\ImGuiLayer.h" />
+    <ClInclude Include="src\Magnefu\Input.h" />
+    <ClInclude Include="src\Magnefu\KeyCodes.h" />
     <ClInclude Include="src\Magnefu\Layer.h" />
     <ClInclude Include="src\Magnefu\LayerStack.h" />
     <ClInclude Include="src\Magnefu\Log.h" />
+    <ClInclude Include="src\Magnefu\MouseButtonCodes.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Buffer.h" />
+    <ClInclude Include="src\Magnefu\Renderer\GraphicsContext.h" />
+    <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Renderer.h" />
+    <ClInclude Include="src\Magnefu\Renderer\RendererAPI.h" />
+    <ClInclude Include="src\Magnefu\Renderer\VertexArray.h" />
+    <ClInclude Include="src\Magnefu\Scene\Camera.h" />
+    <ClInclude Include="src\Magnefu\Scene\SceneCamera.h" />
+    <ClInclude Include="src\Magnefu\Tests\Test.h" />
+    <ClInclude Include="src\Magnefu\Tests\Test2DTexture.h" />
     <ClInclude Include="src\Magnefu\Window.h" />
     <ClInclude Include="src\Material.h" />
     <ClInclude Include="src\Maths\MathsCommon.h" />
@@ -182,28 +185,23 @@
     <ClInclude Include="src\Maths\PrimitiveCommon.h" />
     <ClInclude Include="src\Maths\Quaternion.h" />
     <ClInclude Include="src\Maths\Vectors.h" />
-    <ClInclude Include="src\Mesh.h" />
-    <ClInclude Include="src\Model.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLBuffer.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h" />
+    <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
-    <ClInclude Include="src\Renderer.h" />
+    <ClInclude Include="src\ResourceCache.h" />
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\Texture.h" />
     <ClInclude Include="src\Timer.h" />
-    <ClInclude Include="src\VertexArray.h" />
-    <ClInclude Include="src\VertexBuffer.h" />
-    <ClInclude Include="src\VertexBufferAttribsLayout.h" />
     <ClInclude Include="src\mfpch.h" />
-    <ClInclude Include="src\tests\Test.h" />
-    <ClInclude Include="src\tests\Test2DTexture.h" />
-    <ClInclude Include="src\tests\Test3DRender.h" />
-    <ClInclude Include="src\tests\TestBatchRendering.h" />
-    <ClInclude Include="src\tests\TestLighting.h" />
-    <ClInclude Include="src\tests\TestModelLoading.h" />
     <ClInclude Include="vendor\GLAD\include\KHR\khrplatform.h" />
     <ClInclude Include="vendor\GLAD\include\glad\glad.h" />
     <ClInclude Include="vendor\GLFW\deps\getopt.h" />
     <ClInclude Include="vendor\GLFW\deps\glad\gl.h" />
-    <ClInclude Include="vendor\GLFW\deps\glad\gles2.h" />
+    <ClInclude Include="vendor\GLFW\deps\glad\khrplatform.h" />
+    <ClInclude Include="vendor\GLFW\deps\glad\vk_platform.h" />
     <ClInclude Include="vendor\GLFW\deps\glad\vulkan.h" />
     <ClInclude Include="vendor\GLFW\deps\linmath.h" />
     <ClInclude Include="vendor\GLFW\deps\mingw\_mingw_dxhelper.h" />
@@ -218,25 +216,33 @@
     <ClInclude Include="vendor\GLFW\include\GLFW\glfw3native.h" />
     <ClInclude Include="vendor\GLFW\src\cocoa_joystick.h" />
     <ClInclude Include="vendor\GLFW\src\cocoa_platform.h" />
-    <ClInclude Include="vendor\GLFW\src\cocoa_time.h" />
+    <ClInclude Include="vendor\GLFW\src\egl_context.h" />
+    <ClInclude Include="vendor\GLFW\src\glx_context.h" />
     <ClInclude Include="vendor\GLFW\src\internal.h" />
     <ClInclude Include="vendor\GLFW\src\linux_joystick.h" />
     <ClInclude Include="vendor\GLFW\src\mappings.h" />
+    <ClInclude Include="vendor\GLFW\src\nsgl_context.h" />
     <ClInclude Include="vendor\GLFW\src\null_joystick.h" />
     <ClInclude Include="vendor\GLFW\src\null_platform.h" />
-    <ClInclude Include="vendor\GLFW\src\platform.h" />
-    <ClInclude Include="vendor\GLFW\src\posix_poll.h" />
+    <ClInclude Include="vendor\GLFW\src\osmesa_context.h" />
     <ClInclude Include="vendor\GLFW\src\posix_thread.h" />
     <ClInclude Include="vendor\GLFW\src\posix_time.h" />
+    <ClInclude Include="vendor\GLFW\src\wgl_context.h" />
     <ClInclude Include="vendor\GLFW\src\win32_joystick.h" />
     <ClInclude Include="vendor\GLFW\src\win32_platform.h" />
-    <ClInclude Include="vendor\GLFW\src\win32_thread.h" />
-    <ClInclude Include="vendor\GLFW\src\win32_time.h" />
     <ClInclude Include="vendor\GLFW\src\wl_platform.h" />
     <ClInclude Include="vendor\GLFW\src\x11_platform.h" />
     <ClInclude Include="vendor\GLFW\src\xkb_unicode.h" />
-    <ClInclude Include="vendor\glm\glm.hpp" />
-    <ClInclude Include="vendor\glm\gtx\hash.hpp" />
+    <ClInclude Include="vendor\glm\simd\common.h" />
+    <ClInclude Include="vendor\glm\simd\exponential.h" />
+    <ClInclude Include="vendor\glm\simd\geometric.h" />
+    <ClInclude Include="vendor\glm\simd\integer.h" />
+    <ClInclude Include="vendor\glm\simd\matrix.h" />
+    <ClInclude Include="vendor\glm\simd\neon.h" />
+    <ClInclude Include="vendor\glm\simd\packing.h" />
+    <ClInclude Include="vendor\glm\simd\platform.h" />
+    <ClInclude Include="vendor\glm\simd\trigonometric.h" />
+    <ClInclude Include="vendor\glm\simd\vector_relational.h" />
     <ClInclude Include="vendor\imgui\backends\imgui_impl_glfw.h" />
     <ClInclude Include="vendor\imgui\backends\imgui_impl_opengl3.h" />
     <ClInclude Include="vendor\imgui\imconfig.h" />
@@ -351,42 +357,45 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\ResourceCache.cpp" />
-    <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\Globals.cpp" />
-    <ClCompile Include="src\IndexBuffer.cpp" />
     <ClCompile Include="src\Light.cpp" />
     <ClCompile Include="src\Magnefu\Application.cpp" />
     <ClCompile Include="src\Magnefu\Core.cpp" />
+    <ClCompile Include="src\Magnefu\Core\TimeStep.cpp" />
+    <ClCompile Include="src\Magnefu\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\Magnefu\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\Magnefu\Layer.cpp" />
     <ClCompile Include="src\Magnefu\LayerStack.cpp" />
     <ClCompile Include="src\Magnefu\Log.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\Buffer.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\RenderCommand.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\Renderer.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\RendererAPI.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\VertexArray.cpp" />
+    <ClCompile Include="src\Magnefu\Scene\Camera.cpp" />
+    <ClCompile Include="src\Magnefu\Scene\SceneCamera.cpp" />
+    <ClCompile Include="src\Magnefu\Tests\Test.cpp" />
+    <ClCompile Include="src\Magnefu\Tests\Test2DTexture.cpp" />
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\Maths\Matrices.cpp" />
     <ClCompile Include="src\Maths\Primitive2D.cpp" />
     <ClCompile Include="src\Maths\Primitive3D.cpp" />
     <ClCompile Include="src\Maths\Quaternion.cpp" />
     <ClCompile Include="src\Maths\Vectors.cpp" />
-    <ClCompile Include="src\Mesh.cpp" />
-    <ClCompile Include="src\Model.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
+    <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
-    <ClCompile Include="src\Renderer.cpp" />
+    <ClCompile Include="src\ResourceCache.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\Timer.cpp" />
-    <ClCompile Include="src\VertexArray.cpp" />
-    <ClCompile Include="src\VertexBuffer.cpp" />
-    <ClCompile Include="src\VertexBufferAttribsLayout.cpp" />
     <ClCompile Include="src\mfpch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\tests\Test.cpp" />
-    <ClCompile Include="src\tests\Test2DTexture.cpp" />
-    <ClCompile Include="src\tests\Test3DRender.cpp" />
-    <ClCompile Include="src\tests\TestBatchRendering.cpp" />
-    <ClCompile Include="src\tests\TestLighting.cpp" />
-    <ClCompile Include="src\tests\TestModelLoading.cpp" />
+    <ClCompile Include="vendor\glm\detail\glm.cpp" />
     <ClCompile Include="vendor\imgui\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="vendor\imgui\backends\imgui_impl_opengl3.cpp" />
     <ClCompile Include="vendor\imgui\imgui.cpp" />
@@ -406,9 +415,6 @@
     <ProjectReference Include="vendor\imgui\ImGui.vcxproj">
       <Project>{C0FF640D-2C14-8DBE-F595-301E616989EF}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="vendor\glm\gtx\hash.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

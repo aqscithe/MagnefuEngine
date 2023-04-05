@@ -1,5 +1,7 @@
 #pragma once
 
+// NOTE: A material is a shader and a bunch of uniforms.
+
 #include "Texture.h"
 #include "CacheableResource.h"
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Magnefu/Window.h"
+#include "Magnefu/Renderer/GraphicsContext.h"
 
 #include "Globals.h"
 #include <GLFW/glfw3.h>
@@ -15,13 +16,15 @@ namespace Magnefu
 
 		void OnUpdate() override;
 
-		uint16_t GetWidth() const override { return m_Data.Width; }
-		uint16_t GetHeight() const override { return m_Data.Height; }
-		void* GetNativeWindow() const override { return m_Window; }
+		inline uint16_t GetWidth() const override { return m_Data.Width; }
+		inline uint16_t GetHeight() const override { return m_Data.Height; }
+		inline void* GetNativeWindow() const override { return m_Window; }
+		inline Ref<Camera>& GetSceneCamera() { return m_SceneCamera; }
 
 		// Window attributes
 		void SetEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; }
 		void SetVSync(bool enabled) override;
+		void SetSceneCamera(const Ref<Camera>& cam) override;
 		bool IsVSync() const override { return m_Data.VSync; }
 
 	private:
@@ -31,6 +34,7 @@ namespace Magnefu
 
 	private:
 		GLFWwindow* m_Window;
+		GraphicsContext* m_Context;
 
 		// Here we store all the data that a window api like glfw might be interested in.
 		// this way we only have to pass the struct, not the entire class.
@@ -41,9 +45,14 @@ namespace Magnefu
 			uint16_t Height;
 			bool VSync;
 			EventCallbackFn EventCallback;
+			CameraData* CamData;
 		};
 
 		WindowData m_Data;
+
+		// Need reference to scene camera here in window
+		Ref<Camera> m_SceneCamera;
+
 
 		// ALL BELOW IS TEMPORARY
 

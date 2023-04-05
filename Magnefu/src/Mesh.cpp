@@ -19,8 +19,8 @@ static std::vector<unsigned int> SetIndices(std::vector<Face>& faces)
     std::vector<unsigned int> indices;
     for (int faceCount = 0; faceCount < faces.size(); faceCount++)
     {
-        uint8_t vertexCount = faces[faceCount].VertexCount;
-        uint8_t patternLength = IndexPattern[vertexCount].size();
+        uint32_t vertexCount = faces[faceCount].VertexCount;
+        size_t patternLength = IndexPattern[vertexCount].size();
         for (int i = 0; i < patternLength; i++)
         {
             // only works if all the faces have the same vertex count
@@ -52,10 +52,11 @@ void Mesh::Init()
     // Then in the Faces for loop, check the vertex count and set the indices based on that.
     // then append those indices to the array.
     std::vector<unsigned int> indices = SetIndices(m_MeshData.Faces);
+    vertices.reserve(4 * m_MeshData.Faces.size());
 
     for (Face& face : m_MeshData.Faces)
     {
-        int i = 1;
+        uint32_t i = 1;
         for (Maths::vec3i& Index : face.Indices)
         {
             if (i > face.VertexCount) break;

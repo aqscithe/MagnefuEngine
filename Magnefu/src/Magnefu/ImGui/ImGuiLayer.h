@@ -3,12 +3,12 @@
 #include "Magnefu/Layer.h"
 #include "Magnefu/Events/KeyEvent.h"
 #include "Magnefu/Events/MouseEvent.h"
-#include "Renderer.h"
+#include "Magnefu/Renderer/Renderer.h"
 
 
 namespace Magnefu
 {
-	class MAGNEFU_API ImGuiLayer : public Layer
+	class  ImGuiLayer : public Layer
 	{
 	public:
 		ImGuiLayer();
@@ -16,17 +16,18 @@ namespace Magnefu
 
 		void OnAttach() override;
 		void OnDetach() override;
-		void OnEvent(Event& event) override;
-
-		bool OnKeyPressed(KeyPressedEvent& event);
-		bool OnKeyReleased(KeyReleasedEvent& event);
-		void OnMouseButtonPressed(MouseButtonPressedEvent& event);
-		bool OnMouseButtonReleased(MouseButtonReleasedEvent& event);
+		void OnEvent(Event&) override;
 
 		void BeginFrame();
 		void EndFrame();
 
+		void BlockEvents(bool block) { m_BlockEvents = block; }
+
+		void SetDarkThemeColors();
+
+		uint32_t GetActiveWidgetID() const;
 	private:
+		bool m_BlockEvents = true;
 		Renderer m_Renderer;
 	};
 }

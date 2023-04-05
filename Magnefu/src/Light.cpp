@@ -46,7 +46,7 @@ SpotLight CreateSpotLight()
 	Maths::vec3 color = { 0.f, 0.82f, 0.26f };
 	float constant = 1.f;
 	float linear = 0.09f;
-	float quadratic = 0.032;
+	float quadratic = 0.032f;
 	float innerCutoff = Maths::cos(Maths::toRadians(15.f));
 	float outerCutoff = Maths::cos(Maths::toRadians(25.f));
 

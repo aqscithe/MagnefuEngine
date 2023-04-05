@@ -8,7 +8,7 @@
 
 namespace Magnefu
 {
-	class MAGNEFU_API Log
+	class  Log
 	{
 	public:
 		Log() = delete;

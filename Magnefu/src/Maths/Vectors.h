@@ -237,7 +237,7 @@ namespace Maths
 	}
 #pragma endregion
 
-#pragma Functions
+#pragma region Functions
 	vec3 StrtoVec3(const std::string& str);
 
 	vec3 normalize(const vec3& v);

@@ -3,8 +3,9 @@
 #include "Magnefu/Events/ApplicationEvent.h"
 #include "Magnefu/Events/MouseEvent.h"
 #include "Magnefu/Events/KeyEvent.h"
+#include "Platform/OpenGL/OpenGLContext.h"
+#include "Magnefu/Scene/Camera.h"
 
-#include <GLAD/glad.h>
 
 namespace Magnefu
 {
@@ -32,9 +33,12 @@ namespace Magnefu
 
 	void WindowsWindow::Init(const WindowProps& props)
 	{
+		m_SceneCamera = Ref<Camera>(Camera::Create());
+
 		m_Data.Title = props.Title;
 		m_Data.Width = props.Width;
 		m_Data.Height = props.Height;
+		m_Data.CamData = &m_SceneCamera->GetData();
 
 		MF_CORE_INFO("Launching Window: {0} - {1}x{2}", m_Data.Title, m_Data.Width, m_Data.Height);
 
@@ -53,13 +57,10 @@ namespace Magnefu
 		m_Window = glfwCreateWindow(m_Data.Width, m_Data.Height, m_Data.Title.c_str(), NULL, NULL);
 		MF_CORE_ASSERT(m_Window, "Failed to create GLFW window");
 
-		glfwMakeContextCurrent(m_Window);
-		int success = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-		MF_CORE_ASSERT(success, "Failed to initialize GLAD");
+		m_Context = new OpenGLContext(m_Window);
 
-		MF_CORE_DEBUG((const char*)glGetString(GL_VERSION));
-		MF_CORE_DEBUG((const char*)glGetString(GL_VENDOR));
-		MF_CORE_DEBUG((const char*)glGetString(GL_RENDERER));
+		if(m_Context)
+			m_Context->Init();
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		SetVSync(true);
@@ -158,21 +159,16 @@ namespace Magnefu
 			MouseScrolledEvent event((float)xoffset, (float)yoffset);
 			data.EventCallback(event);
 
-			Globals& global = Globals::Get();
+			if (!data.CamData) return;
 
-			global.fovY -= (float)yoffset;
-			if (global.fovY < 1.0f)
-				global.fovY = 1.0f;
-			if (global.fovY > 100.f)
-				global.fovY = 100.f;
+			auto camData = data.CamData;
+
+			camData->FOV -= (float)yoffset;
+			if (camData->FOV < 1.0f)
+				camData->FOV = 1.0f;
+			if (camData->FOV > 100.f)
+				camData->FOV = 100.f;
 		});
-
-		//glfwSetFramebufferSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
-		//{
-		//		//is this what i should be running here?
-		//	//glViewport(0, 0, width, height);
-		//	
-		//});
 
 		Globals& global = Globals::Get();
 
@@ -190,7 +186,7 @@ namespace Magnefu
 		processInput();
 		glfwPollEvents();
 		
-		glfwSwapBuffers(m_Window);
+		m_Context->SwapBuffers();
 	}
 
 	void WindowsWindow::Shutdown()
@@ -205,6 +201,12 @@ namespace Magnefu
 		else
 			glfwSwapInterval(0);
 		m_Data.VSync = enabled;
+	}
+
+	void WindowsWindow::SetSceneCamera(const Ref<Camera>& cam)
+	{
+		m_SceneCamera = cam;
+		m_Data.CamData = &m_SceneCamera->GetData();
 	}
 
 	void WindowsWindow::processInput()
@@ -225,7 +227,6 @@ namespace Magnefu
 
 	void WindowsWindow::MouseUpdates()
 	{
-		Globals& global = Globals::Get();
 
 		double newMouseX, newMouseY;
 		glfwGetCursorPos(m_Window, &newMouseX, &newMouseY);
@@ -238,15 +239,17 @@ namespace Magnefu
 		m_Mouse.DeltaY *= m_Mouse.sensitivity;
 
 
-		if (!m_Mouse.flightMode) return;
+		if (!m_Mouse.flightMode || !m_SceneCamera) return;
 
-		global.yaw += m_Mouse.DeltaX;
-		global.pitch += m_Mouse.DeltaY;
+		auto& camData = m_SceneCamera->GetData();
 
-		if (global.pitch > Maths::toRadians(89.0f))
-			global.pitch = Maths::toRadians(89.0f);
-		if (global.pitch < Maths::toRadians(-89.0f))
-			global.pitch = Maths::toRadians(-89.0f);
+		camData.Yaw += m_Mouse.DeltaX;
+		camData.Pitch += m_Mouse.DeltaY;
+
+		if (camData.Pitch > Maths::toRadians(89.0f))
+			camData.Pitch = Maths::toRadians(89.0f);
+		if (camData.Pitch < Maths::toRadians(-89.0f))
+			camData.Pitch = Maths::toRadians(-89.0f);
 	}
 
 }

@@ -4,6 +4,7 @@
 
 #include "Core.h"
 #include "Events/Event.h"
+#include "Magnefu/Scene/Camera.h"
 
 
 namespace Magnefu
@@ -20,7 +21,7 @@ namespace Magnefu
 
 	// interface system representing a desktop sytem based window
 
-	class MAGNEFU_API Window
+	class  Window
 	{
 	public:
 		using EventCallbackFn = std::function<void(Event& event)>;
@@ -38,7 +39,8 @@ namespace Magnefu
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
 		virtual void SetVSync(bool enabled) = 0;
 		virtual bool IsVSync() const = 0;
-
+		virtual void SetSceneCamera(const Ref<Camera>&) = 0;
+		virtual Ref<Camera>& GetSceneCamera() = 0;
 
 		static Window* Create(const WindowProps& props = WindowProps());
 	};

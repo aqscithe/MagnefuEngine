@@ -1,9 +1,10 @@
 project "GLAD"
 	kind "StaticLib"
 	language "C"
+	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-intermediates/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
 	files {
 		"include/GLAD/glad.h",
@@ -16,11 +17,9 @@ project "GLAD"
 	}
 
 	filter "system:linux"
-		pic "On"
-
+		pic "on"
 		systemversion "latest"
-		staticruntime "On"
-
+		
 		files {
 			"src/glad.c"
 		}
@@ -29,7 +28,6 @@ project "GLAD"
 
 	filter "system:windows"
 		systemversion "latest"
-		staticruntime "On"
 
 		files {
 			"src/glad.c"

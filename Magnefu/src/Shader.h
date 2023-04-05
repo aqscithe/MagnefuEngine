@@ -1,5 +1,10 @@
  #pragma once
 
+// NOTE: Instead of having large shaders with a bunch of if checks to determine
+// what functions to run, the code should analyze the materials(a shader + uniforms)
+// and create a shader based on the required functionality.
+
+
 #include "CacheableResource.h"
 
 #include <string>

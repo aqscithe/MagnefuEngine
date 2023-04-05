@@ -67,7 +67,19 @@ void Shader::CreateShader(const String& vShaderSource, const String& fShaderSour
 
     glAttachShader(m_RendererID, vShader);
     glAttachShader(m_RendererID, fShader);
+
     glLinkProgram(m_RendererID);
+    GLint linkSuccess;
+    glGetProgramiv(m_RendererID, GL_LINK_STATUS, &linkSuccess);
+    if (!linkSuccess)
+    {
+        GLint logLength;
+        std::vector<GLchar> infoLog(logLength);
+        glGetProgramInfoLog(m_RendererID, logLength, &logLength, infoLog.data());
+        MF_CORE_ERROR("SHADER -- Failed to link shader program: ");
+        MF_CORE_ERROR("\t{0}", infoLog.data());
+    }
+
     glValidateProgram(m_RendererID);
 
     glDeleteShader(vShader);
@@ -83,7 +95,7 @@ unsigned int Shader::CompileShader(unsigned int type, const String& source)
     glShaderSource(shaderObjID, 1, &sourceStr, nullptr);
     glCompileShader(shaderObjID);
 
-    int success;
+    GLint success;
     glGetShaderiv(shaderObjID, GL_COMPILE_STATUS, &success);
     if (!success)
     {

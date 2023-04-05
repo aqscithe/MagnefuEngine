@@ -5,7 +5,7 @@
 
 namespace Magnefu
 {
-	class MAGNEFU_API KeyEvent : public Event
+	class  KeyEvent : public Event
 	{
 	public:
 		inline int GetKeyCode() const { return m_KeyCode; }
@@ -19,7 +19,7 @@ namespace Magnefu
 		
 	};
 
-	class MAGNEFU_API KeyPressedEvent : public KeyEvent
+	class  KeyPressedEvent : public KeyEvent
 	{
 	public:
 		KeyPressedEvent(int keyCode, int repeatCount) :
@@ -40,7 +40,7 @@ namespace Magnefu
 		int m_RepeatCount;
 	};
 
-	class MAGNEFU_API KeyReleasedEvent : public KeyEvent
+	class  KeyReleasedEvent : public KeyEvent
 	{
 	public:
 		KeyReleasedEvent(int keyCode) :

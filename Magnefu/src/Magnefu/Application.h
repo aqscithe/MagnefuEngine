@@ -12,7 +12,12 @@
 
 namespace Magnefu
 {
-	class MAGNEFU_API Application
+	/*struct State
+	{
+		Maths::mat4 MVP;
+	};*/
+
+	class  Application
 	{
 	public:
 		Application();
@@ -22,12 +27,17 @@ namespace Magnefu
 		virtual void Run();
 
 		void OnEvent(Event& event);
+		void OnImGuiRender();
 
 		void PushLayer(Layer* layer);
 		void PushOverlay(Layer* overlay);
 
+		void SetCurrentSceneData(SceneData& state) { m_CurrState = state; }
+		void SetPreviousSceneData(SceneData& state) { m_PrevState = state; }
+
 		inline Window& GetWindow() { return *m_Window; }
 		inline ResourceCache& GetResourceCache() { return *m_ResourceCache; }
+		inline SceneData* GetRenderData() { return &m_RenderState; }
 
 		inline static Application& Get() { return *s_Instance; }
 
@@ -40,6 +50,10 @@ namespace Magnefu
 		ImGuiLayer* m_ImGuiLayer;
 
 		std::unique_ptr<ResourceCache> m_ResourceCache;
+
+		SceneData m_PrevState;
+		SceneData m_CurrState;
+		SceneData m_RenderState;
 
 		static Application* s_Instance;
 

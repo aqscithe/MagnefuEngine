@@ -5,7 +5,7 @@
 
 namespace Magnefu {
 	
-	class MAGNEFU_API MouseMovedEvent : public Event
+	class  MouseMovedEvent : public Event
 	{
 	public:
 		MouseMovedEvent(float x, float y) :
@@ -29,7 +29,7 @@ namespace Magnefu {
 		float m_MouseY;
 	};
 
-	class MAGNEFU_API MouseScrolledEvent : public Event
+	class  MouseScrolledEvent : public Event
 	{
 	public:
 		MouseScrolledEvent(float xOffset, float yOffset) :
@@ -55,7 +55,7 @@ namespace Magnefu {
 
 	};
 
-	class MAGNEFU_API MouseButtonEvent : public Event
+	class  MouseButtonEvent : public Event
 	{
 	public:
 		MouseButtonEvent(int buttonCode) : 
@@ -69,7 +69,7 @@ namespace Magnefu {
 		int m_ButtonCode;
 	};
 
-	class MAGNEFU_API MouseButtonPressedEvent : public MouseButtonEvent
+	class  MouseButtonPressedEvent : public MouseButtonEvent
 	{
 	public:
 		MouseButtonPressedEvent(int buttonCode, int repeatCount) :
@@ -90,7 +90,7 @@ namespace Magnefu {
 
 	};
 
-	class MAGNEFU_API MouseButtonReleasedEvent : public MouseButtonEvent
+	class  MouseButtonReleasedEvent : public MouseButtonEvent
 	{
 	public:
 		MouseButtonReleasedEvent(int buttonCode) :
