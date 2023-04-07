@@ -5,14 +5,9 @@
 
 #include "imgui/imgui.h"
 
-#include "Magnefu/Renderer/Buffer.h"
 #include "Magnefu/Renderer/VertexArray.h"
-#include "Texture.h"
-#include "Shader.h"
 #include "Magnefu/Renderer/Renderer.h"
 #include "Magnefu/Scene/Camera.h"
-
-#include "ResourceCache.h"
 
 
 
@@ -59,18 +54,14 @@ namespace Magnefu
         std::string texturePath = "res/textures/moon.png";
 
         Application& app = Application::Get();
-        ResourceCache& cache = app.GetResourceCache();
 
-        m_Shader = cache.RequestResource<Shader>(shaderPath);
+        /*TextureList textureList = {
+            { TextureType::DIFFUSE, "res/textures/moon.png" }
+        };*/
 
-        
-        m_Texture = cache.RequestResource<Texture>(texturePath);
-        
-        m_Shader->Bind();
-        m_Texture->Bind();
-        m_Shader->SetUniform1i("u_Texture", (int)m_Texture->GetSlot());
+        m_Material = Material::Create(shaderPath);
+        m_Material->Bind();
 
-        
         m_angleRot = 0.f;
         m_rotationAxis = { 0.f, 0.f, 0.f };
         m_translation = { 0.f, 0.f, 0.f };
@@ -82,8 +73,11 @@ namespace Magnefu
         m_SceneCamera->SetDefaultProps();
 
         Maths::mat4 modelMatrix = Maths::translate(m_translation) * m_Quat->UpdateRotMatrix(m_angleRot, m_rotationAxis) * Maths::scale(m_scaling);
-        m_SceneData.MVP = m_SceneCamera->CalculateVP() * modelMatrix;
-        app.SetPreviousSceneData(m_SceneData);
+        m_SceneData = CreateScope<SceneData>();
+        m_RenderData = CreateRef<SceneData>();
+        m_SceneData->Mat4["u_MVP"] = m_SceneCamera->CalculateVP() * modelMatrix; // not sure this is necessary
+
+        m_Material->InitRenderData(m_RenderData);
         
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -97,27 +91,26 @@ namespace Magnefu
 
 	void Test2DTexture::OnUpdate(float deltaTime)
 	{
-        Application::Get().SetPreviousSceneData(m_SceneData);
+        // anything more efficient than just grabbing a copy of the
+        // entire scenedata struct?
+        m_PrevSceneData.Mat4["u_MVP"] = m_SceneData->Mat4["u_MVP"];
 
         Maths::mat4 modelMatrix = Maths::translate(m_translation) * m_Quat->UpdateRotMatrix(m_angleRot, m_rotationAxis) * Maths::scale(m_scaling);
-        m_SceneData.MVP = m_SceneCamera->CalculateVP() * modelMatrix;
+        m_SceneData->Mat4["u_MVP"] = m_SceneCamera->CalculateVP() * modelMatrix; //current scene data
         m_SceneCamera->ProcessInput(deltaTime);
-
-        Application::Get().SetCurrentSceneData(m_SceneData);
-
 	}
 
-	void Test2DTexture::OnRender()
+	void Test2DTexture::OnRender(float renderInterpCoeff)
 	{
-        Renderer::BeginScene(Application::Get().GetRenderData());
-        Renderer::Submit(m_VAO, m_Shader, m_Texture);
+        m_RenderData->Mat4["u_MVP"] = (m_SceneData->Mat4["u_MVP"] * renderInterpCoeff) + m_PrevSceneData.Mat4["u_MVP"] * (1.f - renderInterpCoeff);
+
+        Renderer::BeginScene();
+        Renderer::Submit(m_VAO, m_Material);
         Renderer::EndScene();
 	}
 	
 	void Test2DTexture::OnImGUIRender()
 	{
-        Globals& global = Globals::Get();
-
         ImGui::Text("Transform");
         ImGui::SliderFloat3("Model Translation", m_translation.e, -10.f, 10.f);
         ImGui::SliderFloat3("Model Rotation", m_rotationAxis.e, 0.f, 1.f);
@@ -125,6 +118,17 @@ namespace Magnefu
         ImGui::SliderFloat3("Model Scale", m_scaling.e, 0.f, 10.f);
 
         m_SceneCamera->OnImGuiRender();
-        
+
+        ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
+        if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags))
+        {
+            if (ImGui::BeginTabItem("MATERIALS"))
+            {
+                m_Material->OnImGuiRender();
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+        }
+             
 	}
 }

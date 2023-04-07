@@ -201,9 +201,6 @@
     <ClInclude Include="src\Magnefu\Window.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
-    <ClInclude Include="src\Material.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\Maths\MathsCommon.h">
       <Filter>src\Maths</Filter>
     </ClInclude>
@@ -246,10 +243,10 @@
     <ClInclude Include="src\ResourceCache.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\Shader.h">
+    <ClInclude Include="src\Platform\OpenGL\OpenGLShader.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\Texture.h">
+    <ClInclude Include="src\Platform\OpenGL\OpenGLTexture.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\Timer.h">
@@ -736,6 +733,11 @@
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Core\TimeStep.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Texture.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Shader.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLMaterial.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Material.h" />
+    <ClInclude Include="src\Magnefu\Scene\Scene.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Globals.cpp">
@@ -792,9 +794,6 @@
     <ClCompile Include="src\Magnefu\Tests\Test2DTexture.cpp">
       <Filter>src\Magnefu\Tests</Filter>
     </ClCompile>
-    <ClCompile Include="src\Material.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\Maths\Matrices.cpp">
       <Filter>src\Maths</Filter>
     </ClCompile>
@@ -831,10 +830,10 @@
     <ClCompile Include="src\ResourceCache.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\Shader.cpp">
+    <ClCompile Include="src\Platform\OpenGL\OpenGLShader.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\Texture.cpp">
+    <ClCompile Include="src\Platform\OpenGL\OpenGLTexture.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\Timer.cpp">
@@ -871,5 +870,9 @@
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Core\TimeStep.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\Texture.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\Shader.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLMaterial.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\Material.cpp" />
   </ItemGroup>
 </Project>

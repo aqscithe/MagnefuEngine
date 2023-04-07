@@ -24,7 +24,7 @@ namespace Magnefu
         m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);
 
-        m_ResourceCache = std::unique_ptr<ResourceCache>(ResourceCache::Create());
+        m_ResourceCache = Scope<ResourceCache>(ResourceCache::Create());
 	}
 
 	Application::~Application()
@@ -88,14 +88,9 @@ namespace Magnefu
                 // integration formulas to consult when you start physics simulation
                 // https://gafferongames.com/post/fix_your_timestep/
             }
-            
-            const float alpha = ts.CalculateInterpolationCoeff();
-
-            m_RenderState.MVP = (m_CurrState.MVP * alpha) +
-                (m_PrevState.MVP * (1.0f - alpha));
 
             for (Layer* layer : m_LayerStack)
-                layer->OnRender();
+                layer->OnRender(ts.CalculateInterpolationCoeff());
             
             OnImGuiRender();
 
@@ -108,7 +103,7 @@ namespace Magnefu
     void Application::OnImGuiRender()
     {
         ImGui::Begin("Application");
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        //ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
         // Shouldn't do this calculation every frame
         //ImGui::Text("Frame time: %.3f ms/frame | Frame Rate: %.1f FPS", deltaTime * 1000.f, 1.f / deltaTime);

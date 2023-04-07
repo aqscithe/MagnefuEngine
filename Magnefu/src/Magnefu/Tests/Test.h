@@ -2,15 +2,13 @@
 
 #include <string>
 #include <vector>
+#include <typeindex>
+
 #include <functional>
 
 
 namespace Magnefu
 {
-	struct SceneData
-	{
-		Maths::mat4 MVP;
-	};
 
 	class Test
 	{
@@ -19,7 +17,7 @@ namespace Magnefu
 		virtual ~Test() {}
 
 		virtual void OnUpdate(float deltaTime) {}
-		virtual void OnRender() {}
+		virtual void OnRender(float renderInterpCoeff) {}
 		virtual void OnImGUIRender() {}
 	};
 

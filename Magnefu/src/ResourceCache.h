@@ -1,9 +1,9 @@
 #pragma once
 
 #include "CacheableResource.h"
-#include "Texture.h"
-#include "Material.h"
-#include "Shader.h"
+#include "Magnefu/Renderer/Material.h"
+#include "Magnefu/Renderer/Shader.h"
+#include "Magnefu/Renderer/Texture.h"
 
 #include <typeindex>
 #include <memory>
@@ -14,12 +14,12 @@
 #include "glm/gtx/hash.hpp"
 
 
-template <>
-struct std::hash<Magnefu::TextureProps> {
-	size_t operator()(const Magnefu::TextureProps& props) {
-		return 0; 
-	}
-};
+//template <>
+//struct std::hash<Magnefu::TextureProps> {
+//	size_t operator()(const Magnefu::TextureProps& props) {
+//		return 0; 
+//	}
+//};
 
 
 namespace Magnefu
@@ -44,7 +44,7 @@ namespace Magnefu
 
 	public:
 		template <typename T, typename... Args>
-		T* RequestResource(Args&& ...args)
+		Ref<T> RequestResource(Args&& ...args)
 		{
 			static_assert(std::is_base_of<CacheableResource, T>::value, "Class must be derived from CacheableResource");
 
@@ -61,17 +61,15 @@ namespace Magnefu
 
 			// if we find the resource, return it
 			if (resource_it != resourceHashMap.end())
-				return dynamic_cast<T*>(resource_it->second.get());
-
+				return std::dynamic_pointer_cast<T>(resource_it->second);
+			
 			// otherwise create the resource
-			auto newResource = std::make_unique<T>(std::forward<Args>(args)...);
+			auto newResource = CreateRef<T>(args...);
 
 			// Move resource to hash map
-			//auto it = resourceHashMap.emplace(seed, std::move(newResource));
 			resourceHashMap.emplace(seed, std::move(newResource));
 
-			//return *dynamic_cast<T*>(it->second.get());
-			return dynamic_cast<T*>(resourceHashMap[seed].get());
+			return std::dynamic_pointer_cast<T>(resourceHashMap[seed]);
 		}
 
 		template <typename T>

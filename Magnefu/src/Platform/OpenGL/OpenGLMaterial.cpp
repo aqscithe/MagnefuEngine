@@ -1,22 +1,84 @@
 #include "mfpch.h"
 
-#include "Material.h"
+#include "OpenGLMaterial.h"
 #include "Magnefu/Application.h"
 
+#include "imgui.h"
 
-namespace Magnefu 
+
+namespace Magnefu
 {
-    TextureProps::TextureProps()
+    std::unordered_map<TextureType, String> TextureTypeNameMap = {
+        {TextureType::AMBIENT, "Ambient"},
+        {TextureType::DIFFUSE, "Diffuse"},
+        {TextureType::BUMP, "Bump"},
+        {TextureType::ROUGHNESS, "Roughness"},
+        {TextureType::SPECULAR, "Specular"},
+        {TextureType::EMISSIVE, "Emissive"},
+        {TextureType::METALLIC, "Metallic"}
+    };
+
+    OpenGLMaterial::OpenGLMaterial(const String& shaderFile)
     {
-        Ambient = nullptr;
-        Diffuse = nullptr;
-        Specular = nullptr;
-        Emissive = nullptr;
-        Roughness = nullptr;
-        Metallic = nullptr;
+        m_Shader = Shader::Create(shaderFile);
+        m_RenderData = CreateRef<SceneData>();
+        m_ID = Application::Get().GetResourceCache().size<OpenGLMaterial>();
+
+        m_Props = MaterialProps();
+        m_Shader->Bind();
+        auto& Textures = m_Props.TextureMap;
+        for (auto& texture : Textures)
+        {
+            String uniformName = "u_" + TextureTypeNameMap[texture.first] + "Texture";
+            m_Shader->SetUniform1i(uniformName, (int)texture.second->GetSlot());
+        }
     }
 
-    Material::Material(const TextureProps& textures, const std::string& name)
+    void OpenGLMaterial::InitRenderData(const Ref<SceneData>& renderData)
+    {
+        m_RenderData = renderData;
+    }
+
+    void OpenGLMaterial::OnImGuiRender()
+    {
+        ImGui::Text("ID: %d", m_ID);
+        ImGui::SeparatorText("Shader");
+        ImGui::Text("Shader: %s", m_Shader->GetFilepath().c_str());
+        ImGui::SeparatorText("Textures");
+        auto& Textures = m_Props.TextureMap;
+        if (ImGui::CollapsingHeader("Diffuse"))
+            Textures[TextureType::DIFFUSE]->OnImGuiRender();
+
+        //for (auto& texture : Textures)
+        //    texture.second->OnImGuiRender();
+    }
+
+    void OpenGLMaterial::Init()
+    {  
+    }
+
+    void OpenGLMaterial::Bind()
+    {
+        m_Shader->Bind();
+        auto& textures = m_Props.TextureMap;
+
+        m_Shader->UploadUniforms(m_RenderData);
+
+        for (auto& texture : textures)
+            texture.second->Bind();
+    }
+
+    void OpenGLMaterial::Unbind()
+    {
+        m_Shader->Unbind();
+        auto& textures = m_Props.TextureMap;
+
+        for (auto& texture : textures)
+            texture.second->Unbind();
+    }
+}
+
+   /* Material::Material(const TextureProps& textures, const std::string& name)
     {
         Name = name;
         ID = Application::Get().GetResourceCache().size<Material>();
@@ -175,37 +237,7 @@ namespace Magnefu
         }
     }
 
-    void Material::Bind()
-    {
-        if (Ambient)
-            Ambient->Bind();
-        if (Diffuse)
-            Diffuse->Bind();
-        if (Emissive)
-            Emissive->Bind();
-        if (Specular)
-            Specular->Bind();
-        if (Roughness)
-            Roughness->Bind();
-        if (Metallic)
-            Metallic->Bind();
-    }
 
-    void Material::Unbind()
-    {
-        if (Ambient)
-            Ambient->Unbind();
-        if (Diffuse)
-            Diffuse->Unbind();
-        if (Emissive)
-            Emissive->Unbind();
-        if (Specular)
-            Specular->Unbind();
-        if (Roughness)
-            Roughness->Unbind();
-        if (Metallic)
-            Metallic->Unbind();
-    }
 
     void Material::NullifyTextures()
     {
@@ -215,5 +247,5 @@ namespace Magnefu
         Emissive = nullptr;
         Roughness = nullptr;
         Metallic = nullptr;
-    }
-}
+    }*/
+

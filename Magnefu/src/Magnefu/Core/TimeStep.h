@@ -38,6 +38,8 @@ namespace Magnefu
 
 	private:
 
+		// NOTE: This needs to adjust dynamically if outside conditions force a different frame target. 
+		// For example, when I unplug my laptop my screen's refresh rate locks to 30fps to save on energy.
 		const float m_FrameTarget;
 		float m_AccumulatedTime;
 		Clock::time_point m_CurrentTime;

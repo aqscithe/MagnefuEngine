@@ -41,14 +41,14 @@ public:
 			m_ActiveTest->OnUpdate(deltaTime);
 	}
 
-	void OnRender() override
+	void OnRender(float renderInterpCoeff) override
 	{
 		Magnefu::RenderCommand::ClearColor(0.08f, 0.08f, 0.08f, 1.f);
 		Magnefu::RenderCommand::Clear();
 
 		if (m_ActiveTest)
 		{
-			m_ActiveTest->OnRender();
+			m_ActiveTest->OnRender(renderInterpCoeff);
 			ImGui::Begin("Tests");
 			if (m_ActiveTest != m_TestMenu && ImGui::Button("<-"))
 			{

@@ -3,30 +3,23 @@
 #include "Renderer.h"
 #include "Buffer.h"
 #include "VertexArray.h"
-#include "Shader.h"
-#include "Texture.h"
-
-#include <GLAD/glad.h>
 
 
 namespace Magnefu
 {
-    SceneData* Renderer::m_SceneData = nullptr;
-
-    void Renderer::BeginScene(SceneData* data)
+    void Renderer::BeginScene()
     {
-       m_SceneData = data;
     }
 
     void Renderer::EndScene()
     {
     }
 
-    void Renderer::Submit(const Ref<VertexArray>& va, Shader* shader, Texture* texture )
+    void Renderer::Submit(const Ref<VertexArray>& va, const Ref<Material>& material )
     {
-        shader->Bind();
-        shader->SetUniformMatrix4fv("u_MVP", m_SceneData->MVP);
-        texture->Bind();
+        // When a renderer binds a material, all the necessary uniforms from the renderer and the material
+        // in question and upload the values in one contiguous buffer.
+        material->Bind();
         RenderCommand::DrawIndexed(va);
     }
 

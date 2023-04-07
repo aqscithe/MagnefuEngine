@@ -1,12 +1,12 @@
 #shader vertex
 #version 450 core
 
-layout(location = 0) in vec4 position;
+layout(location = 0) in vec3 position;
 
 
 void main()
 {
-	gl_Position = position;
+	gl_Position = vec4(position, 1.0);
 }
 
 
@@ -15,9 +15,7 @@ void main()
 
 out vec4 fragColor;
 
-uniform vec4 u_Color;
-
 void main()
 {
-	fragColor = u_Color;
+	fragColor = vec4(0.5, 0.2, 0.8, 1.0);
 }
