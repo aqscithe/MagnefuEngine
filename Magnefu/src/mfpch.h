@@ -19,12 +19,11 @@
 #include <sstream>
 #include <fstream>
 
-#include "MathsCommon.h"
-#include "Globals.h"
-#include "Vectors.h"
-#include "Matrices.h"
-#include "Magnefu/Log.h"
-#include "Magnefu/Base.h"
+#include "Magnefu/Core/Maths/MathsCommon.h"
+#include "Magnefu/Core/Maths/Vectors.h"
+#include "Magnefu/Core/Maths/Matrices.h"
+#include "Magnefu/Core/Log.h"
+#include "Magnefu/Core/MemAlloc.h"
 
 #ifdef MF_PLATFORM_WINDOWS
 #include <Windows.h>

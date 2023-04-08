@@ -5,7 +5,8 @@
 // and create a shader based on the required functionality.
 
 #include "Magnefu/Renderer/Shader.h"
-#include "CacheableResource.h"
+#include "Magnefu/ResourceManagement/CacheableResource.h"
+
 #include "Magnefu/Tests/Test.h"
 
 #include <string>

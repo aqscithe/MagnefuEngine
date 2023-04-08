@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Magnefu/Scene/Scene.h"
+#include "Magnefu/Renderer/Scene.h"
 
 
 namespace Magnefu

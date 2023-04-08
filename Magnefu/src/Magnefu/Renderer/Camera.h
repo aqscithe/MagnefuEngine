@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Vectors.h"
-#include "Matrices.h"
+#include "Magnefu/Core/Maths/Vectors.h"
+#include "Magnefu/Core/Maths/Matrices.h"
 
 namespace Magnefu
 {

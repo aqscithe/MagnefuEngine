@@ -2,9 +2,9 @@
 
 #include "mfpch.h"
 
-#include "Core.h"
-#include "Events/Event.h"
-#include "Magnefu/Scene/Camera.h"
+#include "Magnefu/Core/Assertions.h"
+#include "Magnefu/Core/Events/Event.h"
+#include "Magnefu/Renderer/Camera.h"
 
 
 namespace Magnefu

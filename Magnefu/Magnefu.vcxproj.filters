@@ -111,13 +111,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\CacheableResource.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Globals.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Light.h">
+    <ClInclude Include="src\Magnefu\ResourceManagement\CacheableResource.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu.h">
@@ -126,34 +120,34 @@
     <ClInclude Include="src\Magnefu\Application.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Base.h">
+    <ClInclude Include="src\Magnefu\Core\MemAlloc.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Core.h">
+    <ClInclude Include="src\Magnefu\Core\Assertions.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Entrypoint.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Events\ApplicationEvent.h">
+    <ClInclude Include="src\Magnefu\Core\Events\ApplicationEvent.h">
       <Filter>src\Magnefu\Events</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Events\Event.h">
+    <ClInclude Include="src\Magnefu\Core\Events\Event.h">
       <Filter>src\Magnefu\Events</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Events\KeyEvent.h">
+    <ClInclude Include="src\Magnefu\Core\Events\KeyEvent.h">
       <Filter>src\Magnefu\Events</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Events\MouseEvent.h">
+    <ClInclude Include="src\Magnefu\Core\Events\MouseEvent.h">
       <Filter>src\Magnefu\Events</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\ImGui\ImGuiLayer.h">
       <Filter>src\Magnefu\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Input.h">
+    <ClInclude Include="src\Magnefu\Core\Events\Input.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\KeyCodes.h">
+    <ClInclude Include="src\Magnefu\Core\Events\KeyCodes.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Layer.h">
@@ -162,10 +156,10 @@
     <ClInclude Include="src\Magnefu\LayerStack.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Log.h">
+    <ClInclude Include="src\Magnefu\Core\Log.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\MouseButtonCodes.h">
+    <ClInclude Include="src\Magnefu\Core\Events\MouseButtonCodes.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\Buffer.h">
@@ -186,10 +180,10 @@
     <ClInclude Include="src\Magnefu\Renderer\VertexArray.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Scene\Camera.h">
+    <ClInclude Include="src\Magnefu\Renderer\Camera.h">
       <Filter>src\Magnefu\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Scene\SceneCamera.h">
+    <ClInclude Include="src\Magnefu\Renderer\SceneCamera.h">
       <Filter>src\Magnefu\Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Tests\Test.h">
@@ -201,25 +195,25 @@
     <ClInclude Include="src\Magnefu\Window.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
-    <ClInclude Include="src\Maths\MathsCommon.h">
+    <ClInclude Include="src\Magnefu\Core\Maths\MathsCommon.h">
       <Filter>src\Maths</Filter>
     </ClInclude>
-    <ClInclude Include="src\Maths\Matrices.h">
+    <ClInclude Include="src\Magnefu\Core\Maths\Matrices.h">
       <Filter>src\Maths</Filter>
     </ClInclude>
-    <ClInclude Include="src\Maths\Primitive2D.h">
+    <ClInclude Include="src\Magnefu\Core\Maths\Primitive2D.h">
       <Filter>src\Maths</Filter>
     </ClInclude>
-    <ClInclude Include="src\Maths\Primitive3D.h">
+    <ClInclude Include="src\Magnefu\Core\Maths\Primitive3D.h">
       <Filter>src\Maths</Filter>
     </ClInclude>
-    <ClInclude Include="src\Maths\PrimitiveCommon.h">
+    <ClInclude Include="src\Magnefu\Core\Maths\PrimitiveCommon.h">
       <Filter>src\Maths</Filter>
     </ClInclude>
-    <ClInclude Include="src\Maths\Quaternion.h">
+    <ClInclude Include="src\Magnefu\Core\Maths\Quaternion.h">
       <Filter>src\Maths</Filter>
     </ClInclude>
-    <ClInclude Include="src\Maths\Vectors.h">
+    <ClInclude Include="src\Magnefu\Core\Maths\Vectors.h">
       <Filter>src\Maths</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\OpenGLBuffer.h">
@@ -240,7 +234,7 @@
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h">
       <Filter>src\Platform\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="src\ResourceCache.h">
+    <ClInclude Include="src\Magnefu\ResourceManagement\ResourceCache.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\OpenGLShader.h">
@@ -249,7 +243,7 @@
     <ClInclude Include="src\Platform\OpenGL\OpenGLTexture.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\Timer.h">
+    <ClInclude Include="src\Magnefu\Core\Timer.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\mfpch.h">
@@ -737,19 +731,14 @@
     <ClInclude Include="src\Magnefu\Renderer\Shader.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLMaterial.h" />
     <ClInclude Include="src\Magnefu\Renderer\Material.h" />
-    <ClInclude Include="src\Magnefu\Scene\Scene.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Scene.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Font.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Globals.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Light.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\Magnefu\Application.cpp">
       <Filter>src\Magnefu</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Core.cpp">
+    <ClCompile Include="src\Magnefu\Core\Assertions.cpp">
       <Filter>src\Magnefu</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\ImGui\ImGuiBuild.cpp">
@@ -764,7 +753,7 @@
     <ClCompile Include="src\Magnefu\LayerStack.cpp">
       <Filter>src\Magnefu</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Log.cpp">
+    <ClCompile Include="src\Magnefu\Core\Log.cpp">
       <Filter>src\Magnefu</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Renderer\Buffer.cpp">
@@ -782,10 +771,10 @@
     <ClCompile Include="src\Magnefu\Renderer\VertexArray.cpp">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Scene\Camera.cpp">
+    <ClCompile Include="src\Magnefu\Renderer\Camera.cpp">
       <Filter>src\Magnefu\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Scene\SceneCamera.cpp">
+    <ClCompile Include="src\Magnefu\Renderer\SceneCamera.cpp">
       <Filter>src\Magnefu\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Tests\Test.cpp">
@@ -794,19 +783,19 @@
     <ClCompile Include="src\Magnefu\Tests\Test2DTexture.cpp">
       <Filter>src\Magnefu\Tests</Filter>
     </ClCompile>
-    <ClCompile Include="src\Maths\Matrices.cpp">
+    <ClCompile Include="src\Magnefu\Core\Maths\Matrices.cpp">
       <Filter>src\Maths</Filter>
     </ClCompile>
-    <ClCompile Include="src\Maths\Primitive2D.cpp">
+    <ClCompile Include="src\Magnefu\Core\Maths\Primitive2D.cpp">
       <Filter>src\Maths</Filter>
     </ClCompile>
-    <ClCompile Include="src\Maths\Primitive3D.cpp">
+    <ClCompile Include="src\Magnefu\Core\Maths\Primitive3D.cpp">
       <Filter>src\Maths</Filter>
     </ClCompile>
-    <ClCompile Include="src\Maths\Quaternion.cpp">
+    <ClCompile Include="src\Magnefu\Core\Maths\Quaternion.cpp">
       <Filter>src\Maths</Filter>
     </ClCompile>
-    <ClCompile Include="src\Maths\Vectors.cpp">
+    <ClCompile Include="src\Magnefu\Core\Maths\Vectors.cpp">
       <Filter>src\Maths</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp">
@@ -827,7 +816,7 @@
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp">
       <Filter>src\Platform\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="src\ResourceCache.cpp">
+    <ClCompile Include="src\Magnefu\ResourceManagement\ResourceCache.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\OpenGLShader.cpp">
@@ -836,7 +825,7 @@
     <ClCompile Include="src\Platform\OpenGL\OpenGLTexture.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\Timer.cpp">
+    <ClCompile Include="src\Magnefu\Core\Timer.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\mfpch.cpp">

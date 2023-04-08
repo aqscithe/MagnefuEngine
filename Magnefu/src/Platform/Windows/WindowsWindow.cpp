@@ -1,10 +1,10 @@
 #include "mfpch.h"
 #include "WindowsWindow.h"
-#include "Magnefu/Events/ApplicationEvent.h"
-#include "Magnefu/Events/MouseEvent.h"
-#include "Magnefu/Events/KeyEvent.h"
+#include "Magnefu/Core/Events/ApplicationEvent.h"
+#include "Magnefu/Core/Events/MouseEvent.h"
+#include "Magnefu/Core/Events/KeyEvent.h"
 #include "Platform/OpenGL/OpenGLContext.h"
-#include "Magnefu/Scene/Camera.h"
+#include "Magnefu/Renderer/Camera.h"
 
 
 namespace Magnefu
@@ -170,10 +170,9 @@ namespace Magnefu
 				camData->FOV = 100.f;
 		});
 
-		Globals& global = Globals::Get();
 
-		m_Mouse.lastX = global.WIDTH / 2.f;
-		m_Mouse.lastY = global.HEIGHT / 2.f;
+		m_Mouse.lastX = m_Data.Width / 2.f;
+		m_Mouse.lastY = m_Data.Height / 2.f;
 		m_Mouse.sensitivity = 0.001f;
 		m_Mouse.X = 0.0;
 		m_Mouse.Y = 0.0;

@@ -3,7 +3,6 @@
 #include "Magnefu/Window.h"
 #include "Magnefu/Renderer/GraphicsContext.h"
 
-#include "Globals.h"
 #include <GLFW/glfw3.h>
 
 namespace Magnefu

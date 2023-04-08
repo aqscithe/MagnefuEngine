@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Magnefu/Renderer/Texture.h"
-#include "CacheableResource.h"
+#include "Magnefu/ResourceManagement/CacheableResource.h"
 
 namespace Magnefu
 {

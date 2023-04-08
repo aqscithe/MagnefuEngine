@@ -4,15 +4,15 @@
 #include "Magnefu/Application.h"
 #include "Magnefu/ImGui/ImGuiLayer.h"
 #include "Magnefu/Layer.h"
-#include "Magnefu/Log.h"
+#include "Magnefu/Core/Log.h"
 #include "Magnefu/Core/TimeStep.h"
-#include "Magnefu/Base.h"
+#include "Magnefu/Core/MemAlloc.h"
 
 
 //----Input-------------------------------
-#include "Magnefu/Input.h"
-#include "Magnefu/KeyCodes.h"
-#include "Magnefu/MouseButtonCodes.h"
+#include "Magnefu/Core/Events/Input.h"
+#include "Magnefu/Core/Events/KeyCodes.h"
+#include "Magnefu/Core/Events/MouseButtonCodes.h"
 //----------------------------------------
 
 

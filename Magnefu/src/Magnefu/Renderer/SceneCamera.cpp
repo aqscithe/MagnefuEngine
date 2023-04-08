@@ -1,8 +1,8 @@
 #include "mfpch.h"
 #include "SceneCamera.h"
 
-#include "Magnefu/Input.h"
-#include "Magnefu/KeyCodes.h"
+#include "Magnefu/Core/Events/Input.h"
+#include "Magnefu/Core/Events/KeyCodes.h"
 
 #include "imgui.h"
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Magnefu/Core.h"
-#include "Magnefu/Log.h"
+#include "Magnefu/Core/Assertions.h"
+#include "Magnefu/Core/Log.h"
 
 namespace Magnefu
 {

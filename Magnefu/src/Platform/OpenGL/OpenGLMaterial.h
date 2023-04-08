@@ -5,9 +5,9 @@
 #include "Magnefu/Renderer/Texture.h"
 #include "Magnefu/Renderer/Shader.h"
 #include "Magnefu/Renderer/Material.h"
-#include "CacheableResource.h"
+#include "Magnefu/ResourceManagement/CacheableResource.h"
 
-#include "MathsCommon.h"
+#include "Magnefu/Core/Maths/MathsCommon.h"
 #include <string>
 
 

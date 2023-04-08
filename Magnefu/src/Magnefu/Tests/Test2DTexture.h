@@ -6,12 +6,12 @@
 #include "Magnefu/Renderer/Buffer.h"
 #include "Magnefu/Renderer/Texture.h"
 #include "Magnefu/Renderer/Shader.h"
-#include "Magnefu/Scene/Camera.h"
+#include "Magnefu/Renderer/Camera.h"
 
-#include "Quaternion.h"
+#include "Magnefu/Core/Maths/Quaternion.h"
 #include "Magnefu/Renderer/Material.h"
 
-#include "Magnefu/Scene/Scene.h"
+#include "Magnefu/Renderer/Scene.h"
 
 #include "GLAD/glad.h"
 

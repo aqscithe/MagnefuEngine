@@ -1,6 +1,6 @@
 #include "mfpch.h"
 #include "Texture.h"
-#include "CacheableResource.h"
+#include "Magnefu/ResourceManagement/CacheableResource.h"
 #include "Platform/OpenGL/OpenGLTexture.h"
 #include "Renderer.h"
 #include "Magnefu/Application.h"

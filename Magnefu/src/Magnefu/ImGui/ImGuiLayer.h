@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Magnefu/Layer.h"
-#include "Magnefu/Events/KeyEvent.h"
-#include "Magnefu/Events/MouseEvent.h"
+#include "Magnefu/Core/Events/KeyEvent.h"
+#include "Magnefu/Core/Events/MouseEvent.h"
 #include "Magnefu/Renderer/Renderer.h"
 
 

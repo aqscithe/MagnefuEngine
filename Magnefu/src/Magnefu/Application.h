@@ -1,14 +1,14 @@
 #pragma once
 
-#include "Core.h"
+#include "Magnefu/Core/Assertions.h"
 #include "Window.h"
 #include "Magnefu/Renderer/Texture.h"
 #include "Magnefu/LayerStack.h"
 #include "Magnefu/ImGui/ImGuiLayer.h"
-#include "Magnefu/Events/ApplicationEvent.h"
-#include "Magnefu/Events/MouseEvent.h"
-#include "Magnefu/Events/KeyEvent.h"
-#include "ResourceCache.h"
+#include "Magnefu/Core/Events/ApplicationEvent.h"
+#include "Magnefu/Core/Events/MouseEvent.h"
+#include "Magnefu/Core/Events/KeyEvent.h"
+#include "Magnefu/ResourceManagement/ResourceCache.h"
 
 
 

@@ -1,7 +1,7 @@
 #include "mfpch.h"
 #include "OpenGLContext.h"
 
-#include "Magnefu/Log.h"
+#include "Magnefu/Core/Log.h"
 
 #include "GLFW/glfw3.h"
 #include "GLAD/glad.h"

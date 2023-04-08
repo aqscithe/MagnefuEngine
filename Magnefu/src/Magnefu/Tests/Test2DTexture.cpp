@@ -7,7 +7,7 @@
 
 #include "Magnefu/Renderer/VertexArray.h"
 #include "Magnefu/Renderer/Renderer.h"
-#include "Magnefu/Scene/Camera.h"
+#include "Magnefu/Renderer/Camera.h"
 
 
 

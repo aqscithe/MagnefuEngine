@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Magnefu/Core.h"
+#include "Magnefu/Core/Assertions.h"
 
 
 namespace Magnefu

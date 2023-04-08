@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Magnefu/Base.h"
-#include "MathsCommon.h"
+#include "Magnefu/Core/MemAlloc.h"
+#include "Magnefu/Core/Maths/MathsCommon.h"
 #include "Texture.h"
-#include "Magnefu/Scene/Scene.h"
+#include "Magnefu/Renderer/Scene.h"
 
 
 namespace Magnefu

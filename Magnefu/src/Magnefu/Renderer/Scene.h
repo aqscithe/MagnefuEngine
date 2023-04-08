@@ -1,8 +1,8 @@
 #pragma once
 
 #include <unordered_map>
-#include "Maths/Vectors.h"
-#include "Maths/Matrices.h"
+#include "Magnefu/Core/Maths/Vectors.h"
+#include "Magnefu/Core/Maths/Matrices.h"
 
 
 namespace Magnefu
