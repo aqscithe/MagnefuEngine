@@ -3,7 +3,7 @@
 #include "Test.h"
 #include "Magnefu/Renderer/Renderer.h"
 
-#include "Magnefu/Core/Maths/Primitive2D.h"
+#include "Magnefu/Core/Maths/PrimitiveCommon.h"
 
 #include "GLAD/glad.h"
 
@@ -22,6 +22,8 @@ namespace Magnefu
 		void OnImGUIRender() override;
 
 	private:
-		Plane m_Plane;
+		PrimitiveData m_Plane;
+		PrimitiveData m_Cube;
+		SphereData m_Sphere;
 	};
 }

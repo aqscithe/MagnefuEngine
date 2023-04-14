@@ -13,6 +13,8 @@ namespace Magnefu
 		void ClearColor(float r, float g, float b, float a) const override;
 		void EnableBlending() override;
 		void DisableBlending() override;
+		void EnableDepthTest() override;
+		void DisableDepthTest() override;
 		void SetWindowSize(int width, int height) override;
 		void DrawIndexed(const Ref<VertexArray>&) override;
 	};

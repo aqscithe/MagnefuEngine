@@ -33,5 +33,5 @@ namespace Magnefu
         Vertex v3;
     };
 
-    Quad CreateQuad(float x, float y, unsigned int texID = 99);
+   // Quad CreateQuad(float x, float y, unsigned int texID = 99);
 }

@@ -27,14 +27,14 @@ namespace Magnefu
         RenderCommand::DrawIndexed(va);
     }
 
-    void Renderer::DrawPlane(const Plane& plane)
+    void Renderer::DrawPlane(const PrimitiveData& data)
     {
-        float vertices[40] = {
-            //  position    normals          color                         texture coords
-            -0.5f, -0.5f,   0.f, 0.f, 1.f,   plane.Color.r, plane.Color.g, plane.Color.b,    0.f,  0.f,       // 0  BL
-             0.5f, -0.5f,   0.f, 0.f, 1.f,   plane.Color.r, plane.Color.g, plane.Color.b,    1.f,  0.f,       // 1  BR
-             0.5f,  0.5f,   0.f, 0.f, 1.f,   plane.Color.r, plane.Color.g, plane.Color.b,    1.f,  1.f,       // 2  TR
-            -0.5f,  0.5f,   0.f, 0.f, 1.f,   plane.Color.r, plane.Color.g, plane.Color.b,    0.f,  1.f,       // 3  TL
+        float vertices[28] = {
+            //  position    color                         texture coords
+            -0.5f, -0.5f,   data.Color.r, data.Color.g, data.Color.b,    0.f,  0.f,       // 0  BL
+             0.5f, -0.5f,   data.Color.r, data.Color.g, data.Color.b,    1.f,  0.f,       // 1  BR
+             0.5f,  0.5f,   data.Color.r, data.Color.g, data.Color.b,    1.f,  1.f,       // 2  TR
+            -0.5f,  0.5f,   data.Color.r, data.Color.g, data.Color.b,    0.f,  1.f,       // 3  TL
         };
 
         uint32_t indices[] = {
@@ -46,7 +46,6 @@ namespace Magnefu
 
         BufferLayout layout = {
             {ShaderDataType::Float2, "aPosition"},
-            {ShaderDataType::Float3, "aNormal"},
             {ShaderDataType::Float3, "aColor"},
             {ShaderDataType::Float2, "aTexCoords"}
         };
@@ -64,8 +63,8 @@ namespace Magnefu
         Maths::mat4 MVP = 
             Application::Get().GetWindow().GetSceneCamera()->CalculateVP() * 
             Maths::translate({0.f, -1.f, 0.f}) * 
-            Maths::Quaternion::CalculateRotationMatrix(plane.Angle, plane.Rotation) * 
-            Maths::scale({plane.Size, 0.1f});
+            Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) * 
+            Maths::scale(Maths::vec3(data.Size.xy, 0.1f));
         
 
         shader->Bind();
@@ -74,18 +73,18 @@ namespace Magnefu
         RenderCommand::DrawIndexed(vao);
     }
 
-    void Renderer::DrawCube(float size, const Maths::vec3& color)
+    void Renderer::DrawCube(const PrimitiveData& data)
     {
         float vertices[64] = {
-            //  position               color                         texture coords
-                -0.5f, -0.5f,  0.5f,   color.r, color.g, color.b,    0.f,  0.f,       // 0  BL
-                 0.5f, -0.5f,  0.5f,   color.r, color.g, color.b,    1.f,  0.f,       // 1  BR
-                 0.5f,  0.5f,  0.5f,   color.r, color.g, color.b,    1.f,  1.f,       // 2  TR
-                -0.5f,  0.5f,  0.5f,   color.r, color.g, color.b,    0.f,  1.f,       // 3  TL
-                -0.5,  -0.5f, -0.5f,   color.r, color.g, color.b,    0.f,  0.f,       // 4  
-                -0.5f,  0.5f, -0.5f,   color.r, color.g, color.b,    1.f,  0.f,       // 5
-                 0.5f,  0.5f, -0.5f,   color.r, color.g, color.b,    1.f,  1.f,       // 6
-                 0.5f, -0.5f, -0.5f,   color.r, color.g, color.b,    0.f,  1.f        // 7
+            //  position               color                                        texture coords
+                -0.5f, -0.5f,  0.5f,   data.Color.r, data.Color.g, data.Color.b,    0.f,  0.f,       // 0  BL
+                 0.5f, -0.5f,  0.5f,   data.Color.r, data.Color.g, data.Color.b,    1.f,  0.f,       // 1  BR
+                 0.5f,  0.5f,  0.5f,   data.Color.r, data.Color.g, data.Color.b,    1.f,  1.f,       // 2  TR
+                -0.5f,  0.5f,  0.5f,   data.Color.r, data.Color.g, data.Color.b,    0.f,  1.f,       // 3  TL
+                -0.5,  -0.5f, -0.5f,   data.Color.r, data.Color.g, data.Color.b,    0.f,  0.f,       // 4  
+                -0.5f,  0.5f, -0.5f,   data.Color.r, data.Color.g, data.Color.b,    1.f,  0.f,       // 5
+                 0.5f,  0.5f, -0.5f,   data.Color.r, data.Color.g, data.Color.b,    1.f,  1.f,       // 6
+                 0.5f, -0.5f, -0.5f,   data.Color.r, data.Color.g, data.Color.b,    0.f,  1.f        // 7
         };
 
         uint32_t indices[] = {
@@ -106,7 +105,7 @@ namespace Magnefu
         Ref<VertexBuffer> vbo = VertexBuffer::Create(sizeof(vertices), vertices);
 
         BufferLayout layout = {
-            {ShaderDataType::Float2, "aPosition"},
+            {ShaderDataType::Float3, "aPosition"},
             {ShaderDataType::Float3, "aColor"},
             {ShaderDataType::Float2, "aTexCoords"}
         };
@@ -119,13 +118,167 @@ namespace Magnefu
         vao->AddVertexBuffer(vbo);
         vao->SetIndexBuffer(ibo);
 
-        Ref<Shader> shader = Shader::Create("res/shaders/Cube.shader");
+        Ref<Shader> shader = Shader::Create("res/shaders/Plane.shader");
 
-        /*Maths::mat4 MVP =
+        Maths::mat4 MVP =
             Application::Get().GetWindow().GetSceneCamera()->CalculateVP() *
             Maths::translate({ 0.f, 0.f, 0.f }) *
-            Maths::Quaternion::GetRotationMatrix(0.f, { 0.f, 0.f, 0.f }) *
-            Maths::scale(Maths::vec3(size));*/
+            Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) *
+            Maths::scale(data.Size.x);
+
+        shader->Bind();
+        shader->SetUniformMatrix4fv("u_MVP", MVP);
+
+        RenderCommand::DrawIndexed(vao);
+    }
+
+    void Renderer::DrawSphere(const SphereData& data)
+    {
+        size_t faces = static_cast<size_t>(data.SectorCount) * static_cast<size_t>(data.StackCount) + 1;
+
+        std::vector<float> vertices;
+        std::vector<float> normals;
+        std::vector<float> texCoords;
+
+        vertices.reserve(faces * 3);
+        normals.reserve(faces * 3);
+        texCoords.reserve(faces * 2);
+
+        float x, y, z, xy;                              // vertex position
+        float nx, ny, nz, lengthInv = 1.f / data.Radius;    // vertex normal
+        float s, t;                                     // vertex texCoord
+
+        float sectorStep = Maths::TAU / data.SectorCount;
+        float stackStep = Maths::PI / data.StackCount;
+        float sectorAngle, stackAngle;
+
+        for (int i = 0; i < data.StackCount; i++)
+        {
+            stackAngle = Maths::PI / 2 - i * stackStep;        // (phi) starting from pi/2 to -pi/2
+            xy = data.Radius * Maths::cos(stackAngle);             // r * cos(u)
+            z = data.Radius * Maths::sin(stackAngle);              // r * sin(u)
+
+            // add (sectorCount+1) vertices per stack
+            // the first and last vertices have same position and normal, but different tex coords
+            for (int j = 0; j <= data.SectorCount; ++j)
+            {
+                sectorAngle = j * sectorStep;           // starting from 0 to 2pi
+
+                // vertex position (x, y, z)
+                x = xy * cosf(sectorAngle);             // r * cos(u) * cos(v)
+                y = xy * sinf(sectorAngle);             // r * cos(u) * sin(v)
+                vertices.push_back(x);
+                vertices.push_back(y);
+                vertices.push_back(z);
+
+                // normalized vertex normal (nx, ny, nz)
+                nx = x * lengthInv;
+                ny = y * lengthInv;
+                nz = z * lengthInv;
+                normals.push_back(nx);
+                normals.push_back(ny);
+                normals.push_back(nz);
+
+                // vertex tex coord (s, t) range between [0, 1]
+                s = (float)j / data.SectorCount;
+                t = (float)i / data.StackCount;
+                texCoords.push_back(s);
+                texCoords.push_back(t);
+            }
+        }
+
+        std::vector<uint32_t> indices;
+        //std::vector<int> lineIndices;
+        indices.reserve(faces * 3);
+        //lineIndices.reserve(faces * 3);
+
+        int k1, k2;
+        for (uint32_t i = 0; i < data.StackCount; ++i)
+        {
+            k1 = i * (data.SectorCount + 1);     // beginning of current stack
+            k2 = k1 + data.SectorCount + 1;      // beginning of next stack
+
+            for (uint32_t j = 0; j < data.SectorCount; ++j, ++k1, ++k2)
+            {
+                // 2 triangles per sector excluding first and last stacks
+                // k1 => k2 => k1+1
+                if (i != 0)
+                {
+                    indices.push_back(k1);
+                    indices.push_back(k2);
+                    indices.push_back(k1 + 1);
+                }
+
+                // k1+1 => k2 => k2+1
+                if (i != (data.StackCount - 1))
+                {
+                    indices.push_back(k1 + 1);
+                    indices.push_back(k2);
+                    indices.push_back(k2 + 1);
+                }
+
+                // store indices for lines
+                // vertical lines for all stacks, k1 => k2
+                //lineIndices.push_back(k1);
+                //lineIndices.push_back(k2);
+                //if (i != 0)  // horizontal lines except 1st stack, k1 => k+1
+                //{
+                //    lineIndices.push_back(k1);
+                //    lineIndices.push_back(k1 + 1);
+                //}
+            }
+        }
+
+        
+        std::size_t i, j;
+        std::size_t count = vertices.size();
+        std::vector<float> vertexBufferData;
+        vertexBufferData.reserve(count * 8);
+        for (i = 0, j = 0; i < count; i += 3, j += 2)
+        {
+            vertexBufferData.push_back(vertices[i]);
+            vertexBufferData.push_back(vertices[i + 1]);
+            vertexBufferData.push_back(vertices[i + 2]);
+
+            vertexBufferData.push_back(normals[i]);
+            vertexBufferData.push_back(normals[i + 1]);
+            vertexBufferData.push_back(normals[i + 2]);
+
+            vertexBufferData.push_back(texCoords[j]);
+            vertexBufferData.push_back(texCoords[j + 1]);
+        }
+
+        Ref<VertexBuffer> vbo = VertexBuffer::Create(sizeof(float) * vertexBufferData.size(), vertexBufferData.data());
+
+        BufferLayout layout = {
+            {ShaderDataType::Float3, "aPosition"},
+            {ShaderDataType::Float3, "aNormal"},
+            {ShaderDataType::Float2, "aTexCoords"}
+        };
+
+        vbo->SetLayout(layout);
+
+        Ref<IndexBuffer> ibo = IndexBuffer::Create(sizeof(int) * indices.size(), indices.data());
+
+        Ref<VertexArray> vao = VertexArray::Create();
+        vao->AddVertexBuffer(vbo);
+        vao->SetIndexBuffer(ibo);
+
+        Ref<Shader> shader = Shader::Create("res/shaders/Sphere.shader");
+
+        Maths::mat4 MVP =
+            Application::Get().GetWindow().GetSceneCamera()->CalculateVP() *
+            Maths::translate({ 0.f, 0.f, 0.f }) *
+            Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) *
+            Maths::scale(data.Radius);
+
+        shader->Bind();
+        shader->SetUniformMatrix4fv("u_MVP", MVP);
+        shader->SetUniform3fv("u_Color", data.Color);
+
+        RenderCommand::DrawIndexed(vao);
+
+
     }
 
 }

@@ -33,6 +33,16 @@ namespace Magnefu
 		glDisable(GL_BLEND);
 	}
 
+	void OpenGLRendererAPI::EnableDepthTest()
+	{
+		glEnable(GL_DEPTH);
+	}
+
+	void OpenGLRendererAPI::DisableDepthTest()
+	{
+		glDisable(GL_DEPTH);
+	}
+
 	void OpenGLRendererAPI::SetWindowSize(int width, int height)
 	{
 		glViewport(0, 0, width, height);

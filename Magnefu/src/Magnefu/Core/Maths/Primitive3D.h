@@ -4,8 +4,16 @@
 #include <array>
 
 
-namespace Primitive
+namespace Magnefu
 {
+    struct Cube
+    {
+        Maths::vec3 Size;
+        Maths::vec3 Color;
+        Maths::vec3 Rotation;
+        float Angle;
+    };
+
     struct BasicCube
     {
         std::array<BasicVertex, 36> Vertices;
@@ -17,6 +25,6 @@ namespace Primitive
     };
 
     
-    BasicCube CreateBasicCube();
-    TextureCube CreateTextureCube();
+    //BasicCube CreateBasicCube();
+    //TextureCube CreateTextureCube();
 }

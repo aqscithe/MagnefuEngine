@@ -33,6 +33,16 @@ namespace Magnefu
 			s_RendererAPI->DisableBlending();
 		}
 
+		inline static void EnableDepthTest()
+		{
+			s_RendererAPI->EnableDepthTest();
+		}
+
+		inline static void DisableDepthTest()
+		{
+			s_RendererAPI->DisableDepthTest();
+		}
+
 		inline static void SetWindowSize(int width, int height)
 		{
 			s_RendererAPI->SetWindowSize(width, height);

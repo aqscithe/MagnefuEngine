@@ -19,6 +19,8 @@ namespace Magnefu
 		virtual void ClearColor(float r, float g, float b, float a) const = 0;
 		virtual void EnableBlending() = 0;
 		virtual void DisableBlending() = 0;
+		virtual void EnableDepthTest() = 0;
+		virtual void DisableDepthTest() = 0;
 		virtual void SetWindowSize(int width, int height) = 0;
 		virtual void DrawIndexed(const Ref<VertexArray>&) = 0;
 
