@@ -4,6 +4,9 @@
 
 #include "imgui/imgui.h"
 
+
+// USE STACK ALLOCATOR HERE
+
 class TestLayer : public Magnefu::Layer
 {
 public:
@@ -22,6 +25,8 @@ public:
 		m_ActiveTest = m_TestMenu;
 
 		m_TestMenu->RegisterTest<Magnefu::Test2DTexture>("2D Texture");
+		m_TestMenu->RegisterTest<Magnefu::TestPrimitives>("Primitives");
+		
 		//m_TestMenu->RegisterTest<Magnefu::Test3DRender>("Cube Render");
 		//m_TestMenu->RegisterTest<Magnefu::TestBatchRendering>("Batching");
 		//m_TestMenu->RegisterTest<Magnefu::TestLighting>("Lighting");
@@ -60,7 +65,10 @@ public:
 		}
 	}
 
-	void OnEvent(Magnefu::Event& event) {}
+	void OnEvent(Magnefu::Event& e) 
+	{
+		m_ActiveTest->OnEvent(e);
+	}
 
 private:
 	Magnefu::Test* m_ActiveTest;

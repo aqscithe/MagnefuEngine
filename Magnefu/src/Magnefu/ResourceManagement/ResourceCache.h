@@ -72,6 +72,28 @@ namespace Magnefu
 			return std::dynamic_pointer_cast<T>(resourceHashMap[seed]);
 		}
 
+		template<typename T, typename...Args>
+		Ref<T> Get(const Args&...args)
+		{
+			static_assert(std::is_base_of<CacheableResource, T>::value, "Class must be derived from CacheableResource");
+
+			auto& mutex = m_Mutexes[typeid(T)];
+			std::lock_guard<std::mutex> guard(mutex);
+
+			size_t seed{ 0 };
+
+			HashArgs(seed, args...);
+
+			auto& resourceHashMap = m_State[typeid(T)];
+			auto resource_it = resourceHashMap.find(seed);
+
+			if (resource_it != resourceHashMap.end())
+				return std::dynamic_pointer_cast<T>(resource_it->second);
+
+			MF_CORE_ASSERT(false, "RESOURCE NOT FOUND");
+			return nullptr;
+		}
+
 		template <typename T>
 		size_t size()
 		{

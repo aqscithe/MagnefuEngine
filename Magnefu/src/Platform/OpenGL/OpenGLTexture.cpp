@@ -30,7 +30,6 @@ namespace Magnefu
 	OpenGLTexture::OpenGLTexture(const std::string& filepath)
 		: m_Filepath(filepath)
 	{
-		m_HasGenerated = false;
 		m_Bound = false;
 
 		m_Slot = Application::Get().GetResourceCache().size<OpenGLTexture>();
@@ -56,8 +55,6 @@ namespace Magnefu
 		GenerateTexImage();
 
 		glBindTexture(GL_TEXTURE_2D, 0);
-
-		m_HasGenerated = true;
 	}
 
 	void OpenGLTexture::OnImGuiRender() const

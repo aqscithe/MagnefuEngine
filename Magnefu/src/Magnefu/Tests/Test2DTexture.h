@@ -27,23 +27,29 @@ namespace Magnefu
 
 			void OnUpdate(float deltaTime) override;
 			void OnRender(float renderInterpCoeff) override;
+			void OnEvent(Event&) override;
 			void OnImGUIRender()           override;
 
 		private:
-			Renderer m_Renderer;
+			SceneData m_PrevSceneData;
 			Ref<VertexArray> m_VAO;
 			Ref<Material> m_Material;
-
-
-			Scope <Maths::Quaternion> m_Quat;
-			float m_angleRot = 0.f;
-			Maths::vec3 m_translation;
-			Maths::vec3 m_rotationAxis;
-			Maths::vec3 m_scaling;
-
 			Ref<Camera> m_SceneCamera;
 			Ref<SceneData> m_RenderData;
 			Scope<SceneData> m_SceneData;
-			SceneData m_PrevSceneData;
+			Scope <Maths::Quaternion> m_Quat;
+
+			Maths::vec3 m_translation;
+			Maths::vec3 m_rotationAxis;
+			Maths::vec3 m_scaling;
+			float m_angleRot = 0.f;
+			Renderer m_Renderer;
+			
+			
+			
+
+			
+			
+			
 	};
 }

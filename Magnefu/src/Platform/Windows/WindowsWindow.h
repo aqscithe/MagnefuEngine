@@ -32,28 +32,17 @@ namespace Magnefu
 
 
 	private:
-		GLFWwindow* m_Window;
-		GraphicsContext* m_Context;
-
-		// Here we store all the data that a window api like glfw might be interested in.
-		// this way we only have to pass the struct, not the entire class.
 		struct WindowData
 		{
 			std::string Title;
+			CameraData* CamData;
+			EventCallbackFn EventCallback;
 			uint16_t Width;
 			uint16_t Height;
 			bool VSync;
-			EventCallbackFn EventCallback;
-			CameraData* CamData;
 		};
 
 		WindowData m_Data;
-
-		// Need reference to scene camera here in window
-		Ref<Camera> m_SceneCamera;
-
-
-		// ALL BELOW IS TEMPORARY
 
 		struct MouseData
 		{
@@ -69,6 +58,21 @@ namespace Magnefu
 		};
 
 		MouseData m_Mouse;
+
+		GLFWwindow* m_Window;
+		GraphicsContext* m_Context;
+
+		// Here we store all the data that a window api like glfw might be interested in.
+		// this way we only have to pass the struct, not the entire class.
+		
+
+		// Need reference to scene camera here in window
+		Ref<Camera> m_SceneCamera;
+
+
+		// ALL BELOW IS TEMPORARY
+
+		
 
 		void processInput();
 		void MouseUpdates();

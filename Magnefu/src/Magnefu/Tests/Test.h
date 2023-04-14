@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Magnefu/Core/Events/Event.h"
+
 #include <string>
 #include <vector>
 #include <typeindex>
@@ -18,6 +20,7 @@ namespace Magnefu
 
 		virtual void OnUpdate(float deltaTime) {}
 		virtual void OnRender(float renderInterpCoeff) {}
+		virtual void OnEvent(Event&) {}
 		virtual void OnImGUIRender() {}
 	};
 

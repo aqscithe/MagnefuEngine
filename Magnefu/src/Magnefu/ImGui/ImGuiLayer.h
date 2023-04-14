@@ -27,7 +27,8 @@ namespace Magnefu
 
 		uint32_t GetActiveWidgetID() const;
 	private:
-		bool m_BlockEvents = true;
 		Renderer m_Renderer;
+		bool m_BlockEvents = true;
+		
 	};
 }

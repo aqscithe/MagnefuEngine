@@ -9,6 +9,7 @@
 #include "Magnefu/Core/Events/MouseEvent.h"
 #include "Magnefu/Core/Events/KeyEvent.h"
 #include "Magnefu/ResourceManagement/ResourceCache.h"
+#include "Magnefu/Core/MemoryAllocation/StackAllocator.h"
 
 
 
@@ -25,6 +26,7 @@ namespace Magnefu
 
 		void OnEvent(Event& event);
 		void OnImGuiRender();
+		void OnUpdate(float deltaTime);
 
 		void PushLayer(Layer* layer);
 		void PushOverlay(Layer* overlay);
@@ -35,18 +37,19 @@ namespace Magnefu
 		inline static Application& Get() { return *s_Instance; }
 
 	private:
-		bool OnWindowClose(WindowCloseEvent& event);
+		bool OnWindowClose(WindowCloseEvent& e);
+		bool OnWindowResize(WindowResizeEvent& e);
 
-		std::unique_ptr<Window> m_Window;
-		bool m_Running;
-		LayerStack m_LayerStack;
-		ImGuiLayer* m_ImGuiLayer;
-
-		Scope<ResourceCache> m_ResourceCache;
-
+	private:
 		static Application* s_Instance;
 
-		
+		LayerStack m_LayerStack;
+		ImGuiLayer* m_ImGuiLayer;
+		Scope<ResourceCache> m_ResourceCache;
+		Scope<Window> m_Window;
+		MemAllocData* m_MemAllocData;
+		bool m_Running;
+		bool m_Minimized;
 	};
 
 	// to be defined in client

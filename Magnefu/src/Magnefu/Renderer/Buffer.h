@@ -35,9 +35,9 @@ namespace Magnefu
 	struct BufferElement
 	{
 		std::string Name;
-		ShaderDataType Type;
 		uint32_t Size;
 		uint32_t Offset;
+		ShaderDataType Type;
 		bool Normalized;
 
 		BufferElement(ShaderDataType type, const std::string& name, bool normalized = false) :

@@ -14,14 +14,13 @@ namespace Magnefu
 	class OpenGLTexture : public Texture, public CacheableResource
 	{
 	private:
-		unsigned int m_RendererID;
 		std::string m_Filepath;
 		unsigned char* m_texData;
-		int m_Width, m_Height, m_BPP;
-
-		bool m_HasGenerated;
-		bool m_Bound;
+		unsigned int m_RendererID;
 		uint32_t m_Slot;
+		int m_Width, m_Height, m_BPP;
+		bool m_Bound;
+		
 
 	public:
 		OpenGLTexture(const std::string& filepath);
@@ -35,7 +34,7 @@ namespace Magnefu
 		int GetWidth() const override { return m_Width; }
 
 		unsigned int GetRendererID() const { return m_RendererID; };
-		bool GetGenerationStatus() const { return m_HasGenerated; };
+		//bool GetGenerationStatus() const { return m_HasGenerated; };
 		uint32_t GetSlot() const override { return m_Slot; }
 
 		void GenerateTexture();

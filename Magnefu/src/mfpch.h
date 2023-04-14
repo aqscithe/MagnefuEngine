@@ -23,7 +23,7 @@
 #include "Magnefu/Core/Maths/Vectors.h"
 #include "Magnefu/Core/Maths/Matrices.h"
 #include "Magnefu/Core/Log.h"
-#include "Magnefu/Core/MemAlloc.h"
+#include "Magnefu/Core/SmartPointers.h"
 
 #ifdef MF_PLATFORM_WINDOWS
 #include <Windows.h>

@@ -4,18 +4,43 @@
 #include "Magnefu/Core/Events/Input.h"
 #include "Magnefu/Core/Events/KeyCodes.h"
 
+#include "Magnefu/Renderer/RenderCommand.h"
+#include "Magnefu/Core/Timer.h"
+
 #include "imgui.h"
 
 namespace Magnefu
 {
+#define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
+
 	SceneCamera::SceneCamera(const CameraOrientation& orientation, const CameraProps& props)
 	{
+		Timer timer;
 		Init(orientation, props);
 	}
 
 	SceneCamera::~SceneCamera()
 	{
 
+	}
+
+	void SceneCamera::OnEvent(Event& e)
+	{
+		EventDispatcher dispatcher(e);
+		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(SceneCamera::OnWindowResize));
+		dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FN(SceneCamera::OnMouseScrolled));
+	}
+
+	bool SceneCamera::OnWindowResize(WindowResizeEvent& e)
+	{
+		RenderCommand::SetWindowSize(e.GetWidth(), e.GetHeight());
+		return false;
+	}
+
+	bool SceneCamera::OnMouseScrolled(MouseScrolledEvent& e)
+	{
+		
+		return false;
 	}
 
 	void SceneCamera::Init(const CameraOrientation& orientation, const CameraProps& props)

@@ -4,6 +4,7 @@
 #include <GLAD/glad.h>
 
 #include <fstream>
+#include "imgui.h"
 
 
 namespace Magnefu
@@ -13,6 +14,8 @@ namespace Magnefu
     {
         ShaderProgramSource source = ParseShader(m_Filepath);
         CreateShader(source.VertexSource, source.FragmentSource);
+
+        m_Recompile = false;
     }
 
     OpenGLShader::~OpenGLShader()
@@ -23,7 +26,6 @@ namespace Magnefu
 
     ShaderProgramSource OpenGLShader::ParseShader(const String& filepath)
     {
-
         std::ifstream stream(filepath);
 
         enum class ShaderType
@@ -64,6 +66,8 @@ namespace Magnefu
         unsigned int vShader = CompileShader(GL_VERTEX_SHADER, vShaderSource);
         unsigned int fShader = CompileShader(GL_FRAGMENT_SHADER, fShaderSource);
 
+        // essentially i want to check if this is a new or existing shader.
+        // i don't want to create a new program if im just recompiling the shader.
         m_RendererID = glCreateProgram();
 
         glAttachShader(m_RendererID, vShader);
@@ -74,7 +78,7 @@ namespace Magnefu
         glGetProgramiv(m_RendererID, GL_LINK_STATUS, &linkSuccess);
         if (!linkSuccess)
         {
-            GLint logLength;
+            GLint logLength = 96;
             std::vector<GLchar> infoLog(logLength);
             glGetProgramInfoLog(m_RendererID, logLength, &logLength, infoLog.data());
             MF_CORE_ERROR("SHADER -- Failed to link shader program: ");
@@ -112,6 +116,13 @@ namespace Magnefu
         }
 
         return shaderObjID;
+    }
+
+    void OpenGLShader::Recompile()
+    {
+        glDeleteProgram(m_RendererID);
+        ShaderProgramSource source = ParseShader(m_Filepath);
+        CreateShader(source.VertexSource, source.FragmentSource);
     }
 
 
@@ -209,6 +220,15 @@ namespace Magnefu
         for (auto& UInt32 : data->UInt32)
             SetUniform1ui(UInt32.first, UInt32.second);
 
+    }
+
+    void OpenGLShader::OnImGuiRender()
+    {
+        ImGui::Text("Shader: %s", m_Filepath.c_str());
+        if (ImGui::Button("Recompile"))
+        {
+            Recompile();
+        }
     }
 
     void OpenGLShader::ClearCache()

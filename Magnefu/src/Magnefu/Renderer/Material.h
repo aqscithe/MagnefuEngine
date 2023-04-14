@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Magnefu/Core/MemAlloc.h"
+#include "Magnefu/Core/SmartPointers.h"
 #include "Magnefu/Core/Maths/MathsCommon.h"
 #include "Texture.h"
 #include "Magnefu/Renderer/Scene.h"
@@ -31,13 +31,14 @@ namespace Magnefu
 		String		Name;
 		String		Library;
 		uint32_t    ID;
-		TextureMap  TextureMap;
+		
 		Maths::vec3 Ka;
 		Maths::vec3 Kd;
 		Maths::vec3 Ks;
 		float Ni;
 		float Ns;
 		float Opacity;
+		TextureMap  TextureMap;
 
 	};
 

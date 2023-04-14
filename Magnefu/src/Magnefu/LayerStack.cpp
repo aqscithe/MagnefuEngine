@@ -5,6 +5,7 @@ namespace Magnefu
 {
 	LayerStack::LayerStack()
 	{
+		m_Layers.reserve(3);
 	}
 
 	LayerStack::~LayerStack()

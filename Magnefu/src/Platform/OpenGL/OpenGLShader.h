@@ -47,6 +47,8 @@ namespace Magnefu
 
 
 		void UploadUniforms(const Ref<SceneData>&  data) override;
+		void OnImGuiRender() override;
+		void Recompile() override;
 		const String& GetFilepath() const override { return m_Filepath; }
 
 		void ClearCache();
@@ -60,9 +62,10 @@ namespace Magnefu
 		int GetUniformLocation(const String& name);
 
 	private:
+		std::unordered_map<String, int> m_uniformLocationAndNameMap;
 		String m_Filepath;
 		unsigned int m_RendererID;
-		std::unordered_map<String, int> m_uniformLocationAndNameMap;
+		bool m_Recompile;
 
 
 	};

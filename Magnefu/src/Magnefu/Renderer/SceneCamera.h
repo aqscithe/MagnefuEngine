@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Camera.h"
+#include "Magnefu/Core/Events/ApplicationEvent.h"
+#include "Magnefu/Core/Events/MouseEvent.h"
 
 namespace Magnefu
 {
@@ -9,6 +11,8 @@ namespace Magnefu
 	public:
 		SceneCamera(const CameraOrientation& orientation, const CameraProps& props);
 		~SceneCamera();
+
+		void OnEvent(Event& e) override;
 
 		inline const Maths::mat4& GetView() const override { return m_View; }
 		inline const Maths::mat4& GetProjection() const override { return m_Projection; }
@@ -25,16 +29,19 @@ namespace Magnefu
 	protected:
 		void Init(const CameraOrientation& orientation, const CameraProps& props) override;
 
+	private:
+		bool OnWindowResize(WindowResizeEvent& e);
+		bool OnMouseScrolled(MouseScrolledEvent& e);
+
 
 	private:
-		Maths::vec3 m_Up;
-		Maths::vec3 m_Right;
-		Maths::vec3 m_Forward;
+		CameraData m_Data;
 		Maths::mat4 m_View;
 		Maths::mat4 m_Projection;
 		Maths::mat4 m_VP;
-
-		CameraData m_Data;
+		Maths::vec3 m_Up;
+		Maths::vec3 m_Right;
+		Maths::vec3 m_Forward;
 
 		bool m_IsOrtho;
 		bool m_IsPersp;

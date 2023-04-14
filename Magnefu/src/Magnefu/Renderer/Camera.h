@@ -2,6 +2,7 @@
 
 #include "Magnefu/Core/Maths/Vectors.h"
 #include "Magnefu/Core/Maths/Matrices.h"
+#include "Magnefu/Core/Events/Event.h"
 
 namespace Magnefu
 {
@@ -55,7 +56,6 @@ namespace Magnefu
 		// useful as we can just pass the struct, not the whole class
 	struct CameraData
 	{
-		CameraType  Type;
 		Maths::vec3 Position;
 		float       Yaw;
 		float       Pitch;
@@ -64,6 +64,7 @@ namespace Magnefu
 		float       Near;
 		float       Far;
 		float       Speed;
+		CameraType  Type;
 	};
 
 	class Camera
@@ -76,6 +77,7 @@ namespace Magnefu
 		virtual const Maths::mat4& GetProjection() const = 0;
 		virtual const Maths::mat4& GetVP() const = 0;
 		virtual CameraData& GetData() = 0;
+		virtual void OnEvent(Event& e) = 0;
 
 		virtual Maths::mat4& CalculateView() = 0;
 		virtual Maths::mat4& CalculateProjection() = 0;

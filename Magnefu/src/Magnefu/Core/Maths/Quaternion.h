@@ -11,9 +11,9 @@ namespace Maths
 	class Quaternion
 	{
 	private:
+		mat4 m_RotationMatrix;
 		vec4 m_Quat;
 		vec4 m_UnitQuat;
-		mat4 m_RotationMatrix;
 
 	public:
 		Quaternion(float rotationAngle, const vec3& rotationAxis);
@@ -28,6 +28,8 @@ namespace Maths
 		vec4 quat_from_axis_angle(vec3 axis, float angle);
 
 		mat4& UpdateRotMatrix(float rotationAngle, const vec3& rotationAxis);
+
+		static mat4 GetRotationMatrix(float angle, const vec3& axis);
 
 		inline const mat4& GetRotMatrix() const { return m_RotationMatrix; }
 		inline const vec4 GetInverseQuat() const { return { -m_UnitQuat.x, -m_UnitQuat.y, -m_UnitQuat.z, m_UnitQuat.w }; }

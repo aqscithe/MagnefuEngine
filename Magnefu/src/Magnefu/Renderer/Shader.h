@@ -26,8 +26,17 @@ namespace Magnefu
 
 		virtual void UploadUniforms(const Ref<SceneData>& data) = 0;
 
+		virtual void OnImGuiRender() = 0;
+		virtual void Recompile() = 0;
+
 		virtual const String& GetFilepath() const = 0;
 
 		static Ref<Shader> Create(const String& filepath = "res/shaders/Basic.shader");
+	};
+
+	class ShaderLibrary
+	{
+	public:
+		static Ref<Shader> Get(const String& name);
 	};
 }

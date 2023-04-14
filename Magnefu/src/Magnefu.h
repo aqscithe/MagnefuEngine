@@ -4,10 +4,13 @@
 #include "Magnefu/Application.h"
 #include "Magnefu/ImGui/ImGuiLayer.h"
 #include "Magnefu/Layer.h"
+
+//----Core--------------------------------
+#include "Magnefu/Core/Assertions.h"
 #include "Magnefu/Core/Log.h"
 #include "Magnefu/Core/TimeStep.h"
-#include "Magnefu/Core/MemAlloc.h"
-
+#include "Magnefu/Core/SmartPointers.h"
+//----------------------------------------
 
 //----Input-------------------------------
 #include "Magnefu/Core/Events/Input.h"
@@ -29,6 +32,7 @@
 
 #include "Magnefu/Tests/Test.h"
 #include "Magnefu/Tests/Test2DTexture.h"
+#include "Magnefu/Tests/TestPrimitives.h"
 
 
 // ----Entry Point---------------------

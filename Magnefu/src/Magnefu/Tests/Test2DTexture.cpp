@@ -8,8 +8,10 @@
 #include "Magnefu/Renderer/VertexArray.h"
 #include "Magnefu/Renderer/Renderer.h"
 #include "Magnefu/Renderer/Camera.h"
+#include "Platform/OpenGL/OpenGLShader.h"
 
-
+#include "Magnefu/Core/NumGen.h"
+#include "Magnefu/Core/MemoryAllocation/StackAllocator.h"
 
 namespace Magnefu
 {
@@ -18,7 +20,7 @@ namespace Magnefu
         /* --Creating data and prepping buffer with data-- */
 
         float vertices[28] = {
-            //  position               color                   texture coords
+                //  position               color                   texture coords
                 -0.5f, -0.5f,    1.f,   0.5f,   0.3f,    0.f,  0.f,       // 0  BL
                  0.5f, -0.5f,    0.f,   0.5f,   0.7f,    1.f,  0.f,       // 1  BR
                  0.5f,  0.5f,    0.2f,  0.5f,   0.3f,    1.f,  1.f,       // 2  TR
@@ -31,8 +33,6 @@ namespace Magnefu
             2, 3, 0
         };
         
-
-
         Ref<VertexBuffer> vbo = VertexBuffer::Create(sizeof(vertices), vertices);
 
         BufferLayout layout = {
@@ -69,24 +69,21 @@ namespace Magnefu
 
         m_Quat = CreateScope<Maths::Quaternion>(m_angleRot, m_rotationAxis);
 
+
         m_SceneCamera = app.GetWindow().GetSceneCamera();
         m_SceneCamera->SetDefaultProps();
 
         Maths::mat4 modelMatrix = Maths::translate(m_translation) * m_Quat->UpdateRotMatrix(m_angleRot, m_rotationAxis) * Maths::scale(m_scaling);
         m_SceneData = CreateScope<SceneData>();
         m_RenderData = CreateRef<SceneData>();
-        m_SceneData->Mat4["u_MVP"] = m_SceneCamera->CalculateVP() * modelMatrix; // not sure this is necessary
 
         m_Material->InitRenderData(m_RenderData);
-        
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBlendEquation(GL_FUNC_ADD);
+        RenderCommand::EnableBlending();
 	}
 
 	Test2DTexture::~Test2DTexture()
 	{
-        glDisable(GL_BLEND);
+        RenderCommand::DisableBlending();
 	}
 
 	void Test2DTexture::OnUpdate(float deltaTime)
@@ -95,9 +92,13 @@ namespace Magnefu
         // entire scenedata struct?
         m_PrevSceneData.Mat4["u_MVP"] = m_SceneData->Mat4["u_MVP"];
 
-        Maths::mat4 modelMatrix = Maths::translate(m_translation) * m_Quat->UpdateRotMatrix(m_angleRot, m_rotationAxis) * Maths::scale(m_scaling);
-        m_SceneData->Mat4["u_MVP"] = m_SceneCamera->CalculateVP() * modelMatrix; //current scene data
+        Maths::mat4* modelMatrix = static_cast<Maths::mat4*>(StackAllocator::Get()->Allocate(sizeof(Maths::mat4)));
+        *modelMatrix = Maths::translate(m_translation) * m_Quat->UpdateRotMatrix(m_angleRot, m_rotationAxis) * Maths::scale(m_scaling);
+
+        m_SceneData->Mat4["u_MVP"] = m_SceneCamera->CalculateVP() * *modelMatrix; //current scene data
         m_SceneCamera->ProcessInput(deltaTime);
+
+        StackAllocator::Get()->FreeToMarker();
 	}
 
 	void Test2DTexture::OnRender(float renderInterpCoeff)
@@ -108,6 +109,11 @@ namespace Magnefu
         Renderer::Submit(m_VAO, m_Material);
         Renderer::EndScene();
 	}
+
+    void Test2DTexture::OnEvent(Event& e)
+    {
+        m_SceneCamera->OnEvent(e);
+    }
 	
 	void Test2DTexture::OnImGUIRender()
 	{

@@ -17,6 +17,8 @@ namespace Magnefu
 		static void BeginScene();
 		static void EndScene();
 		static void Submit(const Ref<VertexArray>&, const Ref<Material>& material);
+		static void DrawPlane(const Maths::vec2& size, const Maths::vec3& color);
+		//static void DrawCube()
 		
 		inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 	private:

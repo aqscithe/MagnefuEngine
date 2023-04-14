@@ -21,6 +21,23 @@ namespace Magnefu
 		glClearColor(r, g, b, a);
 	}
 
+	void OpenGLRendererAPI::EnableBlending()
+	{
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendEquation(GL_FUNC_ADD);
+	}
+
+	void OpenGLRendererAPI::DisableBlending()
+	{
+		glDisable(GL_BLEND);
+	}
+
+	void OpenGLRendererAPI::SetWindowSize(int width, int height)
+	{
+		glViewport(0, 0, width, height);
+	}
+
 	void OpenGLRendererAPI::DrawIndexed(const Ref<VertexArray>& va)
 	{
 		glDrawElements(GL_TRIANGLES, va->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);

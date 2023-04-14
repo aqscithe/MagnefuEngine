@@ -23,6 +23,21 @@ namespace Magnefu
 			s_RendererAPI->ClearColor(r, g, b, a);
 		}
 
+		inline static void EnableBlending()
+		{
+			s_RendererAPI->EnableBlending();
+		}
+
+		inline static void DisableBlending()
+		{
+			s_RendererAPI->DisableBlending();
+		}
+
+		inline static void SetWindowSize(int width, int height)
+		{
+			s_RendererAPI->SetWindowSize(width, height);
+		}
+
 		inline static void DrawIndexed(const Ref<VertexArray>& va)
 		{
 			va->Bind();

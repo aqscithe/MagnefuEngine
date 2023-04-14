@@ -22,7 +22,7 @@ namespace Magnefu
     {
         m_Shader = Shader::Create(shaderFile);
         m_RenderData = CreateRef<SceneData>();
-        m_ID = Application::Get().GetResourceCache().size<OpenGLMaterial>();
+        m_ID = static_cast<uint32_t>(Application::Get().GetResourceCache().size<OpenGLMaterial>());
 
         m_Props = MaterialProps();
         m_Shader->Bind();
@@ -43,14 +43,12 @@ namespace Magnefu
     {
         ImGui::Text("ID: %d", m_ID);
         ImGui::SeparatorText("Shader");
-        ImGui::Text("Shader: %s", m_Shader->GetFilepath().c_str());
+        m_Shader->OnImGuiRender();
         ImGui::SeparatorText("Textures");
         auto& Textures = m_Props.TextureMap;
         if (ImGui::CollapsingHeader("Diffuse"))
             Textures[TextureType::DIFFUSE]->OnImGuiRender();
 
-        //for (auto& texture : Textures)
-        //    texture.second->OnImGuiRender();
     }
 
     void OpenGLMaterial::Init()

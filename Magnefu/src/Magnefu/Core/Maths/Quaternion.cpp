@@ -80,6 +80,26 @@ namespace Maths
 		return m_RotationMatrix;
 	}
 
+	mat4 Quaternion::GetRotationMatrix(float angle, const vec3& axis)
+	{
+		vec4 quat(0.f);
+		float halfAngleInRadians = toRadians(angle / 2.f);
+
+		quat.x = axis.x * sin(halfAngleInRadians);
+		quat.y = axis.y * sin(halfAngleInRadians);
+		quat.z = axis.z * sin(halfAngleInRadians);
+		quat.w = cos(halfAngleInRadians);
+
+		vec4 unitQ = normalize(quat);
+
+		return {
+			2.f * (pow(unitQ.w, 2) + pow(unitQ.x, 2)) - 1.f,   2.f * (unitQ.x * unitQ.y + unitQ.w * unitQ.z),               2.f * (unitQ.x * unitQ.z - unitQ.w * unitQ.y),              0.f,
+			2.f * (unitQ.x * unitQ.y - unitQ.w * unitQ.z),               2.f * (pow(unitQ.w, 2) + pow(unitQ.y, 2)) - 1.f,   2.f * (unitQ.y * unitQ.z + unitQ.w * unitQ.x),              0.f,
+			2.f * (unitQ.x * unitQ.z + unitQ.w * unitQ.y),               2.f * (unitQ.y * unitQ.z - unitQ.w * unitQ.x),               2.f * (pow(unitQ.w, 2) + pow(unitQ.z, 2)) - 1.f,  0.f,
+			0.f,                                                                 0.f,																  0.f,																  1.f
+		};
+	}
+
 	//https://automaticaddison.com/how-to-convert-a-quaternion-to-a-rotation-matrix/
 	void Quaternion::CreateQuatRotMatrix()
 	{
