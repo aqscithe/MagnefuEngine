@@ -206,6 +206,8 @@ namespace Maths
 	inline vec4 operator*(const vec4& v, float k) { return { v.x * k, v.y * k, v.z * k, v.w * k }; }
 	inline vec4 operator*(const vec4& a, const vec4& b) { return { a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w }; }
 
+	inline vec4 operator/(const vec4& a, const vec4 b) { return { a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w }; }
+
 	inline vec4 operator*=(vec4& a, float k)
 	{
 		a = a * k;

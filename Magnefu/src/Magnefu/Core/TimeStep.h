@@ -7,6 +7,7 @@ namespace Magnefu
 		using Clock = std::chrono::steady_clock;
 
 	public:
+		// TODO: Adjust frame target dynamically
 		TimeStep(float frameTarget = 1.f / 72.f) :
 			m_FrameTarget(frameTarget)
 		{

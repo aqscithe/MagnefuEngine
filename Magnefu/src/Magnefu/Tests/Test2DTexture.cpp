@@ -5,6 +5,7 @@
 
 #include "imgui/imgui.h"
 
+#include "Magnefu/Core/Maths/Quaternion.h"
 #include "Magnefu/Renderer/VertexArray.h"
 #include "Magnefu/Renderer/Renderer.h"
 #include "Magnefu/Renderer/Camera.h"
@@ -67,13 +68,15 @@ namespace Magnefu
         m_translation = { 0.f, 0.f, 0.f };
         m_scaling = { 1.f, 1.f, 1.f };
 
-        m_Quat = CreateScope<Maths::Quaternion>(m_angleRot, m_rotationAxis);
-
 
         m_SceneCamera = app.GetWindow().GetSceneCamera();
         m_SceneCamera->SetDefaultProps();
 
-        Maths::mat4 modelMatrix = Maths::translate(m_translation) * m_Quat->UpdateRotMatrix(m_angleRot, m_rotationAxis) * Maths::scale(m_scaling);
+        Maths::mat4 modelMatrix = 
+            Maths::translate(m_translation) * 
+            Maths::Quaternion::CalculateRotationMatrix(m_angleRot, m_rotationAxis) * 
+            Maths::scale(m_scaling);
+
         m_SceneData = CreateScope<SceneData>();
         m_RenderData = CreateRef<SceneData>();
 
@@ -93,7 +96,7 @@ namespace Magnefu
         m_PrevSceneData.Mat4["u_MVP"] = m_SceneData->Mat4["u_MVP"];
 
         Maths::mat4* modelMatrix = static_cast<Maths::mat4*>(StackAllocator::Get()->Allocate(sizeof(Maths::mat4)));
-        *modelMatrix = Maths::translate(m_translation) * m_Quat->UpdateRotMatrix(m_angleRot, m_rotationAxis) * Maths::scale(m_scaling);
+        *modelMatrix = Maths::translate(m_translation) * Maths::Quaternion::CalculateRotationMatrix(m_angleRot, m_rotationAxis) * Maths::scale(m_scaling);
 
         m_SceneData->Mat4["u_MVP"] = m_SceneCamera->CalculateVP() * *modelMatrix; //current scene data
         m_SceneCamera->ProcessInput(deltaTime);

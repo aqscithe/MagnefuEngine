@@ -8,7 +8,6 @@
 #include "Magnefu/Renderer/Shader.h"
 #include "Magnefu/Renderer/Camera.h"
 
-#include "Magnefu/Core/Maths/Quaternion.h"
 #include "Magnefu/Renderer/Material.h"
 
 #include "Magnefu/Renderer/Scene.h"
@@ -37,7 +36,6 @@ namespace Magnefu
 			Ref<Camera> m_SceneCamera;
 			Ref<SceneData> m_RenderData;
 			Scope<SceneData> m_SceneData;
-			Scope <Maths::Quaternion> m_Quat;
 
 			Maths::vec3 m_translation;
 			Maths::vec3 m_rotationAxis;

@@ -8,9 +8,13 @@ namespace Magnefu
 {
 	TestPrimitives::TestPrimitives()
 	{
-		m_PlaneSize = { 10.f, 10.f };
-		m_PlaneColor = { 0.5f, 0.5f, 0.5f };
 		Application::Get().GetWindow().GetSceneCamera()->SetDefaultProps();
+
+		m_Plane.Size = { 4.f, 4.f };
+		m_Plane.Color = { 0.5f, 0.5f, 0.5f };
+		m_Plane.Rotation = { -1.f, 0.f, 0.f };
+		m_Plane.Angle = 90.f;
+		
 	}
 
 	TestPrimitives::~TestPrimitives()
@@ -26,13 +30,15 @@ namespace Magnefu
 	void TestPrimitives::OnRender(float renderInterpCoeff)
 	{
 		Renderer::BeginScene();
-		Renderer::DrawPlane(m_PlaneSize, m_PlaneColor);
+		Renderer::DrawPlane(m_Plane);
 		Renderer::EndScene();
 	}
 
 	void TestPrimitives::OnEvent(Event&)
 	{
-
+		// TODO:
+		// Recurrent neural network
+		// Use loops for self reflection and rumination
 	}
 
 	void TestPrimitives::OnImGUIRender()
@@ -42,8 +48,10 @@ namespace Magnefu
 		{
 			if (ImGui::BeginTabItem("PLANE"))
 			{
-				ImGui::SliderFloat2("Size", m_PlaneSize.e, 1.f, 20.f);
-				ImGui::ColorEdit3("Color", m_PlaneColor.e);
+				ImGui::SliderFloat2("Size", m_Plane.Size.e, 1.f, 20.f);
+				ImGui::SliderFloat("Angle", &m_Plane.Angle, -360.f, 360.f);
+				ImGui::SliderFloat3("Rotation", m_Plane.Rotation.e, -1.f, 1.f);
+				ImGui::ColorEdit3("Color", m_Plane.Color.e);
 				ImGui::EndTabItem();
 			}
 			ImGui::EndTabBar();

@@ -3,7 +3,7 @@
 
 
 
-namespace Primitive
+namespace Magnefu
 {
 
     Quad CreateQuad(float x, float y, unsigned int texID)

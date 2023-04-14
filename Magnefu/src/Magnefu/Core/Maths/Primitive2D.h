@@ -3,11 +3,19 @@
 #include "PrimitiveCommon.h"
 
 
-namespace Primitive
+namespace Magnefu
 {
     struct Point
     {
         Maths::vec2 Position;
+    };
+
+    struct Plane
+    {
+        Maths::vec2 Size;
+        Maths::vec3 Color;
+        Maths::vec3 Rotation;
+        float Angle;
     };
 
     struct Triangle
