@@ -3,16 +3,31 @@
 #include "Renderer.h"
 #include "Buffer.h"
 #include "VertexArray.h"
+#include "Material.h"
 #include "Shader.h"
 #include "Magnefu/Core/Maths/Quaternion.h"
-#include "Magnefu/Core/Maths/Quaternion.h"
 #include "Magnefu/Application.h"
+#include "Magnefu/Core/Timer.h"
+#include "Magnefu/Core/MemoryAllocation/LinkedListAlloc.h"
 
 
 namespace Magnefu
 {
+    struct RenderData
+    {
+        Maths::mat4 MVP;
+    };
+
+    static RenderData* s_Data = nullptr;
+
+    void Renderer::Init()
+    {
+        s_Data = static_cast<RenderData*>(StackAllocator::Get()->Allocate(sizeof(RenderData), sizeof(Maths::mat4)));
+    }
+
     void Renderer::BeginScene()
     {
+        
     }
 
     void Renderer::EndScene()
@@ -30,7 +45,7 @@ namespace Magnefu
     void Renderer::DrawPlane(const PrimitiveData& data)
     {
         float vertices[28] = {
-            //  position    color                         texture coords
+            //  position    color                                        texture coords
             -0.5f, -0.5f,   data.Color.r, data.Color.g, data.Color.b,    0.f,  0.f,       // 0  BL
              0.5f, -0.5f,   data.Color.r, data.Color.g, data.Color.b,    1.f,  0.f,       // 1  BR
              0.5f,  0.5f,   data.Color.r, data.Color.g, data.Color.b,    1.f,  1.f,       // 2  TR
@@ -42,7 +57,7 @@ namespace Magnefu
             2, 3, 0
         };
 
-        Ref<VertexBuffer> vbo = VertexBuffer::Create(sizeof(vertices), vertices);
+        Ref<VertexBuffer> vbo = VertexBuffer::Create(sizeof(float) * 28, vertices);
 
         BufferLayout layout = {
             {ShaderDataType::Float2, "aPosition"},
@@ -58,17 +73,17 @@ namespace Magnefu
         vao->AddVertexBuffer(vbo);
         vao->SetIndexBuffer(ibo);
 
-        Ref<Shader> shader = Shader::Create("res/shaders/Plane.shader");
+        //Ref<Shader> shader = Shader::Create("res/shaders/Plane.shader");
+        Ref<Material> material = Material::Create("res/shaders/Plane.shader");
 
-        Maths::mat4 MVP = 
+        s_Data->MVP = 
             Application::Get().GetWindow().GetSceneCamera()->CalculateVP() * 
-            Maths::translate({0.f, -1.f, 0.f}) * 
+            Maths::translate(data.Translation) * 
             Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) * 
             Maths::scale(Maths::vec3(data.Size.xy, 0.1f));
-        
-
-        shader->Bind();
-        shader->SetUniformMatrix4fv("u_MVP", MVP);
+             
+        //shader->Bind();
+        //shader->SetUniformMatrix4fv("u_MVP", s_Data->MVP);
 
         RenderCommand::DrawIndexed(vao);
     }
@@ -120,18 +135,19 @@ namespace Magnefu
 
         Ref<Shader> shader = Shader::Create("res/shaders/Plane.shader");
 
-        Maths::mat4 MVP =
+        s_Data->MVP =
             Application::Get().GetWindow().GetSceneCamera()->CalculateVP() *
-            Maths::translate({ 0.f, 0.f, 0.f }) *
+            Maths::translate(data.Translation) *
             Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) *
             Maths::scale(data.Size.x);
-
+            
         shader->Bind();
-        shader->SetUniformMatrix4fv("u_MVP", MVP);
+        shader->SetUniformMatrix4fv("u_MVP", s_Data->MVP);
 
         RenderCommand::DrawIndexed(vao);
     }
 
+    // http://www.songho.ca/opengl/gl_sphere.html
     void Renderer::DrawSphere(const SphereData& data)
     {
         size_t faces = static_cast<size_t>(data.SectorCount) * static_cast<size_t>(data.StackCount) + 1;
@@ -258,7 +274,7 @@ namespace Magnefu
 
         vbo->SetLayout(layout);
 
-        Ref<IndexBuffer> ibo = IndexBuffer::Create(sizeof(int) * indices.size(), indices.data());
+        Ref<IndexBuffer> ibo = IndexBuffer::Create(indices.size(), indices.data());
 
         Ref<VertexArray> vao = VertexArray::Create();
         vao->AddVertexBuffer(vbo);
@@ -266,20 +282,32 @@ namespace Magnefu
 
         Ref<Shader> shader = Shader::Create("res/shaders/Sphere.shader");
 
-        Maths::mat4 MVP =
+        s_Data->MVP =
             Application::Get().GetWindow().GetSceneCamera()->CalculateVP() *
-            Maths::translate({ 0.f, 0.f, 0.f }) *
+            Maths::translate(data.Translation) *
             Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) *
             Maths::scale(data.Radius);
 
         shader->Bind();
-        shader->SetUniformMatrix4fv("u_MVP", MVP);
+        shader->SetUniformMatrix4fv("u_MVP", s_Data->MVP);
         shader->SetUniform3fv("u_Color", data.Color);
 
         RenderCommand::DrawIndexed(vao);
-
-
     }
+
+    void Renderer::DrawIcoSphere(const IcoSphereData& data)
+    {
+    
+    }
+
+    void Renderer::DrawCubeSphere()
+    {
+    }
+
+    void Renderer::DrawTriangularPyramid()
+    {
+    }
+
 
 }
 

@@ -5,7 +5,6 @@
 
 #include "imgui.h"
 
-
 namespace Magnefu
 {
     std::unordered_map<TextureType, String> TextureTypeNameMap = {
@@ -18,26 +17,51 @@ namespace Magnefu
         {TextureType::METALLIC, "Metallic"}
     };
 
+    
+
     OpenGLMaterial::OpenGLMaterial(const String& shaderFile)
     {
         m_Shader = Shader::Create(shaderFile);
-        m_RenderData = CreateRef<SceneData>();
-        m_ID = static_cast<uint32_t>(Application::Get().GetResourceCache().size<OpenGLMaterial>());
 
-        m_Props = MaterialProps();
+        auto& uniformData = m_Shader->GetUniforms(); 
+        
+        for (auto& data : uniformData)
+        {
+            if (data.second == "int")
+                SetUniformValue(data.first, int());
+            else if (data.second == "float")
+                SetUniformValue(data.first, float());
+            else if (data.second == "int*")
+                SetUniformValue(data.first, (int*)nullptr);
+            else if (data.second == "vec2")
+                SetUniformValue(data.first, Maths::vec2());
+            else if (data.second == "vec3")
+                SetUniformValue(data.first, Maths::vec3());
+            else if (data.second == "vec4")
+                SetUniformValue(data.first, Maths::vec4());
+            else if (data.second == "mat4")
+                SetUniformValue(data.first, Maths::mat4());
+        }
+        uniformData.clear();
+
+        m_ID = static_cast<uint32_t>(Application::Get().GetResourceCache().size<OpenGLMaterial>());
+        
+        
+        /*m_Props = MaterialProps();
         m_Shader->Bind();
         auto& Textures = m_Props.TextureMap;
         for (auto& texture : Textures)
         {
             String uniformName = "u_" + TextureTypeNameMap[texture.first] + "Texture";
             m_Shader->SetUniform1i(uniformName, (int)texture.second->GetSlot());
-        }
+        }*/
+        
     }
 
-    void OpenGLMaterial::InitRenderData(const Ref<SceneData>& renderData)
+    /*void OpenGLMaterial::InitRenderData(const Ref<SceneData>& renderData)
     {
         m_RenderData = renderData;
-    }
+    }*/
 
     void OpenGLMaterial::OnImGuiRender()
     {
@@ -45,9 +69,9 @@ namespace Magnefu
         ImGui::SeparatorText("Shader");
         m_Shader->OnImGuiRender();
         ImGui::SeparatorText("Textures");
-        auto& Textures = m_Props.TextureMap;
-        if (ImGui::CollapsingHeader("Diffuse"))
-            Textures[TextureType::DIFFUSE]->OnImGuiRender();
+        //auto& Textures = m_Props.TextureMap;
+        //if (ImGui::CollapsingHeader("Diffuse"))
+        //    Textures[TextureType::DIFFUSE]->OnImGuiRender();
 
     }
 
@@ -58,21 +82,110 @@ namespace Magnefu
     void OpenGLMaterial::Bind()
     {
         m_Shader->Bind();
-        auto& textures = m_Props.TextureMap;
+        //auto& textures = m_Props.TextureMap;
 
-        m_Shader->UploadUniforms(m_RenderData);
+        //m_Shader->UploadUniforms(m_RenderData);
 
-        for (auto& texture : textures)
-            texture.second->Bind();
+        // SET SHADER UNIFORMS
+        for (auto& uniform : m_Uniforms)
+        {         
+
+            //switch (uniform.second.GetType())
+            //{
+            //case UniformTypeHashcodeMap[]:
+            //default:
+            //    break;
+            //}
+        }
+
+        //for (auto& texture : textures)
+        //    texture.second->Bind();
     }
 
     void OpenGLMaterial::Unbind()
     {
         m_Shader->Unbind();
-        auto& textures = m_Props.TextureMap;
+        /*auto& textures = m_Props.TextureMap;
 
         for (auto& texture : textures)
-            texture.second->Unbind();
+            texture.second->Unbind();*/
+    }
+
+    void OpenGLMaterial::SetUniformValueImpl(const std::string& name, const int& value)
+    {
+        if (m_Uniforms.find(name) == m_Uniforms.end())
+        {
+            Uniform uniform = Uniform(name, typeid(value));
+            m_Uniforms.emplace(name, std::move(uniform) );
+        }
+
+        m_Uniforms[name].SetValue(value);
+    }
+
+    void OpenGLMaterial::SetUniformValueImpl(const std::string& name, const int* value)
+    {
+        if (m_Uniforms.find(name) == m_Uniforms.end())
+        {
+            Uniform uniform = Uniform(name, typeid(value));
+            m_Uniforms.emplace(name, std::move(uniform));
+        }
+
+        m_Uniforms[name].SetValue(value);
+    }
+
+    void OpenGLMaterial::SetUniformValueImpl(const std::string& name, const float& value)
+    {
+        if (m_Uniforms.find(name) == m_Uniforms.end())
+        {
+            Uniform uniform = Uniform(name, typeid(value));
+            m_Uniforms.emplace(name, std::move(uniform));
+        }
+
+        m_Uniforms[name].SetValue(value);
+    }
+
+    void OpenGLMaterial::SetUniformValueImpl(const std::string& name, const Maths::vec2& value)
+    {
+        if (m_Uniforms.find(name) == m_Uniforms.end())
+        {
+            Uniform uniform = Uniform(name, typeid(value));
+            m_Uniforms.emplace(name, std::move(uniform));
+        }
+
+        m_Uniforms[name].SetValue(value);
+    }
+
+    void OpenGLMaterial::SetUniformValueImpl(const std::string& name, const Maths::vec3& value)
+    {
+        if (m_Uniforms.find(name) == m_Uniforms.end())
+        {
+            Uniform uniform = Uniform(name, typeid(value));
+            m_Uniforms.emplace(name, std::move(uniform));
+        }
+
+        m_Uniforms[name].SetValue(value);
+    }
+
+    void OpenGLMaterial::SetUniformValueImpl(const std::string& name, const Maths::vec4& value)
+    {
+        if (m_Uniforms.find(name) == m_Uniforms.end())
+        {
+            Uniform uniform = Uniform(name, typeid(value));
+            m_Uniforms.emplace(name, std::move(uniform));
+        }
+
+        m_Uniforms[name].SetValue(value);
+    }
+
+    void OpenGLMaterial::SetUniformValueImpl(const std::string& name, const Maths::mat4& value)
+    {
+        if (m_Uniforms.find(name) == m_Uniforms.end())
+        {
+            Uniform uniform = Uniform(name, typeid(value));
+            m_Uniforms.emplace(name, std::move(uniform));
+        }
+
+        m_Uniforms[name].SetValue(value);
     }
 }
 

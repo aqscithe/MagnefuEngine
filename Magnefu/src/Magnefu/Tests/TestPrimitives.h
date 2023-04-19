@@ -2,6 +2,7 @@
 
 #include "Test.h"
 #include "Magnefu/Renderer/Renderer.h"
+#include "Magnefu/Renderer/SceneCamera.h"
 
 #include "Magnefu/Core/Maths/PrimitiveCommon.h"
 
@@ -22,6 +23,7 @@ namespace Magnefu
 		void OnImGUIRender() override;
 
 	private:
+		Ref<SceneCamera> m_Camera;
 		PrimitiveData m_Plane;
 		PrimitiveData m_Cube;
 		SphereData m_Sphere;

@@ -31,7 +31,7 @@
 
 
 #include "Magnefu/Tests/Test.h"
-#include "Magnefu/Tests/Test2DTexture.h"
+//#include "Magnefu/Tests/Test2DTexture.h"
 #include "Magnefu/Tests/TestPrimitives.h"
 
 

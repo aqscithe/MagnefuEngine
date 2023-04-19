@@ -8,7 +8,7 @@
 
 namespace Magnefu
 {
-	struct MemAllocData
+	/*struct MemAllocData
 	{
 		MemAllocData()
 		{
@@ -27,7 +27,7 @@ namespace Magnefu
 		uint32_t AvgAllocsPerFramePerMin;
 		uint32_t AvgBytePerFramePerMin;
 		float Timer;
-	};
+	};*/
 
 	class StackAllocator
 	{
@@ -35,9 +35,7 @@ namespace Magnefu
 		StackAllocator(uint32_t stackSizeBytes);
 		~StackAllocator();
 
-		uintptr_t AlignAddress(uintptr_t addr, size_t align);
-		void* AllocAligned(size_t bytes, size_t align);
-		void* Allocate(uint32_t bytes);
+		void* Allocate(uint32_t bytes, size_t alignment = alignof(std::max_align_t));
 
 		// Rolls the stack back to a previous marker.
 		inline void FreeToMarker() { m_Top = m_Marker; }
@@ -51,23 +49,14 @@ namespace Magnefu
 		{
 			m_Top = m_Buffer;
 			m_Marker = m_Buffer;
+			//MF_CORE_DEBUG("Stack Allocator Clear - Top: {0}, Marker: {1}", m_Top, m_Marker);
 		}
 
-		template<typename T>
-		inline T* AlignPointer(T* ptr, size_t align)
-		{
-			const uintptr_t addr = reinterpret_cast<uintptr_t>(ptr);
-			const uintptr_t addrAligned = AlignAddress(addr, align);
-			return reinterpret_cast<T*>(addrAligned);
-		}
-
-		
-		Ref<MemAllocData>& GetMemAllocData() { return m_Data; }
 
 		static Scope<StackAllocator>& Get() { return s_Instance; }
 
 	private:
-		Ref<MemAllocData> m_Data;
+		//Ref<MemAllocData> m_Data;
 		void* m_Marker;
 		void* m_Buffer;
 		void* m_Top;

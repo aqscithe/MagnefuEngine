@@ -149,7 +149,9 @@
     <ClInclude Include="src\Magnefu\Core\MemoryAllocation\LinkedListAlloc.h" />
     <ClInclude Include="src\Magnefu\Core\MemoryAllocation\PoolAllocator.h" />
     <ClInclude Include="src\Magnefu\Core\MemoryAllocation\StackAllocator.h" />
+    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\VectorAllocator.h" />
     <ClInclude Include="src\Magnefu\Core\NumGen.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Uniform.h" />
     <ClInclude Include="src\Magnefu\ResourceManagement\CacheableResource.h" />
     <ClInclude Include="src\Magnefu.h" />
     <ClInclude Include="src\Magnefu\Application.h" />
@@ -182,7 +184,6 @@
     <ClInclude Include="src\Magnefu\Renderer\Scene.h" />
     <ClInclude Include="src\Magnefu\Renderer\SceneCamera.h" />
     <ClInclude Include="src\Magnefu\Tests\Test.h" />
-    <ClInclude Include="src\Magnefu\Tests\Test2DTexture.h" />
     <ClInclude Include="src\Magnefu\Tests\TestPrimitives.h" />
     <ClInclude Include="src\Magnefu\Window.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLMaterial.h" />
@@ -387,7 +388,6 @@
     <ClCompile Include="src\Magnefu\Renderer\Camera.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\SceneCamera.cpp" />
     <ClCompile Include="src\Magnefu\Tests\Test.cpp" />
-    <ClCompile Include="src\Magnefu\Tests\Test2DTexture.cpp" />
     <ClCompile Include="src\Magnefu\Tests\TestPrimitives.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLMaterial.cpp" />
     <ClCompile Include="src\Magnefu\Core\Maths\Matrices.cpp" />

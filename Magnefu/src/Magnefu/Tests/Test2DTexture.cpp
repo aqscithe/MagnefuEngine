@@ -95,7 +95,7 @@ namespace Magnefu
         // entire scenedata struct?
         m_PrevSceneData.Mat4["u_MVP"] = m_SceneData->Mat4["u_MVP"];
 
-        Maths::mat4* modelMatrix = static_cast<Maths::mat4*>(StackAllocator::Get()->Allocate(sizeof(Maths::mat4)));
+        Maths::mat4* modelMatrix = static_cast<Maths::mat4*>(StackAllocator::Get()->Allocate(sizeof(Maths::mat4), sizeof(Maths::mat4)));
         *modelMatrix = Maths::translate(m_translation) * Maths::Quaternion::CalculateRotationMatrix(m_angleRot, m_rotationAxis) * Maths::scale(m_scaling);
 
         m_SceneData->Mat4["u_MVP"] = m_SceneCamera->CalculateVP() * *modelMatrix; //current scene data

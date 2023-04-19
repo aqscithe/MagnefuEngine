@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <typeindex>
 
 namespace Maths
 {
@@ -11,6 +12,10 @@ namespace Maths
 		vec2(float x, float y)
 			: x(x), y(y)
 		{}
+
+		static std::type_index getTypeIndex() {
+			return std::type_index(typeid(vec2));
+		}
 
 		float e[2];
 
@@ -23,6 +28,10 @@ namespace Maths
 		vec2i(int x, int y)
 			: x(x), y(y)
 		{}
+
+		static std::type_index getTypeIndex() {
+			return std::type_index(typeid(vec2i));
+		}
 
 		int e[2];
 
@@ -42,6 +51,10 @@ namespace Maths
 		vec3(vec2 xy, float z)
 			: x(xy.x), y(xy.y), z(z)
 		{}
+
+		static std::type_index getTypeIndex() {
+			return std::type_index(typeid(vec3));
+		}
 
 		float e[3];
 
@@ -66,6 +79,10 @@ namespace Maths
 			: x(xy.x), y(xy.y), z(z)
 		{}
 
+		static std::type_index getTypeIndex() {
+			return std::type_index(typeid(vec3i));
+		}
+
 		int e[3];
 
 		struct { int v, vt, vn; };
@@ -89,6 +106,10 @@ namespace Maths
 			: x(xyz.x), y(xyz.y), z(xyz.z), w(w)
 		{}
 
+		static std::type_index getTypeIndex() {
+			return std::type_index(typeid(vec4));
+		}
+
 		float e[4];
 
 		struct { float x, y, z, w; };
@@ -111,6 +132,10 @@ namespace Maths
 		vec4i(vec3i xyz, int w)
 			: x(xyz.x), y(xyz.y), z(xyz.z), w(w)
 		{}
+
+		static std::type_index getTypeIndex() {
+			return std::type_index(typeid(vec4i));
+		}
 
 		int e[4];
 

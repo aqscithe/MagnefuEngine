@@ -7,8 +7,14 @@ namespace Magnefu
     class PoolAllocator
     {
     public:
+        PoolAllocator() :
+            m_Buffer(nullptr), m_FreeList(nullptr), m_BlockSize(0), m_NumBlocks(0)
+        {}
+
         PoolAllocator(size_t blockSizeBytes, size_t numBlocks);
         ~PoolAllocator();
+
+        void Init(size_t blockSizeBytes, size_t numBlocks);
 
         void* Allocate();
         void Deallocate(void* block);

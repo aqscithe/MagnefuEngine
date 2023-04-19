@@ -189,9 +189,6 @@
     <ClInclude Include="src\Magnefu\Tests\Test.h">
       <Filter>src\Magnefu\Tests</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Tests\Test2DTexture.h">
-      <Filter>src\Magnefu\Tests</Filter>
-    </ClInclude>
     <ClInclude Include="src\Magnefu\Window.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
@@ -738,6 +735,8 @@
     <ClInclude Include="src\Magnefu\Core\MemoryAllocation\PoolAllocator.h" />
     <ClInclude Include="src\Magnefu\Core\MemoryAllocation\LinkedListAlloc.h" />
     <ClInclude Include="src\Magnefu\Tests\TestPrimitives.h" />
+    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\VectorAllocator.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Uniform.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application.cpp">
@@ -783,9 +782,6 @@
       <Filter>src\Magnefu\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Tests\Test.cpp">
-      <Filter>src\Magnefu\Tests</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Tests\Test2DTexture.cpp">
       <Filter>src\Magnefu\Tests</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Core\Maths\Matrices.cpp">

@@ -24,7 +24,7 @@ public:
 
 		m_ActiveTest = m_TestMenu;
 
-		m_TestMenu->RegisterTest<Magnefu::Test2DTexture>("2D Texture");
+		//m_TestMenu->RegisterTest<Magnefu::Test2DTexture>("2D Texture");
 		m_TestMenu->RegisterTest<Magnefu::TestPrimitives>("Primitives");
 		
 		//m_TestMenu->RegisterTest<Magnefu::Test3DRender>("Cube Render");

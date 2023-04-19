@@ -35,12 +35,12 @@ namespace Magnefu
 
 	void OpenGLRendererAPI::EnableDepthTest()
 	{
-		glEnable(GL_DEPTH);
+		glEnable(GL_DEPTH_TEST);
 	}
 
 	void OpenGLRendererAPI::DisableDepthTest()
 	{
-		glDisable(GL_DEPTH);
+		glDisable(GL_DEPTH_TEST);
 	}
 
 	void OpenGLRendererAPI::SetWindowSize(int width, int height)

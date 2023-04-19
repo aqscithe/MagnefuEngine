@@ -13,11 +13,11 @@ namespace Magnefu
             Node* Next;
         };
 
-        LinkedListAlloc(PoolAllocator& allocator)
-            : m_Allocator(allocator)
-            , m_Head(nullptr)
+        /*LinkedListAlloc(PoolAllocator& allocator) : 
+            m_Allocator(allocator), 
+            m_Head(nullptr)
         {
-        }
+        }*/
 
         ~LinkedListAlloc() {
             Node* node = m_Head;
@@ -28,11 +28,17 @@ namespace Magnefu
             }
         }
 
-        void push_front(const T& value) {
+        void Init(PoolAllocator& allocator)
+        {
+            m_Allocator = allocator;
+        }
+
+        T& push_front(const T& value) {
             Node* node = static_cast<Node*>(m_Allocator.Allocate());
             node->Data = value;
             node->Next = m_Head;
             m_Head = node;
+            return node->Data;
         }
 
         T& front() {

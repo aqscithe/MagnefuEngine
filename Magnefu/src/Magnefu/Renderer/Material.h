@@ -11,6 +11,7 @@ namespace Magnefu
 	using String = std::string;
 	using TextureMap = std::unordered_map<TextureType, Ref<Texture>>;
 
+
 	// all values that would be sent to the shader as a uniform
 	struct MaterialProps
 	{
@@ -47,12 +48,33 @@ namespace Magnefu
 	public:
 		virtual ~Material() = default;
 
+		template <typename T>
+		void SetUniformValue(const String& name, const T& value)
+		{
+			MF_CORE_ASSERT((std::is_same<T, int>::value || std::is_same<T, float>::value || std::is_same<T, int*>::value || 
+				std::is_same<T, Maths::vec2>::value || std::is_same<T, Maths::vec3>::value || std::is_same<T, Maths::vec4>::value || 
+				std::is_same<T, Maths::mat4>::value),
+				"Unsupported uniform type."
+			);
+
+			SetUniformValueImpl(name, value);
+		}
+
+		// Pure virtual function for setting uniform values
+		virtual void SetUniformValueImpl(const std::string& name, const int& value) = 0;
+		virtual void SetUniformValueImpl(const std::string& name, const int* value) = 0;
+		virtual void SetUniformValueImpl(const std::string& name, const float& value) = 0;
+		virtual void SetUniformValueImpl(const std::string& name, const Maths::vec2& value) = 0;
+		virtual void SetUniformValueImpl(const std::string& name, const Maths::vec3& value) = 0;
+		virtual void SetUniformValueImpl(const std::string& name, const Maths::vec4& value) = 0;
+		virtual void SetUniformValueImpl(const std::string& name, const Maths::mat4& value) = 0;
+
 		virtual void Bind() = 0;
 		virtual void Unbind() = 0;
 
-		virtual Ref<SceneData>& GetRenderData() = 0;
+		//virtual Ref<SceneData>& GetRenderData() = 0;
 		virtual void OnImGuiRender() = 0;
-		virtual void InitRenderData(const Ref<SceneData>&) = 0;
+		//virtual void InitRenderData(const Ref<SceneData>&) = 0;
 
 		static Ref<Material> Create(const String& shaderPath = "res/shaders/Basic.shader");
 	};

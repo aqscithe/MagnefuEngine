@@ -14,16 +14,10 @@ namespace Magnefu
         float Angle;
     };
 
-    struct BasicCube
+    struct Icosphere
     {
-        std::array<BasicVertex, 36> Vertices;
-    };
 
-    struct TextureCube
-    {
-        std::array<TextureVertex, 36> Vertices;
     };
-
     
     //BasicCube CreateBasicCube();
     //TextureCube CreateTextureCube();

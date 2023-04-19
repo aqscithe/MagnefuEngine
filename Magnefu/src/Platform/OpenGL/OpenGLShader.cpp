@@ -6,12 +6,12 @@
 #include <fstream>
 #include "imgui.h"
 
-
 namespace Magnefu
 {
     OpenGLShader::OpenGLShader(const String& filepath)
         : m_Filepath(filepath), m_RendererID(0)
     {
+
         ShaderProgramSource source = ParseShader(m_Filepath);
         CreateShader(source.VertexSource, source.FragmentSource);
 
@@ -38,6 +38,7 @@ namespace Magnefu
         String line;
         std::stringstream ss[2];
         ShaderType type = ShaderType::NONE;
+        m_Uniforms.clear();
         while (std::getline(stream, line))
         {
             if (line.find("#shader") != String::npos)
@@ -55,10 +56,38 @@ namespace Magnefu
             {
                 ss[(int)type] << line << '\n';
             }
+
+            if (line.find("uniform") != String::npos && line.find("uniform") == 0)
+            {
+                String type;
+                String name;
+                size_t pos = line.find(" ");
+                if (pos != String::npos)
+                {
+                    pos++;
+                    size_t end_pos = line.find(" ", pos);
+                    if (end_pos != String::npos)
+                        type = line.substr(pos, end_pos - pos);
+                    else
+                        type = line.substr(pos);
+
+                    pos = end_pos + 1;
+                    end_pos = line.find(" ", pos);
+                    if (end_pos != String::npos)
+                        name = line.substr(pos, end_pos - pos - 1);
+                    else
+                    {
+                        name = line.substr(pos);
+                        name = name.substr(0, name.length() - 1);
+                    }
+                        
+                    MF_CORE_ASSERT(type.size() > 0 && name.size() > 0, "Shader uniform name or type not found");
+                    m_Uniforms.emplace_back(name, type);
+                    
+                }
+            }
         }
-
         return { ss[0].str(), ss[1].str() };
-
     }
 
     void OpenGLShader::CreateShader(const String& vShaderSource, const String& fShaderSource)

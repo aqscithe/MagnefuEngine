@@ -3,6 +3,8 @@
 #include "Application.h"
 #include "Magnefu/Core/TimeStep.h"
 
+
+
 //TEMP
 #include "imgui/imgui.h"
 
@@ -18,15 +20,17 @@ namespace Magnefu
         MF_CORE_INFO("HELLO FROM APPLICATION");
         MF_CORE_ASSERT(!s_Instance, "Application instance already exists.");
         s_Instance = this;
+
         m_Window = Scope<Window>(Window::Create());
         m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
+        m_Minimized = false;
 
         m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);
 
-        m_MemAllocData = StackAllocator::Get()->GetMemAllocData().get();
         m_ResourceCache = Scope<ResourceCache>(ResourceCache::Create());
-        m_Minimized= false;
+
+        Renderer::Init();
 	}
 
 	Application::~Application()
@@ -82,26 +86,15 @@ namespace Magnefu
 
     void Application::OnUpdate(float deltaTime)
     {
-#ifdef MF_DEBUG
-        m_MemAllocData->Timer -= deltaTime;
-        m_MemAllocData->FrameCounter++;
 
-        if (m_MemAllocData->Timer <= 0)
-        {
-            m_MemAllocData->Timer = 30000.f;
-            m_MemAllocData->AvgAllocsPerFramePerMin = m_MemAllocData->AllocationCounter / m_MemAllocData->FrameCounter;
-            m_MemAllocData->AvgBytePerFramePerMin = m_MemAllocData->TotalBytesAllocated / m_MemAllocData->FrameCounter;
-            m_MemAllocData->TotalBytesAllocated = 0;
-            m_MemAllocData->AllocationCounter = 0;
-            m_MemAllocData->FrameCounter = 0;
-        }
-#endif
     }
 
 
 	void Application::Run()
 	{        
         Scope<StackAllocator>& SingleFrameAllocator = StackAllocator::Get();
+
+        // TODO: Create setting to switch between locked and unlocked frame rate
         TimeStep ts;
 
         while (m_Running)
@@ -173,9 +166,9 @@ namespace Magnefu
             {
                 if (ImGui::CollapsingHeader("Stack Allocator", ImGuiTreeNodeFlags_DefaultOpen))
                 {
-                    ImGui::Text("Stack Allocator Capacity: %d", 2048);
-                    ImGui::Text("Avg Alloc Count(per frame, per min): %d", m_MemAllocData->AvgAllocsPerFramePerMin);
-                    ImGui::Text("Avg Alloc Size(per frame, per min): %d", m_MemAllocData->AvgBytePerFramePerMin);
+                    //ImGui::Text("Stack Allocator Capacity: %d", 2048);
+                    //ImGui::Text("Avg Alloc Count(per frame, per min): %d", m_MemAllocData->AvgAllocsPerFramePerMin);
+                    //ImGui::Text("Avg Alloc Size(per frame, per min): %d", m_MemAllocData->AvgBytePerFramePerMin);
                 }
                 if (ImGui::CollapsingHeader("Pool Allocator"))
                 {

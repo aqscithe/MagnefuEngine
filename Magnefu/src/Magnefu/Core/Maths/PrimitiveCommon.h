@@ -11,6 +11,7 @@ namespace Magnefu
         Maths::vec3 Size;
         Maths::vec3 Color;
         Maths::vec3 Rotation;
+        Maths::vec3 Translation;
         float       Angle;
     };
 
@@ -18,6 +19,7 @@ namespace Magnefu
     {
         Maths::vec3 Color;
         Maths::vec3 Rotation;
+        Maths::vec3 Translation;
         float       Angle;
         float       Radius;
         uint32_t    SectorCount;  //32
@@ -26,7 +28,12 @@ namespace Magnefu
 
     struct IcoSphereData
     {
-
+        float       Radius;
+        uint32_t    Subdivisions;
+        Maths::vec3 Color;
+        Maths::vec3 Rotation;
+        Maths::vec3 Translation;
+        float       Angle;
     };
 
     struct CubeSphere

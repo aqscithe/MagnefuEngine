@@ -10,6 +10,7 @@
 #include "Magnefu/Core/Events/KeyEvent.h"
 #include "Magnefu/ResourceManagement/ResourceCache.h"
 #include "Magnefu/Core/MemoryAllocation/StackAllocator.h"
+#include "Magnefu/Core/MemoryAllocation/LinkedListAlloc.h"
 
 
 
@@ -47,7 +48,7 @@ namespace Magnefu
 		ImGuiLayer* m_ImGuiLayer;
 		Scope<ResourceCache> m_ResourceCache;
 		Scope<Window> m_Window;
-		MemAllocData* m_MemAllocData;
+
 		bool m_Running;
 		bool m_Minimized;
 	};
