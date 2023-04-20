@@ -71,6 +71,6 @@ namespace Magnefu
         std::string m_Name;
         //std::size_t m_HashCode;
         std::type_index m_TypeIndex;
-        std::variant<int, int*, float, Maths::mat4, Maths::vec4, Maths::vec3, Maths::vec2> m_Value;
+        std::variant<int, int*, float, bool, Maths::mat4, Maths::vec4, Maths::vec3, Maths::vec2> m_Value;
     };
 }

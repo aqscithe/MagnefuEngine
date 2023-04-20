@@ -151,6 +151,7 @@
     <ClInclude Include="src\Magnefu\Core\MemoryAllocation\StackAllocator.h" />
     <ClInclude Include="src\Magnefu\Core\MemoryAllocation\VectorAllocator.h" />
     <ClInclude Include="src\Magnefu\Core\NumGen.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Light.h" />
     <ClInclude Include="src\Magnefu\Renderer\Uniform.h" />
     <ClInclude Include="src\Magnefu\ResourceManagement\CacheableResource.h" />
     <ClInclude Include="src\Magnefu.h" />
@@ -378,6 +379,7 @@
     <ClCompile Include="src\Magnefu\LayerStack.cpp" />
     <ClCompile Include="src\Magnefu\Core\Log.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Buffer.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\Light.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Material.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\RenderCommand.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Renderer.cpp" />

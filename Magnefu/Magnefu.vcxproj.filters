@@ -737,6 +737,7 @@
     <ClInclude Include="src\Magnefu\Tests\TestPrimitives.h" />
     <ClInclude Include="src\Magnefu\Core\MemoryAllocation\VectorAllocator.h" />
     <ClInclude Include="src\Magnefu\Renderer\Uniform.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Light.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application.cpp">
@@ -868,5 +869,6 @@
     <ClCompile Include="src\Magnefu\Core\MemoryAllocation\StackAllocator.cpp" />
     <ClCompile Include="src\Magnefu\Core\MemoryAllocation\PoolAllocator.cpp" />
     <ClCompile Include="src\Magnefu\Tests\TestPrimitives.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\Light.cpp" />
   </ItemGroup>
 </Project>

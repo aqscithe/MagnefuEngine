@@ -22,7 +22,6 @@ void main()
 #shader fragment
 #version 450 core
 
-
 uniform sampler2D u_DiffuseTexture;
 
 in vec3 VertexColor;

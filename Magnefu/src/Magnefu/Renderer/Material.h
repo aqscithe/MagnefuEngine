@@ -51,9 +51,9 @@ namespace Magnefu
 		template <typename T>
 		void SetUniformValue(const String& name, const T& value)
 		{
-			MF_CORE_ASSERT((std::is_same<T, int>::value || std::is_same<T, float>::value || std::is_same<T, int*>::value || 
-				std::is_same<T, Maths::vec2>::value || std::is_same<T, Maths::vec3>::value || std::is_same<T, Maths::vec4>::value || 
-				std::is_same<T, Maths::mat4>::value),
+			MF_CORE_ASSERT((std::is_same<T, int>::value || std::is_same<T, float>::value || std::is_same<T, bool>::value || 
+				std::is_same<T, int*>::value || std::is_same<T, Maths::vec2>::value || std::is_same<T, Maths::vec3>::value || 
+				std::is_same<T, Maths::vec4>::value || std::is_same<T, Maths::mat4>::value),
 				"Unsupported uniform type."
 			);
 
@@ -61,6 +61,7 @@ namespace Magnefu
 		}
 
 		// Pure virtual function for setting uniform values
+		virtual void SetUniformValueImpl(const std::string& name, const bool& value) = 0;
 		virtual void SetUniformValueImpl(const std::string& name, const int& value) = 0;
 		virtual void SetUniformValueImpl(const std::string& name, const int* value) = 0;
 		virtual void SetUniformValueImpl(const std::string& name, const float& value) = 0;

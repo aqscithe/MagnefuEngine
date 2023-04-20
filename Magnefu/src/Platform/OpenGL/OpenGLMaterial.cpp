@@ -34,14 +34,16 @@ namespace Magnefu
 
         for (auto& data : uniformData)
         {
+            if (data.second == "mat4")
+                SetUniformValue(data.first, Maths::mat4());
+            else if (data.second == "vec3")
+                SetUniformValue(data.first, Maths::vec3());
             if (data.second == "sampler2D" || data.second == "int")
                 SetUniformValue(data.first, int());
             else if (data.second == "float")
                 SetUniformValue(data.first, float());
-            else if (data.second == "mat4")
-                SetUniformValue(data.first, Maths::mat4());
-            else if (data.second == "vec3")
-                SetUniformValue(data.first, Maths::vec3());
+            else if (data.second == "bool")
+                SetUniformValue(data.first, true);
             else if (data.second == "vec2")
                 SetUniformValue(data.first, Maths::vec2());
             else if (data.second == "vec4")
@@ -119,6 +121,16 @@ namespace Magnefu
 
         for (auto& texture : m_TextureMap)
             texture.second->Unbind();
+    }
+
+    void OpenGLMaterial::SetUniformValueImpl(const std::string& name, const bool& value)
+    {
+        if (m_Uniforms.find(name) == m_Uniforms.end())
+        {
+            Uniform uniform = Uniform(name, typeid(value));
+            m_Uniforms.emplace(name, std::move(uniform));
+        }
+        m_Uniforms[name].SetValue<bool>(value);
     }
 
     void OpenGLMaterial::SetUniformValueImpl(const std::string& name, const int& value)

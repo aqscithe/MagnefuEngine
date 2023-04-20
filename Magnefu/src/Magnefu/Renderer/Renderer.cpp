@@ -5,6 +5,7 @@
 #include "VertexArray.h"
 #include "Material.h"
 #include "Shader.h"
+#include "Light.h"
 #include "Magnefu/Core/Maths/Quaternion.h"
 #include "Magnefu/Application.h"
 #include "Magnefu/Core/Timer.h"
@@ -18,6 +19,8 @@ namespace Magnefu
     struct RenderData
     {
         Maths::mat4 MVP;
+        Maths::mat4 ModelMatrix;
+        DirectionalLight DefaultLight;
         Material* PlaneMat;
         Material* CubeMat;
         Material* SphereMat;
@@ -43,6 +46,11 @@ namespace Magnefu
         s_Data->CubeMat = Material::Create("res/shaders/Cube.shader").get();
         s_Data->SphereMat = Material::Create("res/shaders/Sphere.shader").get();
 
+        s_Data->DefaultLight.Direction = { -1.f, -1.f, -1.f };
+        s_Data->DefaultLight.Color = { 1.f, 0.96f, 0.72f };
+        s_Data->DefaultLight.Flux = 3.f;
+        s_Data->DefaultLight.Enabled = true;
+
         s_Settings = static_cast<RenderSettings*>(StackAllocator::Get()->Allocate(sizeof(RenderSettings)));
         s_Settings->Blending = true;
         s_Settings->DepthTest = true;
@@ -65,12 +73,12 @@ namespace Magnefu
 
     void Renderer::DrawPlane(const PrimitiveData& data)
     {
-        float vertices[28] = {
-            //  position    color                                        texture coords
-            -0.5f, -0.5f,   data.Color.r, data.Color.g, data.Color.b,    0.f,  0.f,       // 0  BL
-             0.5f, -0.5f,   data.Color.r, data.Color.g, data.Color.b,    1.f,  0.f,       // 1  BR
-             0.5f,  0.5f,   data.Color.r, data.Color.g, data.Color.b,    1.f,  1.f,       // 2  TR
-            -0.5f,  0.5f,   data.Color.r, data.Color.g, data.Color.b,    0.f,  1.f,       // 3  TL
+        float vertices[40] = {
+            //  position    normal          color                                        texture coords
+            -0.5f, -0.5f,   0.f, 0.f, 1.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  0.f,       // 0  BL
+             0.5f, -0.5f,   0.f, 0.f, 1.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  0.f,       // 1  BR
+             0.5f,  0.5f,   0.f, 0.f, 1.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  1.f,       // 2  TR
+            -0.5f,  0.5f,   0.f, 0.f, 1.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  1.f,       // 3  TL
         };
 
         uint32_t indices[] = {
@@ -78,10 +86,11 @@ namespace Magnefu
             2, 3, 0
         };
 
-        Ref<VertexBuffer> vbo = VertexBuffer::Create(sizeof(float) * 28, vertices);
+        Ref<VertexBuffer> vbo = VertexBuffer::Create(sizeof(float) * 40, vertices);
 
         BufferLayout layout = {
             {ShaderDataType::Float2, "aPosition"},
+            {ShaderDataType::Float3, "aNormal"},
             {ShaderDataType::Float3, "aColor"},
             {ShaderDataType::Float2, "aTexCoords"}
         };
@@ -94,13 +103,21 @@ namespace Magnefu
         vao->AddVertexBuffer(vbo);
         vao->SetIndexBuffer(ibo);
 
-        s_Data->MVP =
-            Application::Get().GetWindow().GetSceneCamera()->CalculateVP() *
-            Maths::translate(data.Translation) *
+        auto& camera = Application::Get().GetWindow().GetSceneCamera();
+
+        s_Data->ModelMatrix = Maths::translate(data.Translation) *
             Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) *
             Maths::scale(Maths::vec3(data.Size.xy, 0.1f));
 
+        s_Data->MVP = camera->CalculateVP() * s_Data->ModelMatrix;
+            
         s_Data->PlaneMat->SetUniformValue("u_MVP", s_Data->MVP);
+        s_Data->PlaneMat->SetUniformValue("u_ModelMatrix", s_Data->MVP);
+        s_Data->PlaneMat->SetUniformValue("u_CameraPos", camera->GetData().Position);
+        s_Data->PlaneMat->SetUniformValue("u_LightDirection", s_Data->DefaultLight.Direction);
+        s_Data->PlaneMat->SetUniformValue("u_LightColor", s_Data->DefaultLight.Color);
+        s_Data->PlaneMat->SetUniformValue("u_RadiantFlux", s_Data->DefaultLight.Flux);
+        s_Data->PlaneMat->SetUniformValue("u_LightEnabled", s_Data->DefaultLight.Enabled);
         s_Data->PlaneMat->Bind();
 
         RenderCommand::DrawIndexed(vao);

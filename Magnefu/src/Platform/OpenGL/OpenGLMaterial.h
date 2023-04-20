@@ -31,6 +31,7 @@ namespace Magnefu
 
 		void OnImGuiRender() override;
 
+		void SetUniformValueImpl(const std::string& name, const bool& value) override;
 		void SetUniformValueImpl(const std::string& name, const int& value) override;
 		void SetUniformValueImpl(const std::string& name, const int* value) override;
 		void SetUniformValueImpl(const std::string& name, const float& value) override;

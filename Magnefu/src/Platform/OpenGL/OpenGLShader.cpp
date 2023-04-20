@@ -235,6 +235,8 @@ namespace Magnefu
 
             if (type == typeid(int))
                 SetUniform1i(name, uniform.second.GetValue<int>());
+            else if (type == typeid(bool))
+                SetUniform1i(name, uniform.second.GetValue<bool>());
             else if (type == typeid(float))
                 SetUniform1f(name, uniform.second.GetValue<float>());
             else if (type == typeid(Maths::mat4))
