@@ -73,7 +73,6 @@ namespace Magnefu
         vao->AddVertexBuffer(vbo);
         vao->SetIndexBuffer(ibo);
 
-        //Ref<Shader> shader = Shader::Create("res/shaders/Plane.shader");
         Ref<Material> material = Material::Create("res/shaders/Plane.shader");
 
         s_Data->MVP = 
@@ -81,9 +80,9 @@ namespace Magnefu
             Maths::translate(data.Translation) * 
             Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) * 
             Maths::scale(Maths::vec3(data.Size.xy, 0.1f));
-             
-        //shader->Bind();
-        //shader->SetUniformMatrix4fv("u_MVP", s_Data->MVP);
+
+        material->SetUniformValue("u_MVP", s_Data->MVP);
+        material->Bind();
 
         RenderCommand::DrawIndexed(vao);
     }

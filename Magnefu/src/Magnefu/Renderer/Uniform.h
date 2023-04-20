@@ -25,16 +25,16 @@ namespace Magnefu
         MAT4
     };
 
-    /*const std::unordered_map<UniformTypes, size_t> UniformTypeHashcodeMap =
+    const std::unordered_map<std::type_index, UniformTypes> UniformTypeHashcodeMap =
     {
-        {UniformTypes::INT, typeid(int).hash_code()},
-        {UniformTypes::INT_PTR, typeid(int*).hash_code()},
-        {UniformTypes::FLOAT, typeid(float).hash_code()},
-        {UniformTypes::VEC2, typeid(Maths::vec2).hash_code()},
-        {UniformTypes::VEC3, typeid(Maths::vec3).hash_code()},
-        {UniformTypes::VEC4, typeid(Maths::vec4).hash_code()},
-        {UniformTypes::MAT4, typeid(Maths::mat4).hash_code()}
-    };*/
+        {typeid(int),         UniformTypes::INT},
+        {typeid(int*),        UniformTypes::INT_PTR},
+        {typeid(float),       UniformTypes::FLOAT},
+        {typeid(Maths::vec2), UniformTypes::VEC2},
+        {typeid(Maths::vec3), UniformTypes::VEC3},
+        {typeid(Maths::vec4), UniformTypes::VEC4},
+        {typeid(Maths::mat4), UniformTypes::MAT4}
+    };
 
     class Uniform {
     public:
@@ -71,6 +71,6 @@ namespace Magnefu
         std::string m_Name;
         //std::size_t m_HashCode;
         std::type_index m_TypeIndex;
-        std::variant<int, float, Maths::mat4, Maths::vec4, Maths::vec3, Maths::vec2> m_Value; // Support int, float, and vec3 values
+        std::variant<int, int*, float, Maths::mat4, Maths::vec4, Maths::vec3, Maths::vec2> m_Value; // Support int, float, and vec3 values
     };
 }

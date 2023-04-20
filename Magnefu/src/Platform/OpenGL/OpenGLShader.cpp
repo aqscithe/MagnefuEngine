@@ -195,6 +195,11 @@ namespace Magnefu
         glUniform3fv(GetUniformLocation(name), 1, (const GLfloat*)value.e);
     }
 
+    void OpenGLShader::SetUniform2fv(const String& name, const Maths::vec2& value)
+    {
+        glUniform2fv(GetUniformLocation(name), 1, (const GLfloat*)value.e);
+    }
+
     void OpenGLShader::SetUniform1f(const String& name, const float value)
     {
         glUniform1f(GetUniformLocation(name), (GLfloat)value);

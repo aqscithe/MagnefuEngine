@@ -84,18 +84,28 @@ namespace Magnefu
         m_Shader->Bind();
         //auto& textures = m_Props.TextureMap;
 
-        //m_Shader->UploadUniforms(m_RenderData);
-
         // SET SHADER UNIFORMS
         for (auto& uniform : m_Uniforms)
-        {         
+        {        
+            std::type_index type = uniform.second.GetType();
+            String name = uniform.second.GetName();
 
-            //switch (uniform.second.GetType())
-            //{
-            //case UniformTypeHashcodeMap[]:
-            //default:
-            //    break;
-            //}
+
+            if (type == typeid(int))
+                m_Shader->SetUniform1i(name, uniform.second.GetValue<int>());
+            else if (type == typeid(float))
+                m_Shader->SetUniform1f(name, uniform.second.GetValue<float>());
+            else if (type == typeid(Maths::mat4))
+                m_Shader->SetUniformMatrix4fv(name, uniform.second.GetValue<Maths::mat4>());
+            else if (type == typeid(Maths::vec4))
+                m_Shader->SetUniform4fv(name, uniform.second.GetValue<Maths::vec4>());
+            else if (type == typeid(Maths::vec3))
+                m_Shader->SetUniform3fv(name, uniform.second.GetValue<Maths::vec3>());
+            else if (type == typeid(Maths::vec2))
+                m_Shader->SetUniform2fv(name, uniform.second.GetValue<Maths::vec2>());
+            else if (type == typeid(int*))
+                m_Shader->SetUniform1iv(name, uniform.second.GetValue<int*>());
+
         }
 
         //for (auto& texture : textures)

@@ -39,6 +39,7 @@ namespace Magnefu
 		void SetUniformMatrix4fv(const String& name, const Maths::mat4& value) override;
 		void SetUniform4fv(const String& name, const Maths::vec4& value) override;
 		void SetUniform3fv(const String& name, const Maths::vec3& value) override;
+		void SetUniform2fv(const String& name, const Maths::vec2& value) override;
 		void SetUniform1f(const String& name, const float value) override;
 		void SetUniform1i(const String& name, const int value) override;
 		void SetUniform1i(const String& name, const bool value) override;
