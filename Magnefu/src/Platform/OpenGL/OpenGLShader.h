@@ -47,7 +47,7 @@ namespace Magnefu
 		void SetUniform1ui(const String& name, const unsigned int value) override;
 
 
-		void UploadUniforms(const Ref<SceneData>&  data) override;
+		void UploadUniforms(const std::unordered_map<String, Uniform>&  data) override;
 		std::vector<std::pair<String, String>>& GetUniforms() override { return m_Uniforms; }
 		void OnImGuiRender() override;
 		void Recompile() override;

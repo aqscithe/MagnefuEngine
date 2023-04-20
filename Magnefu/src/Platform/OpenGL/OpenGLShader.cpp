@@ -225,35 +225,29 @@ namespace Magnefu
         glUniform1ui(GetUniformLocation(name), (GLuint)value);
     }
 
-    void OpenGLShader::UploadUniforms(const Ref<SceneData>& data)
+    void OpenGLShader::UploadUniforms(const std::unordered_map<String, Uniform>& uniforms)
     {
-        if (!data)
-            return;
+        for (auto& uniform : uniforms)
+        {
+            std::type_index type = uniform.second.GetType();
+            String name = uniform.second.GetName();
 
-        for (auto& Mat4 : data->Mat4)
-            SetUniformMatrix4fv(Mat4.first, Mat4.second);
+            if (type == typeid(int))
+                SetUniform1i(name, uniform.second.GetValue<int>());
+            else if (type == typeid(float))
+                SetUniform1f(name, uniform.second.GetValue<float>());
+            else if (type == typeid(Maths::mat4))
+                SetUniformMatrix4fv(name, uniform.second.GetValue<Maths::mat4>());
+            else if (type == typeid(Maths::vec4))
+                SetUniform4fv(name, uniform.second.GetValue<Maths::vec4>());
+            else if (type == typeid(Maths::vec3))
+                SetUniform3fv(name, uniform.second.GetValue<Maths::vec3>());
+            else if (type == typeid(Maths::vec2))
+                SetUniform2fv(name, uniform.second.GetValue<Maths::vec2>());
+            else if (type == typeid(int*))
+                SetUniform1iv(name, uniform.second.GetValue<int*>());
 
-        for (auto& Vec4 : data->Vec4)
-            SetUniform4fv(Vec4.first, Vec4.second);
-
-        for (auto& Vec3 : data->Vec3)
-            SetUniform3fv(Vec3.first, Vec3.second);
-
-        for (auto& Float : data->Float)
-            SetUniform1f(Float.first, Float.second);
-
-        for (auto& Int : data->Int)
-            SetUniform1i(Int.first, Int.second);
-
-        for (auto& IntPtr : data->IntPtr)
-            SetUniform1iv(IntPtr.first, IntPtr.second);
-
-        for (auto& Bool : data->Bool)
-            SetUniform1i(Bool.first, Bool.second);
-
-        for (auto& UInt32 : data->UInt32)
-            SetUniform1ui(UInt32.first, UInt32.second);
-
+        }
     }
 
     void OpenGLShader::OnImGuiRender()

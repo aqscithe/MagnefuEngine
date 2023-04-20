@@ -46,8 +46,9 @@ namespace Magnefu
 		
 	private: 
 		std::unordered_map<String, Uniform> m_Uniforms;
-		//MaterialProps m_Props;
-		//Ref<SceneData> m_RenderData;
+		TextureMap  m_TextureMap;
+		String		m_Name;
+		String		m_Library;
 		Ref<Shader> m_Shader;
 		uint32_t m_ID;
 	};

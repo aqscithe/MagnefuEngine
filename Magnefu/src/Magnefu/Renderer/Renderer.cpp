@@ -132,7 +132,7 @@ namespace Magnefu
         vao->AddVertexBuffer(vbo);
         vao->SetIndexBuffer(ibo);
 
-        Ref<Shader> shader = Shader::Create("res/shaders/Plane.shader");
+        Ref<Material> material = Material::Create("res/shaders/Plane.shader");
 
         s_Data->MVP =
             Application::Get().GetWindow().GetSceneCamera()->CalculateVP() *
@@ -140,9 +140,9 @@ namespace Magnefu
             Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) *
             Maths::scale(data.Size.x);
             
-        shader->Bind();
-        shader->SetUniformMatrix4fv("u_MVP", s_Data->MVP);
-
+        material->SetUniformValue("u_MVP", s_Data->MVP);
+        material->Bind();
+        
         RenderCommand::DrawIndexed(vao);
     }
 
@@ -279,7 +279,7 @@ namespace Magnefu
         vao->AddVertexBuffer(vbo);
         vao->SetIndexBuffer(ibo);
 
-        Ref<Shader> shader = Shader::Create("res/shaders/Sphere.shader");
+        Ref<Material> material = Material::Create("res/shaders/Sphere.shader");
 
         s_Data->MVP =
             Application::Get().GetWindow().GetSceneCamera()->CalculateVP() *
@@ -287,9 +287,9 @@ namespace Magnefu
             Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) *
             Maths::scale(data.Radius);
 
-        shader->Bind();
-        shader->SetUniformMatrix4fv("u_MVP", s_Data->MVP);
-        shader->SetUniform3fv("u_Color", data.Color);
+        material->SetUniformValue("u_MVP", s_Data->MVP);
+        material->SetUniformValue("u_Color", data.Color);
+        material->Bind();
 
         RenderCommand::DrawIndexed(vao);
     }

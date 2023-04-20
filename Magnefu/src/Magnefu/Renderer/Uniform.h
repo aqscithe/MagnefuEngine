@@ -55,7 +55,7 @@ namespace Magnefu
         }
 
         template <typename T>
-        T& GetValue() {
+        const T& GetValue() const {
             return std::get<T>(m_Value);
         }
 
@@ -71,6 +71,6 @@ namespace Magnefu
         std::string m_Name;
         //std::size_t m_HashCode;
         std::type_index m_TypeIndex;
-        std::variant<int, int*, float, Maths::mat4, Maths::vec4, Maths::vec3, Maths::vec2> m_Value; // Support int, float, and vec3 values
+        std::variant<int, int*, float, Maths::mat4, Maths::vec4, Maths::vec3, Maths::vec2> m_Value;
     };
 }

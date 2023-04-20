@@ -27,34 +27,39 @@ namespace Magnefu
         
         for (auto& data : uniformData)
         {
-            if (data.second == "int")
+            if (data.second == "sampler2D" || data.second == "int")
                 SetUniformValue(data.first, int());
             else if (data.second == "float")
                 SetUniformValue(data.first, float());
-            else if (data.second == "int*")
-                SetUniformValue(data.first, (int*)nullptr);
-            else if (data.second == "vec2")
-                SetUniformValue(data.first, Maths::vec2());
-            else if (data.second == "vec3")
-                SetUniformValue(data.first, Maths::vec3());
-            else if (data.second == "vec4")
-                SetUniformValue(data.first, Maths::vec4());
             else if (data.second == "mat4")
                 SetUniformValue(data.first, Maths::mat4());
+            else if (data.second == "vec3")
+                SetUniformValue(data.first, Maths::vec3());
+            else if (data.second == "vec2")
+                SetUniformValue(data.first, Maths::vec2());
+            else if (data.second == "vec4")
+                SetUniformValue(data.first, Maths::vec4());
+            else if (data.second == "int*")
+                SetUniformValue(data.first, (int*)nullptr);
+            
         }
         uniformData.clear();
 
         m_ID = static_cast<uint32_t>(Application::Get().GetResourceCache().size<OpenGLMaterial>());
         
-        
-        /*m_Props = MaterialProps();
         m_Shader->Bind();
-        auto& Textures = m_Props.TextureMap;
-        for (auto& texture : Textures)
+
+        // SET DEFAULT TEXTURES
+        m_TextureMap[TextureType::DIFFUSE] = Texture::Create();
+        for (auto& texture : m_TextureMap)
         {
             String uniformName = "u_" + TextureTypeNameMap[texture.first] + "Texture";
             m_Shader->SetUniform1i(uniformName, (int)texture.second->GetSlot());
-        }*/
+        }
+
+        // TODO: Textures do not change often. Any way to only send the texture uniform if there was an update
+        // to the selected texture slot?
+        
         
     }
 
@@ -82,43 +87,21 @@ namespace Magnefu
     void OpenGLMaterial::Bind()
     {
         m_Shader->Bind();
-        //auto& textures = m_Props.TextureMap;
 
         // SET SHADER UNIFORMS
-        for (auto& uniform : m_Uniforms)
-        {        
-            std::type_index type = uniform.second.GetType();
-            String name = uniform.second.GetName();
+        m_Shader->UploadUniforms(m_Uniforms);
 
-
-            if (type == typeid(int))
-                m_Shader->SetUniform1i(name, uniform.second.GetValue<int>());
-            else if (type == typeid(float))
-                m_Shader->SetUniform1f(name, uniform.second.GetValue<float>());
-            else if (type == typeid(Maths::mat4))
-                m_Shader->SetUniformMatrix4fv(name, uniform.second.GetValue<Maths::mat4>());
-            else if (type == typeid(Maths::vec4))
-                m_Shader->SetUniform4fv(name, uniform.second.GetValue<Maths::vec4>());
-            else if (type == typeid(Maths::vec3))
-                m_Shader->SetUniform3fv(name, uniform.second.GetValue<Maths::vec3>());
-            else if (type == typeid(Maths::vec2))
-                m_Shader->SetUniform2fv(name, uniform.second.GetValue<Maths::vec2>());
-            else if (type == typeid(int*))
-                m_Shader->SetUniform1iv(name, uniform.second.GetValue<int*>());
-
-        }
-
-        //for (auto& texture : textures)
-        //    texture.second->Bind();
+        // BIND TEXTURES
+        for (auto& texture : m_TextureMap)
+            texture.second->Bind();
     }
 
     void OpenGLMaterial::Unbind()
     {
         m_Shader->Unbind();
-        /*auto& textures = m_Props.TextureMap;
 
-        for (auto& texture : textures)
-            texture.second->Unbind();*/
+        for (auto& texture : m_TextureMap)
+            texture.second->Unbind();
     }
 
     void OpenGLMaterial::SetUniformValueImpl(const std::string& name, const int& value)

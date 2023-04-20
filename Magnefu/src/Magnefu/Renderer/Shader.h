@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Magnefu/Renderer/Scene.h"
+#include "Magnefu/Renderer/Uniform.h"
 
 
 namespace Magnefu
@@ -25,7 +25,7 @@ namespace Magnefu
 		virtual void SetUniform1iv(const String& name, const int* value) = 0;
 		virtual void SetUniform1ui(const String& name, const unsigned int value) = 0;
 
-		virtual void UploadUniforms(const Ref<SceneData>& data) = 0;
+		virtual void UploadUniforms(const std::unordered_map<String, Uniform>& uniforms) = 0;
 
 		virtual std::vector<std::pair<String, String>>& GetUniforms() = 0;
 
