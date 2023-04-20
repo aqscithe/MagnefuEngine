@@ -30,6 +30,6 @@ out vec4 fragColor;
 void main()
 {
 	vec3 Diffuse = vec3(texture(u_DiffuseTexture, TexCoords));
-	fragColor = vec4(Diffuse, 1.0);
-	//fragColor = vec4(u_Color, 1.0);
+	vec3 Blend = mix(Diffuse, u_Color, 0.5);
+	fragColor = vec4(Blend, 1.0);
 }

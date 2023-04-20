@@ -139,7 +139,6 @@ namespace Magnefu
 
         // Shouldn't do this calculation every frame
         //ImGui::Text("Frame time: %.3f ms/frame | Frame Rate: %.1f FPS", deltaTime * 1000.f, 1.f / deltaTime);
-        ImGui::Separator();
         if (ImGui::CollapsingHeader("CONTROLS", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::Text("APP CONTROLS");
@@ -156,6 +155,9 @@ namespace Magnefu
             ImGui::Bullet(); ImGui::Text("Adjust FOV:     Rotate Middle Mouse Button");
         }
         ImGui::End();
+
+        m_Window->OnImGuiRender();
+        Renderer::OnImGuiRender();
 
 #ifdef MF_DEBUG
         ImGui::Begin("Stats");

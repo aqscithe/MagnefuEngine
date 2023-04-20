@@ -23,8 +23,15 @@ namespace Magnefu
     {
         m_Shader = Shader::Create(shaderFile);
 
-        auto& uniformData = m_Shader->GetUniforms(); 
-        
+        InitUniforms();
+
+        m_ID = static_cast<uint32_t>(Application::Get().GetResourceCache().size<OpenGLMaterial>());
+    }
+
+    void OpenGLMaterial::InitUniforms()
+    {
+        auto& uniformData = m_Shader->GetUniforms();
+
         for (auto& data : uniformData)
         {
             if (data.second == "sampler2D" || data.second == "int")
@@ -41,12 +48,10 @@ namespace Magnefu
                 SetUniformValue(data.first, Maths::vec4());
             else if (data.second == "int*")
                 SetUniformValue(data.first, (int*)nullptr);
-            
+
         }
         uniformData.clear();
 
-        m_ID = static_cast<uint32_t>(Application::Get().GetResourceCache().size<OpenGLMaterial>());
-        
         m_Shader->Bind();
 
         // SET DEFAULT TEXTURES
@@ -59,8 +64,6 @@ namespace Magnefu
 
         // TODO: Textures do not change often. Any way to only send the texture uniform if there was an update
         // to the selected texture slot?
-        
-        
     }
 
     /*void OpenGLMaterial::InitRenderData(const Ref<SceneData>& renderData)
@@ -72,16 +75,21 @@ namespace Magnefu
     {
         ImGui::Text("ID: %d", m_ID);
         ImGui::SeparatorText("Shader");
+        if (ImGui::Button("Recompile"))
+        {
+            m_Shader->Recompile();
+            InitUniforms();
+        }
         m_Shader->OnImGuiRender();
         ImGui::SeparatorText("Textures");
-        //auto& Textures = m_Props.TextureMap;
-        //if (ImGui::CollapsingHeader("Diffuse"))
-        //    Textures[TextureType::DIFFUSE]->OnImGuiRender();
+        if (!m_TextureMap.empty())
+        {
+            auto& Textures = m_TextureMap;
+            if (ImGui::CollapsingHeader("Diffuse"))
+                Textures[TextureType::DIFFUSE]->OnImGuiRender();
+        }
+        
 
-    }
-
-    void OpenGLMaterial::Init()
-    {  
     }
 
     void OpenGLMaterial::Bind()

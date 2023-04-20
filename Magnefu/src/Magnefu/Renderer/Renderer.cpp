@@ -10,19 +10,42 @@
 #include "Magnefu/Core/Timer.h"
 #include "Magnefu/Core/MemoryAllocation/LinkedListAlloc.h"
 
+#include "imgui.h"
+
 
 namespace Magnefu
 {
     struct RenderData
     {
         Maths::mat4 MVP;
+        Material* PlaneMat;
+        Material* CubeMat;
+        Material* SphereMat;
+    };
+
+    // TODO: Could these work as bit flags?
+    struct RenderSettings
+    {
+        bool Blending;
+        bool DepthTest;
     };
 
     static RenderData* s_Data = nullptr;
+    static RenderSettings* s_Settings = nullptr;
 
     void Renderer::Init()
     {
+        RenderCommand::EnableBlending();
+        RenderCommand::EnableDepthTest();
+
         s_Data = static_cast<RenderData*>(StackAllocator::Get()->Allocate(sizeof(RenderData), sizeof(Maths::mat4)));
+        s_Data->PlaneMat = Material::Create("res/shaders/Plane.shader").get();
+        s_Data->CubeMat = Material::Create("res/shaders/Cube.shader").get();
+        s_Data->SphereMat = Material::Create("res/shaders/Sphere.shader").get();
+
+        s_Settings = static_cast<RenderSettings*>(StackAllocator::Get()->Allocate(sizeof(RenderSettings)));
+        s_Settings->Blending = true;
+        s_Settings->DepthTest = true;
     }
 
     void Renderer::BeginScene()
@@ -36,8 +59,6 @@ namespace Magnefu
 
     void Renderer::Submit(const Ref<VertexArray>& va, const Ref<Material>& material )
     {
-        // When a renderer binds a material, all the necessary uniforms from the renderer and the material
-        // in question and upload the values in one contiguous buffer.
         material->Bind();
         RenderCommand::DrawIndexed(va);
     }
@@ -73,16 +94,14 @@ namespace Magnefu
         vao->AddVertexBuffer(vbo);
         vao->SetIndexBuffer(ibo);
 
-        Ref<Material> material = Material::Create("res/shaders/Plane.shader");
-
         s_Data->MVP = 
             Application::Get().GetWindow().GetSceneCamera()->CalculateVP() * 
             Maths::translate(data.Translation) * 
             Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) * 
             Maths::scale(Maths::vec3(data.Size.xy, 0.1f));
 
-        material->SetUniformValue("u_MVP", s_Data->MVP);
-        material->Bind();
+        s_Data->PlaneMat->SetUniformValue("u_MVP", s_Data->MVP);
+        s_Data->PlaneMat->Bind();
 
         RenderCommand::DrawIndexed(vao);
     }
@@ -132,16 +151,14 @@ namespace Magnefu
         vao->AddVertexBuffer(vbo);
         vao->SetIndexBuffer(ibo);
 
-        Ref<Material> material = Material::Create("res/shaders/Plane.shader");
-
         s_Data->MVP =
             Application::Get().GetWindow().GetSceneCamera()->CalculateVP() *
             Maths::translate(data.Translation) *
             Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) *
             Maths::scale(data.Size.x);
             
-        material->SetUniformValue("u_MVP", s_Data->MVP);
-        material->Bind();
+        s_Data->CubeMat->SetUniformValue("u_MVP", s_Data->MVP);
+        s_Data->CubeMat->Bind();
         
         RenderCommand::DrawIndexed(vao);
     }
@@ -279,17 +296,15 @@ namespace Magnefu
         vao->AddVertexBuffer(vbo);
         vao->SetIndexBuffer(ibo);
 
-        Ref<Material> material = Material::Create("res/shaders/Sphere.shader");
-
         s_Data->MVP =
             Application::Get().GetWindow().GetSceneCamera()->CalculateVP() *
             Maths::translate(data.Translation) *
             Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) *
             Maths::scale(data.Radius);
 
-        material->SetUniformValue("u_MVP", s_Data->MVP);
-        material->SetUniformValue("u_Color", data.Color);
-        material->Bind();
+        s_Data->SphereMat->SetUniformValue("u_MVP", s_Data->MVP);
+        s_Data->SphereMat->SetUniformValue("u_Color", data.Color);
+        s_Data->SphereMat->Bind();
 
         RenderCommand::DrawIndexed(vao);
     }
@@ -305,6 +320,52 @@ namespace Magnefu
 
     void Renderer::DrawTriangularPyramid()
     {
+    }
+
+    void Renderer::OnImGuiRender()
+    {
+        ImGui::Begin("Renderer");
+        if (ImGui::BeginTabBar("Renderer", ImGuiTabBarFlags_None))
+        {
+            if (ImGui::BeginTabItem("Settings"))
+            {
+                if (ImGui::Checkbox("Blending", &s_Settings->Blending))
+                {
+                    //s_Settings->Blending ^= s_Settings->Blending;
+                    if (s_Settings->Blending)
+                    {
+                        RenderCommand::EnableBlending();
+                        s_Settings->Blending = true;
+                    }
+                    else
+                    {
+                        RenderCommand::DisableBlending();
+                        s_Settings->Blending = false;
+                    }
+                }
+                if (ImGui::Checkbox("Depth Test", &s_Settings->DepthTest))
+                {
+                    if (s_Settings->DepthTest)
+                    {
+                        RenderCommand::EnableDepthTest();
+                        s_Settings->DepthTest = true;
+                    }
+                    else
+                    {
+                        RenderCommand::DisableDepthTest();
+                        s_Settings->DepthTest = false;
+                    }
+                }
+
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+        }
+        ImGui::End();
+
+        s_Data->PlaneMat->OnImGuiRender();
+        s_Data->CubeMat->OnImGuiRender();
+        s_Data->SphereMat->OnImGuiRender();
     }
 
 

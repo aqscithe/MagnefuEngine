@@ -42,7 +42,7 @@ namespace Magnefu
 		//void NullifyTextures();
 
 	private:
-		void Init();
+		void InitUniforms();
 		
 	private: 
 		std::unordered_map<String, Uniform> m_Uniforms;

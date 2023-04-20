@@ -152,6 +152,7 @@ namespace Magnefu
         glDeleteProgram(m_RendererID);
         ShaderProgramSource source = ParseShader(m_Filepath);
         CreateShader(source.VertexSource, source.FragmentSource);
+        m_uniformLocationAndNameMap.clear();
     }
 
 
@@ -253,10 +254,10 @@ namespace Magnefu
     void OpenGLShader::OnImGuiRender()
     {
         ImGui::Text("Shader: %s", m_Filepath.c_str());
-        if (ImGui::Button("Recompile"))
-        {
-            Recompile();
-        }
+        //if (ImGui::Button("Recompile"))
+        //{
+        //    Recompile();
+        //}
     }
 
     void OpenGLShader::ClearCache()

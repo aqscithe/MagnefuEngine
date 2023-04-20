@@ -32,12 +32,10 @@ namespace Magnefu
 		m_Sphere.Translation = { 0.f, 0.f,0.f };
 		m_Sphere.Angle = 0.f;
 
-		RenderCommand::EnableDepthTest();
 	}
 
 	TestPrimitives::~TestPrimitives()
 	{
-		RenderCommand::DisableDepthTest();
 	}
 
 	void TestPrimitives::OnUpdate(float deltaTime)
@@ -97,5 +95,6 @@ namespace Magnefu
 			}
 			ImGui::EndTabBar();
 		}
+		
 	}
 }

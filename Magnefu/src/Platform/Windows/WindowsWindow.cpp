@@ -6,6 +6,8 @@
 #include "Platform/OpenGL/OpenGLContext.h"
 #include "Magnefu/Renderer/Camera.h"
 
+#include "imgui.h"
+
 
 namespace Magnefu
 {
@@ -247,6 +249,21 @@ namespace Magnefu
 			camData.Pitch = Maths::toRadians(89.0f);
 		if (camData.Pitch < Maths::toRadians(-89.0f))
 			camData.Pitch = Maths::toRadians(-89.0f);
+	}
+
+	void WindowsWindow::OnImGuiRender()
+	{
+		ImGui::Begin("Renderer");
+		if (ImGui::BeginTabBar("Renderer", ImGuiTabBarFlags_None))
+		{
+			if (ImGui::BeginTabItem("Info"))
+			{
+				m_Context->OnImGuiRender();
+				ImGui::EndTabItem();
+			}
+			ImGui::EndTabBar();
+		}
+		ImGui::End();
 	}
 
 }
