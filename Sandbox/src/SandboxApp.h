@@ -54,7 +54,7 @@ public:
 		if (m_ActiveTest)
 		{
 			m_ActiveTest->OnRender(renderInterpCoeff);
-			ImGui::Begin("Tests");
+			ImGui::Begin("Scene List");
 			if (m_ActiveTest != m_TestMenu && ImGui::Button("<-"))
 			{
 				delete m_ActiveTest;

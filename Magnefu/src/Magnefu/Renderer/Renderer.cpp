@@ -50,14 +50,14 @@ namespace Magnefu
 
     void Renderer::BeginScene()
     {
-        
+
     }
 
     void Renderer::EndScene()
     {
     }
 
-    void Renderer::Submit(const Ref<VertexArray>& va, const Ref<Material>& material )
+    void Renderer::Submit(const Ref<VertexArray>& va, const Ref<Material>& material)
     {
         material->Bind();
         RenderCommand::DrawIndexed(va);
@@ -94,10 +94,10 @@ namespace Magnefu
         vao->AddVertexBuffer(vbo);
         vao->SetIndexBuffer(ibo);
 
-        s_Data->MVP = 
-            Application::Get().GetWindow().GetSceneCamera()->CalculateVP() * 
-            Maths::translate(data.Translation) * 
-            Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) * 
+        s_Data->MVP =
+            Application::Get().GetWindow().GetSceneCamera()->CalculateVP() *
+            Maths::translate(data.Translation) *
+            Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) *
             Maths::scale(Maths::vec3(data.Size.xy, 0.1f));
 
         s_Data->PlaneMat->SetUniformValue("u_MVP", s_Data->MVP);
@@ -156,10 +156,10 @@ namespace Magnefu
             Maths::translate(data.Translation) *
             Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) *
             Maths::scale(data.Size.x);
-            
+
         s_Data->CubeMat->SetUniformValue("u_MVP", s_Data->MVP);
         s_Data->CubeMat->Bind();
-        
+
         RenderCommand::DrawIndexed(vao);
     }
 
@@ -261,7 +261,7 @@ namespace Magnefu
             }
         }
 
-        
+
         std::size_t i, j;
         std::size_t count = vertices.size();
         std::vector<float> vertexBufferData;
@@ -311,7 +311,7 @@ namespace Magnefu
 
     void Renderer::DrawIcoSphere(const IcoSphereData& data)
     {
-    
+
     }
 
     void Renderer::DrawCubeSphere()
@@ -331,7 +331,6 @@ namespace Magnefu
             {
                 if (ImGui::Checkbox("Blending", &s_Settings->Blending))
                 {
-                    //s_Settings->Blending ^= s_Settings->Blending;
                     if (s_Settings->Blending)
                     {
                         RenderCommand::EnableBlending();
@@ -368,7 +367,4 @@ namespace Magnefu
         s_Data->SphereMat->OnImGuiRender();
     }
 
-
 }
-
-

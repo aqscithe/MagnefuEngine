@@ -73,23 +73,32 @@ namespace Magnefu
 
     void OpenGLMaterial::OnImGuiRender()
     {
-        ImGui::Text("ID: %d", m_ID);
-        ImGui::SeparatorText("Shader");
-        if (ImGui::Button("Recompile"))
+        ImGui::Begin("Materials");
+        ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
+        if (ImGui::BeginTabBar("Materials", tab_bar_flags))
         {
-            m_Shader->Recompile();
-            InitUniforms();
+            if (ImGui::BeginTabItem(std::to_string(m_ID).c_str()))
+            {
+                ImGui::Text("ID: %d", m_ID);
+                ImGui::SeparatorText("Shader");
+                if (ImGui::Button("Recompile"))
+                {
+                    m_Shader->Recompile();
+                    InitUniforms();
+                }
+                m_Shader->OnImGuiRender();
+                ImGui::SeparatorText("Textures");
+                if (!m_TextureMap.empty())
+                {
+                    auto& Textures = m_TextureMap;
+                    if (ImGui::CollapsingHeader("Diffuse"))
+                        Textures[TextureType::DIFFUSE]->OnImGuiRender();
+                }
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
         }
-        m_Shader->OnImGuiRender();
-        ImGui::SeparatorText("Textures");
-        if (!m_TextureMap.empty())
-        {
-            auto& Textures = m_TextureMap;
-            if (ImGui::CollapsingHeader("Diffuse"))
-                Textures[TextureType::DIFFUSE]->OnImGuiRender();
-        }
-        
-
+        ImGui::End();
     }
 
     void OpenGLMaterial::Bind()

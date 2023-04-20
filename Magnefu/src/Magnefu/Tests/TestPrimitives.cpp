@@ -61,6 +61,7 @@ namespace Magnefu
 
 	void TestPrimitives::OnImGUIRender()
 	{
+		ImGui::Begin("Scene");
 		ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
 		if (ImGui::BeginTabBar("Scene", tab_bar_flags))
 		{
@@ -95,6 +96,7 @@ namespace Magnefu
 			}
 			ImGui::EndTabBar();
 		}
+		ImGui::End();
 		
 	}
 }
