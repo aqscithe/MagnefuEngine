@@ -25,6 +25,8 @@
 #include "Magnefu/Core/Log.h"
 #include "Magnefu/Core/SmartPointers.h"
 
+#include "Magnefu/Debug/Instrumentor.h"
+
 #ifdef MF_PLATFORM_WINDOWS
 #include <Windows.h>
 #endif

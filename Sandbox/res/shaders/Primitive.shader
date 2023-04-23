@@ -68,7 +68,7 @@ void main()
 					// shininess + ...
 		float Ps = (32.0 + 2.0) / (2.0 * PI);
 																  // shininess(32)      // specular color * ks
-		BRDF += pow(max(dot(ReflectionVector, ViewVector), 0.0), 32.0) * Ps * (VertexColor * vec3(0.75));
+		BRDF += pow(max(dot(ReflectionVector, ViewVector), 0.0), 32.0) * Ps * (VertexColor * vec3(0.5));
 
 		radiance += BRDF * Irradiance * u_LightColor;
 	}

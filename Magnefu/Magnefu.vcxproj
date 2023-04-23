@@ -204,7 +204,7 @@
     <ClInclude Include="src\Magnefu\ResourceManagement\ResourceCache.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLShader.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLTexture.h" />
-    <ClInclude Include="src\Magnefu\Core\Timer.h" />
+    <ClInclude Include="src\Magnefu\Debug\Instrumentor.h" />
     <ClInclude Include="src\mfpch.h" />
     <ClInclude Include="vendor\GLAD\include\KHR\khrplatform.h" />
     <ClInclude Include="vendor\GLAD\include\glad\glad.h" />
@@ -406,7 +406,6 @@
     <ClCompile Include="src\Magnefu\ResourceManagement\ResourceCache.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLShader.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLTexture.cpp" />
-    <ClCompile Include="src\Magnefu\Core\Timer.cpp" />
     <ClCompile Include="src\mfpch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
@@ -430,6 +429,9 @@
     <ProjectReference Include="vendor\imgui\ImGui.vcxproj">
       <Project>{C0FF640D-2C14-8DBE-F595-301E616989EF}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Magnefu\Core\core.cfg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

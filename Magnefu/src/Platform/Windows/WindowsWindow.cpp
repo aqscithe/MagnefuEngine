@@ -20,6 +20,7 @@ namespace Magnefu
 
 	Window* Window::Create(const WindowProps& props)
 	{
+		MF_PROFILE_FUNCTION();
 		return new WindowsWindow(props);
 	}
 
@@ -181,6 +182,7 @@ namespace Magnefu
 
 	void WindowsWindow::OnUpdate()
 	{
+		MF_PROFILE_FUNCTION();
 		MouseUpdates();
 		processInput();
 		glfwPollEvents();

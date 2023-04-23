@@ -13,7 +13,6 @@
 #include "Magnefu/Core/MemoryAllocation/LinkedListAlloc.h"
 
 
-
 namespace Magnefu
 {
 	class  Application

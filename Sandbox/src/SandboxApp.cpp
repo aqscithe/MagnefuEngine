@@ -5,7 +5,6 @@
 
 Sandbox::Sandbox()
 {
-	MF_INFO("HELLO FROM SANDBOX APP");
 	PushLayer(new TestLayer());
 }
 

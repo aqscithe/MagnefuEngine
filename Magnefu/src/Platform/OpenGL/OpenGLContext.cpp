@@ -17,6 +17,8 @@ namespace Magnefu
 
 	void OpenGLContext::Init()
 	{
+		MF_PROFILE_FUNCTION();
+
 		glfwMakeContextCurrent(m_WindowHandle);
 		int success = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 		MF_CORE_ASSERT(success, "Failed to initialize GLAD");
@@ -32,6 +34,7 @@ namespace Magnefu
 
 	void OpenGLContext::SwapBuffers()
 	{
+		MF_PROFILE_FUNCTION();
 		glfwSwapBuffers(m_WindowHandle);
 	}
 

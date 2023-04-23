@@ -7,6 +7,8 @@ namespace Magnefu
 {
 	OpenGLVertexBuffer::OpenGLVertexBuffer(uint32_t size, float* data)
 	{
+		MF_PROFILE_FUNCTION();
+
 		glCreateBuffers(1, &m_RendererID);
 		glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
 
@@ -27,11 +29,14 @@ namespace Magnefu
 
 	void OpenGLVertexBuffer::Bind() const
 	{
+		MF_PROFILE_FUNCTION();
+
 		glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
 	}
 
 	void OpenGLVertexBuffer::Unbind() const
 	{
+		MF_PROFILE_FUNCTION();
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
@@ -40,6 +45,8 @@ namespace Magnefu
 	OpenGLIndexBuffer::OpenGLIndexBuffer(uint32_t count, uint32_t* data) :
 		m_Count(count)
 	{
+		MF_PROFILE_FUNCTION();
+
 		glCreateBuffers(1, &m_RendererID);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);
 		if (data)
@@ -59,11 +66,13 @@ namespace Magnefu
 
 	void OpenGLIndexBuffer::Bind() const
 	{
+		MF_PROFILE_FUNCTION();
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);
 	}
 
 	void OpenGLIndexBuffer::Unbind() const
 	{
+		MF_PROFILE_FUNCTION();
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 }

@@ -34,7 +34,7 @@ namespace Magnefu
 		virtual void OnImGuiRender() const = 0;
 
 
-		static Ref<Texture> Create(const std::string& filepath = "res/textures/pluto.png");
+		static Ref<Texture> Create(const std::string& filepath = "res/textures/darkmarble/dark-marbled-stone_d.jpg");
 		
 	};
 

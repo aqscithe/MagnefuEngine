@@ -240,7 +240,7 @@
     <ClInclude Include="src\Platform\OpenGL\OpenGLTexture.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\Timer.h">
+    <ClInclude Include="src\Magnefu\Debug\Instrumentor.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\mfpch.h">
@@ -827,9 +827,6 @@
     <ClCompile Include="src\Platform\OpenGL\OpenGLTexture.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Core\Timer.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\mfpch.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -870,5 +867,8 @@
     <ClCompile Include="src\Magnefu\Core\MemoryAllocation\PoolAllocator.cpp" />
     <ClCompile Include="src\Magnefu\Tests\TestPrimitives.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Light.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Magnefu\Core\core.cfg" />
   </ItemGroup>
 </Project>

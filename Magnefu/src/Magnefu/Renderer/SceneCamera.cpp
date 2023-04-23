@@ -5,7 +5,6 @@
 #include "Magnefu/Core/Events/KeyCodes.h"
 
 #include "Magnefu/Renderer/RenderCommand.h"
-#include "Magnefu/Core/Timer.h"
 
 #include "imgui.h"
 
@@ -15,7 +14,7 @@ namespace Magnefu
 
 	SceneCamera::SceneCamera(const CameraOrientation& orientation, const CameraProps& props)
 	{
-		Timer timer;
+		MF_PROFILE_FUNCTION();
 		Init(orientation, props);
 	}
 

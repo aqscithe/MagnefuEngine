@@ -11,11 +11,17 @@ namespace Magnefu
     OpenGLShader::OpenGLShader(const String& filepath)
         : m_Filepath(filepath), m_RendererID(0)
     {
+        MF_PROFILE_FUNCTION();
 
-        ShaderProgramSource source = ParseShader(m_Filepath);
-        CreateShader(source.VertexSource, source.FragmentSource);
+        Init();
 
         m_Recompile = false;
+    }
+
+    void OpenGLShader::Init()
+    {
+        ShaderProgramSource source = ParseShader(m_Filepath);
+        CreateShader(source.VertexSource, source.FragmentSource);
     }
 
     OpenGLShader::~OpenGLShader()
@@ -149,20 +155,22 @@ namespace Magnefu
 
     void OpenGLShader::Recompile()
     {
+        MF_PROFILE_FUNCTION();
         glDeleteProgram(m_RendererID);
-        ShaderProgramSource source = ParseShader(m_Filepath);
-        CreateShader(source.VertexSource, source.FragmentSource);
+        Init();
         m_uniformLocationAndNameMap.clear();
     }
 
 
     void OpenGLShader::Bind() const
     {
+        MF_PROFILE_FUNCTION();
         glUseProgram(m_RendererID);
     }
 
     void OpenGLShader::Unbind() const
     {
+        MF_PROFILE_FUNCTION();
         glUseProgram(0);
     }
 

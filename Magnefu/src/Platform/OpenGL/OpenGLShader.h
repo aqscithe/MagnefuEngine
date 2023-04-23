@@ -56,6 +56,7 @@ namespace Magnefu
 		void ClearCache();
 
 	private:
+		void Init();
 		ShaderProgramSource ParseShader(const String& filepath);
 
 		void CreateShader(const String& vShaderSource, const String& fShaderSource);

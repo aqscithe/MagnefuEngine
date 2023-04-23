@@ -21,6 +21,8 @@ namespace Magnefu
 
     OpenGLMaterial::OpenGLMaterial(const String& shaderFile)
     {
+        MF_PROFILE_FUNCTION();
+
         m_Shader = Shader::Create(shaderFile);
 
         InitUniforms();
@@ -105,6 +107,8 @@ namespace Magnefu
 
     void OpenGLMaterial::Bind()
     {
+        MF_PROFILE_FUNCTION();
+
         m_Shader->Bind();
 
         // SET SHADER UNIFORMS
@@ -117,6 +121,7 @@ namespace Magnefu
 
     void OpenGLMaterial::Unbind()
     {
+        MF_PROFILE_FUNCTION();
         m_Shader->Unbind();
 
         for (auto& texture : m_TextureMap)

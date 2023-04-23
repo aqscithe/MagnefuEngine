@@ -12,13 +12,13 @@ namespace Magnefu
 		m_Camera = std::static_pointer_cast<SceneCamera>(Application::Get().GetWindow().GetSceneCamera());
 		m_Camera->SetDefaultProps();
 
-		m_Plane.Size = { 10.f, 10.f, 0.f };
+		m_Plane.Size = { 20.f, 20.f, 0.f };
 		m_Plane.Color = { 0.5f, 0.5f, 0.5f };
 		m_Plane.Rotation = { -1.f, 0.f, 0.f };
 		m_Plane.Translation = { 0.f, -1.f, 0.f };
 		m_Plane.Angle = 90.f;
 
-		m_Cube.Size = { 1.f, 0.f, 0.f };
+		m_Cube.Size = { 1.f, 1.f, 1.f };
 		m_Cube.Color = { 1.f, 0.5f, 0.85f };
 		m_Cube.Rotation = { 0.f, 0.f, 0.f };
 		m_Cube.Translation = { 0.f, 0.f,0.f };

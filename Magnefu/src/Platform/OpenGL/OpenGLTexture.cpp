@@ -30,12 +30,21 @@ namespace Magnefu
 	OpenGLTexture::OpenGLTexture(const std::string& filepath)
 		: m_Filepath(filepath)
 	{
+		MF_PROFILE_FUNCTION();
 		m_Bound = false;
 
 		m_Slot = Application::Get().GetResourceCache().size<OpenGLTexture>();
 
-		LoadTexture();
-		GenerateTexture();
+
+		{
+			MF_PROFILE_SCOPE("Load Texture");
+			LoadTexture();
+		}
+
+		{
+			MF_PROFILE_SCOPE("Generate Texture");
+			GenerateTexture();
+		}
 
 	}
 
@@ -76,6 +85,7 @@ namespace Magnefu
 
 	void OpenGLTexture::Bind()
 	{
+		MF_PROFILE_FUNCTION();
 		if (m_Bound) return;
 
 		glActiveTexture(GL_TEXTURE0 + m_Slot);
@@ -85,6 +95,7 @@ namespace Magnefu
 
 	void OpenGLTexture::Unbind()
 	{
+		MF_PROFILE_FUNCTION();
 		glBindTexture(GL_TEXTURE_2D, 0);
 		m_Bound = false;
 	}
@@ -107,17 +118,23 @@ namespace Magnefu
 
 	void OpenGLTexture::GenerateTexImage()
 	{
-		if (!m_texData)
-			MF_CORE_WARN("TEXTURE -- No valid texture data to generate texture image.");
-		else
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_texData);
-			glGenerateMipmap(GL_TEXTURE_2D);
+			MF_PROFILE_SCOPE("Generate Tex Image & Mip Maps");
+			if (!m_texData)
+				MF_CORE_WARN("TEXTURE -- No valid texture data to generate texture image.");
+			else
+			{
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_texData);
+				glGenerateMipmap(GL_TEXTURE_2D);
+			}
 		}
 
 
-		if (m_texData)
-			stbi_image_free(m_texData);
+		{
+			MF_PROFILE_SCOPE("Free Texture Data");
+			if (m_texData)
+				stbi_image_free(m_texData);
+		}
 	}
 
 

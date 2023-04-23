@@ -17,12 +17,15 @@ namespace Magnefu
 
 	Application::Application()
 	{
-        MF_CORE_INFO("HELLO FROM APPLICATION");
+        MF_PROFILE_FUNCTION();
         MF_CORE_ASSERT(!s_Instance, "Application instance already exists.");
         s_Instance = this;
 
-        m_Window = Scope<Window>(Window::Create());
-        m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
+        {
+            MF_PROFILE_SCOPE("Window Creation");
+            m_Window = Scope<Window>(Window::Create());
+            m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
+        }
         m_Minimized = false;
 
         m_ImGuiLayer = new ImGuiLayer();
@@ -30,13 +33,15 @@ namespace Magnefu
 
         m_ResourceCache = Scope<ResourceCache>(ResourceCache::Create());
 
-        Renderer::Init();
+        {
+            MF_PROFILE_SCOPE("Renderer Init");
+            Renderer::Init();
+        }
 	}
 
 	Application::~Application()
 	{
-        if (m_ImGuiLayer)
-            delete m_ImGuiLayer;
+        
 	}
 
     bool Application::OnWindowClose(WindowCloseEvent& e)
@@ -92,6 +97,7 @@ namespace Magnefu
 
 	void Application::Run()
 	{        
+        MF_PROFILE_FUNCTION();
         Scope<StackAllocator>& SingleFrameAllocator = StackAllocator::Get();
 
         // TODO: Create setting to switch between locked and unlocked frame rate
@@ -99,41 +105,44 @@ namespace Magnefu
 
         while (m_Running)
         {
-            SingleFrameAllocator->Clear();
+            //SingleFrameAllocator->Clear();
+            MF_PROFILE_SCOPE("Run Loop");
 
-            ts.CalculateDeltaTime();
-            while (ts.TimeLeftInFrame())
             {
+                MF_PROFILE_SCOPE("Application Update");
+
+                ts.CalculateDeltaTime();
+
                 m_Window->OnUpdate();
 
                 for (Layer* layer : m_LayerStack)
                     layer->OnUpdate(ts.GetDeltaTime());
 
-                ts.DecrementTime();
-                // integration formulas to consult when you start physics simulation
-                // https://gafferongames.com/post/fix_your_timestep/
+                OnUpdate(ts.GetDeltaTime());
             }
             
-            OnUpdate(ts.CalculateInterpolationCoeff());
-            
-            if (m_ImGuiLayer)
-                m_ImGuiLayer->BeginFrame();
+            {
+                MF_PROFILE_SCOPE("Application Render");
+                if (m_ImGuiLayer)
+                    m_ImGuiLayer->BeginFrame();
 
 
-            for (Layer* layer : m_LayerStack)
-                layer->OnRender(ts.CalculateInterpolationCoeff());
-            
+                for (Layer* layer : m_LayerStack)
+                    layer->OnRender(ts.GetDeltaTime());
 
-            OnImGuiRender();
 
-            if (m_ImGuiLayer)
-                m_ImGuiLayer->EndFrame();
+                OnImGuiRender();
+
+                if (m_ImGuiLayer)
+                    m_ImGuiLayer->EndFrame();
+            }
 
         }   
     }
 
     void Application::OnImGuiRender()
     {
+        MF_PROFILE_FUNCTION();
         ImGui::Begin("Application");
         //ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
@@ -177,6 +186,11 @@ namespace Magnefu
 
                 }
 
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("TIMERS"))
+            {
+                
                 ImGui::EndTabItem();
             }
             ImGui::EndTabBar();

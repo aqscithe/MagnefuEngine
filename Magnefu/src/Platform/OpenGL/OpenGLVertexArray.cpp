@@ -48,6 +48,7 @@ namespace Magnefu
 
 	void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vbo)
 	{
+		MF_PROFILE_FUNCTION();
 		MF_CORE_ASSERT(vbo->GetLayout().GetElements().size(), "OpenGL - Vertex Buffer missing layout");
 
 		Bind();
