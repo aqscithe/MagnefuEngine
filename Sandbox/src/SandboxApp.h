@@ -7,72 +7,114 @@
 
 // USE STACK ALLOCATOR HERE
 
-class TestLayer : public Magnefu::Layer
+class GameLayer : public Magnefu::Layer
 {
 public:
-	TestLayer() :
-		Layer("Tests")
+	GameLayer() :
+		Layer("3D Primitives")
 	{
-		m_ActiveTest = nullptr;
-		m_TestMenu = nullptr;
+		m_Plane.Size = { 20.f, 20.f, 0.f };
+		m_Plane.Color = { 0.5f, 0.5f, 0.5f };
+		m_Plane.Rotation = { -1.f, 0.f, 0.f };
+		m_Plane.Translation = { 0.f, -1.f, 0.f };
+		m_Plane.Angle = 90.f;
+
+		m_Cube.Size = { 1.f, 1.f, 1.f };
+		m_Cube.Color = { 1.f, 0.5f, 0.85f };
+		m_Cube.Rotation = { 0.f, 0.f, 0.f };
+		m_Cube.Translation = { 0.f, 0.f,0.f };
+		m_Cube.Angle = 0.f;
+
+		m_Sphere.Radius = 1.f;
+		m_Sphere.SectorCount = 32;
+		m_Sphere.StackCount = 13;
+		m_Sphere.Color = { 0.1f, 0.73f, 0.4f };
+		m_Sphere.Rotation = { 0.f, 0.f, 0.f };
+		m_Sphere.Translation = { 0.f, 0.f,0.f };
+		m_Sphere.Angle = 0.f;
+
+		m_Camera = std::static_pointer_cast<Magnefu::SceneCamera>(Magnefu::Application::Get().GetWindow().GetSceneCamera());
 	}
 
 	void OnAttach() override
 	{
-		m_ActiveTest = nullptr;
-		m_TestMenu = new Magnefu::TestMenu(m_ActiveTest);
-
-		m_ActiveTest = m_TestMenu;
-
-		//m_TestMenu->RegisterTest<Magnefu::Test2DTexture>("2D Texture");
-		m_TestMenu->RegisterTest<Magnefu::TestPrimitives>("Primitives");
-		
-		//m_TestMenu->RegisterTest<Magnefu::Test3DRender>("Cube Render");
-		//m_TestMenu->RegisterTest<Magnefu::TestBatchRendering>("Batching");
-		//m_TestMenu->RegisterTest<Magnefu::TestLighting>("Lighting");
-		//m_TestMenu->RegisterTest <Magnefu::TestModelLoading>("3D Models");
+		m_Camera->SetDefaultProps();
 	}
 
 	void OnDetach() override
 	{
-		if (m_ActiveTest != m_TestMenu)
-			delete m_TestMenu;
-		delete m_ActiveTest;
+
 	}
 
 	void OnUpdate(float deltaTime) override
 	{
-		if (m_ActiveTest)
-			m_ActiveTest->OnUpdate(deltaTime);
+		m_Camera->ProcessInput(deltaTime);
 	}
 
-	void OnRender(float renderInterpCoeff) override
+	void OnRender() override
 	{
 		Magnefu::RenderCommand::ClearColor(0.08f, 0.08f, 0.08f, 1.f);
 		Magnefu::RenderCommand::Clear();
 
-		if (m_ActiveTest)
+		Magnefu::Renderer::BeginScene();
+		Magnefu::Renderer::DrawPlane(m_Plane);
+		Magnefu::Renderer::DrawCube(m_Cube);
+		Magnefu::Renderer::DrawSphere(m_Sphere);
+		Magnefu::Renderer::EndScene();
+
+		
+	}
+
+	void OnGUIRender() override
+	{
+		ImGui::Begin("Scene");
+		ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
+		if (ImGui::BeginTabBar("Scene", tab_bar_flags))
 		{
-			m_ActiveTest->OnRender(renderInterpCoeff);
-			ImGui::Begin("Scene List");
-			if (m_ActiveTest != m_TestMenu && ImGui::Button("<-"))
+			if (ImGui::BeginTabItem("PLANE"))
 			{
-				delete m_ActiveTest;
-				m_ActiveTest = m_TestMenu;
+				ImGui::SliderFloat2("Size", m_Plane.Size.e, 1.f, 20.f);
+				ImGui::SliderFloat("Angle", &m_Plane.Angle, -360.f, 360.f);
+				ImGui::SliderFloat3("Rotation", m_Plane.Rotation.e, -1.f, 1.f);
+				ImGui::SliderFloat3("Translation", m_Plane.Translation.e, -20.f, 20.f);
+				ImGui::ColorEdit3("Color", m_Plane.Color.e);
+				ImGui::EndTabItem();
 			}
-			m_ActiveTest->OnImGUIRender();
-			ImGui::End();
+			if (ImGui::BeginTabItem("CUBE"))
+			{
+				ImGui::SliderFloat("Size", m_Cube.Size.e, 0.1f, 20.f);
+				ImGui::SliderFloat("Angle", &m_Cube.Angle, -360.f, 360.f);
+				ImGui::SliderFloat3("Rotation", m_Cube.Rotation.e, -1.f, 1.f);
+				ImGui::SliderFloat3("Translation", m_Cube.Translation.e, -20.f, 20.f);
+				ImGui::ColorEdit3("Color", m_Cube.Color.e);
+				ImGui::EndTabItem();
+			}
+			if (ImGui::BeginTabItem("SPHERE"))
+			{
+				ImGui::SliderFloat("Radius", &m_Sphere.Radius, 0.1f, 20.f);
+				ImGui::SliderInt("Stack Count", (int*)&m_Sphere.StackCount, 2, 80);
+				ImGui::SliderInt("Sector Count", (int*)&m_Sphere.SectorCount, 3, 100);
+				ImGui::SliderFloat("Angle", &m_Sphere.Angle, -360.f, 360.f);
+				ImGui::SliderFloat3("Rotation", m_Sphere.Rotation.e, -1.f, 1.f);
+				ImGui::SliderFloat3("Translation", m_Sphere.Translation.e, -20.f, 20.f);
+				ImGui::ColorEdit3("Color", m_Sphere.Color.e);
+				ImGui::EndTabItem();
+			}
+			ImGui::EndTabBar();
 		}
+		ImGui::End();
 	}
 
 	void OnEvent(Magnefu::Event& e) 
 	{
-		m_ActiveTest->OnEvent(e);
+
 	}
 
 private:
-	Magnefu::Test* m_ActiveTest;
-	Magnefu::TestMenu* m_TestMenu;
+	Magnefu::Ref<Magnefu::SceneCamera> m_Camera;
+	Magnefu::PrimitiveData m_Plane;
+	Magnefu::PrimitiveData m_Cube;
+	Magnefu::SphereData m_Sphere;
 };
 
 

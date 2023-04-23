@@ -17,6 +17,8 @@ namespace Magnefu
 		virtual void Clear() const = 0;
 		virtual void ClearColor(const Maths::vec4& clearColor) const = 0;
 		virtual void ClearColor(float r, float g, float b, float a) const = 0;
+		virtual void EnableFaceCulling() = 0;
+		virtual void DisableFaceCulling() = 0;
 		virtual void EnableBlending() = 0;
 		virtual void DisableBlending() = 0;
 		virtual void EnableDepthTest() = 0;

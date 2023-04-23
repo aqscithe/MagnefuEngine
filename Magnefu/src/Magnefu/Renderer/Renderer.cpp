@@ -28,6 +28,7 @@ namespace Magnefu
     // TODO: Could these work as bit flags?
     struct RenderSettings
     {
+        bool FaceCulling;
         bool Blending;
         bool DepthTest;
     };
@@ -37,6 +38,7 @@ namespace Magnefu
 
     void Renderer::Init()
     {
+        RenderCommand::EnableFaceCulling();
         RenderCommand::EnableBlending();
         RenderCommand::EnableDepthTest();
 
@@ -50,6 +52,7 @@ namespace Magnefu
         s_Data->DefaultLight.Enabled = true;
 
         s_Settings = static_cast<RenderSettings*>(StackAllocator::Get()->Allocate(sizeof(RenderSettings)));
+        s_Settings->FaceCulling = true;
         s_Settings->Blending = true;
         s_Settings->DepthTest = true;
     }
@@ -142,28 +145,28 @@ namespace Magnefu
 
         float vertices[88] = {
             //  position               normal             color                                        texture coords
-                -0.5f,  -0.5f, -0.5f,  -1.0f, 0.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  0.f,       // 0  L
-                 0.5f,  -0.5f, -0.5f,   1.0f, 0.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  0.f,       // 1  R
-                 0.5f,   0.5f, -0.5f,   0.0f, 1.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  1.f,       // 2  TR
-                -0.5f,   0.5f, -0.5f,   0.0f, 1.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  1.f,       // 3  TL
-                -0.5f,  -0.5f,  0.5f,   0.0f, 0.0f, 1.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  0.f,       // 4  BL
-                 0.5f,  -0.5f,  0.5f,   0.0f, 0.0f, 1.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  0.f,       // 5  BR
-                 0.5f,   0.5f,  0.5f,   0.0f, 1.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  1.f,       // 6  FR
-                -0.5f,   0.5f,  0.5f,   0.0f, 1.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  1.f        // 7  FL
+                -0.5f,  -0.5f, -0.5f,  -1.0f, 0.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  0.f,       // 0
+                 0.5f,  -0.5f, -0.5f,   1.0f, 0.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  0.f,       // 1
+                 0.5f,   0.5f, -0.5f,   0.0f, 1.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  1.f,       // 2
+                -0.5f,   0.5f, -0.5f,   0.0f, 1.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  1.f,       // 3
+                -0.5f,  -0.5f,  0.5f,   0.0f, 0.0f, 1.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  0.f,       // 4
+                 0.5f,  -0.5f,  0.5f,   0.0f, 0.0f, 1.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  0.f,       // 5
+                 0.5f,   0.5f,  0.5f,   0.0f, 1.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  1.f,       // 6
+                -0.5f,   0.5f,  0.5f,   0.0f, 1.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  1.f        // 7
         };
 
         uint32_t indices[] = {
-            0, 1, 2,  // right face
-            0, 2, 3,
-            4, 5, 6,  // left face
+            0, 2, 1,  // Back
+            0, 3, 2,
+            4, 5, 6,  // Front
             4, 6, 7,
-            3, 2, 6,  // top face
-            3, 6, 7,
-            0, 1, 5,  // bottom face
+            3, 6, 2,  // Top
+            3, 7, 6,
+            0, 1, 5,  // Bottom
             0, 5, 4,
-            1, 5, 6,  // front face
-            1, 6, 2,
-            0, 4, 7,  // back face
+            1, 6, 5,  
+            1, 2, 6,
+            0, 4, 7,  
             0, 7, 3
         };
 
@@ -398,6 +401,19 @@ namespace Magnefu
         {
             if (ImGui::BeginTabItem("Settings"))
             {
+                if (ImGui::Checkbox("Face Culling", &s_Settings->FaceCulling))
+                {
+                    if (s_Settings->FaceCulling)
+                    {
+                        RenderCommand::EnableFaceCulling();
+                        s_Settings->FaceCulling = true;
+                    }
+                    else
+                    {
+                        RenderCommand::DisableFaceCulling();
+                        s_Settings->FaceCulling = false;
+                    }
+                }
                 if (ImGui::Checkbox("Blending", &s_Settings->Blending))
                 {
                     if (s_Settings->Blending)

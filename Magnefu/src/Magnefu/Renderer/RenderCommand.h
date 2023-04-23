@@ -23,6 +23,16 @@ namespace Magnefu
 			s_RendererAPI->ClearColor(r, g, b, a);
 		}
 
+		inline static void EnableFaceCulling()
+		{
+			s_RendererAPI->EnableFaceCulling();
+		}
+
+		inline static void DisableFaceCulling()
+		{
+			s_RendererAPI->DisableFaceCulling();
+		}
+
 		inline static void EnableBlending()
 		{
 			s_RendererAPI->EnableBlending();

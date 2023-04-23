@@ -128,10 +128,12 @@ namespace Magnefu
 
 
                 for (Layer* layer : m_LayerStack)
-                    layer->OnRender(ts.GetDeltaTime());
-
-
-                OnImGuiRender();
+                {
+                    layer->OnRender();
+                    layer->OnGUIRender();
+                }
+                   
+                OnGUIRender();
 
                 if (m_ImGuiLayer)
                     m_ImGuiLayer->EndFrame();
@@ -140,7 +142,7 @@ namespace Magnefu
         }   
     }
 
-    void Application::OnImGuiRender()
+    void Application::OnGUIRender()
     {
         MF_PROFILE_FUNCTION();
         ImGui::Begin("Application");

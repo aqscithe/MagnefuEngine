@@ -184,8 +184,6 @@
     <ClInclude Include="src\Magnefu\Renderer\Camera.h" />
     <ClInclude Include="src\Magnefu\Renderer\Scene.h" />
     <ClInclude Include="src\Magnefu\Renderer\SceneCamera.h" />
-    <ClInclude Include="src\Magnefu\Tests\Test.h" />
-    <ClInclude Include="src\Magnefu\Tests\TestPrimitives.h" />
     <ClInclude Include="src\Magnefu\Window.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLMaterial.h" />
     <ClInclude Include="src\Magnefu\Core\Maths\MathsCommon.h" />
@@ -389,8 +387,6 @@
     <ClCompile Include="src\Magnefu\Renderer\VertexArray.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Camera.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\SceneCamera.cpp" />
-    <ClCompile Include="src\Magnefu\Tests\Test.cpp" />
-    <ClCompile Include="src\Magnefu\Tests\TestPrimitives.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLMaterial.cpp" />
     <ClCompile Include="src\Magnefu\Core\Maths\Matrices.cpp" />
     <ClCompile Include="src\Magnefu\Core\Maths\Primitive2D.cpp" />

@@ -21,6 +21,18 @@ namespace Magnefu
 		glClearColor(r, g, b, a);
 	}
 
+	void OpenGLRendererAPI::EnableFaceCulling()
+	{
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		glFrontFace(GL_CCW);
+	}
+
+	void OpenGLRendererAPI::DisableFaceCulling()
+	{
+		glDisable(GL_CULL_FACE);
+	}
+
 	void OpenGLRendererAPI::EnableBlending()
 	{
 		glEnable(GL_BLEND);

@@ -5,7 +5,7 @@
 
 Sandbox::Sandbox()
 {
-	PushLayer(new TestLayer());
+	PushLayer(new GameLayer());
 }
 
 Sandbox::~Sandbox()

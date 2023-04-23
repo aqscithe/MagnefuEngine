@@ -25,7 +25,7 @@ namespace Magnefu
 		virtual void Run();
 
 		void OnEvent(Event& event);
-		void OnImGuiRender();
+		void OnGUIRender();
 		void OnUpdate(float deltaTime);
 
 		void PushLayer(Layer* layer);

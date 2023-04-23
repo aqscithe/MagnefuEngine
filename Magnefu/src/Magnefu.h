@@ -12,6 +12,10 @@
 #include "Magnefu/Core/SmartPointers.h"
 //----------------------------------------
 
+//----Maths-------------------------------
+#include "Magnefu/Core/Maths/PrimitiveCommon.h"
+//----------------------------------------
+
 //----Input-------------------------------
 #include "Magnefu/Core/Events/Input.h"
 #include "Magnefu/Core/Events/KeyCodes.h"
@@ -26,13 +30,11 @@
 #include "Magnefu/Renderer/Shader.h"
 #include "Magnefu/Renderer/Texture.h"
 #include "Magnefu/Renderer/Material.h"
+#include "Magnefu/Renderer/SceneCamera.h"
 //----------------------------------------
 
 
 
-#include "Magnefu/Tests/Test.h"
-//#include "Magnefu/Tests/Test2DTexture.h"
-#include "Magnefu/Tests/TestPrimitives.h"
 
 
 // ----Entry Point---------------------

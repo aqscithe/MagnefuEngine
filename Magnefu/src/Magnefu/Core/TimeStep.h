@@ -5,6 +5,8 @@ namespace Magnefu
 	// TODO:
 	// integration formulas to consult when you start physics simulation
 	// https://gafferongames.com/post/fix_your_timestep/
+
+	// render data = (current data * renderInterpCoeff) + previous data * (1.f - renderInterpCoeff);
 	class TimeStep
 	{
 		using Clock = std::chrono::steady_clock;
