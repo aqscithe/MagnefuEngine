@@ -91,6 +91,7 @@ Application/*
 
 OpenGL/header/vendor/glm/*
 OpenGL/header/vendor/imgui/main.cpp
+Sandbox/*.json
 
 
 Content/Dynamic/Levels/FirstPersonExampleMap_BuiltData.uasset
