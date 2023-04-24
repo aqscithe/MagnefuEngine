@@ -11,6 +11,11 @@ namespace Magnefu
 	using String = std::string;
 	using TextureMap = std::unordered_map<TextureType, Ref<Texture>>;
 
+	enum MaterialOptions {
+		MaterialOptions_None = 0,
+		MaterialOptions_Skybox = BIT(0),
+		MaterialOptions_All = 1
+	};
 
 	// all values that would be sent to the shader as a uniform
 	struct MaterialProps
@@ -77,6 +82,6 @@ namespace Magnefu
 		virtual void OnImGuiRender() = 0;
 		//virtual void InitRenderData(const Ref<SceneData>&) = 0;
 
-		static Ref<Material> Create(const String& shaderPath = "res/shaders/Basic.shader");
+		static Ref<Material> Create(const String& shaderPath = "res/shaders/Basic.shader", const MaterialOptions& options = MaterialOptions::MaterialOptions_None);
 	};
 }

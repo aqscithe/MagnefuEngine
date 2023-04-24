@@ -23,6 +23,7 @@ namespace Magnefu
         DirectionalLight DefaultLight;
         Material* PrimitiveMat;
         Material* SphereMat;
+        Material* SkyboxMat;
     };
 
     // TODO: Could these work as bit flags?
@@ -45,6 +46,7 @@ namespace Magnefu
         s_Data = static_cast<RenderData*>(StackAllocator::Get()->Allocate(sizeof(RenderData), sizeof(Maths::mat4)));
         s_Data->PrimitiveMat = Material::Create("res/shaders/Primitive.shader").get();
         s_Data->SphereMat = Material::Create("res/shaders/Sphere.shader").get();
+        //s_Data->SkyboxMat = Material::Create("res/shaders/Skybox.shader", MaterialOptions_Skybox).get();
 
         s_Data->DefaultLight.Direction = { -1.f, -1.f, -1.f };
         s_Data->DefaultLight.Color = { 1.f, 0.96f, 0.72f };
@@ -215,6 +217,86 @@ namespace Magnefu
             RenderCommand::DrawIndexed(vao);
         }
     }
+
+    void Renderer::DrawRectangularPrism(const PrimitiveData& data)
+    {
+        MF_PROFILE_FUNCTION();
+        //InstrumentationTimer timer("Renderer::DrawCube");
+
+        float vertices[88] = {
+            //  position               normal             color                                        texture coords
+                -0.5f,  -0.5f, -0.5f,  -1.0f, 0.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  0.f,       // 0
+                 0.5f,  -0.5f, -0.5f,   1.0f, 0.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  0.f,       // 1
+                 0.5f,   0.5f, -0.5f,   0.0f, 1.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  1.f,       // 2
+                -0.5f,   0.5f, -0.5f,   0.0f, 1.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  1.f,       // 3
+                -0.5f,  -0.5f,  0.5f,   0.0f, 0.0f, 1.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  0.f,       // 4
+                 0.5f,  -0.5f,  0.5f,   0.0f, 0.0f, 1.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  0.f,       // 5
+                 0.5f,   0.5f,  0.5f,   0.0f, 1.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  1.f,       // 6
+                -0.5f,   0.5f,  0.5f,   0.0f, 1.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  1.f        // 7
+        };
+
+        uint32_t indices[] = {
+            0, 2, 1,  // Back
+            0, 3, 2,
+            4, 5, 6,  // Front
+            4, 6, 7,
+            3, 6, 2,  // Top
+            3, 7, 6,
+            0, 1, 5,  // Bottom
+            0, 5, 4,
+            1, 6, 5,
+            1, 2, 6,
+            0, 4, 7,
+            0, 7, 3
+        };
+
+        Ref<VertexBuffer> vbo = VertexBuffer::Create(sizeof(vertices), vertices);
+
+        BufferLayout layout = {
+            {ShaderDataType::Float3, "aPosition"},
+            {ShaderDataType::Float3, "aNormal"},
+            {ShaderDataType::Float3, "aColor"},
+            {ShaderDataType::Float2, "aTexCoords"}
+        };
+
+        vbo->SetLayout(layout);
+
+        Ref<IndexBuffer> ibo = IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices);
+
+        Ref<VertexArray> vao = VertexArray::Create();
+        vao->AddVertexBuffer(vbo);
+        vao->SetIndexBuffer(ibo);
+
+        auto& camera = Application::Get().GetWindow().GetSceneCamera();
+
+        {
+            MF_PROFILE_SCOPE("MVP Multiplication - CUBE");
+            s_Data->ModelMatrix = Maths::translate(data.Translation) *
+                Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) *
+                Maths::scale(data.Size);
+
+            s_Data->MVP = camera->CalculateVP() * s_Data->ModelMatrix;
+        }
+
+        {
+            MF_PROFILE_SCOPE("Upload Uniforms - CUBE");
+            s_Data->PrimitiveMat->SetUniformValue("u_MVP", s_Data->MVP);
+            s_Data->PrimitiveMat->SetUniformValue("u_ModelMatrix", s_Data->ModelMatrix);
+            s_Data->PrimitiveMat->SetUniformValue("u_CameraPos", camera->GetData().Position);
+            s_Data->PrimitiveMat->SetUniformValue("u_LightDirection", s_Data->DefaultLight.Direction);
+            s_Data->PrimitiveMat->SetUniformValue("u_LightColor", s_Data->DefaultLight.Color);
+            s_Data->PrimitiveMat->SetUniformValue("u_RadiantFlux", s_Data->DefaultLight.Flux);
+            s_Data->PrimitiveMat->SetUniformValue("u_LightEnabled", s_Data->DefaultLight.Enabled);
+            s_Data->PrimitiveMat->Bind();
+        }
+
+        {
+            MF_PROFILE_SCOPE("Draw Call - CUBE");
+            RenderCommand::DrawIndexed(vao);
+        }
+    }
+
+
 
     // http://www.songho.ca/opengl/gl_sphere.html
     void Renderer::DrawSphere(const SphereData& data)
@@ -392,6 +474,11 @@ namespace Magnefu
 
     void Renderer::DrawTriangularPyramid()
     {
+    }
+
+    void Renderer::DrawSkybox()
+    {
+
     }
 
     void Renderer::OnImGuiRender()

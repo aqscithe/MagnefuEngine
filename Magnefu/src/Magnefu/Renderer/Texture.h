@@ -18,6 +18,12 @@ namespace Magnefu
 		METALLIC
 	};
 
+	enum TextureOptions {
+		TextureOptions_None = 0,
+		TextureOptions_Skybox = BIT(0),
+		TextureOptions_All = 1
+	};
+
 	class Texture
 	{
 	public:
@@ -34,7 +40,7 @@ namespace Magnefu
 		virtual void OnImGuiRender() const = 0;
 
 
-		static Ref<Texture> Create(const std::string& filepath = "res/textures/darkmarble/dark-marbled-stone_d.jpg");
+		static Ref<Texture> Create(const TextureOptions& options = TextureOptions_None, const std::string& filepath = "res/textures/darkmarble/dark-marbled-stone_d.jpg");
 		
 	};
 

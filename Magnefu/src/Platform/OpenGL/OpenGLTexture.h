@@ -18,12 +18,13 @@ namespace Magnefu
 		unsigned char* m_texData;
 		unsigned int m_RendererID;
 		uint32_t m_Slot;
+		TextureOptions m_Options;
 		int m_Width, m_Height, m_BPP;
 		bool m_Bound;
 		
 
 	public:
-		OpenGLTexture(const std::string& filepath);
+		OpenGLTexture(const TextureOptions& options, const std::string& filepath);
 		~OpenGLTexture();
 
 		void Bind() override;
@@ -42,6 +43,9 @@ namespace Magnefu
 		void OnImGuiRender() const override;
 
 	private:
+		void CreateTexture();
+		void CreateCubeMapTexture();
+
 		void SetTextureOptions();
 		void LoadTexture();
 		void GenerateTexImage();

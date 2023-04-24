@@ -6,18 +6,20 @@
 
 namespace Magnefu
 {
-	Ref<Material> Material::Create(const String& shaderPath)
+	Ref<Material> Material::Create(const String& shaderPath, const MaterialOptions& options)
 	{
 		switch (Renderer::GetAPI())
 		{
-		case RendererAPI::API::NONE:
-			MF_CORE_ASSERT(false, "RendererAPI::API::NONE Shader not supported");
-			return nullptr;
-		case RendererAPI::API::OPENGL:
-		{
-			Application& app = Application::Get();
-			return app.GetResourceCache().RequestResource<OpenGLMaterial>(shaderPath);
-		}
+			case RendererAPI::API::NONE:
+			{
+				MF_CORE_ASSERT(false, "RendererAPI::API::NONE Shader not supported");
+				return nullptr;
+			}
+			case RendererAPI::API::OPENGL:
+			{
+				Application& app = Application::Get();
+				return app.GetResourceCache().RequestResource<OpenGLMaterial>(shaderPath, options);
+			}
 
 		}
 

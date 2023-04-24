@@ -17,17 +17,21 @@ namespace Magnefu
         {TextureType::METALLIC, "Metallic"}
     };
 
-    
 
-    OpenGLMaterial::OpenGLMaterial(const String& shaderFile)
+    OpenGLMaterial::OpenGLMaterial(const String& shaderFile, const MaterialOptions& options) :
+        m_Options(options)
     {
         MF_PROFILE_FUNCTION();
 
-        m_Shader = Shader::Create(shaderFile);
+        if (m_Options & MaterialOptions_Skybox)
+            m_Shader = Shader::Create("res/shaders/Skybox.shader");
+        else
+            m_Shader = Shader::Create(shaderFile);
 
         InitUniforms();
 
         m_ID = static_cast<uint32_t>(Application::Get().GetResourceCache().size<OpenGLMaterial>());
+        
     }
 
     void OpenGLMaterial::InitUniforms()
@@ -40,7 +44,7 @@ namespace Magnefu
                 SetUniformValue(data.first, Maths::mat4());
             else if (data.second == "vec3")
                 SetUniformValue(data.first, Maths::vec3());
-            if (data.second == "sampler2D" || data.second == "int")
+            if (data.second == "sampler2D" || data.second == "samplerCube" || data.second == "int")
                 SetUniformValue(data.first, int());
             else if (data.second == "float")
                 SetUniformValue(data.first, float());
@@ -59,7 +63,11 @@ namespace Magnefu
         m_Shader->Bind();
 
         // SET DEFAULT TEXTURES
-        m_TextureMap[TextureType::DIFFUSE] = Texture::Create();
+        if (m_Options & MaterialOptions_Skybox)
+            m_TextureMap[TextureType::DIFFUSE] = Texture::Create(TextureOptions_Skybox);
+        else
+            m_TextureMap[TextureType::DIFFUSE] = Texture::Create();
+
         for (auto& texture : m_TextureMap)
         {
             String uniformName = "u_" + TextureTypeNameMap[texture.first] + "Texture";

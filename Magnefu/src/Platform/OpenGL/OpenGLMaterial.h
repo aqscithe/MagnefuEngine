@@ -20,7 +20,7 @@ namespace Magnefu
 	class OpenGLMaterial : public Material, public CacheableResource
 	{
 	public:
-		OpenGLMaterial(const String& shaderFile = "res/shaders/Basic.shader");
+		OpenGLMaterial(const String& shaderFile, const MaterialOptions& options);
 
 		void Bind() override;
 		void Unbind() override;
@@ -52,6 +52,7 @@ namespace Magnefu
 		String		m_Library;
 		Ref<Shader> m_Shader;
 		uint32_t m_ID;
+		MaterialOptions m_Options;
 	};
 
 

@@ -22,8 +22,14 @@ public:
 		m_Cube.Size = { 1.f, 1.f, 1.f };
 		m_Cube.Color = { 1.f, 0.5f, 0.85f };
 		m_Cube.Rotation = { 0.f, 0.f, 0.f };
-		m_Cube.Translation = { 0.f, 0.f,0.f };
+		m_Cube.Translation = { -3.f, 0.f,0.f };
 		m_Cube.Angle = 0.f;
+
+		m_RecPrism.Size = { 2.5f, 1.f, 1.f };
+		m_RecPrism.Color = { 0.f, 0.75f, 0.85f };
+		m_RecPrism.Rotation = { 0.f, 0.f, 0.f };
+		m_RecPrism.Translation = { 3.f, 0.f, 0.f };
+		m_RecPrism.Angle = 0.f;
 
 		m_Sphere.Radius = 1.f;
 		m_Sphere.SectorCount = 32;
@@ -59,6 +65,7 @@ public:
 		Magnefu::Renderer::BeginScene();
 		Magnefu::Renderer::DrawPlane(m_Plane);
 		Magnefu::Renderer::DrawCube(m_Cube);
+		Magnefu::Renderer::DrawRectangularPrism(m_RecPrism);
 		Magnefu::Renderer::DrawSphere(m_Sphere);
 		Magnefu::Renderer::EndScene();
 
@@ -89,6 +96,15 @@ public:
 				ImGui::ColorEdit3("Color", m_Cube.Color.e);
 				ImGui::EndTabItem();
 			}
+			if (ImGui::BeginTabItem("Rec Prism"))
+			{
+				ImGui::SliderFloat("Size", m_RecPrism.Size.e, 0.1f, 20.f);
+				ImGui::SliderFloat("Angle", &m_RecPrism.Angle, -360.f, 360.f);
+				ImGui::SliderFloat3("Rotation", m_RecPrism.Rotation.e, -1.f, 1.f);
+				ImGui::SliderFloat3("Translation", m_RecPrism.Translation.e, -20.f, 20.f);
+				ImGui::ColorEdit3("Color", m_RecPrism.Color.e);
+				ImGui::EndTabItem();
+			}
 			if (ImGui::BeginTabItem("SPHERE"))
 			{
 				ImGui::SliderFloat("Radius", &m_Sphere.Radius, 0.1f, 20.f);
@@ -114,6 +130,7 @@ private:
 	Magnefu::Ref<Magnefu::SceneCamera> m_Camera;
 	Magnefu::PrimitiveData m_Plane;
 	Magnefu::PrimitiveData m_Cube;
+	Magnefu::PrimitiveData m_RecPrism;
 	Magnefu::SphereData m_Sphere;
 };
 

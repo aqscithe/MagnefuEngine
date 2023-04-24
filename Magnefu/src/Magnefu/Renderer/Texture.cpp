@@ -8,7 +8,7 @@
 namespace Magnefu
 {
 
-	Ref<Texture> Texture::Create(const std::string& filepath)
+	Ref<Texture> Texture::Create(const TextureOptions& options, const std::string& filepath)
 	{
 		switch (Renderer::GetAPI())
 		{
@@ -20,7 +20,7 @@ namespace Magnefu
 			case RendererAPI::API::OPENGL:
 			{
 				Application& app = Application::Get();
-				return app.GetResourceCache().RequestResource<OpenGLTexture>(filepath);
+				return app.GetResourceCache().RequestResource<OpenGLTexture>(options, filepath);
 			}
 			
 		}
