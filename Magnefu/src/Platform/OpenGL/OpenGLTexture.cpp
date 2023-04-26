@@ -32,8 +32,6 @@ namespace Magnefu
 	{
 		MF_PROFILE_FUNCTION();
 
-		stbi_set_flip_vertically_on_load(1);
-
 		if (m_Options & TextureOptions_Skybox)
 		{
 			// Generate & Bind Texture
@@ -45,13 +43,15 @@ namespace Magnefu
 				"res/textures/skybox/default/left-nx.png",
 				"res/textures/skybox/default/top-py.png",
 				"res/textures/skybox/default/bottom-ny.png",
-				"res/textures/skybox/default/back-nz.png",
 				"res/textures/skybox/default/front-pz.png",
+				"res/textures/skybox/default/back-nz.png"
 			};
 
 			int skyboxCount = sizeof(skybox) / sizeof(std::string);
 			{
 				MF_PROFILE_SCOPE("Loading Cube Maps");
+
+				stbi_set_flip_vertically_on_load(0);
 				for (int i = 0; i < skyboxCount; i++)
 				{
 					m_texData = stbi_load(skybox[i].c_str(), &m_Width, &m_Height, &m_BPP, 4);
@@ -61,7 +61,7 @@ namespace Magnefu
 					}
 					else
 					{
-						glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, m_Width, m_Height, 0, GL_RGB, GL_UNSIGNED_BYTE, m_texData);
+						glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_texData);
 						stbi_image_free(m_texData);
 
 						MF_CORE_INFO("TEXTURE -- Loaded cube map texture with width {0}, height {1} and channels {2}", m_Width, m_Height, m_BPP);
@@ -85,6 +85,7 @@ namespace Magnefu
 		else
 		{
 			// Load Texture
+			stbi_set_flip_vertically_on_load(1);
 			m_texData = stbi_load(m_Filepath.c_str(), &m_Width, &m_Height, &m_BPP, 4);
 			if (!m_texData)
 				MF_CORE_WARN("TEXTURE -- Texture at '{}' failed to load.", m_Filepath);

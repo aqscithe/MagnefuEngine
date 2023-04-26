@@ -21,6 +21,10 @@ namespace Magnefu
 		void DisableDepthTest() override;
 		void EnableDepthMask() override;
 		void DisableDepthMask() override;
+		void DepthFuncLEqual() override;
+		void DepthFuncLess() override;
+		void FrontFaceCCW() override;
+		void FrontFaceCW() override;
 		void SetWindowSize(int width, int height) override;
 		void DrawIndexed(const Ref<VertexArray>&) override;
 	};

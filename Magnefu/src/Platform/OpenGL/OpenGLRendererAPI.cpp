@@ -67,14 +67,32 @@ namespace Magnefu
 
 	void OpenGLRendererAPI::EnableDepthMask()
 	{
-		//glDepthMask(GL_TRUE);
-		glDepthFunc(GL_LESS);
+		glDepthMask(GL_TRUE);
 	}
 
 	void OpenGLRendererAPI::DisableDepthMask()
 	{
-		//glDepthMask(GL_FALSE);
+		glDepthMask(GL_FALSE);
+	}
+
+	void OpenGLRendererAPI::DepthFuncLEqual()
+	{
 		glDepthFunc(GL_LEQUAL);
+	}
+
+	void OpenGLRendererAPI::DepthFuncLess()
+	{
+		glDepthFunc(GL_LESS);
+	}
+
+	void OpenGLRendererAPI::FrontFaceCCW()
+	{
+		glFrontFace(GL_CCW);
+	}
+
+	void OpenGLRendererAPI::FrontFaceCW()
+	{
+		glFrontFace(GL_CW);
 	}
 
 	void OpenGLRendererAPI::SetWindowSize(int width, int height)

@@ -526,6 +526,7 @@ namespace Magnefu
         vao->SetIndexBuffer(ibo);
 
         auto& camera = Application::Get().GetWindow().GetSceneCamera();
+        Maths::mat4 projection = camera->CalculateProjection();
         Maths::mat4 view = camera->CalculateView();
         view.c[0].w = 0.f;
         view.c[1].w = 0.f;
@@ -533,14 +534,12 @@ namespace Magnefu
         view.c[3].xyz = { 0.f, 0.f, 0.f };
         view.c[3].w = 1.f;
 
-
-        Maths::mat4 viewInverted;
-        Maths::invert(view.e, viewInverted.e);
-
-        RenderCommand::DisableDepthMask();
+        RenderCommand::DepthFuncLEqual();
+        RenderCommand::FrontFaceCW();
         {
             MF_PROFILE_SCOPE("Upload Uniforms - Skybox");
-            s_Data->SkyboxMat->SetUniformValue("u_View", viewInverted);
+            s_Data->SkyboxMat->SetUniformValue("u_View", view);
+            s_Data->SkyboxMat->SetUniformValue("u_Projection", projection);
             s_Data->SkyboxMat->Bind();
         }
 
@@ -548,7 +547,10 @@ namespace Magnefu
             MF_PROFILE_SCOPE("Draw Call - Skybox");
             RenderCommand::DrawIndexed(vao);
         }
-        RenderCommand::DisableDepthMask();
+        RenderCommand::FrontFaceCCW();
+        RenderCommand::DepthFuncLess();
+        
+        
     }
 
     void Renderer::OnImGuiRender()
