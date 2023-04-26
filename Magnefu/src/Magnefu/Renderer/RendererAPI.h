@@ -27,6 +27,10 @@ namespace Magnefu
 		virtual void DisableDepthTest() = 0;
 		virtual void EnableDepthMask() = 0;
 		virtual void DisableDepthMask() = 0;
+		virtual void DepthFuncLEqual() = 0;
+		virtual void DepthFuncLess() = 0;
+		virtual void FrontFaceCW() = 0;
+		virtual void FrontFaceCCW() = 0;
 		virtual void SetWindowSize(int width, int height) = 0;
 		virtual void DrawIndexed(const Ref<VertexArray>&) = 0;
 

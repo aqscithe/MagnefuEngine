@@ -73,6 +73,26 @@ namespace Magnefu
 			s_RendererAPI->DisableDepthMask();
 		}
 
+		inline static void DepthFuncLEqual()
+		{
+			s_RendererAPI->DepthFuncLEqual();
+		}
+
+		inline static void DepthFuncLess()
+		{
+			s_RendererAPI->DepthFuncLess();
+		}
+
+		inline static void FrontFaceCCW()
+		{
+			s_RendererAPI->FrontFaceCCW();
+		}
+
+		inline static void FrontFaceCW()
+		{
+			s_RendererAPI->FrontFaceCW();
+		}
+
 		inline static void SetWindowSize(int width, int height)
 		{
 			s_RendererAPI->SetWindowSize(width, height);
