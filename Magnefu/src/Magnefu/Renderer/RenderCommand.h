@@ -33,6 +33,16 @@ namespace Magnefu
 			s_RendererAPI->DisableFaceCulling();
 		}
 
+		inline static void EnableSeamlessCubeMap()
+		{
+			s_RendererAPI->EnableSeamlessCubeMap();
+		}
+
+		inline static 	void DisableSeamlessCubeMap()
+		{
+			s_RendererAPI->DisableSeamlessCubeMap();
+		}
+
 		inline static void EnableBlending()
 		{
 			s_RendererAPI->EnableBlending();
@@ -51,6 +61,16 @@ namespace Magnefu
 		inline static void DisableDepthTest()
 		{
 			s_RendererAPI->DisableDepthTest();
+		}
+
+		inline static void EnableDepthMask()
+		{
+			s_RendererAPI->EnableDepthMask();
+		}
+
+		inline static void DisableDepthMask()
+		{
+			s_RendererAPI->DisableDepthMask();
 		}
 
 		inline static void SetWindowSize(int width, int height)

@@ -2,6 +2,74 @@
 
 namespace Maths
 {
+
+   mat3::mat3(const mat4& m)
+    {
+       c[0] = m.c[0].xyz;
+       c[1] = m.c[1].xyz;
+       c[2] = m.c[2].xyz;
+    }
+
+   
+    /*mat4::mat4(vec4 v0, vec4 v1, vec4 v2, vec4 v3)
+    {
+        c[0] = v0;
+        c[1] = v1;
+        c[2] = v2;
+        c[3] = v3;
+    }
+
+    mat4::mat4(
+        float x0, float x1, float x2, float x3,
+        float y0, float y1, float y2, float y3,
+        float z0, float z1, float z2, float z3,
+        float w0, float w1, float w2, float w3
+    )
+    {
+        c[0].e[0] = x0;
+        c[0].e[1] = x1;
+        c[0].e[2] = x2;
+        c[0].e[3] = x3;
+
+        c[1].e[0] = y0;
+        c[1].e[1] = y1;
+        c[1].e[2] = y2;
+        c[1].e[3] = y3;
+
+        c[2].e[0] = z0;
+        c[2].e[1] = z1;
+        c[2].e[2] = z2;
+        c[2].e[3] = z3;
+
+        c[3].e[0] = w0;
+        c[3].e[1] = w1;
+        c[3].e[2] = w2;
+        c[3].e[3] = w3;
+    }
+
+    mat4::mat4(mat3 m)
+    {
+        c[0].e[0] = m.c[0].e[0];
+        c[0].e[1] = m.c[0].e[1];
+        c[0].e[2] = m.c[0].e[2];
+        c[0].e[3] = 0.f;
+
+        c[1].e[0] = m.c[1].e[0];
+        c[1].e[1] = m.c[1].e[1];
+        c[1].e[2] = m.c[1].e[2];
+        c[1].e[3] = 0.f;
+
+        c[2].e[0] = m.c[2].e[0];
+        c[2].e[1] = m.c[2].e[1];
+        c[2].e[2] = m.c[2].e[2];
+        c[2].e[3] = 0.f;
+
+        c[3].e[0] = 0.f;
+        c[3].e[1] = 0.f;
+        c[3].e[2] = 0.f;
+        c[3].e[3] = 1.f;*/
+    //}
+
     mat4 identity()
     {
         return {

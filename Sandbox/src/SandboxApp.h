@@ -36,7 +36,7 @@ public:
 		m_Sphere.StackCount = 13;
 		m_Sphere.Color = { 0.1f, 0.73f, 0.4f };
 		m_Sphere.Rotation = { 0.f, 0.f, 0.f };
-		m_Sphere.Translation = { 0.f, 0.f,0.f };
+		m_Sphere.Translation = { 0.f, 3.f,0.f };
 		m_Sphere.Angle = 0.f;
 
 		m_Camera = std::static_pointer_cast<Magnefu::SceneCamera>(Magnefu::Application::Get().GetWindow().GetSceneCamera());
@@ -67,6 +67,7 @@ public:
 		Magnefu::Renderer::DrawCube(m_Cube);
 		Magnefu::Renderer::DrawRectangularPrism(m_RecPrism);
 		Magnefu::Renderer::DrawSphere(m_Sphere);
+		Magnefu::Renderer::DrawSkybox();
 		Magnefu::Renderer::EndScene();
 
 		

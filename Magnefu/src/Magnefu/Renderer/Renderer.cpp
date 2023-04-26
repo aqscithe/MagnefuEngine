@@ -30,6 +30,7 @@ namespace Magnefu
     struct RenderSettings
     {
         bool FaceCulling;
+        bool SeamlessCubeMap;
         bool Blending;
         bool DepthTest;
     };
@@ -42,11 +43,12 @@ namespace Magnefu
         RenderCommand::EnableFaceCulling();
         RenderCommand::EnableBlending();
         RenderCommand::EnableDepthTest();
+        RenderCommand::EnableSeamlessCubeMap();
 
         s_Data = static_cast<RenderData*>(StackAllocator::Get()->Allocate(sizeof(RenderData), sizeof(Maths::mat4)));
         s_Data->PrimitiveMat = Material::Create("res/shaders/Primitive.shader").get();
         s_Data->SphereMat = Material::Create("res/shaders/Sphere.shader").get();
-        //s_Data->SkyboxMat = Material::Create("res/shaders/Skybox.shader", MaterialOptions_Skybox).get();
+        s_Data->SkyboxMat = Material::Create("res/shaders/Skybox.shader", MaterialOptions_Skybox).get();
 
         s_Data->DefaultLight.Direction = { -1.f, -1.f, -1.f };
         s_Data->DefaultLight.Color = { 1.f, 0.96f, 0.72f };
@@ -55,6 +57,7 @@ namespace Magnefu
 
         s_Settings = static_cast<RenderSettings*>(StackAllocator::Get()->Allocate(sizeof(RenderSettings)));
         s_Settings->FaceCulling = true;
+        s_Settings->SeamlessCubeMap = true;
         s_Settings->Blending = true;
         s_Settings->DepthTest = true;
     }
@@ -478,7 +481,73 @@ namespace Magnefu
 
     void Renderer::DrawSkybox()
     {
+        MF_PROFILE_FUNCTION();
+        //InstrumentationTimer timer("Renderer::DrawCube");
 
+        float vertices[24] = {
+            //  position             
+                -1.f,  -1.f, -1.f,   // 0
+                 1.f,  -1.f, -1.f,   // 1
+                 1.f,   1.f, -1.f,   // 2
+                -1.f,   1.f, -1.f,   // 3
+                -1.f,  -1.f,  1.f,   // 4
+                 1.f,  -1.f,  1.f,   // 5
+                 1.f,   1.f,  1.f,   // 6
+                -1.f,   1.f,  1.f    // 7
+        };
+
+        uint32_t indices[] = {
+            0, 2, 1,  // Back
+            0, 3, 2,
+            4, 5, 6,  // Front
+            4, 6, 7,
+            3, 6, 2,  // Top
+            3, 7, 6,
+            0, 1, 5,  // Bottom
+            0, 5, 4,
+            1, 6, 5,
+            1, 2, 6,
+            0, 4, 7,
+            0, 7, 3
+        };
+
+        Ref<VertexBuffer> vbo = VertexBuffer::Create(sizeof(vertices), vertices);
+
+        BufferLayout layout = {
+            {ShaderDataType::Float3, "aPosition"}
+        };
+
+        vbo->SetLayout(layout);
+
+        Ref<IndexBuffer> ibo = IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices);
+
+        Ref<VertexArray> vao = VertexArray::Create();
+        vao->AddVertexBuffer(vbo);
+        vao->SetIndexBuffer(ibo);
+
+        auto& camera = Application::Get().GetWindow().GetSceneCamera();
+        Maths::mat4 view = camera->CalculateView();
+        view.c[0].w = 0.f;
+        view.c[1].w = 0.f;
+        view.c[2].w = 0.f;
+        view.c[3].xyz = { 0.f, 0.f, 0.f };
+        view.c[3].w = 1.f;
+
+        Maths::mat4 viewInverted;
+        Maths::invert(view.e, viewInverted.e);
+
+        RenderCommand::DisableDepthMask();
+        {
+            MF_PROFILE_SCOPE("Upload Uniforms - Skybox");
+            s_Data->SkyboxMat->SetUniformValue("u_View", viewInverted);
+            s_Data->SkyboxMat->Bind();
+        }
+
+        {
+            MF_PROFILE_SCOPE("Draw Call - Skybox");
+            RenderCommand::DrawIndexed(vao);
+        }
+        RenderCommand::DisableDepthMask();
     }
 
     void Renderer::OnImGuiRender()
@@ -499,6 +568,19 @@ namespace Magnefu
                     {
                         RenderCommand::DisableFaceCulling();
                         s_Settings->FaceCulling = false;
+                    }
+                }
+                if (ImGui::Checkbox("Seamless Cube Map", &s_Settings->SeamlessCubeMap))
+                {
+                    if (s_Settings->SeamlessCubeMap)
+                    {
+                        RenderCommand::EnableSeamlessCubeMap();
+                        s_Settings->SeamlessCubeMap = true;
+                    }
+                    else
+                    {
+                        RenderCommand::DisableSeamlessCubeMap();
+                        s_Settings->SeamlessCubeMap = false;
                     }
                 }
                 if (ImGui::Checkbox("Blending", &s_Settings->Blending))

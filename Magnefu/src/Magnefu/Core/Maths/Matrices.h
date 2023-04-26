@@ -7,14 +7,18 @@ namespace Maths
 {
 #pragma region Union Declarations
 
-	union mat2x4
+	union mat4;
+
+	union mat3
 	{
+		mat3(const mat4& m);
+
 		static std::type_index getTypeIndex() {
-			return std::type_index(typeid(mat2x4));
+			return std::type_index(typeid(mat3));
 		}
 
-		float e[8];
-		vec4 c[2];
+		float e[9];
+		vec3 c[3];
 	};
 
 	union mat4
@@ -22,9 +26,11 @@ namespace Maths
 		static std::type_index getTypeIndex() {
 			return std::type_index(typeid(mat4));
 		}
+
 		float e[16];
 		vec4 c[4];
 	};
+
 #pragma endregion
 
 #pragma region Operator Overloads

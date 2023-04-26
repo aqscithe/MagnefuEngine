@@ -2,35 +2,30 @@
 #version 450 core
 
 layout(location = 0) in vec3 aPosition;
-layout(location = 1) in vec3 aNormal;
-layout(location = 2) in vec3 aColor;
-layout(location = 3) in vec2 aTexCoords;
 
 
-uniform mat4 u_MVP;
+uniform mat4 u_View;
 
-out vec3 VertexColor;
-out vec2 TexCoords;
+out vec3 TexCoords;
 
 void main()
 {
-	gl_Position = u_MVP * vec4(aPosition, 1.0);
-	VertexColor = aColor;
-	TexCoords = aTexCoords;
+	TexCoords = aPosition;
+	vec4 pos = vec4(aPosition, 1.0) * u_View;
+	gl_Position = pos.xyww;
 }
 
 
 #shader fragment
 #version 450 core
 
-uniform sampler2D u_DiffuseTexture;
+uniform samplerCube u_DiffuseTexture;
 
-in vec3 VertexColor;
-in vec2 TexCoords;
+in vec3 TexCoords;
 
 out vec4 fragColor;
 
 void main()
 {
-	fragColor = vec4(VertexColor, 1.0);
+	fragColor = texture(u_DiffuseTexture, TexCoords);
 }

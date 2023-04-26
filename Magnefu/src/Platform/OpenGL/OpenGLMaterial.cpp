@@ -44,7 +44,7 @@ namespace Magnefu
                 SetUniformValue(data.first, Maths::mat4());
             else if (data.second == "vec3")
                 SetUniformValue(data.first, Maths::vec3());
-            if (data.second == "sampler2D" || data.second == "samplerCube" || data.second == "int")
+            else if (data.second == "sampler2D" || data.second == "samplerCube" || data.second == "int")
                 SetUniformValue(data.first, int());
             else if (data.second == "float")
                 SetUniformValue(data.first, float());
@@ -60,8 +60,6 @@ namespace Magnefu
         }
         uniformData.clear();
 
-        m_Shader->Bind();
-
         // SET DEFAULT TEXTURES
         if (m_Options & MaterialOptions_Skybox)
             m_TextureMap[TextureType::DIFFUSE] = Texture::Create(TextureOptions_Skybox);
@@ -71,17 +69,12 @@ namespace Magnefu
         for (auto& texture : m_TextureMap)
         {
             String uniformName = "u_" + TextureTypeNameMap[texture.first] + "Texture";
-            m_Shader->SetUniform1i(uniformName, (int)texture.second->GetSlot());
+            SetUniformValue(uniformName, (int)texture.second->GetSlot());
         }
 
         // TODO: Textures do not change often. Any way to only send the texture uniform if there was an update
         // to the selected texture slot?
     }
-
-    /*void OpenGLMaterial::InitRenderData(const Ref<SceneData>& renderData)
-    {
-        m_RenderData = renderData;
-    }*/
 
     void OpenGLMaterial::OnImGuiRender()
     {

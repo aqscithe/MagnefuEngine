@@ -33,6 +33,16 @@ namespace Magnefu
 		glDisable(GL_CULL_FACE);
 	}
 
+	void OpenGLRendererAPI::EnableSeamlessCubeMap()
+	{
+		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	}
+
+	void OpenGLRendererAPI::DisableSeamlessCubeMap()
+	{
+		glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	}
+
 	void OpenGLRendererAPI::EnableBlending()
 	{
 		glEnable(GL_BLEND);
@@ -53,6 +63,18 @@ namespace Magnefu
 	void OpenGLRendererAPI::DisableDepthTest()
 	{
 		glDisable(GL_DEPTH_TEST);
+	}
+
+	void OpenGLRendererAPI::EnableDepthMask()
+	{
+		//glDepthMask(GL_TRUE);
+		glDepthFunc(GL_LESS);
+	}
+
+	void OpenGLRendererAPI::DisableDepthMask()
+	{
+		//glDepthMask(GL_FALSE);
+		glDepthFunc(GL_LEQUAL);
 	}
 
 	void OpenGLRendererAPI::SetWindowSize(int width, int height)
