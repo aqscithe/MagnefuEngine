@@ -34,6 +34,9 @@ namespace Magnefu
 
 		if (m_Options & TextureOptions_Skybox)
 		{
+			// https://jaxry.github.io/panorama-to-cubemap/
+			// Tool to convert image to cubemap image
+			
 			// Generate & Bind Texture
 			glGenTextures(1, &m_RendererID);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID);

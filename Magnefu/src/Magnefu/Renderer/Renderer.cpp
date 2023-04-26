@@ -16,6 +16,15 @@
 
 namespace Magnefu
 {
+    // TODO: Could these work as bit flags?
+    struct RenderSettings
+    {
+        bool FaceCulling;
+        bool SeamlessCubeMap;
+        bool Blending;
+        bool DepthTest;
+    };
+
     struct RenderData
     {
         Maths::mat4 MVP;
@@ -26,15 +35,7 @@ namespace Magnefu
         Material* SkyboxMat;
     };
 
-    // TODO: Could these work as bit flags?
-    struct RenderSettings
-    {
-        bool FaceCulling;
-        bool SeamlessCubeMap;
-        bool Blending;
-        bool DepthTest;
-    };
-
+    
     static RenderData* s_Data = nullptr;
     static RenderSettings* s_Settings = nullptr;
 
@@ -64,7 +65,7 @@ namespace Magnefu
 
     void Renderer::BeginScene()
     {
-
+        Application::Get().GetWindow().GetSceneCamera()->CalculateVP();
     }
 
     void Renderer::EndScene()
@@ -114,14 +115,13 @@ namespace Magnefu
 
         auto& camera = Application::Get().GetWindow().GetSceneCamera();
 
-
         {
             MF_PROFILE_SCOPE("MVP Multiplication - PLANE");
             s_Data->ModelMatrix = Maths::translate(data.Translation) *
                 Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) *
                 Maths::scale(Maths::vec3(data.Size.xy, 0.1f));
 
-            s_Data->MVP = camera->CalculateVP() * s_Data->ModelMatrix;
+            s_Data->MVP = camera->GetVP() * s_Data->ModelMatrix;
         }
             
         {
@@ -200,7 +200,7 @@ namespace Magnefu
                 Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) *
                 Maths::scale(data.Size.x);
 
-            s_Data->MVP = camera->CalculateVP() * s_Data->ModelMatrix;
+            s_Data->MVP = camera->GetVP() * s_Data->ModelMatrix;
         }
 
         {
@@ -298,8 +298,6 @@ namespace Magnefu
             RenderCommand::DrawIndexed(vao);
         }
     }
-
-
 
     // http://www.songho.ca/opengl/gl_sphere.html
     void Renderer::DrawSphere(const SphereData& data)
@@ -444,7 +442,7 @@ namespace Magnefu
                 Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) *
                 Maths::scale(data.Radius);
 
-            s_Data->MVP = camera->CalculateVP() * s_Data->ModelMatrix;
+            s_Data->MVP = camera->GetVP() * s_Data->ModelMatrix;
         }
             
         {
@@ -526,20 +524,20 @@ namespace Magnefu
         vao->SetIndexBuffer(ibo);
 
         auto& camera = Application::Get().GetWindow().GetSceneCamera();
-        Maths::mat4 projection = camera->CalculateProjection();
-        Maths::mat4 view = camera->CalculateView();
-        view.c[0].w = 0.f;
-        view.c[1].w = 0.f;
-        view.c[2].w = 0.f;
-        view.c[3].xyz = { 0.f, 0.f, 0.f };
-        view.c[3].w = 1.f;
+        Maths::mat4* view = static_cast<Maths::mat4*>(StackAllocator::Get()->Allocate(sizeof(Maths::mat4), sizeof(Maths::mat4)));
+        *view = camera->GetView();
+        view->c[0].w = 0.f;
+        view->c[1].w = 0.f;
+        view->c[2].w = 0.f;
+        view->c[3].xyz = { 0.f, 0.f, 0.f };
+        view->c[3].w = 1.f;
 
         RenderCommand::DepthFuncLEqual();
         RenderCommand::FrontFaceCW();
         {
             MF_PROFILE_SCOPE("Upload Uniforms - Skybox");
-            s_Data->SkyboxMat->SetUniformValue("u_View", view);
-            s_Data->SkyboxMat->SetUniformValue("u_Projection", projection);
+            s_Data->SkyboxMat->SetUniformValue("u_View", *view);
+            s_Data->SkyboxMat->SetUniformValue("u_Projection", camera->GetProjection());
             s_Data->SkyboxMat->Bind();
         }
 
@@ -550,7 +548,7 @@ namespace Magnefu
         RenderCommand::FrontFaceCCW();
         RenderCommand::DepthFuncLess();
         
-        
+        StackAllocator::Get()->FreeToMarker();
     }
 
     void Renderer::OnImGuiRender()
