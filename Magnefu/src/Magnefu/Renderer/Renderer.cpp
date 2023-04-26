@@ -533,6 +533,7 @@ namespace Magnefu
         view.c[3].xyz = { 0.f, 0.f, 0.f };
         view.c[3].w = 1.f;
 
+
         Maths::mat4 viewInverted;
         Maths::invert(view.e, viewInverted.e);
 
