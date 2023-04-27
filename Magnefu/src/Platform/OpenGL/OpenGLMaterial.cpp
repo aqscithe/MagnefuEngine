@@ -8,13 +8,14 @@
 namespace Magnefu
 {
     std::unordered_map<TextureType, String> TextureTypeNameMap = {
-        {TextureType::AMBIENT, "Ambient"},
         {TextureType::DIFFUSE, "Diffuse"},
         {TextureType::BUMP, "Bump"},
         {TextureType::ROUGHNESS, "Roughness"},
-        {TextureType::SPECULAR, "Specular"},
+        {TextureType::METALLIC, "Metallic"},
+        {TextureType::DISPLACEMENT, "Displacement"},
+        {TextureType::NORMAL, "Normal"},
+        {TextureType::AO, "AO"},
         {TextureType::EMISSIVE, "Emissive"},
-        {TextureType::METALLIC, "Metallic"}
     };
 
 

@@ -29,6 +29,8 @@ namespace Magnefu
     {
         Maths::mat4 MVP;
         Maths::mat4 ModelMatrix;
+        Maths::mat4 NormalMatrix;
+        Maths::mat4 Inverted;
         DirectionalLight DefaultLight;
         Material* PrimitiveMat;
         Material* SphereMat;
@@ -122,12 +124,17 @@ namespace Magnefu
                 Maths::scale(Maths::vec3(data.Size.xy, 0.1f));
 
             s_Data->MVP = camera->GetVP() * s_Data->ModelMatrix;
+
+            s_Data->NormalMatrix = Maths::identity();
+            if (Maths::invert(s_Data->ModelMatrix.e, s_Data->Inverted.e))
+                s_Data->NormalMatrix = Maths::transpose(s_Data->Inverted);
         }
             
         {
             MF_PROFILE_SCOPE("Upload Uniforms - PLANE");
             s_Data->PrimitiveMat->SetUniformValue("u_MVP", s_Data->MVP);
             s_Data->PrimitiveMat->SetUniformValue("u_ModelMatrix", s_Data->ModelMatrix);
+            s_Data->PrimitiveMat->SetUniformValue("u_NormalMatrix", s_Data->NormalMatrix);
             s_Data->PrimitiveMat->SetUniformValue("u_CameraPos", camera->GetData().Position);
             s_Data->PrimitiveMat->SetUniformValue("u_LightDirection", s_Data->DefaultLight.Direction);
             s_Data->PrimitiveMat->SetUniformValue("u_LightColor", s_Data->DefaultLight.Color);
@@ -279,12 +286,17 @@ namespace Magnefu
                 Maths::scale(data.Size);
 
             s_Data->MVP = camera->CalculateVP() * s_Data->ModelMatrix;
+
+            s_Data->NormalMatrix = Maths::identity();
+            if (Maths::invert(s_Data->ModelMatrix.e, s_Data->Inverted.e))
+                s_Data->NormalMatrix = Maths::transpose(s_Data->Inverted);
         }
 
         {
             MF_PROFILE_SCOPE("Upload Uniforms - CUBE");
             s_Data->PrimitiveMat->SetUniformValue("u_MVP", s_Data->MVP);
             s_Data->PrimitiveMat->SetUniformValue("u_ModelMatrix", s_Data->ModelMatrix);
+            s_Data->PrimitiveMat->SetUniformValue("u_NormalMatrix", s_Data->NormalMatrix);
             s_Data->PrimitiveMat->SetUniformValue("u_CameraPos", camera->GetData().Position);
             s_Data->PrimitiveMat->SetUniformValue("u_LightDirection", s_Data->DefaultLight.Direction);
             s_Data->PrimitiveMat->SetUniformValue("u_LightColor", s_Data->DefaultLight.Color);
@@ -443,6 +455,10 @@ namespace Magnefu
                 Maths::scale(data.Radius);
 
             s_Data->MVP = camera->GetVP() * s_Data->ModelMatrix;
+
+            s_Data->NormalMatrix = Maths::identity();
+            if (Maths::invert(s_Data->ModelMatrix.e, s_Data->Inverted.e))
+                s_Data->NormalMatrix = Maths::transpose(s_Data->Inverted);
         }
             
         {
@@ -450,6 +466,7 @@ namespace Magnefu
             s_Data->SphereMat->SetUniformValue("u_MVP", s_Data->MVP);
             s_Data->SphereMat->SetUniformValue("u_Color", data.Color);
             s_Data->SphereMat->SetUniformValue("u_ModelMatrix", s_Data->ModelMatrix);
+            s_Data->SphereMat->SetUniformValue("u_NormalMatrix", s_Data->NormalMatrix);
             s_Data->SphereMat->SetUniformValue("u_CameraPos", camera->GetData().Position);
             s_Data->SphereMat->SetUniformValue("u_LightDirection", s_Data->DefaultLight.Direction);
             s_Data->SphereMat->SetUniformValue("u_LightColor", s_Data->DefaultLight.Color);

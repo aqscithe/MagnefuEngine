@@ -26,6 +26,8 @@ namespace Magnefu
 			Library = "Universe";
 			ID = 999;
 			TextureMap[TextureType::DIFFUSE] = Texture::Create();
+			TextureMap[TextureType::ROUGHNESS] = Texture::Create();
+			TextureMap[TextureType::METALLIC] = Texture::Create();
 			Ka = { 0.01f, 0.01f, 0.01f};
 			Kd = { 1.f, 1.f, 1.f};
 			Ks = { 0.5f, 0.5f, 0.5f};
@@ -41,10 +43,12 @@ namespace Magnefu
 		Maths::vec3 Ka;
 		Maths::vec3 Kd;
 		Maths::vec3 Ks;
+		Maths::vec3 Tint;
 		float Ni;
 		float Ns;
 		float Opacity;
 		TextureMap  TextureMap;
+		//subsurface scattering variable;
 
 	};
 
@@ -78,9 +82,7 @@ namespace Magnefu
 		virtual void Bind() = 0;
 		virtual void Unbind() = 0;
 
-		//virtual Ref<SceneData>& GetRenderData() = 0;
 		virtual void OnImGuiRender() = 0;
-		//virtual void InitRenderData(const Ref<SceneData>&) = 0;
 
 		static Ref<Material> Create(const String& shaderPath = "res/shaders/Basic.shader", const MaterialOptions& options = MaterialOptions::MaterialOptions_None);
 	};

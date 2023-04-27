@@ -8,6 +8,7 @@ layout(location = 2) in vec2 aTexCoords;
 
 uniform mat4 u_MVP; 
 uniform mat4 u_ModelMatrix;
+uniform mat4 u_NormalMatrix;
 
 out vec3 FragPos;
 out vec3 Normal;
@@ -17,7 +18,7 @@ void main()
 {
 	gl_Position = u_MVP * vec4(aPosition, 1.0);
 	TexCoords = aTexCoords;
-	Normal = aNormal;
+	Normal = mat3(u_NormalMatrix) * aNormal;
 	FragPos = vec3(u_ModelMatrix * vec4(aPosition, 1.0));
 }
 
