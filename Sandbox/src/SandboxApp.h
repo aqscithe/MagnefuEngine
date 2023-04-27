@@ -69,8 +69,6 @@ public:
 		Magnefu::Renderer::DrawSphere(m_Sphere);
 		Magnefu::Renderer::DrawSkybox();
 		Magnefu::Renderer::EndScene();
-
-		
 	}
 
 	void OnGUIRender() override

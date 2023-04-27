@@ -54,7 +54,7 @@ namespace Magnefu
         s_Data->SkyboxMat = Material::Create("res/shaders/Skybox.shader", MaterialOptions_Skybox).get();
 
         s_Data->DefaultLight.Direction = { -1.f, -1.f, -1.f };
-        s_Data->DefaultLight.Color = { 1.f, 0.96f, 0.72f };
+        s_Data->DefaultLight.Color = { 1.f, 0.99f, 0.96f };
         s_Data->DefaultLight.Flux = 3.f;
         s_Data->DefaultLight.Enabled = true;
 
@@ -140,6 +140,14 @@ namespace Magnefu
             s_Data->PrimitiveMat->SetUniformValue("u_LightColor", s_Data->DefaultLight.Color);
             s_Data->PrimitiveMat->SetUniformValue("u_RadiantFlux", s_Data->DefaultLight.Flux);
             s_Data->PrimitiveMat->SetUniformValue("u_LightEnabled", s_Data->DefaultLight.Enabled);
+
+            auto& materialSpec = s_Data->PrimitiveMat->GetMaterialSpec();
+            s_Data->PrimitiveMat->SetUniformValue("u_Ka", materialSpec.Ka);
+            s_Data->PrimitiveMat->SetUniformValue("u_Kd", materialSpec.Kd);
+            s_Data->PrimitiveMat->SetUniformValue("u_Ks", materialSpec.Ks);
+            s_Data->PrimitiveMat->SetUniformValue("u_Tint", materialSpec.TintColor);
+            s_Data->PrimitiveMat->SetUniformValue("u_Reflectance", materialSpec.Reflectance);
+            s_Data->PrimitiveMat->SetUniformValue("u_Opacity", materialSpec.Opacity);
             s_Data->PrimitiveMat->Bind();
         }
 
@@ -219,6 +227,14 @@ namespace Magnefu
             s_Data->PrimitiveMat->SetUniformValue("u_LightColor", s_Data->DefaultLight.Color);
             s_Data->PrimitiveMat->SetUniformValue("u_RadiantFlux", s_Data->DefaultLight.Flux);
             s_Data->PrimitiveMat->SetUniformValue("u_LightEnabled", s_Data->DefaultLight.Enabled);
+
+            auto& materialSpec = s_Data->PrimitiveMat->GetMaterialSpec();
+            s_Data->PrimitiveMat->SetUniformValue("u_Ka", materialSpec.Ka);
+            s_Data->PrimitiveMat->SetUniformValue("u_Kd", materialSpec.Kd);
+            s_Data->PrimitiveMat->SetUniformValue("u_Ks", materialSpec.Ks);
+            s_Data->PrimitiveMat->SetUniformValue("u_Tint", materialSpec.TintColor);
+            s_Data->PrimitiveMat->SetUniformValue("u_Reflectance", materialSpec.Reflectance);
+            s_Data->PrimitiveMat->SetUniformValue("u_Opacity", materialSpec.Opacity);
             s_Data->PrimitiveMat->Bind();
         }
 
@@ -302,6 +318,14 @@ namespace Magnefu
             s_Data->PrimitiveMat->SetUniformValue("u_LightColor", s_Data->DefaultLight.Color);
             s_Data->PrimitiveMat->SetUniformValue("u_RadiantFlux", s_Data->DefaultLight.Flux);
             s_Data->PrimitiveMat->SetUniformValue("u_LightEnabled", s_Data->DefaultLight.Enabled);
+
+            auto& materialSpec = s_Data->PrimitiveMat->GetMaterialSpec();
+            s_Data->PrimitiveMat->SetUniformValue("u_Ka", materialSpec.Ka);
+            s_Data->PrimitiveMat->SetUniformValue("u_Kd", materialSpec.Kd);
+            s_Data->PrimitiveMat->SetUniformValue("u_Ks", materialSpec.Ks);
+            s_Data->PrimitiveMat->SetUniformValue("u_Tint", materialSpec.TintColor);
+            s_Data->PrimitiveMat->SetUniformValue("u_Reflectance", materialSpec.Reflectance);
+            s_Data->PrimitiveMat->SetUniformValue("u_Opacity", materialSpec.Opacity);
             s_Data->PrimitiveMat->Bind();
         }
 

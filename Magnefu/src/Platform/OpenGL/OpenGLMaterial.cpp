@@ -63,11 +63,15 @@ namespace Magnefu
 
         // SET DEFAULT TEXTURES
         if (m_Options & MaterialOptions_Skybox)
-            m_TextureMap[TextureType::DIFFUSE] = Texture::Create(TextureOptions_Skybox);
+            m_Spec.TextureMap[TextureType::DIFFUSE] = Texture::Create(TextureOptions_Skybox);
         else
-            m_TextureMap[TextureType::DIFFUSE] = Texture::Create();
+        {
+            m_Spec.TextureMap[TextureType::DIFFUSE] = Texture::Create(TextureOptions_None, "res/textures/defaults/diffuse.jpg");
+            m_Spec.TextureMap[TextureType::ROUGHNESS] = Texture::Create(TextureOptions_None, "res/textures/defaults/roughness.png");
+            m_Spec.TextureMap[TextureType::METALLIC] = Texture::Create(TextureOptions_None, "res/textures/defaults/metallic.jpg");
+        }
 
-        for (auto& texture : m_TextureMap)
+        for (auto& texture : m_Spec.TextureMap)
         {
             String uniformName = "u_" + TextureTypeNameMap[texture.first] + "Texture";
             SetUniformValue(uniformName, (int)texture.second->GetSlot());
@@ -75,6 +79,14 @@ namespace Magnefu
 
         // TODO: Textures do not change often. Any way to only send the texture uniform if there was an update
         // to the selected texture slot?
+
+        // SET REMAINING MATERIAL SPECS
+        m_Spec.Ka = Maths::vec3(0.f);
+        m_Spec.Kd = Maths::vec3(1.f);
+        m_Spec.Ks = Maths::vec3(1.f);
+        m_Spec.TintColor = Maths::vec3(1.f);
+        m_Spec.Reflectance = 0.5f;
+        m_Spec.Opacity = 1.f;
     }
 
     void OpenGLMaterial::OnImGuiRender()
@@ -93,12 +105,23 @@ namespace Magnefu
                     InitUniforms();
                 }
                 m_Shader->OnImGuiRender();
+                ImGui::SeparatorText("Options");
+                ImGui::SliderFloat3("Ka", m_Spec.Ka.e, 0.f, 1.f);
+                ImGui::SliderFloat3("Kd", m_Spec.Kd.e, 0.f, 1.f);
+                ImGui::SliderFloat3("Ks", m_Spec.Ks.e, 0.f, 1.f);
+                ImGui::SliderFloat3("Tint Color", m_Spec.TintColor.e, 0.f, 1.f);
+                ImGui::SliderFloat("Reflectance", &m_Spec.Reflectance, 0.f, 1.f);
+                ImGui::SliderFloat("Opacity", &m_Spec.Opacity, 0.f, 1.f);
                 ImGui::SeparatorText("Textures");
-                if (!m_TextureMap.empty())
+                if (!m_Spec.TextureMap.empty())
                 {
-                    auto& Textures = m_TextureMap;
+                    auto& Textures = m_Spec.TextureMap;
                     if (ImGui::CollapsingHeader("Diffuse"))
                         Textures[TextureType::DIFFUSE]->OnImGuiRender();
+                    if (ImGui::CollapsingHeader("Roughness"))
+                        Textures[TextureType::ROUGHNESS]->OnImGuiRender();
+                    if (ImGui::CollapsingHeader("Metallic"))
+                        Textures[TextureType::METALLIC]->OnImGuiRender();
                 }
                 ImGui::EndTabItem();
             }
@@ -117,7 +140,7 @@ namespace Magnefu
         m_Shader->UploadUniforms(m_Uniforms);
 
         // BIND TEXTURES
-        for (auto& texture : m_TextureMap)
+        for (auto& texture : m_Spec.TextureMap)
             texture.second->Bind();
     }
 
@@ -126,7 +149,7 @@ namespace Magnefu
         MF_PROFILE_FUNCTION();
         m_Shader->Unbind();
 
-        for (auto& texture : m_TextureMap)
+        for (auto& texture : m_Spec.TextureMap)
             texture.second->Unbind();
     }
 

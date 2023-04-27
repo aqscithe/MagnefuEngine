@@ -37,11 +37,12 @@ uniform vec3 u_LightDirection;
 uniform vec3 u_LightColor;
 uniform bool u_LightEnabled;
 
+uniform float u_Opacity;
 uniform float u_RadiantFlux;
 uniform float u_Reflectance = 0.5; // fresnel reflectance for dielectrics [0.0, 1.0]
-uniform float u_Ka = vec3(0.0);
-uniform float u_Kd = vec3(1.0);
-uniform float u_Ks = vec3(1.0);
+uniform vec3 u_Ka = vec3(0.0);
+uniform vec3 u_Kd = vec3(1.0);
+uniform vec3 u_Ks = vec3(1.0);
 
 uniform sampler2D u_DiffuseTexture; // diffuse for dielectrics, F0 for metals
 uniform sampler2D u_RoughnessTexture;
@@ -80,12 +81,11 @@ float G_Smith(float roughness, float NoL, float NoV)
 
 void main()
 {		
-	vec3 Radiance;
 	vec3 BaseColor = vec3(texture(u_DiffuseTexture, TexCoords));
 	if (u_LightEnabled)
 	{
-		// AMBIENT PORTION          // Ka
-		Radiance = BaseColor * u_Ka;
+		// AMBIENT PORTION          
+		vec3 Radiance = BaseColor * u_Ka;
 
 		vec3 LightVector = normalize(-u_LightDirection);
 		vec3 ViewVector = normalize(u_CameraPos - FragPos);
@@ -112,10 +112,9 @@ void main()
 		float NoL = clamp(dot(Normal, LightVector), 0.0, 1.0);
 		float NoV = clamp(dot(Normal, ViewVector), 0.0, 1.0);
 		float G = G_Smith(roughness, NoL, NoV);
-																			// Ks
+																			
 		vec3 spec = F * D * G / 4.0 * max(NoL, 0.001) * max(NoV, 0.001) * u_Ks;
 																
-								//Kd
 		vec3 rhod = BaseColor * u_Kd;
 		rhod *= vec3(1.0) - F;
 
@@ -127,11 +126,13 @@ void main()
 
 		Radiance += BRDF * Irradiance * u_LightColor;
 		Radiance *= u_Tint;
+		FragColor = vec4(Radiance, 1.0);
 	}
 	else
 	{
-		radiance = BaseColor * u_Tint;
+		vec3 Radiance = BaseColor * u_Tint;
+		FragColor = vec4(Radiance, 1.0);
 	}
 
-	FragColor = vec4(Radiance, 1.0);
+	//FragColor = vec4(Radiance, 1.0);
 }
