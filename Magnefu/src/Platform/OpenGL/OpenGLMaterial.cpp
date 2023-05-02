@@ -66,9 +66,9 @@ namespace Magnefu
             m_Spec.TextureMap[TextureType::DIFFUSE] = Texture::Create(TextureOptions_Skybox);
         else
         {
-            m_Spec.TextureMap[TextureType::DIFFUSE] = Texture::Create(TextureOptions_None, "res/textures/defaults/diffuse.jpg");
-            m_Spec.TextureMap[TextureType::ROUGHNESS] = Texture::Create(TextureOptions_None, "res/textures/defaults/roughness.png");
-            m_Spec.TextureMap[TextureType::METALLIC] = Texture::Create(TextureOptions_None, "res/textures/defaults/metallic.jpg");
+            m_Spec.TextureMap[TextureType::DIFFUSE] = Texture::Create(TextureOptions_None,   "res/textures/painted-wall-sky-blue/diffuse.png");
+            m_Spec.TextureMap[TextureType::ROUGHNESS] = Texture::Create(TextureOptions_None, "res/textures/painted-wall-sky-blue/roughness.png");
+            m_Spec.TextureMap[TextureType::METALLIC] = Texture::Create(TextureOptions_None,  "res/textures/painted-wall-sky-blue/metallic.png");
         }
 
         for (auto& texture : m_Spec.TextureMap)

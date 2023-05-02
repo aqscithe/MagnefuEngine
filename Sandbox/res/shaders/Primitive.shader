@@ -3,7 +3,6 @@
 
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
-layout(location = 2) in vec3 aColor;
 layout(location = 3) in vec2 aTexCoords;
 
 
@@ -12,14 +11,12 @@ uniform mat4 u_ModelMatrix;
 uniform mat4 u_NormalMatrix = mat4(1.0);
 
 out vec3 FragPos;
-out vec3 VertexColor;
 out vec3 Normal;
 out vec2 TexCoords;
 
 void main()
 {
 	gl_Position = u_MVP * vec4(aPosition, 1.0);
-	VertexColor = aColor;
 	TexCoords = aTexCoords;
 	Normal = mat3(u_NormalMatrix) * aNormal;
 	FragPos = vec3(u_ModelMatrix * vec4(aPosition, 1.0));
@@ -51,7 +48,6 @@ uniform sampler2D u_MetallicTexture;
 uniform vec3 u_Tint = vec3(1.0);
 
 in vec3 FragPos;
-in vec3 VertexColor;
 in vec3 Normal;
 in vec2 TexCoords;
 
@@ -81,11 +77,12 @@ float G_Smith(float roughness, float NoL, float NoV)
 
 void main()
 {		
+	vec3 Radiance;
 	vec3 BaseColor = vec3(texture(u_DiffuseTexture, TexCoords));
 	if (u_LightEnabled)
 	{
 		// AMBIENT PORTION          
-		vec3 Radiance = BaseColor * u_Ka;
+		Radiance = BaseColor * u_Ka;
 
 		vec3 LightVector = normalize(-u_LightDirection);
 		vec3 ViewVector = normalize(u_CameraPos - FragPos);
@@ -112,27 +109,26 @@ void main()
 		float NoL = clamp(dot(Normal, LightVector), 0.0, 1.0);
 		float NoV = clamp(dot(Normal, ViewVector), 0.0, 1.0);
 		float G = G_Smith(roughness, NoL, NoV);
-																			
+						
+		// Specular Portion
 		vec3 spec = F * D * G / 4.0 * max(NoL, 0.001) * max(NoV, 0.001) * u_Ks;
-																
+
+		vec3 testColor = vec3(1.0, 1.0, 1.0);
+				
+		// Diffuse Portion
 		vec3 rhod = BaseColor * u_Kd;
 		rhod *= vec3(1.0) - F;
-
 		rhod *= (1.0 - metallic);
-
 		vec3 diff = rhod / PI;
 
 		vec3 BRDF = diff + spec;
-
 		Radiance += BRDF * Irradiance * u_LightColor;
 		Radiance *= u_Tint;
-		FragColor = vec4(Radiance, 1.0);
 	}
 	else
 	{
-		vec3 Radiance = BaseColor * u_Tint;
-		FragColor = vec4(Radiance, 1.0);
+		Radiance = BaseColor * u_Tint;
 	}
 
-	//FragColor = vec4(Radiance, 1.0);
+	FragColor = vec4(Radiance, u_Opacity);
 }

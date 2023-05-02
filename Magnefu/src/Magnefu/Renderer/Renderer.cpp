@@ -85,12 +85,12 @@ namespace Magnefu
         MF_PROFILE_FUNCTION();
         //InstrumentationTimer timer("Renderer::DrawPlane");
 
-        float vertices[40] = {
-            //  position    normal          color                                        texture coords
-            -0.5f, -0.5f,   0.f, 0.f, 1.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  0.f,       // 0  BL
-             0.5f, -0.5f,   0.f, 0.f, 1.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  0.f,       // 1  BR
-             0.5f,  0.5f,   0.f, 0.f, 1.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  1.f,       // 2  TR
-            -0.5f,  0.5f,   0.f, 0.f, 1.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  1.f,       // 3  TL
+        float vertices[28] = {
+            //  position    normal           texture coords
+            -0.5f, -0.5f,   0.f, 0.f, 1.f,   0.f,  0.f,       // 0  BL
+             0.5f, -0.5f,   0.f, 0.f, 1.f,   1.f,  0.f,       // 1  BR
+             0.5f,  0.5f,   0.f, 0.f, 1.f,   1.f,  1.f,       // 2  TR
+            -0.5f,  0.5f,   0.f, 0.f, 1.f,   0.f,  1.f,       // 3  TL
         };
 
         uint32_t indices[] = {
@@ -103,7 +103,6 @@ namespace Magnefu
         BufferLayout layout = {
             {ShaderDataType::Float2, "aPosition"},
             {ShaderDataType::Float3, "aNormal"},
-            {ShaderDataType::Float3, "aColor"},
             {ShaderDataType::Float2, "aTexCoords"}
         };
 
@@ -161,18 +160,36 @@ namespace Magnefu
     void Renderer::DrawCube(const PrimitiveData& data)
     {
         MF_PROFILE_FUNCTION();
-        //InstrumentationTimer timer("Renderer::DrawCube");
 
-        float vertices[88] = {
-            //  position               normal             color                                        texture coords
-                -0.5f,  -0.5f, -0.5f,  -1.0f, 0.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  0.f,       // 0
-                 0.5f,  -0.5f, -0.5f,   1.0f, 0.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  0.f,       // 1
-                 0.5f,   0.5f, -0.5f,   0.0f, 1.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  1.f,       // 2
-                -0.5f,   0.5f, -0.5f,   0.0f, 1.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  1.f,       // 3
-                -0.5f,  -0.5f,  0.5f,   0.0f, 0.0f, 1.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  0.f,       // 4
-                 0.5f,  -0.5f,  0.5f,   0.0f, 0.0f, 1.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  0.f,       // 5
-                 0.5f,   0.5f,  0.5f,   0.0f, 1.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  1.f,       // 6
-                -0.5f,   0.5f,  0.5f,   0.0f, 1.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  1.f        // 7
+        /*std::vector<ObjModelVertex> modelVertices;
+        modelVertices.reserve(12);
+        modelVertices.emplace_back(
+            { -1.f,  -1.f, -1.f },
+            {}
+        )*/
+
+
+        /*float vertices[24] = {
+            -1.f,  -1.f, -1.f,
+             1.f,  -1.f, -1.f,
+             1.f,   1.f, -1.f,
+            -1.f,   1.f, -1.f,
+            -1.f,  -1.f,  1.f,
+             1.f,  -1.f,  1.f,
+             1.f,   1.f,  1.f,
+            -1.f,   1.f,  1.f
+        };*/
+
+        float vertices[64] = {
+            //  position               normal           texture coords
+                -1.f,  -1.f, -1.f,   1.0f, 0.0f, 0.f,   0.f,  0.f,       // 0
+                 1.f,  -1.f, -1.f,   1.0f, 0.0f, 0.f,   1.f,  0.f,       // 1
+                 1.f,   1.f, -1.f,   0.0f, 1.0f, 0.f,   1.f,  1.f,       // 2
+                -1.f,   1.f, -1.f,   0.0f, 1.0f, 0.f,   0.f,  1.f,       // 3
+                -1.f,  -1.f,  1.f,   0.0f, 0.0f, 1.f,   0.f,  0.f,       // 4
+                 1.f,  -1.f,  1.f,   0.0f, 0.0f, 1.f,   1.f,  0.f,       // 5
+                 1.f,   1.f,  1.f,   0.0f, 1.0f, 0.f,   1.f,  1.f,       // 6
+                -1.f,   1.f,  1.f,   0.0f, 1.0f, 0.f,   0.f,  1.f        // 7
         };
 
         uint32_t indices[] = {
@@ -195,7 +212,6 @@ namespace Magnefu
         BufferLayout layout = {
             {ShaderDataType::Float3, "aPosition"},
             {ShaderDataType::Float3, "aNormal"},
-            {ShaderDataType::Float3, "aColor"},
             {ShaderDataType::Float2, "aTexCoords"}
         };
 
@@ -249,16 +265,16 @@ namespace Magnefu
         MF_PROFILE_FUNCTION();
         //InstrumentationTimer timer("Renderer::DrawCube");
 
-        float vertices[88] = {
-            //  position               normal             color                                        texture coords
-                -0.5f,  -0.5f, -0.5f,  -1.0f, 0.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  0.f,       // 0
-                 0.5f,  -0.5f, -0.5f,   1.0f, 0.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  0.f,       // 1
-                 0.5f,   0.5f, -0.5f,   0.0f, 1.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  1.f,       // 2
-                -0.5f,   0.5f, -0.5f,   0.0f, 1.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  1.f,       // 3
-                -0.5f,  -0.5f,  0.5f,   0.0f, 0.0f, 1.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  0.f,       // 4
-                 0.5f,  -0.5f,  0.5f,   0.0f, 0.0f, 1.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  0.f,       // 5
-                 0.5f,   0.5f,  0.5f,   0.0f, 1.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    1.f,  1.f,       // 6
-                -0.5f,   0.5f,  0.5f,   0.0f, 1.0f, 0.f,  data.Color.r, data.Color.g, data.Color.b,    0.f,  1.f        // 7
+        float vertices[64] = {
+            //  position               normal              texture coords
+                -0.5f,  -0.5f, -0.5f,   1.0f, 0.0f, 0.f,   0.f,  0.f,       // 0
+                 0.5f,  -0.5f, -0.5f,   1.0f, 0.0f, 0.f,   1.f,  0.f,       // 1
+                 0.5f,   0.5f, -0.5f,   0.0f, 1.0f, 0.f,   1.f,  1.f,       // 2
+                -0.5f,   0.5f, -0.5f,   0.0f, 1.0f, 0.f,   0.f,  1.f,       // 3
+                -0.5f,  -0.5f,  0.5f,   0.0f, 0.0f, 1.f,   0.f,  0.f,       // 4
+                 0.5f,  -0.5f,  0.5f,   0.0f, 0.0f, 1.f,   1.f,  0.f,       // 5
+                 0.5f,   0.5f,  0.5f,   0.0f, 1.0f, 0.f,   1.f,  1.f,       // 6
+                -0.5f,   0.5f,  0.5f,   0.0f, 1.0f, 0.f,   0.f,  1.f        // 7
         };
 
         uint32_t indices[] = {
@@ -281,7 +297,6 @@ namespace Magnefu
         BufferLayout layout = {
             {ShaderDataType::Float3, "aPosition"},
             {ShaderDataType::Float3, "aNormal"},
-            {ShaderDataType::Float3, "aColor"},
             {ShaderDataType::Float2, "aTexCoords"}
         };
 
@@ -335,6 +350,7 @@ namespace Magnefu
         }
     }
 
+    // This algorithm can also be used to make a cylinder, a cone and a pyramid.
     // http://www.songho.ca/opengl/gl_sphere.html
     void Renderer::DrawSphere(const SphereData& data)
     {
@@ -496,6 +512,14 @@ namespace Magnefu
             s_Data->SphereMat->SetUniformValue("u_LightColor", s_Data->DefaultLight.Color);
             s_Data->SphereMat->SetUniformValue("u_RadiantFlux", s_Data->DefaultLight.Flux);
             s_Data->SphereMat->SetUniformValue("u_LightEnabled", s_Data->DefaultLight.Enabled);
+
+            auto& materialSpec = s_Data->SphereMat->GetMaterialSpec();
+            s_Data->SphereMat->SetUniformValue("u_Ka", materialSpec.Ka);
+            s_Data->SphereMat->SetUniformValue("u_Kd", materialSpec.Kd);
+            s_Data->SphereMat->SetUniformValue("u_Ks", materialSpec.Ks);
+            s_Data->SphereMat->SetUniformValue("u_Tint", materialSpec.TintColor);
+            s_Data->SphereMat->SetUniformValue("u_Reflectance", materialSpec.Reflectance);
+            s_Data->SphereMat->SetUniformValue("u_Opacity", materialSpec.Opacity);
             s_Data->SphereMat->Bind();
         }
 

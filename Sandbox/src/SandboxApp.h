@@ -92,7 +92,6 @@ public:
 				ImGui::SliderFloat("Angle", &m_Cube.Angle, -360.f, 360.f);
 				ImGui::SliderFloat3("Rotation", m_Cube.Rotation.e, -1.f, 1.f);
 				ImGui::SliderFloat3("Translation", m_Cube.Translation.e, -20.f, 20.f);
-				ImGui::ColorEdit3("Color", m_Cube.Color.e);
 				ImGui::EndTabItem();
 			}
 			if (ImGui::BeginTabItem("Rec Prism"))
@@ -101,7 +100,6 @@ public:
 				ImGui::SliderFloat("Angle", &m_RecPrism.Angle, -360.f, 360.f);
 				ImGui::SliderFloat3("Rotation", m_RecPrism.Rotation.e, -1.f, 1.f);
 				ImGui::SliderFloat3("Translation", m_RecPrism.Translation.e, -20.f, 20.f);
-				ImGui::ColorEdit3("Color", m_RecPrism.Color.e);
 				ImGui::EndTabItem();
 			}
 			if (ImGui::BeginTabItem("SPHERE"))
