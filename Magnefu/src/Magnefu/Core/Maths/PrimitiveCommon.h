@@ -68,9 +68,9 @@ namespace Magnefu
     struct ObjModelVertex
     {
         Maths::vec3 Position;
+        Maths::vec2 TextureCoords;
         Maths::vec3 Normal;
-        Maths::vec2  TextureCoords;
-        unsigned int TextureID;
+        
     };
 
     struct Face

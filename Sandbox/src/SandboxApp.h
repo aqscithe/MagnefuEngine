@@ -63,9 +63,9 @@ public:
 		Magnefu::RenderCommand::Clear();
 
 		Magnefu::Renderer::BeginScene();
-		Magnefu::Renderer::DrawPlane(m_Plane);
+		//Magnefu::Renderer::DrawPlane(m_Plane);
 		Magnefu::Renderer::DrawCube(m_Cube);
-		Magnefu::Renderer::DrawRectangularPrism(m_RecPrism);
+		//Magnefu::Renderer::DrawRectangularPrism(m_RecPrism);
 		Magnefu::Renderer::DrawSphere(m_Sphere);
 		Magnefu::Renderer::DrawSkybox();
 		Magnefu::Renderer::EndScene();

@@ -161,58 +161,87 @@ namespace Magnefu
     {
         MF_PROFILE_FUNCTION();
 
-        /*std::vector<ObjModelVertex> modelVertices;
-        modelVertices.reserve(12);
-        modelVertices.emplace_back(
-            { -1.f,  -1.f, -1.f },
-            {}
-        )*/
+        std::vector<ObjModelVertex> vertices;
+        vertices.reserve(6 * 4); // square faces * vertices per face
+        
 
-
-        /*float vertices[24] = {
-            -1.f,  -1.f, -1.f,
-             1.f,  -1.f, -1.f,
-             1.f,   1.f, -1.f,
-            -1.f,   1.f, -1.f,
-            -1.f,  -1.f,  1.f,
-             1.f,  -1.f,  1.f,
-             1.f,   1.f,  1.f,
-            -1.f,   1.f,  1.f
-        };*/
-
-        float vertices[64] = {
-            //  position               normal           texture coords
-                -1.f,  -1.f, -1.f,   1.0f, 0.0f, 0.f,   0.f,  0.f,       // 0
-                 1.f,  -1.f, -1.f,   1.0f, 0.0f, 0.f,   1.f,  0.f,       // 1
-                 1.f,   1.f, -1.f,   0.0f, 1.0f, 0.f,   1.f,  1.f,       // 2
-                -1.f,   1.f, -1.f,   0.0f, 1.0f, 0.f,   0.f,  1.f,       // 3
-                -1.f,  -1.f,  1.f,   0.0f, 0.0f, 1.f,   0.f,  0.f,       // 4
-                 1.f,  -1.f,  1.f,   0.0f, 0.0f, 1.f,   1.f,  0.f,       // 5
-                 1.f,   1.f,  1.f,   0.0f, 1.0f, 0.f,   1.f,  1.f,       // 6
-                -1.f,   1.f,  1.f,   0.0f, 1.0f, 0.f,   0.f,  1.f        // 7
+        Maths::vec3 positions[8] = {
+            {1.f,   1.f, -1.f},
+            {1.f,  -1.f, -1.f},
+            {1.f,   1.f,  1.f},
+            {1.f,  -1.f,  1.f},
+            {-1.f,   1.f, -1.f},
+            {-1.f,  -1.f, -1.f},
+            {-1.f,   1.f,  1.f},
+            {-1.f,  -1.f,  1.f}
         };
+
+        Maths::vec3 normals[6] = {
+            { 0.f,   1.f,   0.f},
+            { 0.f,   0.f,   1.f},
+            {-1.f,   0.f,   0.f},
+            { 0.f,  -1.f,   0.f},
+            { 1.f,   0.f,   0.f},
+            { 0.f,   0.f,  -1.f}
+        };
+
+        Maths::vec2 texCoords[14] = {
+            {0.625f, 0.50f},
+            {0.375f, 0.50f},
+            {0.625f, 0.75f},
+            {0.375f, 0.75f},
+            {0.875f, 0.50f},
+            {0.625f, 0.25f},
+            {0.125f, 0.50f},
+            {0.375f, 0.25f},
+            {0.875f, 0.75f},
+            {0.625f, 1.00f},
+            {0.625f, 0.00f},
+            {0.375f, 1.00f},
+            {0.375f, 0.00f},
+            {0.125f, 0.75f}
+        };
+
+        Maths::vec3i faces[24] = {
+            {0,0,0},  {4,4,0},  {6,8,0},  {2,2,0},   // Top
+            {3,3,1},  {2,2,1},  {6,9,1},  {7,11,1},  // Front
+            {7,12,2}, {6,10,2}, {4,5,2},  {5,7,2},   // Left
+            {5,6,3},  {1,1,3},  {3,3,3},  {7,13,3},  // Bottom
+            {1,1,4},  {0,0,4},  {2,2,4},  {3,3,4},   // Right
+            {5,7,5},  {4,5,5},  {0,0,5},  {1,1,5}    // Back
+        };
+
+        int vertexData = sizeof(faces) / sizeof(Maths::vec3i);
+
+        for (int j = 0; j < vertexData; j++)
+        {
+            vertices.emplace_back(positions[faces[j].x], texCoords[faces[j].y], normals[faces[j].z]);
+        }
 
         uint32_t indices[] = {
-            0, 2, 1,  // Back
-            0, 3, 2,
-            4, 5, 6,  // Front
-            4, 6, 7,
-            3, 6, 2,  // Top
-            3, 7, 6,
-            0, 1, 5,  // Bottom
-            0, 5, 4,
-            1, 6, 5,  
-            1, 2, 6,
-            0, 4, 7,  
-            0, 7, 3
+            0,  1,  2,  // Top
+            0,  2,  3,
+            4,  5,  6,  // Front
+            4,  6,  7,
+            8,  9,  10, // Left
+            8,  10, 11,
+            12, 13, 14, // Bottom
+            12, 14, 15,
+            16, 17, 18, // Right
+            16, 18, 19,
+            20, 21, 22, // Back
+            20, 22, 23
         };
 
-        Ref<VertexBuffer> vbo = VertexBuffer::Create(sizeof(vertices), vertices);
+        size_t vertexCount = vertices.size() * sizeof(ObjModelVertex);
+
+        Ref<VertexBuffer> vbo = VertexBuffer::Create(vertices.size() * sizeof(ObjModelVertex), (float*)vertices.data());
 
         BufferLayout layout = {
             {ShaderDataType::Float3, "aPosition"},
+            {ShaderDataType::Float2, "aTexCoords"},
             {ShaderDataType::Float3, "aNormal"},
-            {ShaderDataType::Float2, "aTexCoords"}
+            
         };
 
         vbo->SetLayout(layout);
