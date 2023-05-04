@@ -24,6 +24,8 @@ namespace Magnefu
     {
         MF_PROFILE_FUNCTION();
 
+        m_VertexArray = VertexArray::Create();
+
         if (m_Options & MaterialOptions_Skybox)
             m_Shader = Shader::Create("res/shaders/Skybox.shader");
         else
@@ -106,21 +108,28 @@ namespace Magnefu
                 }
                 m_Shader->OnImGuiRender();
                 ImGui::SeparatorText("Options");
-                ImGui::SliderFloat3("Ka", m_Spec.Ka.e, 0.f, 1.f);
-                ImGui::SliderFloat3("Kd", m_Spec.Kd.e, 0.f, 1.f);
-                ImGui::SliderFloat3("Ks", m_Spec.Ks.e, 0.f, 1.f);
-                ImGui::SliderFloat3("Tint Color", m_Spec.TintColor.e, 0.f, 1.f);
-                ImGui::SliderFloat("Reflectance", &m_Spec.Reflectance, 0.f, 1.f);
-                ImGui::SliderFloat("Opacity", &m_Spec.Opacity, 0.f, 1.f);
+                if (m_Options & MaterialOptions_Skybox)
+                {
+
+                }
+                else
+                {
+                    ImGui::SliderFloat3("Ka", m_Spec.Ka.e, 0.f, 1.f);
+                    ImGui::SliderFloat3("Kd", m_Spec.Kd.e, 0.f, 1.f);
+                    ImGui::SliderFloat3("Ks", m_Spec.Ks.e, 0.f, 1.f);
+                    ImGui::SliderFloat3("Tint Color", m_Spec.TintColor.e, 0.f, 1.f);
+                    ImGui::SliderFloat("Reflectance", &m_Spec.Reflectance, 0.f, 1.f);
+                    ImGui::SliderFloat("Opacity", &m_Spec.Opacity, 0.f, 1.f);
+                }
                 ImGui::SeparatorText("Textures");
                 if (!m_Spec.TextureMap.empty())
                 {
                     auto& Textures = m_Spec.TextureMap;
-                    if (ImGui::CollapsingHeader("Diffuse"))
+                    if (ImGui::CollapsingHeader("Diffuse") && Textures.find(TextureType::DIFFUSE) != Textures.end())
                         Textures[TextureType::DIFFUSE]->OnImGuiRender();
-                    if (ImGui::CollapsingHeader("Roughness"))
+                    if (ImGui::CollapsingHeader("Roughness") && Textures.find(TextureType::ROUGHNESS) != Textures.end())
                         Textures[TextureType::ROUGHNESS]->OnImGuiRender();
-                    if (ImGui::CollapsingHeader("Metallic"))
+                    if (ImGui::CollapsingHeader("Metallic") && Textures.find(TextureType::METALLIC) != Textures.end())
                         Textures[TextureType::METALLIC]->OnImGuiRender();
                 }
                 ImGui::EndTabItem();
@@ -128,6 +137,16 @@ namespace Magnefu
             ImGui::EndTabBar();
         }
         ImGui::End();
+    }
+
+    void OpenGLMaterial::UpdateMaterialSpec()
+    {
+        SetUniformValue("u_Ka", m_Spec.Ka);
+        SetUniformValue("u_Kd", m_Spec.Kd);
+        SetUniformValue("u_Ks", m_Spec.Ks);
+        SetUniformValue("u_Tint", m_Spec.TintColor);
+        SetUniformValue("u_Reflectance", m_Spec.Reflectance);
+        SetUniformValue("u_Opacity", m_Spec.Opacity);
     }
 
     void OpenGLMaterial::Bind()

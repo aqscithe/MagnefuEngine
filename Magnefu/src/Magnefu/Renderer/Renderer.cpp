@@ -25,6 +25,23 @@ namespace Magnefu
         bool DepthTest;
     };
 
+    struct RenderMaterials
+    {
+        Ref<Material> Plane;
+        Ref<Material> Cube;
+        Ref<Material> RecPrism;
+        Ref<Material> Sphere;
+        Ref<Material> Skybox;
+
+        RenderMaterials() :
+            Sphere(Material::Create("res/shaders/Sphere.shader")), Plane(Material::Create("res/shaders/Plane.shader")),
+            RecPrism(Material::Create("res/shaders/RecPrism.shader")), Cube(Material::Create("res/shaders/Cube.shader")),
+            Skybox(Material::Create("res/shaders/Skybox.shader", MaterialOptions_Skybox))
+        {
+
+        }
+    };
+
     struct RenderData
     {
         Maths::mat4 MVP;
@@ -32,13 +49,11 @@ namespace Magnefu
         Maths::mat4 NormalMatrix;
         Maths::mat4 Inverted;
         DirectionalLight DefaultLight;
-        Material* PrimitiveMat;
-        Material* SphereMat;
-        Material* SkyboxMat;
     };
 
     
     static RenderData* s_Data = nullptr;
+    static RenderMaterials* s_Materials = nullptr;
     static RenderSettings* s_Settings = nullptr;
 
     void Renderer::Init()
@@ -48,15 +63,14 @@ namespace Magnefu
         RenderCommand::EnableDepthTest();
         RenderCommand::EnableSeamlessCubeMap();
 
-        s_Data = static_cast<RenderData*>(StackAllocator::Get()->Allocate(sizeof(RenderData), sizeof(Maths::mat4)));
-        s_Data->PrimitiveMat = Material::Create("res/shaders/Primitive.shader").get();
-        s_Data->SphereMat = Material::Create("res/shaders/Sphere.shader").get();
-        s_Data->SkyboxMat = Material::Create("res/shaders/Skybox.shader", MaterialOptions_Skybox).get();
-
+        s_Data = static_cast<RenderData*>(StackAllocator::Get()->Allocate(sizeof(RenderData), sizeof(Maths::mat4)));        
         s_Data->DefaultLight.Direction = { -1.f, -1.f, -1.f };
         s_Data->DefaultLight.Color = { 1.f, 0.99f, 0.96f };
         s_Data->DefaultLight.Flux = 3.f;
         s_Data->DefaultLight.Enabled = true;
+
+        s_Materials = static_cast<RenderMaterials*>(StackAllocator::Get()->Allocate(sizeof(RenderMaterials), sizeof(Ref<Material>)));
+        new (s_Materials) RenderMaterials();
 
         s_Settings = static_cast<RenderSettings*>(StackAllocator::Get()->Allocate(sizeof(RenderSettings)));
         s_Settings->FaceCulling = true;
@@ -110,9 +124,8 @@ namespace Magnefu
 
         Ref<IndexBuffer> ibo = IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices);
 
-        Ref<VertexArray> vao = VertexArray::Create();
-        vao->AddVertexBuffer(vbo);
-        vao->SetIndexBuffer(ibo);
+        s_Materials->Plane->AddVertexBuffer(vbo);
+        s_Materials->Plane->SetIndexBuffer(ibo);
 
         auto& camera = Application::Get().GetWindow().GetSceneCamera();
 
@@ -131,28 +144,22 @@ namespace Magnefu
             
         {
             MF_PROFILE_SCOPE("Upload Uniforms - PLANE");
-            s_Data->PrimitiveMat->SetUniformValue("u_MVP", s_Data->MVP);
-            s_Data->PrimitiveMat->SetUniformValue("u_ModelMatrix", s_Data->ModelMatrix);
-            s_Data->PrimitiveMat->SetUniformValue("u_NormalMatrix", s_Data->NormalMatrix);
-            s_Data->PrimitiveMat->SetUniformValue("u_CameraPos", camera->GetData().Position);
-            s_Data->PrimitiveMat->SetUniformValue("u_LightDirection", s_Data->DefaultLight.Direction);
-            s_Data->PrimitiveMat->SetUniformValue("u_LightColor", s_Data->DefaultLight.Color);
-            s_Data->PrimitiveMat->SetUniformValue("u_RadiantFlux", s_Data->DefaultLight.Flux);
-            s_Data->PrimitiveMat->SetUniformValue("u_LightEnabled", s_Data->DefaultLight.Enabled);
+            s_Materials->Plane->SetUniformValue("u_MVP", s_Data->MVP);
+            s_Materials->Plane->SetUniformValue("u_ModelMatrix", s_Data->ModelMatrix);
+            s_Materials->Plane->SetUniformValue("u_NormalMatrix", s_Data->NormalMatrix);
+            s_Materials->Plane->SetUniformValue("u_CameraPos", camera->GetData().Position);
+            s_Materials->Plane->SetUniformValue("u_LightDirection", s_Data->DefaultLight.Direction);
+            s_Materials->Plane->SetUniformValue("u_LightColor", s_Data->DefaultLight.Color);
+            s_Materials->Plane->SetUniformValue("u_RadiantFlux", s_Data->DefaultLight.Flux);
+            s_Materials->Plane->SetUniformValue("u_LightEnabled", s_Data->DefaultLight.Enabled);
 
-            auto& materialSpec = s_Data->PrimitiveMat->GetMaterialSpec();
-            s_Data->PrimitiveMat->SetUniformValue("u_Ka", materialSpec.Ka);
-            s_Data->PrimitiveMat->SetUniformValue("u_Kd", materialSpec.Kd);
-            s_Data->PrimitiveMat->SetUniformValue("u_Ks", materialSpec.Ks);
-            s_Data->PrimitiveMat->SetUniformValue("u_Tint", materialSpec.TintColor);
-            s_Data->PrimitiveMat->SetUniformValue("u_Reflectance", materialSpec.Reflectance);
-            s_Data->PrimitiveMat->SetUniformValue("u_Opacity", materialSpec.Opacity);
-            s_Data->PrimitiveMat->Bind();
+            s_Materials->Plane->UpdateMaterialSpec();
+            s_Materials->Plane->Bind();
         }
 
         {
             MF_PROFILE_SCOPE("Draw Call - PLANE");
-            RenderCommand::DrawIndexed(vao);
+            RenderCommand::DrawIndexed(s_Materials->Plane->GetVertexArray());
         }
     }
 
@@ -248,9 +255,8 @@ namespace Magnefu
 
         Ref<IndexBuffer> ibo = IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices);
 
-        Ref<VertexArray> vao = VertexArray::Create();
-        vao->AddVertexBuffer(vbo);
-        vao->SetIndexBuffer(ibo);
+        s_Materials->Cube->AddVertexBuffer(vbo);
+        s_Materials->Cube->SetIndexBuffer(ibo);
 
         auto& camera = Application::Get().GetWindow().GetSceneCamera();
 
@@ -265,27 +271,21 @@ namespace Magnefu
 
         {
             MF_PROFILE_SCOPE("Upload Uniforms - CUBE");
-            s_Data->PrimitiveMat->SetUniformValue("u_MVP", s_Data->MVP);
-            s_Data->PrimitiveMat->SetUniformValue("u_ModelMatrix", s_Data->ModelMatrix);
-            s_Data->PrimitiveMat->SetUniformValue("u_CameraPos", camera->GetData().Position);
-            s_Data->PrimitiveMat->SetUniformValue("u_LightDirection", s_Data->DefaultLight.Direction);
-            s_Data->PrimitiveMat->SetUniformValue("u_LightColor", s_Data->DefaultLight.Color);
-            s_Data->PrimitiveMat->SetUniformValue("u_RadiantFlux", s_Data->DefaultLight.Flux);
-            s_Data->PrimitiveMat->SetUniformValue("u_LightEnabled", s_Data->DefaultLight.Enabled);
+            s_Materials->Cube->SetUniformValue("u_MVP", s_Data->MVP);
+            s_Materials->Cube->SetUniformValue("u_ModelMatrix", s_Data->ModelMatrix);
+            s_Materials->Cube->SetUniformValue("u_CameraPos", camera->GetData().Position);
+            s_Materials->Cube->SetUniformValue("u_LightDirection", s_Data->DefaultLight.Direction);
+            s_Materials->Cube->SetUniformValue("u_LightColor", s_Data->DefaultLight.Color);
+            s_Materials->Cube->SetUniformValue("u_RadiantFlux", s_Data->DefaultLight.Flux);
+            s_Materials->Cube->SetUniformValue("u_LightEnabled", s_Data->DefaultLight.Enabled);
 
-            auto& materialSpec = s_Data->PrimitiveMat->GetMaterialSpec();
-            s_Data->PrimitiveMat->SetUniformValue("u_Ka", materialSpec.Ka);
-            s_Data->PrimitiveMat->SetUniformValue("u_Kd", materialSpec.Kd);
-            s_Data->PrimitiveMat->SetUniformValue("u_Ks", materialSpec.Ks);
-            s_Data->PrimitiveMat->SetUniformValue("u_Tint", materialSpec.TintColor);
-            s_Data->PrimitiveMat->SetUniformValue("u_Reflectance", materialSpec.Reflectance);
-            s_Data->PrimitiveMat->SetUniformValue("u_Opacity", materialSpec.Opacity);
-            s_Data->PrimitiveMat->Bind();
+            s_Materials->Cube->UpdateMaterialSpec();
+            s_Materials->Cube->Bind();
         }
 
         {
             MF_PROFILE_SCOPE("Draw Call - CUBE");
-            RenderCommand::DrawIndexed(vao);
+            RenderCommand::DrawIndexed(s_Materials->Cube->GetVertexArray());
         }
     }
 
@@ -333,9 +333,8 @@ namespace Magnefu
 
         Ref<IndexBuffer> ibo = IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices);
 
-        Ref<VertexArray> vao = VertexArray::Create();
-        vao->AddVertexBuffer(vbo);
-        vao->SetIndexBuffer(ibo);
+        s_Materials->RecPrism->AddVertexBuffer(vbo);
+        s_Materials->RecPrism->SetIndexBuffer(ibo);
 
         auto& camera = Application::Get().GetWindow().GetSceneCamera();
 
@@ -354,28 +353,22 @@ namespace Magnefu
 
         {
             MF_PROFILE_SCOPE("Upload Uniforms - CUBE");
-            s_Data->PrimitiveMat->SetUniformValue("u_MVP", s_Data->MVP);
-            s_Data->PrimitiveMat->SetUniformValue("u_ModelMatrix", s_Data->ModelMatrix);
-            s_Data->PrimitiveMat->SetUniformValue("u_NormalMatrix", s_Data->NormalMatrix);
-            s_Data->PrimitiveMat->SetUniformValue("u_CameraPos", camera->GetData().Position);
-            s_Data->PrimitiveMat->SetUniformValue("u_LightDirection", s_Data->DefaultLight.Direction);
-            s_Data->PrimitiveMat->SetUniformValue("u_LightColor", s_Data->DefaultLight.Color);
-            s_Data->PrimitiveMat->SetUniformValue("u_RadiantFlux", s_Data->DefaultLight.Flux);
-            s_Data->PrimitiveMat->SetUniformValue("u_LightEnabled", s_Data->DefaultLight.Enabled);
+            s_Materials->RecPrism->SetUniformValue("u_MVP", s_Data->MVP);
+            s_Materials->RecPrism->SetUniformValue("u_ModelMatrix", s_Data->ModelMatrix);
+            s_Materials->RecPrism->SetUniformValue("u_NormalMatrix", s_Data->NormalMatrix);
+            s_Materials->RecPrism->SetUniformValue("u_CameraPos", camera->GetData().Position);
+            s_Materials->RecPrism->SetUniformValue("u_LightDirection", s_Data->DefaultLight.Direction);
+            s_Materials->RecPrism->SetUniformValue("u_LightColor", s_Data->DefaultLight.Color);
+            s_Materials->RecPrism->SetUniformValue("u_RadiantFlux", s_Data->DefaultLight.Flux);
+            s_Materials->RecPrism->SetUniformValue("u_LightEnabled", s_Data->DefaultLight.Enabled);
 
-            auto& materialSpec = s_Data->PrimitiveMat->GetMaterialSpec();
-            s_Data->PrimitiveMat->SetUniformValue("u_Ka", materialSpec.Ka);
-            s_Data->PrimitiveMat->SetUniformValue("u_Kd", materialSpec.Kd);
-            s_Data->PrimitiveMat->SetUniformValue("u_Ks", materialSpec.Ks);
-            s_Data->PrimitiveMat->SetUniformValue("u_Tint", materialSpec.TintColor);
-            s_Data->PrimitiveMat->SetUniformValue("u_Reflectance", materialSpec.Reflectance);
-            s_Data->PrimitiveMat->SetUniformValue("u_Opacity", materialSpec.Opacity);
-            s_Data->PrimitiveMat->Bind();
+            s_Materials->RecPrism->UpdateMaterialSpec();
+            s_Materials->RecPrism->Bind();
         }
 
         {
             MF_PROFILE_SCOPE("Draw Call - CUBE");
-            RenderCommand::DrawIndexed(vao);
+            RenderCommand::DrawIndexed(s_Materials->RecPrism->GetVertexArray());
         }
     }
 
@@ -511,9 +504,8 @@ namespace Magnefu
 
         Ref<IndexBuffer> ibo = IndexBuffer::Create(indices.size(), indices.data());
 
-        Ref<VertexArray> vao = VertexArray::Create();
-        vao->AddVertexBuffer(vbo);
-        vao->SetIndexBuffer(ibo);
+        s_Materials->Sphere->AddVertexBuffer(vbo);
+        s_Materials->Sphere->SetIndexBuffer(ibo);
 
         auto& camera = Application::Get().GetWindow().GetSceneCamera();
 
@@ -532,29 +524,23 @@ namespace Magnefu
             
         {
             MF_PROFILE_SCOPE("Upload Uniforms - SPHERE");
-            s_Data->SphereMat->SetUniformValue("u_MVP", s_Data->MVP);
-            s_Data->SphereMat->SetUniformValue("u_Color", data.Color);
-            s_Data->SphereMat->SetUniformValue("u_ModelMatrix", s_Data->ModelMatrix);
-            s_Data->SphereMat->SetUniformValue("u_NormalMatrix", s_Data->NormalMatrix);
-            s_Data->SphereMat->SetUniformValue("u_CameraPos", camera->GetData().Position);
-            s_Data->SphereMat->SetUniformValue("u_LightDirection", s_Data->DefaultLight.Direction);
-            s_Data->SphereMat->SetUniformValue("u_LightColor", s_Data->DefaultLight.Color);
-            s_Data->SphereMat->SetUniformValue("u_RadiantFlux", s_Data->DefaultLight.Flux);
-            s_Data->SphereMat->SetUniformValue("u_LightEnabled", s_Data->DefaultLight.Enabled);
+            s_Materials->Sphere->SetUniformValue("u_MVP", s_Data->MVP);
+            s_Materials->Sphere->SetUniformValue("u_Color", data.Color);
+            s_Materials->Sphere->SetUniformValue("u_ModelMatrix", s_Data->ModelMatrix);
+            s_Materials->Sphere->SetUniformValue("u_NormalMatrix", s_Data->NormalMatrix);
+            s_Materials->Sphere->SetUniformValue("u_CameraPos", camera->GetData().Position);
+            s_Materials->Sphere->SetUniformValue("u_LightDirection", s_Data->DefaultLight.Direction);
+            s_Materials->Sphere->SetUniformValue("u_LightColor", s_Data->DefaultLight.Color);
+            s_Materials->Sphere->SetUniformValue("u_RadiantFlux", s_Data->DefaultLight.Flux);
+            s_Materials->Sphere->SetUniformValue("u_LightEnabled", s_Data->DefaultLight.Enabled);
 
-            auto& materialSpec = s_Data->SphereMat->GetMaterialSpec();
-            s_Data->SphereMat->SetUniformValue("u_Ka", materialSpec.Ka);
-            s_Data->SphereMat->SetUniformValue("u_Kd", materialSpec.Kd);
-            s_Data->SphereMat->SetUniformValue("u_Ks", materialSpec.Ks);
-            s_Data->SphereMat->SetUniformValue("u_Tint", materialSpec.TintColor);
-            s_Data->SphereMat->SetUniformValue("u_Reflectance", materialSpec.Reflectance);
-            s_Data->SphereMat->SetUniformValue("u_Opacity", materialSpec.Opacity);
-            s_Data->SphereMat->Bind();
+            s_Materials->Sphere->UpdateMaterialSpec();
+            s_Materials->Sphere->Bind();
         }
 
         {
             MF_PROFILE_SCOPE("Draw Call - SPHERE");
-            RenderCommand::DrawIndexed(vao);
+            RenderCommand::DrawIndexed(s_Materials->Sphere->GetVertexArray());
         }
     }
 
@@ -630,9 +616,9 @@ namespace Magnefu
         RenderCommand::FrontFaceCW();
         {
             MF_PROFILE_SCOPE("Upload Uniforms - Skybox");
-            s_Data->SkyboxMat->SetUniformValue("u_View", *view);
-            s_Data->SkyboxMat->SetUniformValue("u_Projection", camera->GetProjection());
-            s_Data->SkyboxMat->Bind();
+            s_Materials->Skybox->SetUniformValue("u_View", *view);
+            s_Materials->Skybox->SetUniformValue("u_Projection", camera->GetProjection());
+            s_Materials->Skybox->Bind();
         }
 
         {
@@ -719,8 +705,11 @@ namespace Magnefu
         ImGui::End();
 
 
-        s_Data->PrimitiveMat->OnImGuiRender();
-        s_Data->SphereMat->OnImGuiRender();
+        s_Materials->Plane->OnImGuiRender();
+        s_Materials->Cube->OnImGuiRender();
+        s_Materials->RecPrism->OnImGuiRender();
+        s_Materials->Sphere->OnImGuiRender();
+        s_Materials->Skybox->OnImGuiRender();
     }
 
 }

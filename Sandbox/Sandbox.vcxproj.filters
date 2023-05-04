@@ -149,6 +149,8 @@
     <None Include="res\shaders\Cube.shader" />
     <None Include="res\shaders\Skybox.shader" />
     <None Include="res\shaders\Primitive.shader" />
+    <None Include="res\shaders\Plane.shader" />
+    <None Include="res\shaders\RecPrism.shader" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\textures\12221_Cat_v1_l3\Cat_ao.jpg">

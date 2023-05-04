@@ -36,7 +36,13 @@ namespace Magnefu
 
 		void OnImGuiRender() override;
 
-		const MaterialSpec& GetMaterialSpec() const override { return m_Spec; }
+		void UpdateMaterialSpec() override;
+
+		inline const MaterialSpec& GetMaterialSpec() const override { return m_Spec; }
+		inline const Ref<VertexArray>& GetVertexArray() const override { return m_VertexArray; }
+
+		void AddVertexBuffer(const Ref<VertexBuffer>& vbo) override { m_VertexArray->AddVertexBuffer(vbo); }
+		void SetIndexBuffer(const Ref<IndexBuffer>& ibo) override { m_VertexArray->SetIndexBuffer(ibo); }
 
 	private:
 		void InitUniforms();
@@ -47,6 +53,7 @@ namespace Magnefu
 		String		m_Name;
 		String		m_Library;
 		Ref<Shader> m_Shader;
+		Ref<VertexArray> m_VertexArray;
 		uint32_t m_ID;
 		MaterialOptions m_Options;
 	};

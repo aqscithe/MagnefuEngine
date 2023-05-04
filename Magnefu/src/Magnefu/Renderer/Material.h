@@ -3,6 +3,8 @@
 #include "Magnefu/Core/SmartPointers.h"
 #include "Magnefu/Core/Maths/MathsCommon.h"
 #include "Texture.h"
+#include "VertexArray.h"
+#include "Buffer.h"
 #include "Magnefu/Renderer/Scene.h"
 
 
@@ -63,6 +65,12 @@ namespace Magnefu
 		virtual void OnImGuiRender() = 0;
 
 		virtual const MaterialSpec& GetMaterialSpec() const = 0;
+
+		virtual void UpdateMaterialSpec() = 0;
+
+		virtual const Ref<VertexArray>& GetVertexArray() const = 0;
+		virtual void AddVertexBuffer(const Ref<VertexBuffer>& vbo) = 0;
+		virtual void SetIndexBuffer(const Ref<IndexBuffer>& ibo) = 0;
 
 		static Ref<Material> Create(const String& shaderPath = "res/shaders/Basic.shader", const MaterialOptions& options = MaterialOptions::MaterialOptions_None);
 	};

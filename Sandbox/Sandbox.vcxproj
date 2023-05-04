@@ -165,7 +165,9 @@
     <None Include="res\shaders\BatchRender.shader" />
     <None Include="res\shaders\Cube.shader" />
     <None Include="res\shaders\LightCube.shader" />
+    <None Include="res\shaders\Plane.shader" />
     <None Include="res\shaders\Primitive.shader" />
+    <None Include="res\shaders\RecPrism.shader" />
     <None Include="res\shaders\Skybox.shader" />
     <None Include="res\shaders\Sphere.shader" />
     <None Include="res\shaders\Test.shader" />
