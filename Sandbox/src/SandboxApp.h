@@ -13,11 +13,11 @@ public:
 	GameLayer() :
 		Layer("3D Primitives")
 	{
-		m_Plane.Size = { 20.f, 20.f, 0.f };
+		m_Plane.Size = { 20.f, 0.f, 20.f };
 		m_Plane.Color = { 0.5f, 0.5f, 0.5f };
-		m_Plane.Rotation = { -1.f, 0.f, 0.f };
+		m_Plane.Rotation = { 0.f, 0.f, 0.f };
 		m_Plane.Translation = { 0.f, -1.f, 0.f };
-		m_Plane.Angle = 90.f;
+		m_Plane.Angle = 0.f;
 
 		m_Cube.Size = { 1.f, 1.f, 1.f };
 		m_Cube.Color = { 1.f, 0.5f, 0.85f };
@@ -79,7 +79,7 @@ public:
 		{
 			if (ImGui::BeginTabItem("PLANE"))
 			{
-				ImGui::SliderFloat2("Size", m_Plane.Size.e, 1.f, 20.f);
+				ImGui::SliderFloat3("Size", m_Plane.Size.e, 1.f, 20.f);
 				ImGui::SliderFloat("Angle", &m_Plane.Angle, -360.f, 360.f);
 				ImGui::SliderFloat3("Rotation", m_Plane.Rotation.e, -1.f, 1.f);
 				ImGui::SliderFloat3("Translation", m_Plane.Translation.e, -20.f, 20.f);

@@ -77,6 +77,32 @@ namespace Magnefu
         s_Settings->SeamlessCubeMap = true;
         s_Settings->Blending = true;
         s_Settings->DepthTest = true;
+
+        // --Loading Primitive Vertex Data-- //
+
+        // PLANE
+        {
+            MF_PROFILE_SCOPE("Load Plane Data");
+            
+        }
+
+        {
+            MF_PROFILE_SCOPE("Load Cube Data");
+            
+        }
+
+        {
+            MF_PROFILE_SCOPE("Load Rec Prism Data");
+        }
+
+        {
+            MF_PROFILE_SCOPE("Load Sphere Data");
+            
+        }
+
+        {
+            MF_PROFILE_SCOPE("Load Skybox Data");
+        }
     }
 
     void Renderer::BeginScene()
@@ -97,27 +123,50 @@ namespace Magnefu
     void Renderer::DrawPlane(const PrimitiveData& data)
     {
         MF_PROFILE_FUNCTION();
-        //InstrumentationTimer timer("Renderer::DrawPlane");
+        std::vector<ObjModelVertex> vertices;
+        vertices.reserve(4); // square faces * vertices per face
 
-        float vertices[28] = {
-            //  position    normal           texture coords
-            -0.5f, -0.5f,   0.f, 0.f, 1.f,   0.f,  0.f,       // 0  BL
-             0.5f, -0.5f,   0.f, 0.f, 1.f,   1.f,  0.f,       // 1  BR
-             0.5f,  0.5f,   0.f, 0.f, 1.f,   1.f,  1.f,       // 2  TR
-            -0.5f,  0.5f,   0.f, 0.f, 1.f,   0.f,  1.f,       // 3  TL
+        Maths::vec3 positions[4] = {
+            { -1.f, 0.f, -1.f},
+            {  1.f, 0.f, -1.f},
+            {  1.f, 0.f,  1.f},
+            { -1.f, 0.f,  1.f}
         };
+
+        Maths::vec3 normals[1] = {
+            { 0.f,   1.f,   0.f}
+        };
+
+        Maths::vec2 texCoords[4] = {
+            {0.f, 0.f},
+            {1.f, 0.f},
+            {1.f, 1.f},
+            {0.f, 1.f}
+        };
+
+        Maths::vec3i faces[4] = {
+            {0,0,0},  {1, 1, 0},  {2,2,0},  {3,3,0}
+        };
+
+        int vertexData = sizeof(faces) / sizeof(Maths::vec3i);
+
+        for (int j = 0; j < vertexData; j++)
+        {
+            vertices.emplace_back(positions[faces[j].x], texCoords[faces[j].y], normals[faces[j].z]);
+        }
 
         uint32_t indices[] = {
-            0, 1, 2,
-            2, 3, 0
+            0, 2, 1,
+            0, 3, 2
         };
 
-        Ref<VertexBuffer> vbo = VertexBuffer::Create(sizeof(vertices), vertices);
+
+        Ref<VertexBuffer> vbo = VertexBuffer::Create(vertices.size() * sizeof(ObjModelVertex), (float*)vertices.data());
 
         BufferLayout layout = {
-            {ShaderDataType::Float2, "aPosition"},
-            {ShaderDataType::Float3, "aNormal"},
-            {ShaderDataType::Float2, "aTexCoords"}
+            {ShaderDataType::Float3, "aPosition"},
+            {ShaderDataType::Float2, "aTexCoords"},
+            {ShaderDataType::Float3, "aNormal"}
         };
 
         vbo->SetLayout(layout);
@@ -133,7 +182,7 @@ namespace Magnefu
             MF_PROFILE_SCOPE("MVP Multiplication - PLANE");
             s_Data->ModelMatrix = Maths::translate(data.Translation) *
                 Maths::Quaternion::CalculateRotationMatrix(data.Angle, data.Rotation) *
-                Maths::scale(Maths::vec3(data.Size.xy, 0.1f));
+                Maths::scale(Maths::vec3(data.Size.x, 0.1f, data.Size.z));
 
             s_Data->MVP = camera->GetVP() * s_Data->ModelMatrix;
 
@@ -167,10 +216,9 @@ namespace Magnefu
     void Renderer::DrawCube(const PrimitiveData& data)
     {
         MF_PROFILE_FUNCTION();
-
         std::vector<ObjModelVertex> vertices;
         vertices.reserve(6 * 4); // square faces * vertices per face
-        
+
 
         Maths::vec3 positions[8] = {
             {1.f,   1.f, -1.f},
@@ -248,7 +296,7 @@ namespace Magnefu
             {ShaderDataType::Float3, "aPosition"},
             {ShaderDataType::Float2, "aTexCoords"},
             {ShaderDataType::Float3, "aNormal"},
-            
+
         };
 
         vbo->SetLayout(layout);
@@ -257,6 +305,7 @@ namespace Magnefu
 
         s_Materials->Cube->AddVertexBuffer(vbo);
         s_Materials->Cube->SetIndexBuffer(ibo);
+        
 
         auto& camera = Application::Get().GetWindow().GetSceneCamera();
 
@@ -294,39 +343,87 @@ namespace Magnefu
         MF_PROFILE_FUNCTION();
         //InstrumentationTimer timer("Renderer::DrawCube");
 
-        float vertices[64] = {
-            //  position               normal              texture coords
-                -0.5f,  -0.5f, -0.5f,   1.0f, 0.0f, 0.f,   0.f,  0.f,       // 0
-                 0.5f,  -0.5f, -0.5f,   1.0f, 0.0f, 0.f,   1.f,  0.f,       // 1
-                 0.5f,   0.5f, -0.5f,   0.0f, 1.0f, 0.f,   1.f,  1.f,       // 2
-                -0.5f,   0.5f, -0.5f,   0.0f, 1.0f, 0.f,   0.f,  1.f,       // 3
-                -0.5f,  -0.5f,  0.5f,   0.0f, 0.0f, 1.f,   0.f,  0.f,       // 4
-                 0.5f,  -0.5f,  0.5f,   0.0f, 0.0f, 1.f,   1.f,  0.f,       // 5
-                 0.5f,   0.5f,  0.5f,   0.0f, 1.0f, 0.f,   1.f,  1.f,       // 6
-                -0.5f,   0.5f,  0.5f,   0.0f, 1.0f, 0.f,   0.f,  1.f        // 7
+        std::vector<ObjModelVertex> vertices;
+        vertices.reserve(6 * 4); // square faces * vertices per face
+
+
+        Maths::vec3 positions[8] = {
+            {1.f,   1.f, -1.f},
+            {1.f,  -1.f, -1.f},
+            {1.f,   1.f,  1.f},
+            {1.f,  -1.f,  1.f},
+            {-1.f,   1.f, -1.f},
+            {-1.f,  -1.f, -1.f},
+            {-1.f,   1.f,  1.f},
+            {-1.f,  -1.f,  1.f}
         };
+
+        Maths::vec3 normals[6] = {
+            { 0.f,   1.f,   0.f},
+            { 0.f,   0.f,   1.f},
+            {-1.f,   0.f,   0.f},
+            { 0.f,  -1.f,   0.f},
+            { 1.f,   0.f,   0.f},
+            { 0.f,   0.f,  -1.f}
+        };
+
+        Maths::vec2 texCoords[14] = {
+            {0.625f, 0.50f},
+            {0.375f, 0.50f},
+            {0.625f, 0.75f},
+            {0.375f, 0.75f},
+            {0.875f, 0.50f},
+            {0.625f, 0.25f},
+            {0.125f, 0.50f},
+            {0.375f, 0.25f},
+            {0.875f, 0.75f},
+            {0.625f, 1.00f},
+            {0.625f, 0.00f},
+            {0.375f, 1.00f},
+            {0.375f, 0.00f},
+            {0.125f, 0.75f}
+        };
+
+        Maths::vec3i faces[24] = {
+            {0,0,0},  {4,4,0},  {6,8,0},  {2,2,0},   // Top
+            {3,3,1},  {2,2,1},  {6,9,1},  {7,11,1},  // Front
+            {7,12,2}, {6,10,2}, {4,5,2},  {5,7,2},   // Left
+            {5,6,3},  {1,1,3},  {3,3,3},  {7,13,3},  // Bottom
+            {1,1,4},  {0,0,4},  {2,2,4},  {3,3,4},   // Right
+            {5,7,5},  {4,5,5},  {0,0,5},  {1,1,5}    // Back
+        };
+
+        int vertexData = sizeof(faces) / sizeof(Maths::vec3i);
+
+        for (int j = 0; j < vertexData; j++)
+        {
+            vertices.emplace_back(positions[faces[j].x], texCoords[faces[j].y], normals[faces[j].z]);
+        }
 
         uint32_t indices[] = {
-            0, 2, 1,  // Back
-            0, 3, 2,
-            4, 5, 6,  // Front
-            4, 6, 7,
-            3, 6, 2,  // Top
-            3, 7, 6,
-            0, 1, 5,  // Bottom
-            0, 5, 4,
-            1, 6, 5,
-            1, 2, 6,
-            0, 4, 7,
-            0, 7, 3
+            0,  1,  2,  // Top
+            0,  2,  3,
+            4,  5,  6,  // Front
+            4,  6,  7,
+            8,  9,  10, // Left
+            8,  10, 11,
+            12, 13, 14, // Bottom
+            12, 14, 15,
+            16, 17, 18, // Right
+            16, 18, 19,
+            20, 21, 22, // Back
+            20, 22, 23
         };
 
-        Ref<VertexBuffer> vbo = VertexBuffer::Create(sizeof(vertices), vertices);
+        size_t vertexCount = vertices.size() * sizeof(ObjModelVertex);
+
+        Ref<VertexBuffer> vbo = VertexBuffer::Create(vertices.size() * sizeof(ObjModelVertex), (float*)vertices.data());
 
         BufferLayout layout = {
             {ShaderDataType::Float3, "aPosition"},
+            {ShaderDataType::Float2, "aTexCoords"},
             {ShaderDataType::Float3, "aNormal"},
-            {ShaderDataType::Float2, "aTexCoords"}
+
         };
 
         vbo->SetLayout(layout);
@@ -377,8 +474,10 @@ namespace Magnefu
     void Renderer::DrawSphere(const SphereData& data)
     {
         MF_PROFILE_FUNCTION();
-
-        size_t faces = static_cast<size_t>(data.SectorCount) * static_cast<size_t>(data.StackCount) + 1;
+        float radius = 1.f;
+        uint32_t sectorCount = 80;
+        uint32_t stackCount = 80;
+        size_t faces = static_cast<size_t>(sectorCount) * static_cast<size_t>(stackCount) + 1;
 
         std::vector<float> vertices;
         std::vector<float> normals;
@@ -389,22 +488,22 @@ namespace Magnefu
         texCoords.reserve(faces * 2);
 
         float x, y, z, xy;                              // vertex position
-        float nx, ny, nz, lengthInv = 1.f / data.Radius;    // vertex normal
+        float nx, ny, nz, lengthInv = 1.f / radius;    // vertex normal
         float s, t;                                     // vertex texCoord
 
-        float sectorStep = Maths::TAU / data.SectorCount;
-        float stackStep = Maths::PI / data.StackCount;
+        float sectorStep = Maths::TAU / sectorCount;
+        float stackStep = Maths::PI / stackCount;
         float sectorAngle, stackAngle;
 
-        for (int i = 0; i < data.StackCount; i++)
+        for (int i = 0; i < stackCount; i++)
         {
             stackAngle = Maths::PI / 2 - i * stackStep;        // (phi) starting from pi/2 to -pi/2
-            xy = data.Radius * Maths::cos(stackAngle);             // r * cos(u)
-            z = data.Radius * Maths::sin(stackAngle);              // r * sin(u)
+            xy = radius * Maths::cos(stackAngle);             // r * cos(u)
+            z = radius * Maths::sin(stackAngle);              // r * sin(u)
 
             // add (sectorCount+1) vertices per stack
             // the first and last vertices have same position and normal, but different tex coords
-            for (int j = 0; j <= data.SectorCount; ++j)
+            for (int j = 0; j <= sectorCount; ++j)
             {
                 sectorAngle = j * sectorStep;           // starting from 0 to 2pi
 
@@ -424,8 +523,8 @@ namespace Magnefu
                 normals.push_back(nz);
 
                 // vertex tex coord (s, t) range between [0, 1]
-                s = (float)j / data.SectorCount;
-                t = (float)i / data.StackCount;
+                s = (float)j / sectorCount;
+                t = (float)i / stackCount;
                 texCoords.push_back(s);
                 texCoords.push_back(t);
             }
@@ -437,12 +536,12 @@ namespace Magnefu
         //lineIndices.reserve(faces * 3);
 
         int k1, k2;
-        for (uint32_t i = 0; i < data.StackCount; ++i)
+        for (uint32_t i = 0; i < stackCount; ++i)
         {
-            k1 = i * (data.SectorCount + 1);     // beginning of current stack
-            k2 = k1 + data.SectorCount + 1;      // beginning of next stack
+            k1 = i * (sectorCount + 1);     // beginning of current stack
+            k2 = k1 + sectorCount + 1;      // beginning of next stack
 
-            for (uint32_t j = 0; j < data.SectorCount; ++j, ++k1, ++k2)
+            for (uint32_t j = 0; j < sectorCount; ++j, ++k1, ++k2)
             {
                 // 2 triangles per sector excluding first and last stacks
                 // k1 => k2 => k1+1
@@ -454,7 +553,7 @@ namespace Magnefu
                 }
 
                 // k1+1 => k2 => k2+1
-                if (i != (data.StackCount - 1))
+                if (i != (stackCount - 1))
                 {
                     indices.push_back(k1 + 1);
                     indices.push_back(k2);
@@ -506,6 +605,7 @@ namespace Magnefu
 
         s_Materials->Sphere->AddVertexBuffer(vbo);
         s_Materials->Sphere->SetIndexBuffer(ibo);
+        
 
         auto& camera = Application::Get().GetWindow().GetSceneCamera();
 
