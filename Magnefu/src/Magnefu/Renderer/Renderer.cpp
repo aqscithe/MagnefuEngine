@@ -83,21 +83,389 @@ namespace Magnefu
         // PLANE
         {
             MF_PROFILE_SCOPE("Load Plane Data");
-            
+            std::vector<ObjModelVertex> vertices;
+            vertices.reserve(4); // square faces * vertices per face
+
+            Maths::vec3 positions[4] = {
+                { -1.f, 0.f, -1.f},
+                {  1.f, 0.f, -1.f},
+                {  1.f, 0.f,  1.f},
+                { -1.f, 0.f,  1.f}
+            };
+
+            Maths::vec3 normals[1] = {
+                { 0.f,   1.f,   0.f}
+            };
+
+            Maths::vec2 texCoords[4] = {
+                {0.f, 0.f},
+                {1.f, 0.f},
+                {1.f, 1.f},
+                {0.f, 1.f}
+            };
+
+            Maths::vec3i faces[4] = {
+                {0,0,0},  {1, 1, 0},  {2,2,0},  {3,3,0}
+            };
+
+            int vertexData = sizeof(faces) / sizeof(Maths::vec3i);
+
+            for (int j = 0; j < vertexData; j++)
+            {
+                vertices.emplace_back(positions[faces[j].x], texCoords[faces[j].y], normals[faces[j].z]);
+            }
+
+            uint32_t indices[] = {
+                0, 2, 1,
+                0, 3, 2
+            };
+
+
+            Ref<VertexBuffer> vbo = VertexBuffer::Create(vertices.size() * sizeof(ObjModelVertex), (float*)vertices.data());
+
+            BufferLayout layout = {
+                {ShaderDataType::Float3, "aPosition"},
+                {ShaderDataType::Float2, "aTexCoords"},
+                {ShaderDataType::Float3, "aNormal"}
+            };
+
+            vbo->SetLayout(layout);
+
+            Ref<IndexBuffer> ibo = IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices);
+
+            s_Materials->Plane->AddVertexBuffer(vbo);
+            s_Materials->Plane->SetIndexBuffer(ibo);
+
+            s_Materials->Plane->GetVertexArray()->Unbind();
         }
 
         {
             MF_PROFILE_SCOPE("Load Cube Data");
-            
+            std::vector<ObjModelVertex> vertices;
+            vertices.reserve(6 * 4); // square faces * vertices per face
+
+
+            Maths::vec3 positions[8] = {
+                {1.f,   1.f, -1.f},
+                {1.f,  -1.f, -1.f},
+                {1.f,   1.f,  1.f},
+                {1.f,  -1.f,  1.f},
+                {-1.f,   1.f, -1.f},
+                {-1.f,  -1.f, -1.f},
+                {-1.f,   1.f,  1.f},
+                {-1.f,  -1.f,  1.f}
+            };
+
+            Maths::vec3 normals[6] = {
+                { 0.f,   1.f,   0.f},
+                { 0.f,   0.f,   1.f},
+                {-1.f,   0.f,   0.f},
+                { 0.f,  -1.f,   0.f},
+                { 1.f,   0.f,   0.f},
+                { 0.f,   0.f,  -1.f}
+            };
+
+            Maths::vec2 texCoords[14] = {
+                {0.625f, 0.50f},
+                {0.375f, 0.50f},
+                {0.625f, 0.75f},
+                {0.375f, 0.75f},
+                {0.875f, 0.50f},
+                {0.625f, 0.25f},
+                {0.125f, 0.50f},
+                {0.375f, 0.25f},
+                {0.875f, 0.75f},
+                {0.625f, 1.00f},
+                {0.625f, 0.00f},
+                {0.375f, 1.00f},
+                {0.375f, 0.00f},
+                {0.125f, 0.75f}
+            };
+
+            Maths::vec3i faces[24] = {
+                {0,0,0},  {4,4,0},  {6,8,0},  {2,2,0},   // Top
+                {3,3,1},  {2,2,1},  {6,9,1},  {7,11,1},  // Front
+                {7,12,2}, {6,10,2}, {4,5,2},  {5,7,2},   // Left
+                {5,6,3},  {1,1,3},  {3,3,3},  {7,13,3},  // Bottom
+                {1,1,4},  {0,0,4},  {2,2,4},  {3,3,4},   // Right
+                {5,7,5},  {4,5,5},  {0,0,5},  {1,1,5}    // Back
+            };
+
+            int vertexData = sizeof(faces) / sizeof(Maths::vec3i);
+
+            for (int j = 0; j < vertexData; j++)
+            {
+                vertices.emplace_back(positions[faces[j].x], texCoords[faces[j].y], normals[faces[j].z]);
+            }
+
+            uint32_t indices[] = {
+                0,  1,  2,  // Top
+                0,  2,  3,
+                4,  5,  6,  // Front
+                4,  6,  7,
+                8,  9,  10, // Left
+                8,  10, 11,
+                12, 13, 14, // Bottom
+                12, 14, 15,
+                16, 17, 18, // Right
+                16, 18, 19,
+                20, 21, 22, // Back
+                20, 22, 23
+            };
+
+            size_t vertexCount = vertices.size() * sizeof(ObjModelVertex);
+
+            Ref<VertexBuffer> vbo = VertexBuffer::Create(vertices.size() * sizeof(ObjModelVertex), (float*)vertices.data());
+
+            BufferLayout layout = {
+                {ShaderDataType::Float3, "aPosition"},
+                {ShaderDataType::Float2, "aTexCoords"},
+                {ShaderDataType::Float3, "aNormal"},
+
+            };
+
+            vbo->SetLayout(layout);
+
+            Ref<IndexBuffer> ibo = IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices);
+
+            s_Materials->Cube->AddVertexBuffer(vbo);
+            s_Materials->Cube->SetIndexBuffer(ibo);
+
+            s_Materials->Cube->GetVertexArray()->Unbind();
         }
 
         {
             MF_PROFILE_SCOPE("Load Rec Prism Data");
+
+            std::vector<ObjModelVertex> vertices;
+            vertices.reserve(6 * 4); // square faces * vertices per face
+
+
+            Maths::vec3 positions[8] = {
+                {1.f,   1.f, -1.f},
+                {1.f,  -1.f, -1.f},
+                {1.f,   1.f,  1.f},
+                {1.f,  -1.f,  1.f},
+                {-1.f,   1.f, -1.f},
+                {-1.f,  -1.f, -1.f},
+                {-1.f,   1.f,  1.f},
+                {-1.f,  -1.f,  1.f}
+            };
+
+            Maths::vec3 normals[6] = {
+                { 0.f,   1.f,   0.f},
+                { 0.f,   0.f,   1.f},
+                {-1.f,   0.f,   0.f},
+                { 0.f,  -1.f,   0.f},
+                { 1.f,   0.f,   0.f},
+                { 0.f,   0.f,  -1.f}
+            };
+
+            Maths::vec2 texCoords[14] = {
+                {0.625f, 0.50f},
+                {0.375f, 0.50f},
+                {0.625f, 0.75f},
+                {0.375f, 0.75f},
+                {0.875f, 0.50f},
+                {0.625f, 0.25f},
+                {0.125f, 0.50f},
+                {0.375f, 0.25f},
+                {0.875f, 0.75f},
+                {0.625f, 1.00f},
+                {0.625f, 0.00f},
+                {0.375f, 1.00f},
+                {0.375f, 0.00f},
+                {0.125f, 0.75f}
+            };
+
+            Maths::vec3i faces[24] = {
+                {0,0,0},  {4,4,0},  {6,8,0},  {2,2,0},   // Top
+                {3,3,1},  {2,2,1},  {6,9,1},  {7,11,1},  // Front
+                {7,12,2}, {6,10,2}, {4,5,2},  {5,7,2},   // Left
+                {5,6,3},  {1,1,3},  {3,3,3},  {7,13,3},  // Bottom
+                {1,1,4},  {0,0,4},  {2,2,4},  {3,3,4},   // Right
+                {5,7,5},  {4,5,5},  {0,0,5},  {1,1,5}    // Back
+            };
+
+            int vertexData = sizeof(faces) / sizeof(Maths::vec3i);
+
+            for (int j = 0; j < vertexData; j++)
+            {
+                vertices.emplace_back(positions[faces[j].x], texCoords[faces[j].y], normals[faces[j].z]);
+            }
+
+            uint32_t indices[] = {
+                0,  1,  2,  // Top
+                0,  2,  3,
+                4,  5,  6,  // Front
+                4,  6,  7,
+                8,  9,  10, // Left
+                8,  10, 11,
+                12, 13, 14, // Bottom
+                12, 14, 15,
+                16, 17, 18, // Right
+                16, 18, 19,
+                20, 21, 22, // Back
+                20, 22, 23
+            };
+
+            size_t vertexCount = vertices.size() * sizeof(ObjModelVertex);
+
+            Ref<VertexBuffer> vbo = VertexBuffer::Create(vertices.size() * sizeof(ObjModelVertex), (float*)vertices.data());
+
+            BufferLayout layout = {
+                {ShaderDataType::Float3, "aPosition"},
+                {ShaderDataType::Float2, "aTexCoords"},
+                {ShaderDataType::Float3, "aNormal"},
+
+            };
+
+            vbo->SetLayout(layout);
+
+            Ref<IndexBuffer> ibo = IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices);
+
+            s_Materials->RecPrism->AddVertexBuffer(vbo);
+            s_Materials->RecPrism->SetIndexBuffer(ibo);
+
+            s_Materials->RecPrism->GetVertexArray()->Unbind();
         }
 
         {
             MF_PROFILE_SCOPE("Load Sphere Data");
-            
+
+            float radius = 1.f;
+            uint32_t sectorCount = 80;
+            uint32_t stackCount = 80;
+            size_t faces = static_cast<size_t>(sectorCount) * static_cast<size_t>(stackCount) + 1;
+
+            std::vector<float> vertices;
+            std::vector<float> normals;
+            std::vector<float> texCoords;
+
+            vertices.reserve(faces * 3);
+            normals.reserve(faces * 3);
+            texCoords.reserve(faces * 2);
+
+            float x, y, z, xy;                              // vertex position
+            float nx, ny, nz, lengthInv = 1.f / radius;    // vertex normal
+            float s, t;                                     // vertex texCoord
+
+            float sectorStep = Maths::TAU / sectorCount;
+            float stackStep = Maths::PI / stackCount;
+            float sectorAngle, stackAngle;
+
+            for (int i = 0; i < stackCount; i++)
+            {
+                stackAngle = Maths::PI / 2 - i * stackStep;        // (phi) starting from pi/2 to -pi/2
+                xy = radius * Maths::cos(stackAngle);             // r * cos(u)
+                z = radius * Maths::sin(stackAngle);              // r * sin(u)
+
+                // add (sectorCount+1) vertices per stack
+                // the first and last vertices have same position and normal, but different tex coords
+                for (int j = 0; j <= sectorCount; ++j)
+                {
+                    sectorAngle = j * sectorStep;           // starting from 0 to 2pi
+
+                    // vertex position (x, y, z)
+                    x = xy * cosf(sectorAngle);             // r * cos(u) * cos(v)
+                    y = xy * sinf(sectorAngle);             // r * cos(u) * sin(v)
+                    vertices.push_back(x);
+                    vertices.push_back(y);
+                    vertices.push_back(z);
+
+                    // normalized vertex normal (nx, ny, nz)
+                    nx = x * lengthInv;
+                    ny = y * lengthInv;
+                    nz = z * lengthInv;
+                    normals.push_back(nx);
+                    normals.push_back(ny);
+                    normals.push_back(nz);
+
+                    // vertex tex coord (s, t) range between [0, 1]
+                    s = (float)j / sectorCount;
+                    t = (float)i / stackCount;
+                    texCoords.push_back(s);
+                    texCoords.push_back(t);
+                }
+            }
+
+            std::vector<uint32_t> indices;
+            //std::vector<int> lineIndices;
+            indices.reserve(faces * 3);
+            //lineIndices.reserve(faces * 3);
+
+            int k1, k2;
+            for (uint32_t i = 0; i < stackCount; ++i)
+            {
+                k1 = i * (sectorCount + 1);     // beginning of current stack
+                k2 = k1 + sectorCount + 1;      // beginning of next stack
+
+                for (uint32_t j = 0; j < sectorCount; ++j, ++k1, ++k2)
+                {
+                    // 2 triangles per sector excluding first and last stacks
+                    // k1 => k2 => k1+1
+                    if (i != 0)
+                    {
+                        indices.push_back(k1);
+                        indices.push_back(k2);
+                        indices.push_back(k1 + 1);
+                    }
+
+                    // k1+1 => k2 => k2+1
+                    if (i != (stackCount - 1))
+                    {
+                        indices.push_back(k1 + 1);
+                        indices.push_back(k2);
+                        indices.push_back(k2 + 1);
+                    }
+
+                    // store indices for lines
+                    // vertical lines for all stacks, k1 => k2
+                    //lineIndices.push_back(k1);
+                    //lineIndices.push_back(k2);
+                    //if (i != 0)  // horizontal lines except 1st stack, k1 => k+1
+                    //{
+                    //    lineIndices.push_back(k1);
+                    //    lineIndices.push_back(k1 + 1);
+                    //}
+                }
+            }
+
+
+            std::size_t i, j;
+            std::size_t count = vertices.size();
+            std::vector<float> vertexBufferData;
+            vertexBufferData.reserve(count * 8);
+            for (i = 0, j = 0; i < count; i += 3, j += 2)
+            {
+                vertexBufferData.push_back(vertices[i]);
+                vertexBufferData.push_back(vertices[i + 1]);
+                vertexBufferData.push_back(vertices[i + 2]);
+
+                vertexBufferData.push_back(normals[i]);
+                vertexBufferData.push_back(normals[i + 1]);
+                vertexBufferData.push_back(normals[i + 2]);
+
+                vertexBufferData.push_back(texCoords[j]);
+                vertexBufferData.push_back(texCoords[j + 1]);
+            }
+
+            Ref<VertexBuffer> vbo = VertexBuffer::Create(sizeof(float) * vertexBufferData.size(), vertexBufferData.data());
+
+            BufferLayout layout = {
+                {ShaderDataType::Float3, "aPosition"},
+                {ShaderDataType::Float3, "aNormal"},
+                {ShaderDataType::Float2, "aTexCoords"}
+            };
+
+            vbo->SetLayout(layout);
+
+            Ref<IndexBuffer> ibo = IndexBuffer::Create(indices.size(), indices.data());
+
+            s_Materials->Sphere->AddVertexBuffer(vbo);
+            s_Materials->Sphere->SetIndexBuffer(ibo);
+
+            s_Materials->Sphere->GetVertexArray()->Unbind();
         }
 
         {
@@ -123,60 +491,9 @@ namespace Magnefu
     void Renderer::DrawPlane(const PrimitiveData& data)
     {
         MF_PROFILE_FUNCTION();
-        std::vector<ObjModelVertex> vertices;
-        vertices.reserve(4); // square faces * vertices per face
-
-        Maths::vec3 positions[4] = {
-            { -1.f, 0.f, -1.f},
-            {  1.f, 0.f, -1.f},
-            {  1.f, 0.f,  1.f},
-            { -1.f, 0.f,  1.f}
-        };
-
-        Maths::vec3 normals[1] = {
-            { 0.f,   1.f,   0.f}
-        };
-
-        Maths::vec2 texCoords[4] = {
-            {0.f, 0.f},
-            {1.f, 0.f},
-            {1.f, 1.f},
-            {0.f, 1.f}
-        };
-
-        Maths::vec3i faces[4] = {
-            {0,0,0},  {1, 1, 0},  {2,2,0},  {3,3,0}
-        };
-
-        int vertexData = sizeof(faces) / sizeof(Maths::vec3i);
-
-        for (int j = 0; j < vertexData; j++)
-        {
-            vertices.emplace_back(positions[faces[j].x], texCoords[faces[j].y], normals[faces[j].z]);
-        }
-
-        uint32_t indices[] = {
-            0, 2, 1,
-            0, 3, 2
-        };
-
-
-        Ref<VertexBuffer> vbo = VertexBuffer::Create(vertices.size() * sizeof(ObjModelVertex), (float*)vertices.data());
-
-        BufferLayout layout = {
-            {ShaderDataType::Float3, "aPosition"},
-            {ShaderDataType::Float2, "aTexCoords"},
-            {ShaderDataType::Float3, "aNormal"}
-        };
-
-        vbo->SetLayout(layout);
-
-        Ref<IndexBuffer> ibo = IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices);
-
-        s_Materials->Plane->AddVertexBuffer(vbo);
-        s_Materials->Plane->SetIndexBuffer(ibo);
-
+        
         auto& camera = Application::Get().GetWindow().GetSceneCamera();
+
 
         {
             MF_PROFILE_SCOPE("MVP Multiplication - PLANE");
@@ -216,97 +533,7 @@ namespace Magnefu
     void Renderer::DrawCube(const PrimitiveData& data)
     {
         MF_PROFILE_FUNCTION();
-        std::vector<ObjModelVertex> vertices;
-        vertices.reserve(6 * 4); // square faces * vertices per face
-
-
-        Maths::vec3 positions[8] = {
-            {1.f,   1.f, -1.f},
-            {1.f,  -1.f, -1.f},
-            {1.f,   1.f,  1.f},
-            {1.f,  -1.f,  1.f},
-            {-1.f,   1.f, -1.f},
-            {-1.f,  -1.f, -1.f},
-            {-1.f,   1.f,  1.f},
-            {-1.f,  -1.f,  1.f}
-        };
-
-        Maths::vec3 normals[6] = {
-            { 0.f,   1.f,   0.f},
-            { 0.f,   0.f,   1.f},
-            {-1.f,   0.f,   0.f},
-            { 0.f,  -1.f,   0.f},
-            { 1.f,   0.f,   0.f},
-            { 0.f,   0.f,  -1.f}
-        };
-
-        Maths::vec2 texCoords[14] = {
-            {0.625f, 0.50f},
-            {0.375f, 0.50f},
-            {0.625f, 0.75f},
-            {0.375f, 0.75f},
-            {0.875f, 0.50f},
-            {0.625f, 0.25f},
-            {0.125f, 0.50f},
-            {0.375f, 0.25f},
-            {0.875f, 0.75f},
-            {0.625f, 1.00f},
-            {0.625f, 0.00f},
-            {0.375f, 1.00f},
-            {0.375f, 0.00f},
-            {0.125f, 0.75f}
-        };
-
-        Maths::vec3i faces[24] = {
-            {0,0,0},  {4,4,0},  {6,8,0},  {2,2,0},   // Top
-            {3,3,1},  {2,2,1},  {6,9,1},  {7,11,1},  // Front
-            {7,12,2}, {6,10,2}, {4,5,2},  {5,7,2},   // Left
-            {5,6,3},  {1,1,3},  {3,3,3},  {7,13,3},  // Bottom
-            {1,1,4},  {0,0,4},  {2,2,4},  {3,3,4},   // Right
-            {5,7,5},  {4,5,5},  {0,0,5},  {1,1,5}    // Back
-        };
-
-        int vertexData = sizeof(faces) / sizeof(Maths::vec3i);
-
-        for (int j = 0; j < vertexData; j++)
-        {
-            vertices.emplace_back(positions[faces[j].x], texCoords[faces[j].y], normals[faces[j].z]);
-        }
-
-        uint32_t indices[] = {
-            0,  1,  2,  // Top
-            0,  2,  3,
-            4,  5,  6,  // Front
-            4,  6,  7,
-            8,  9,  10, // Left
-            8,  10, 11,
-            12, 13, 14, // Bottom
-            12, 14, 15,
-            16, 17, 18, // Right
-            16, 18, 19,
-            20, 21, 22, // Back
-            20, 22, 23
-        };
-
-        size_t vertexCount = vertices.size() * sizeof(ObjModelVertex);
-
-        Ref<VertexBuffer> vbo = VertexBuffer::Create(vertices.size() * sizeof(ObjModelVertex), (float*)vertices.data());
-
-        BufferLayout layout = {
-            {ShaderDataType::Float3, "aPosition"},
-            {ShaderDataType::Float2, "aTexCoords"},
-            {ShaderDataType::Float3, "aNormal"},
-
-        };
-
-        vbo->SetLayout(layout);
-
-        Ref<IndexBuffer> ibo = IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices);
-
-        s_Materials->Cube->AddVertexBuffer(vbo);
-        s_Materials->Cube->SetIndexBuffer(ibo);
         
-
         auto& camera = Application::Get().GetWindow().GetSceneCamera();
 
         {
@@ -341,97 +568,6 @@ namespace Magnefu
     void Renderer::DrawRectangularPrism(const PrimitiveData& data)
     {
         MF_PROFILE_FUNCTION();
-        //InstrumentationTimer timer("Renderer::DrawCube");
-
-        std::vector<ObjModelVertex> vertices;
-        vertices.reserve(6 * 4); // square faces * vertices per face
-
-
-        Maths::vec3 positions[8] = {
-            {1.f,   1.f, -1.f},
-            {1.f,  -1.f, -1.f},
-            {1.f,   1.f,  1.f},
-            {1.f,  -1.f,  1.f},
-            {-1.f,   1.f, -1.f},
-            {-1.f,  -1.f, -1.f},
-            {-1.f,   1.f,  1.f},
-            {-1.f,  -1.f,  1.f}
-        };
-
-        Maths::vec3 normals[6] = {
-            { 0.f,   1.f,   0.f},
-            { 0.f,   0.f,   1.f},
-            {-1.f,   0.f,   0.f},
-            { 0.f,  -1.f,   0.f},
-            { 1.f,   0.f,   0.f},
-            { 0.f,   0.f,  -1.f}
-        };
-
-        Maths::vec2 texCoords[14] = {
-            {0.625f, 0.50f},
-            {0.375f, 0.50f},
-            {0.625f, 0.75f},
-            {0.375f, 0.75f},
-            {0.875f, 0.50f},
-            {0.625f, 0.25f},
-            {0.125f, 0.50f},
-            {0.375f, 0.25f},
-            {0.875f, 0.75f},
-            {0.625f, 1.00f},
-            {0.625f, 0.00f},
-            {0.375f, 1.00f},
-            {0.375f, 0.00f},
-            {0.125f, 0.75f}
-        };
-
-        Maths::vec3i faces[24] = {
-            {0,0,0},  {4,4,0},  {6,8,0},  {2,2,0},   // Top
-            {3,3,1},  {2,2,1},  {6,9,1},  {7,11,1},  // Front
-            {7,12,2}, {6,10,2}, {4,5,2},  {5,7,2},   // Left
-            {5,6,3},  {1,1,3},  {3,3,3},  {7,13,3},  // Bottom
-            {1,1,4},  {0,0,4},  {2,2,4},  {3,3,4},   // Right
-            {5,7,5},  {4,5,5},  {0,0,5},  {1,1,5}    // Back
-        };
-
-        int vertexData = sizeof(faces) / sizeof(Maths::vec3i);
-
-        for (int j = 0; j < vertexData; j++)
-        {
-            vertices.emplace_back(positions[faces[j].x], texCoords[faces[j].y], normals[faces[j].z]);
-        }
-
-        uint32_t indices[] = {
-            0,  1,  2,  // Top
-            0,  2,  3,
-            4,  5,  6,  // Front
-            4,  6,  7,
-            8,  9,  10, // Left
-            8,  10, 11,
-            12, 13, 14, // Bottom
-            12, 14, 15,
-            16, 17, 18, // Right
-            16, 18, 19,
-            20, 21, 22, // Back
-            20, 22, 23
-        };
-
-        size_t vertexCount = vertices.size() * sizeof(ObjModelVertex);
-
-        Ref<VertexBuffer> vbo = VertexBuffer::Create(vertices.size() * sizeof(ObjModelVertex), (float*)vertices.data());
-
-        BufferLayout layout = {
-            {ShaderDataType::Float3, "aPosition"},
-            {ShaderDataType::Float2, "aTexCoords"},
-            {ShaderDataType::Float3, "aNormal"},
-
-        };
-
-        vbo->SetLayout(layout);
-
-        Ref<IndexBuffer> ibo = IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices);
-
-        s_Materials->RecPrism->AddVertexBuffer(vbo);
-        s_Materials->RecPrism->SetIndexBuffer(ibo);
 
         auto& camera = Application::Get().GetWindow().GetSceneCamera();
 
@@ -474,139 +610,7 @@ namespace Magnefu
     void Renderer::DrawSphere(const SphereData& data)
     {
         MF_PROFILE_FUNCTION();
-        float radius = 1.f;
-        uint32_t sectorCount = 80;
-        uint32_t stackCount = 80;
-        size_t faces = static_cast<size_t>(sectorCount) * static_cast<size_t>(stackCount) + 1;
-
-        std::vector<float> vertices;
-        std::vector<float> normals;
-        std::vector<float> texCoords;
-
-        vertices.reserve(faces * 3);
-        normals.reserve(faces * 3);
-        texCoords.reserve(faces * 2);
-
-        float x, y, z, xy;                              // vertex position
-        float nx, ny, nz, lengthInv = 1.f / radius;    // vertex normal
-        float s, t;                                     // vertex texCoord
-
-        float sectorStep = Maths::TAU / sectorCount;
-        float stackStep = Maths::PI / stackCount;
-        float sectorAngle, stackAngle;
-
-        for (int i = 0; i < stackCount; i++)
-        {
-            stackAngle = Maths::PI / 2 - i * stackStep;        // (phi) starting from pi/2 to -pi/2
-            xy = radius * Maths::cos(stackAngle);             // r * cos(u)
-            z = radius * Maths::sin(stackAngle);              // r * sin(u)
-
-            // add (sectorCount+1) vertices per stack
-            // the first and last vertices have same position and normal, but different tex coords
-            for (int j = 0; j <= sectorCount; ++j)
-            {
-                sectorAngle = j * sectorStep;           // starting from 0 to 2pi
-
-                // vertex position (x, y, z)
-                x = xy * cosf(sectorAngle);             // r * cos(u) * cos(v)
-                y = xy * sinf(sectorAngle);             // r * cos(u) * sin(v)
-                vertices.push_back(x);
-                vertices.push_back(y);
-                vertices.push_back(z);
-
-                // normalized vertex normal (nx, ny, nz)
-                nx = x * lengthInv;
-                ny = y * lengthInv;
-                nz = z * lengthInv;
-                normals.push_back(nx);
-                normals.push_back(ny);
-                normals.push_back(nz);
-
-                // vertex tex coord (s, t) range between [0, 1]
-                s = (float)j / sectorCount;
-                t = (float)i / stackCount;
-                texCoords.push_back(s);
-                texCoords.push_back(t);
-            }
-        }
-
-        std::vector<uint32_t> indices;
-        //std::vector<int> lineIndices;
-        indices.reserve(faces * 3);
-        //lineIndices.reserve(faces * 3);
-
-        int k1, k2;
-        for (uint32_t i = 0; i < stackCount; ++i)
-        {
-            k1 = i * (sectorCount + 1);     // beginning of current stack
-            k2 = k1 + sectorCount + 1;      // beginning of next stack
-
-            for (uint32_t j = 0; j < sectorCount; ++j, ++k1, ++k2)
-            {
-                // 2 triangles per sector excluding first and last stacks
-                // k1 => k2 => k1+1
-                if (i != 0)
-                {
-                    indices.push_back(k1);
-                    indices.push_back(k2);
-                    indices.push_back(k1 + 1);
-                }
-
-                // k1+1 => k2 => k2+1
-                if (i != (stackCount - 1))
-                {
-                    indices.push_back(k1 + 1);
-                    indices.push_back(k2);
-                    indices.push_back(k2 + 1);
-                }
-
-                // store indices for lines
-                // vertical lines for all stacks, k1 => k2
-                //lineIndices.push_back(k1);
-                //lineIndices.push_back(k2);
-                //if (i != 0)  // horizontal lines except 1st stack, k1 => k+1
-                //{
-                //    lineIndices.push_back(k1);
-                //    lineIndices.push_back(k1 + 1);
-                //}
-            }
-        }
-
-
-        std::size_t i, j;
-        std::size_t count = vertices.size();
-        std::vector<float> vertexBufferData;
-        vertexBufferData.reserve(count * 8);
-        for (i = 0, j = 0; i < count; i += 3, j += 2)
-        {
-            vertexBufferData.push_back(vertices[i]);
-            vertexBufferData.push_back(vertices[i + 1]);
-            vertexBufferData.push_back(vertices[i + 2]);
-
-            vertexBufferData.push_back(normals[i]);
-            vertexBufferData.push_back(normals[i + 1]);
-            vertexBufferData.push_back(normals[i + 2]);
-
-            vertexBufferData.push_back(texCoords[j]);
-            vertexBufferData.push_back(texCoords[j + 1]);
-        }
-
-        Ref<VertexBuffer> vbo = VertexBuffer::Create(sizeof(float) * vertexBufferData.size(), vertexBufferData.data());
-
-        BufferLayout layout = {
-            {ShaderDataType::Float3, "aPosition"},
-            {ShaderDataType::Float3, "aNormal"},
-            {ShaderDataType::Float2, "aTexCoords"}
-        };
-
-        vbo->SetLayout(layout);
-
-        Ref<IndexBuffer> ibo = IndexBuffer::Create(indices.size(), indices.data());
-
-        s_Materials->Sphere->AddVertexBuffer(vbo);
-        s_Materials->Sphere->SetIndexBuffer(ibo);
         
-
         auto& camera = Application::Get().GetWindow().GetSceneCamera();
 
         {
