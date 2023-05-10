@@ -78,9 +78,8 @@ namespace Magnefu
         s_Settings->Blending = true;
         s_Settings->DepthTest = true;
 
-        // --Loading Primitive Vertex Data-- //
+        // -- Loading Primitive Vertex Data -- //
 
-        // PLANE
         {
             MF_PROFILE_SCOPE("Load Plane Data");
             std::vector<ObjModelVertex> vertices;
@@ -470,7 +469,50 @@ namespace Magnefu
 
         {
             MF_PROFILE_SCOPE("Load Skybox Data");
+
+            float vertices[24] = {
+                //  position             
+                    -1.f,  -1.f, -1.f,   // 0
+                     1.f,  -1.f, -1.f,   // 1
+                     1.f,   1.f, -1.f,   // 2
+                    -1.f,   1.f, -1.f,   // 3
+                    -1.f,  -1.f,  1.f,   // 4
+                     1.f,  -1.f,  1.f,   // 5
+                     1.f,   1.f,  1.f,   // 6
+                    -1.f,   1.f,  1.f    // 7
+            };
+
+            uint32_t indices[] = {
+                0, 2, 1,  // Back
+                0, 3, 2,
+                4, 5, 6,  // Front
+                4, 6, 7,
+                3, 6, 2,  // Top
+                3, 7, 6,
+                0, 1, 5,  // Bottom
+                0, 5, 4,
+                1, 6, 5,
+                1, 2, 6,
+                0, 4, 7,
+                0, 7, 3
+            };
+
+            Ref<VertexBuffer> vbo = VertexBuffer::Create(sizeof(vertices), vertices);
+
+            BufferLayout layout = {
+                {ShaderDataType::Float3, "aPosition"}
+            };
+
+            vbo->SetLayout(layout);
+
+            Ref<IndexBuffer> ibo = IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices);
+
+            s_Materials->Skybox->AddVertexBuffer(vbo);
+            s_Materials->Skybox->SetIndexBuffer(ibo);
+            s_Materials->Skybox->GetVertexArray()->Unbind();
         }
+
+        // -------------------------------- //
     }
 
     void Renderer::BeginScene()
@@ -664,48 +706,6 @@ namespace Magnefu
     void Renderer::DrawSkybox()
     {
         MF_PROFILE_FUNCTION();
-        //InstrumentationTimer timer("Renderer::DrawCube");
-
-        float vertices[24] = {
-            //  position             
-                -1.f,  -1.f, -1.f,   // 0
-                 1.f,  -1.f, -1.f,   // 1
-                 1.f,   1.f, -1.f,   // 2
-                -1.f,   1.f, -1.f,   // 3
-                -1.f,  -1.f,  1.f,   // 4
-                 1.f,  -1.f,  1.f,   // 5
-                 1.f,   1.f,  1.f,   // 6
-                -1.f,   1.f,  1.f    // 7
-        };
-
-        uint32_t indices[] = {
-            0, 2, 1,  // Back
-            0, 3, 2,
-            4, 5, 6,  // Front
-            4, 6, 7,
-            3, 6, 2,  // Top
-            3, 7, 6,
-            0, 1, 5,  // Bottom
-            0, 5, 4,
-            1, 6, 5,
-            1, 2, 6,
-            0, 4, 7,
-            0, 7, 3
-        };
-
-        Ref<VertexBuffer> vbo = VertexBuffer::Create(sizeof(vertices), vertices);
-
-        BufferLayout layout = {
-            {ShaderDataType::Float3, "aPosition"}
-        };
-
-        vbo->SetLayout(layout);
-
-        Ref<IndexBuffer> ibo = IndexBuffer::Create(sizeof(indices) / sizeof(uint32_t), indices);
-
-        Ref<VertexArray> vao = VertexArray::Create();
-        vao->AddVertexBuffer(vbo);
-        vao->SetIndexBuffer(ibo);
 
         auto& camera = Application::Get().GetWindow().GetSceneCamera();
         Maths::mat4* view = static_cast<Maths::mat4*>(StackAllocator::Get()->Allocate(sizeof(Maths::mat4), sizeof(Maths::mat4)));
@@ -727,7 +727,7 @@ namespace Magnefu
 
         {
             MF_PROFILE_SCOPE("Draw Call - Skybox");
-            RenderCommand::DrawIndexed(vao);
+            RenderCommand::DrawIndexed(s_Materials->Skybox->GetVertexArray());
         }
         RenderCommand::FrontFaceCCW();
         RenderCommand::DepthFuncLess();
