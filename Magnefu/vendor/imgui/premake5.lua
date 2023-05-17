@@ -30,8 +30,8 @@ project "ImGui"
 		"%{wks.location}/Magnefu/src/Maths",
 		"%{wks.location}/Magnefu/vendor",
 		"%{wks.location}/Magnefu/vendor/imgui",
-		"%{wks.location}/Magnefu/vendor/GLFW/include"
-
+		"%{wks.location}/Magnefu/vendor/GLFW/include",
+		"%{wks.location}/Magnefu/vendor/vulkan/include"
 	}
 
 	filter "system:windows"

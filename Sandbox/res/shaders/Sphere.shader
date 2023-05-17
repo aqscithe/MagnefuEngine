@@ -19,6 +19,7 @@ void main()
 	gl_Position = u_MVP * vec4(aPosition, 1.0);
 	TexCoords = aTexCoords;
 	Normal = mat3(u_NormalMatrix) * aNormal;
+	//Normal = aNormal;
 	FragPos = vec3(u_ModelMatrix * vec4(aPosition, 1.0));
 }
 

@@ -2,7 +2,7 @@
 #include "OpenGLContext.h"
 
 #include "Magnefu/Core/Log.h"
-
+#define GLFW_INCLUDE_VULKAN
 #include "GLFW/glfw3.h"
 #include "GLAD/glad.h"
 #include "imgui.h"

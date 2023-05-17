@@ -77,7 +77,7 @@
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;src;src\Maths;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -89,8 +89,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3_mt.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>vendor\GLAD\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -99,7 +99,7 @@
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;src;src\Maths;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -115,8 +115,8 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3_mt.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>vendor\GLAD\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
@@ -125,7 +125,7 @@
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;src;src\Maths;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -141,51 +141,22 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3_mt.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>vendor\GLAD\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\LinkedListAlloc.h" />
-    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\PoolAllocator.h" />
-    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\StackAllocator.h" />
-    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\VectorAllocator.h" />
-    <ClInclude Include="src\Magnefu\Core\NumGen.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Light.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Uniform.h" />
-    <ClInclude Include="src\Magnefu\ResourceManagement\CacheableResource.h" />
     <ClInclude Include="src\Magnefu.h" />
     <ClInclude Include="src\Magnefu\Application.h" />
-    <ClInclude Include="src\Magnefu\Core\SmartPointers.h" />
     <ClInclude Include="src\Magnefu\Core\Assertions.h" />
-    <ClInclude Include="src\Magnefu\Core\TimeStep.h" />
-    <ClInclude Include="src\Magnefu\Entrypoint.h" />
     <ClInclude Include="src\Magnefu\Core\Events\ApplicationEvent.h" />
     <ClInclude Include="src\Magnefu\Core\Events\Event.h" />
-    <ClInclude Include="src\Magnefu\Core\Events\KeyEvent.h" />
-    <ClInclude Include="src\Magnefu\Core\Events\MouseEvent.h" />
-    <ClInclude Include="src\Magnefu\ImGui\ImGuiLayer.h" />
     <ClInclude Include="src\Magnefu\Core\Events\Input.h" />
     <ClInclude Include="src\Magnefu\Core\Events\KeyCodes.h" />
-    <ClInclude Include="src\Magnefu\Layer.h" />
-    <ClInclude Include="src\Magnefu\LayerStack.h" />
-    <ClInclude Include="src\Magnefu\Core\Log.h" />
+    <ClInclude Include="src\Magnefu\Core\Events\KeyEvent.h" />
     <ClInclude Include="src\Magnefu\Core\Events\MouseButtonCodes.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Buffer.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Font.h" />
-    <ClInclude Include="src\Magnefu\Renderer\GraphicsContext.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Material.h" />
-    <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Renderer.h" />
-    <ClInclude Include="src\Magnefu\Renderer\RendererAPI.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Shader.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Texture.h" />
-    <ClInclude Include="src\Magnefu\Renderer\VertexArray.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Camera.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Scene.h" />
-    <ClInclude Include="src\Magnefu\Renderer\SceneCamera.h" />
-    <ClInclude Include="src\Magnefu\Window.h" />
-    <ClInclude Include="src\Platform\OpenGL\OpenGLMaterial.h" />
+    <ClInclude Include="src\Magnefu\Core\Events\MouseEvent.h" />
+    <ClInclude Include="src\Magnefu\Core\Log.h" />
     <ClInclude Include="src\Magnefu\Core\Maths\MathsCommon.h" />
     <ClInclude Include="src\Magnefu\Core\Maths\Matrices.h" />
     <ClInclude Include="src\Magnefu\Core\Maths\Primitive2D.h" />
@@ -193,16 +164,48 @@
     <ClInclude Include="src\Magnefu\Core\Maths\PrimitiveCommon.h" />
     <ClInclude Include="src\Magnefu\Core\Maths\Quaternion.h" />
     <ClInclude Include="src\Magnefu\Core\Maths\Vectors.h" />
+    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\LinkedListAlloc.h" />
+    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\PoolAllocator.h" />
+    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\StackAllocator.h" />
+    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\VectorAllocator.h" />
+    <ClInclude Include="src\Magnefu\Core\NumGen.h" />
+    <ClInclude Include="src\Magnefu\Core\SmartPointers.h" />
+    <ClInclude Include="src\Magnefu\Core\TimeStep.h" />
+    <ClInclude Include="src\Magnefu\Debug\Instrumentor.h" />
+    <ClInclude Include="src\Magnefu\Entrypoint.h" />
+    <ClInclude Include="src\Magnefu\ImGui\ImGuiLayer.h" />
+    <ClInclude Include="src\Magnefu\Layer.h" />
+    <ClInclude Include="src\Magnefu\LayerStack.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Buffer.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Camera.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Font.h" />
+    <ClInclude Include="src\Magnefu\Renderer\GraphicsContext.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Light.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Material.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Mesh.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Model.h" />
+    <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Renderer.h" />
+    <ClInclude Include="src\Magnefu\Renderer\RendererAPI.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Scene.h" />
+    <ClInclude Include="src\Magnefu\Renderer\SceneCamera.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Shader.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Texture.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Uniform.h" />
+    <ClInclude Include="src\Magnefu\Renderer\VertexArray.h" />
+    <ClInclude Include="src\Magnefu\ResourceManagement\CacheableResource.h" />
+    <ClInclude Include="src\Magnefu\ResourceManagement\ResourceCache.h" />
+    <ClInclude Include="src\Magnefu\Window.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLBuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLMaterial.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h" />
-    <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h" />
-    <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
-    <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
-    <ClInclude Include="src\Magnefu\ResourceManagement\ResourceCache.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLShader.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLTexture.h" />
-    <ClInclude Include="src\Magnefu\Debug\Instrumentor.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h" />
+    <ClInclude Include="src\Platform\VK\VKContext.h" />
+    <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
+    <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
     <ClInclude Include="src\mfpch.h" />
     <ClInclude Include="vendor\GLAD\include\KHR\khrplatform.h" />
     <ClInclude Include="vendor\GLAD\include\glad\glad.h" />
@@ -363,10 +366,166 @@
     <ClInclude Include="vendor\spdlog\tweakme.h" />
     <ClInclude Include="vendor\spdlog\version.h" />
     <ClInclude Include="vendor\stb_image\stb_image.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_assert.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_atomic.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_audio.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_bits.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_blendmode.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_clipboard.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_config.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_copying.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_cpuinfo.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_egl.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_endian.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_error.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_events.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_filesystem.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_gamecontroller.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_gesture.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_guid.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_haptic.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_hidapi.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_hints.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_joystick.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_keyboard.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_keycode.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_loadso.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_locale.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_log.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_main.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_messagebox.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_metal.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_misc.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_mouse.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_mutex.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_name.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_opengl.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_opengl_glext.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_opengles.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_opengles2.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_opengles2_gl2.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_opengles2_gl2ext.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_opengles2_gl2platform.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_opengles2_khrplatform.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_pixels.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_platform.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_power.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_quit.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_rect.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_render.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_revision.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_rwops.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_scancode.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_sensor.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_shape.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_stdinc.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_surface.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_system.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_syswm.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_assert.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_common.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_compare.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_crc32.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_font.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_fuzzer.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_harness.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_images.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_log.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_md5.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_memory.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_random.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_thread.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_timer.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_touch.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_types.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_version.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_video.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_vulkan.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\begin_code.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\close_code.h" />
+    <ClInclude Include="vendor\vulkan\include\Volk\volk.h" />
+    <ClInclude Include="vendor\vulkan\include\dxc\WinAdapter.h" />
+    <ClInclude Include="vendor\vulkan\include\dxc\dxcapi.h" />
+    <ClInclude Include="vendor\vulkan\include\glm\simd\common.h" />
+    <ClInclude Include="vendor\vulkan\include\glm\simd\exponential.h" />
+    <ClInclude Include="vendor\vulkan\include\glm\simd\geometric.h" />
+    <ClInclude Include="vendor\vulkan\include\glm\simd\integer.h" />
+    <ClInclude Include="vendor\vulkan\include\glm\simd\matrix.h" />
+    <ClInclude Include="vendor\vulkan\include\glm\simd\neon.h" />
+    <ClInclude Include="vendor\vulkan\include\glm\simd\packing.h" />
+    <ClInclude Include="vendor\vulkan\include\glm\simd\platform.h" />
+    <ClInclude Include="vendor\vulkan\include\glm\simd\trigonometric.h" />
+    <ClInclude Include="vendor\vulkan\include\glm\simd\vector_relational.h" />
+    <ClInclude Include="vendor\vulkan\include\glslang\Include\BaseTypes.h" />
+    <ClInclude Include="vendor\vulkan\include\glslang\Include\Common.h" />
+    <ClInclude Include="vendor\vulkan\include\glslang\Include\ConstantUnion.h" />
+    <ClInclude Include="vendor\vulkan\include\glslang\Include\PoolAlloc.h" />
+    <ClInclude Include="vendor\vulkan\include\glslang\Include\ResourceLimits.h" />
+    <ClInclude Include="vendor\vulkan\include\glslang\Include\SpirvIntrinsics.h" />
+    <ClInclude Include="vendor\vulkan\include\glslang\Include\Types.h" />
+    <ClInclude Include="vendor\vulkan\include\glslang\Include\arrays.h" />
+    <ClInclude Include="vendor\vulkan\include\glslang\Include\intermediate.h" />
+    <ClInclude Include="vendor\vulkan\include\glslang\MachineIndependent\Versions.h" />
+    <ClInclude Include="vendor\vulkan\include\glslang\MachineIndependent\localintermediate.h" />
+    <ClInclude Include="vendor\vulkan\include\glslang\Public\ResourceLimits.h" />
+    <ClInclude Include="vendor\vulkan\include\glslang\Public\ShaderLang.h" />
+    <ClInclude Include="vendor\vulkan\include\glslang\Public\resource_limits_c.h" />
+    <ClInclude Include="vendor\vulkan\include\glslang\SPIRV\GlslangToSpv.h" />
+    <ClInclude Include="vendor\vulkan\include\glslang\SPIRV\Logger.h" />
+    <ClInclude Include="vendor\vulkan\include\glslang\SPIRV\SPVRemapper.h" />
+    <ClInclude Include="vendor\vulkan\include\glslang\SPIRV\SpvTools.h" />
+    <ClInclude Include="vendor\vulkan\include\glslang\SPIRV\spvIR.h" />
+    <ClInclude Include="vendor\vulkan\include\shaderc\env.h" />
+    <ClInclude Include="vendor\vulkan\include\shaderc\shaderc.h" />
+    <ClInclude Include="vendor\vulkan\include\shaderc\status.h" />
+    <ClInclude Include="vendor\vulkan\include\shaderc\visibility.h" />
+    <ClInclude Include="vendor\vulkan\include\spirv-headers\GLSL.std.450.h" />
+    <ClInclude Include="vendor\vulkan\include\spirv-headers\spirv.h" />
+    <ClInclude Include="vendor\vulkan\include\spirv-tools\libspirv.h" />
+    <ClInclude Include="vendor\vulkan\include\spirv_cross\GLSL.std.450.h" />
+    <ClInclude Include="vendor\vulkan\include\spirv_cross\spirv.h" />
+    <ClInclude Include="vendor\vulkan\include\spirv_cross\spirv_cross_c.h" />
+    <ClInclude Include="vendor\vulkan\include\vk_video\vulkan_video_codec_h264std.h" />
+    <ClInclude Include="vendor\vulkan\include\vk_video\vulkan_video_codec_h264std_decode.h" />
+    <ClInclude Include="vendor\vulkan\include\vk_video\vulkan_video_codec_h264std_encode.h" />
+    <ClInclude Include="vendor\vulkan\include\vk_video\vulkan_video_codec_h265std.h" />
+    <ClInclude Include="vendor\vulkan\include\vk_video\vulkan_video_codec_h265std_decode.h" />
+    <ClInclude Include="vendor\vulkan\include\vk_video\vulkan_video_codec_h265std_encode.h" />
+    <ClInclude Include="vendor\vulkan\include\vk_video\vulkan_video_codecs_common.h" />
+    <ClInclude Include="vendor\vulkan\include\vma\vk_mem_alloc.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vk_enum_string_helper.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vk_icd.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vk_layer.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vk_platform.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_android.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_beta.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_core.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_directfb.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_fuchsia.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_ggp.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_ios.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_macos.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_metal.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_screen.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_vi.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_wayland.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_win32.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_xcb.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_xlib.h" />
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_xlib_xrandr.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application.cpp" />
     <ClCompile Include="src\Magnefu\Core\Assertions.cpp" />
+    <ClCompile Include="src\Magnefu\Core\Log.cpp" />
+    <ClCompile Include="src\Magnefu\Core\Maths\Matrices.cpp" />
+    <ClCompile Include="src\Magnefu\Core\Maths\Primitive2D.cpp" />
+    <ClCompile Include="src\Magnefu\Core\Maths\Primitive3D.cpp" />
+    <ClCompile Include="src\Magnefu\Core\Maths\Quaternion.cpp" />
+    <ClCompile Include="src\Magnefu\Core\Maths\Vectors.cpp" />
     <ClCompile Include="src\Magnefu\Core\MemoryAllocation\PoolAllocator.cpp" />
     <ClCompile Include="src\Magnefu\Core\MemoryAllocation\StackAllocator.cpp" />
     <ClCompile Include="src\Magnefu\Core\NumGen.cpp" />
@@ -375,33 +534,31 @@
     <ClCompile Include="src\Magnefu\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\Magnefu\Layer.cpp" />
     <ClCompile Include="src\Magnefu\LayerStack.cpp" />
-    <ClCompile Include="src\Magnefu\Core\Log.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Buffer.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\Camera.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\GraphicsContext.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Light.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Material.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\Mesh.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\Model.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\RenderCommand.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Renderer.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\RendererAPI.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\SceneCamera.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Shader.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Texture.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\VertexArray.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\Camera.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\SceneCamera.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\OpenGLMaterial.cpp" />
-    <ClCompile Include="src\Magnefu\Core\Maths\Matrices.cpp" />
-    <ClCompile Include="src\Magnefu\Core\Maths\Primitive2D.cpp" />
-    <ClCompile Include="src\Magnefu\Core\Maths\Primitive3D.cpp" />
-    <ClCompile Include="src\Magnefu\Core\Maths\Quaternion.cpp" />
-    <ClCompile Include="src\Magnefu\Core\Maths\Vectors.cpp" />
+    <ClCompile Include="src\Magnefu\ResourceManagement\ResourceCache.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLMaterial.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
-    <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
-    <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
-    <ClCompile Include="src\Magnefu\ResourceManagement\ResourceCache.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLShader.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLTexture.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
+    <ClCompile Include="src\Platform\VK\VKContext.cpp" />
+    <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
+    <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
     <ClCompile Include="src\mfpch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
@@ -414,6 +571,9 @@
     <ClCompile Include="vendor\imgui\imgui_tables.cpp" />
     <ClCompile Include="vendor\imgui\imgui_widgets.cpp" />
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
+    <ClCompile Include="vendor\vulkan\include\glm\detail\glm.cpp">
+      <ObjectFileName>$(IntDir)\glm1.obj</ObjectFileName>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="vendor\GLFW\GLFW.vcxproj">
@@ -425,9 +585,6 @@
     <ProjectReference Include="vendor\imgui\ImGui.vcxproj">
       <Project>{C0FF640D-2C14-8DBE-F595-301E616989EF}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="src\Magnefu\Core\core.cfg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

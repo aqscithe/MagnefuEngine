@@ -585,12 +585,17 @@ namespace Magnefu
                 Maths::scale(data.Size.x);
 
             s_Data->MVP = camera->GetVP() * s_Data->ModelMatrix;
+
+            s_Data->NormalMatrix = Maths::identity();
+            if (Maths::invert(s_Data->ModelMatrix.e, s_Data->Inverted.e))
+                s_Data->NormalMatrix = Maths::transpose(s_Data->Inverted);
         }
 
         {
             MF_PROFILE_SCOPE("Upload Uniforms - CUBE");
             s_Materials->Cube->SetUniformValue("u_MVP", s_Data->MVP);
             s_Materials->Cube->SetUniformValue("u_ModelMatrix", s_Data->ModelMatrix);
+            s_Materials->Cube->SetUniformValue("u_NormalMatrix", s_Data->NormalMatrix);
             s_Materials->Cube->SetUniformValue("u_CameraPos", camera->GetData().Position);
             s_Materials->Cube->SetUniformValue("u_LightDirection", s_Data->DefaultLight.Direction);
             s_Materials->Cube->SetUniformValue("u_LightColor", s_Data->DefaultLight.Color);
@@ -600,6 +605,7 @@ namespace Magnefu
             s_Materials->Cube->UpdateMaterialSpec();
             s_Materials->Cube->Bind();
         }
+
 
         {
             MF_PROFILE_SCOPE("Draw Call - CUBE");

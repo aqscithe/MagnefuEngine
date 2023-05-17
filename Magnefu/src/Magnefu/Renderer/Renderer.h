@@ -2,7 +2,6 @@
 
 #include "RenderCommand.h"
 #include "Material.h"
-#include "Magnefu/Tests/Test.h"
 #include "Magnefu/Core/Maths/PrimitiveCommon.h"
 
 

@@ -7,8 +7,20 @@
     <Filter Include="src\Magnefu">
       <UniqueIdentifier>{5F31081E-CBE6-8013-54DB-7AEAC08F7717}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Magnefu\Events">
-      <UniqueIdentifier>{63BCAA16-4FA0-6B6C-B800-66BFA40356EE}</UniqueIdentifier>
+    <Filter Include="src\Magnefu\Core">
+      <UniqueIdentifier>{1709E250-0302-01A3-2C34-E627188CE0AE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Magnefu\Core\Events">
+      <UniqueIdentifier>{1BB57D94-87EC-C52B-90F6-294FFCACEC24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Magnefu\Core\Maths">
+      <UniqueIdentifier>{C33E4B1C-AF38-746E-98A5-0A7F843EDADA}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Magnefu\Core\MemoryAllocation">
+      <UniqueIdentifier>{4568BC48-B1D6-11C8-FABF-CCC7666D0764}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Magnefu\Debug">
+      <UniqueIdentifier>{15872F6D-819D-2D03-CA14-B924366AFE8A}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Magnefu\ImGui">
       <UniqueIdentifier>{C9F18D6D-3508-8C03-7E7F-1725EAD45C8B}</UniqueIdentifier>
@@ -16,20 +28,17 @@
     <Filter Include="src\Magnefu\Renderer">
       <UniqueIdentifier>{E56F4663-D1FE-CF2C-7A1D-E427668BE0D2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Magnefu\Scene">
-      <UniqueIdentifier>{BCE93D6E-2800-3C04-7177-C725DDCC0C8C}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Magnefu\Tests">
-      <UniqueIdentifier>{6157516E-CD6D-4F04-16E5-DA25823A208C}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Maths">
-      <UniqueIdentifier>{599964B3-C503-192A-0E42-CACF7AEBF67E}</UniqueIdentifier>
+    <Filter Include="src\Magnefu\ResourceManagement">
+      <UniqueIdentifier>{33EDE1FF-1F13-AC66-0859-3132F41DD132}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Platform">
       <UniqueIdentifier>{21CA02E5-0D2D-9289-B6B2-CA3FA2F45D0C}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Platform\OpenGL">
       <UniqueIdentifier>{35A49437-A105-7245-2A73-B8F796D3A804}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Platform\VK">
+      <UniqueIdentifier>{D175994C-3D01-0711-4612-8A05B21C6311}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Platform\Windows">
       <UniqueIdentifier>{5B054582-4794-CE4B-F0B2-E246DC20DFF1}</UniqueIdentifier>
@@ -109,46 +118,151 @@
     <Filter Include="vendor\stb_image">
       <UniqueIdentifier>{0DA0BA59-F998-D9AB-22CB-BE300E23B9B7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="vendor\vulkan">
+      <UniqueIdentifier>{F30DBE29-5FCE-3960-2809-83DD94887E3C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\vulkan\include">
+      <UniqueIdentifier>{667827E6-D2E4-E2E0-9BD8-7A3E07040549}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\vulkan\include\SDL2">
+      <UniqueIdentifier>{8AD601B3-76E6-AD83-DF9F-12A2CBCE9C1C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\vulkan\include\Volk">
+      <UniqueIdentifier>{F13604B3-DD46-B083-4600-15A2322F9F1C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\vulkan\include\dxc">
+      <UniqueIdentifier>{74BA7424-E07C-A8AE-292D-373B952E818C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\vulkan\include\glm">
+      <UniqueIdentifier>{B5C57424-2188-A8AE-6A38-373BD639818C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\vulkan\include\glm\detail">
+      <UniqueIdentifier>{D79FEADF-C3F0-D521-EC54-C4E3D804698B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\vulkan\include\glm\simd">
+      <UniqueIdentifier>{31FB003F-1D21-CBA5-0667-5071F22BF071}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\vulkan\include\glslang">
+      <UniqueIdentifier>{5D0FC438-C927-AB62-92D4-3AFCFEAB3FFC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\vulkan\include\glslang\Include">
+      <UniqueIdentifier>{B0ABDDB3-1C70-DCA3-E5D5-0C6E515978D9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\vulkan\include\glslang\MachineIndependent">
+      <UniqueIdentifier>{0FE3ECCA-FB8B-54FA-2422-7079102A6F3B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\vulkan\include\glslang\Public">
+      <UniqueIdentifier>{EB27B2C8-D70E-74C0-805F-DADD6C25ED26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\vulkan\include\glslang\SPIRV">
+      <UniqueIdentifier>{40E8E8CF-ACA1-537A-3501-6E54A1B909EA}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\vulkan\include\shaderc">
+      <UniqueIdentifier>{4F3BE0C9-BB53-C7F3-8400-578DF0D75B8D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\vulkan\include\spirv-headers">
+      <UniqueIdentifier>{B2F2428C-1EAC-AD36-A70B-C81013C463A6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\vulkan\include\spirv-tools">
+      <UniqueIdentifier>{C77A0918-33E9-5E97-7CD2-1997E87F5433}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\vulkan\include\spirv_cross">
+      <UniqueIdentifier>{B26F798B-1EDE-CE0A-67C7-890AD374C4A6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\vulkan\include\vk_video">
+      <UniqueIdentifier>{8C3839AE-785E-0315-61A4-88E04D6928E1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\vulkan\include\vma">
+      <UniqueIdentifier>{99057524-05C8-A8AE-4E78-373BBA79818C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\vulkan\include\vulkan">
+      <UniqueIdentifier>{466BFFCF-3226-EF7B-DBDD-67C6C777390C}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Magnefu\ResourceManagement\CacheableResource.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\Magnefu.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Application.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\SmartPointers.h">
-      <Filter>src\Magnefu</Filter>
-    </ClInclude>
     <ClInclude Include="src\Magnefu\Core\Assertions.h">
-      <Filter>src\Magnefu</Filter>
+      <Filter>src\Magnefu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Events\ApplicationEvent.h">
+      <Filter>src\Magnefu\Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Events\Event.h">
+      <Filter>src\Magnefu\Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Events\Input.h">
+      <Filter>src\Magnefu\Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Events\KeyCodes.h">
+      <Filter>src\Magnefu\Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Events\KeyEvent.h">
+      <Filter>src\Magnefu\Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Events\MouseButtonCodes.h">
+      <Filter>src\Magnefu\Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Events\MouseEvent.h">
+      <Filter>src\Magnefu\Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Log.h">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Maths\MathsCommon.h">
+      <Filter>src\Magnefu\Core\Maths</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Maths\Matrices.h">
+      <Filter>src\Magnefu\Core\Maths</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Maths\Primitive2D.h">
+      <Filter>src\Magnefu\Core\Maths</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Maths\Primitive3D.h">
+      <Filter>src\Magnefu\Core\Maths</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Maths\PrimitiveCommon.h">
+      <Filter>src\Magnefu\Core\Maths</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Maths\Quaternion.h">
+      <Filter>src\Magnefu\Core\Maths</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Maths\Vectors.h">
+      <Filter>src\Magnefu\Core\Maths</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\LinkedListAlloc.h">
+      <Filter>src\Magnefu\Core\MemoryAllocation</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\PoolAllocator.h">
+      <Filter>src\Magnefu\Core\MemoryAllocation</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\StackAllocator.h">
+      <Filter>src\Magnefu\Core\MemoryAllocation</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\VectorAllocator.h">
+      <Filter>src\Magnefu\Core\MemoryAllocation</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\NumGen.h">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\SmartPointers.h">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\TimeStep.h">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Debug\Instrumentor.h">
+      <Filter>src\Magnefu\Debug</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Entrypoint.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\Events\ApplicationEvent.h">
-      <Filter>src\Magnefu\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\Events\Event.h">
-      <Filter>src\Magnefu\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\Events\KeyEvent.h">
-      <Filter>src\Magnefu\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\Events\MouseEvent.h">
-      <Filter>src\Magnefu\Events</Filter>
-    </ClInclude>
     <ClInclude Include="src\Magnefu\ImGui\ImGuiLayer.h">
       <Filter>src\Magnefu\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\Events\Input.h">
-      <Filter>src\Magnefu</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\Events\KeyCodes.h">
-      <Filter>src\Magnefu</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Layer.h">
       <Filter>src\Magnefu</Filter>
@@ -156,16 +270,28 @@
     <ClInclude Include="src\Magnefu\LayerStack.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\Log.h">
-      <Filter>src\Magnefu</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\Events\MouseButtonCodes.h">
-      <Filter>src\Magnefu</Filter>
-    </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\Buffer.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\Camera.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\Font.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\GraphicsContext.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\Light.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\Material.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\Mesh.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\Model.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h">
@@ -177,38 +303,32 @@
     <ClInclude Include="src\Magnefu\Renderer\RendererAPI.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\Scene.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\SceneCamera.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\Shader.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\Texture.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\Uniform.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\VertexArray.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\Camera.h">
-      <Filter>src\Magnefu\Scene</Filter>
+    <ClInclude Include="src\Magnefu\ResourceManagement\CacheableResource.h">
+      <Filter>src\Magnefu\ResourceManagement</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\SceneCamera.h">
-      <Filter>src\Magnefu\Scene</Filter>
+    <ClInclude Include="src\Magnefu\ResourceManagement\ResourceCache.h">
+      <Filter>src\Magnefu\ResourceManagement</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Window.h">
       <Filter>src\Magnefu</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\Maths\MathsCommon.h">
-      <Filter>src\Maths</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\Maths\Matrices.h">
-      <Filter>src\Maths</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\Maths\Primitive2D.h">
-      <Filter>src\Maths</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\Maths\Primitive3D.h">
-      <Filter>src\Maths</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\Maths\PrimitiveCommon.h">
-      <Filter>src\Maths</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\Maths\Quaternion.h">
-      <Filter>src\Maths</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\Maths\Vectors.h">
-      <Filter>src\Maths</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\OpenGLBuffer.h">
       <Filter>src\Platform\OpenGL</Filter>
@@ -216,29 +336,29 @@
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLMaterial.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLShader.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLTexture.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h">
       <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\VK\VKContext.h">
+      <Filter>src\Platform\VK</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsInput.h">
       <Filter>src\Platform\Windows</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h">
       <Filter>src\Platform\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\ResourceManagement\ResourceCache.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Platform\OpenGL\OpenGLShader.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Platform\OpenGL\OpenGLTexture.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Debug\Instrumentor.h">
-      <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\mfpch.h">
       <Filter>src</Filter>
@@ -720,27 +840,493 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\TimeStep.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Texture.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Shader.h" />
-    <ClInclude Include="src\Platform\OpenGL\OpenGLMaterial.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Material.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Scene.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Font.h" />
-    <ClInclude Include="src\Magnefu\Core\NumGen.h" />
-    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\StackAllocator.h" />
-    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\PoolAllocator.h" />
-    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\LinkedListAlloc.h" />
-    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\VectorAllocator.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Uniform.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Light.h" />
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_assert.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_atomic.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_audio.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_bits.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_blendmode.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_clipboard.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_config.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_copying.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_cpuinfo.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_egl.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_endian.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_error.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_events.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_filesystem.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_gamecontroller.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_gesture.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_guid.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_haptic.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_hidapi.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_hints.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_joystick.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_keyboard.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_keycode.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_loadso.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_locale.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_log.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_main.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_messagebox.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_metal.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_misc.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_mouse.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_mutex.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_name.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_opengl.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_opengl_glext.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_opengles.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_opengles2.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_opengles2_gl2.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_opengles2_gl2ext.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_opengles2_gl2platform.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_opengles2_khrplatform.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_pixels.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_platform.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_power.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_quit.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_rect.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_render.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_revision.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_rwops.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_scancode.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_sensor.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_shape.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_stdinc.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_surface.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_system.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_syswm.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_assert.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_common.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_compare.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_crc32.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_font.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_fuzzer.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_harness.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_images.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_log.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_md5.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_memory.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_test_random.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_thread.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_timer.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_touch.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_types.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_version.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_video.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\SDL_vulkan.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\begin_code.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\SDL2\close_code.h">
+      <Filter>vendor\vulkan\include\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\Volk\volk.h">
+      <Filter>vendor\vulkan\include\Volk</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\dxc\WinAdapter.h">
+      <Filter>vendor\vulkan\include\dxc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\dxc\dxcapi.h">
+      <Filter>vendor\vulkan\include\dxc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glm\simd\common.h">
+      <Filter>vendor\vulkan\include\glm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glm\simd\exponential.h">
+      <Filter>vendor\vulkan\include\glm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glm\simd\geometric.h">
+      <Filter>vendor\vulkan\include\glm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glm\simd\integer.h">
+      <Filter>vendor\vulkan\include\glm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glm\simd\matrix.h">
+      <Filter>vendor\vulkan\include\glm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glm\simd\neon.h">
+      <Filter>vendor\vulkan\include\glm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glm\simd\packing.h">
+      <Filter>vendor\vulkan\include\glm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glm\simd\platform.h">
+      <Filter>vendor\vulkan\include\glm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glm\simd\trigonometric.h">
+      <Filter>vendor\vulkan\include\glm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glm\simd\vector_relational.h">
+      <Filter>vendor\vulkan\include\glm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glslang\Include\BaseTypes.h">
+      <Filter>vendor\vulkan\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glslang\Include\Common.h">
+      <Filter>vendor\vulkan\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glslang\Include\ConstantUnion.h">
+      <Filter>vendor\vulkan\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glslang\Include\PoolAlloc.h">
+      <Filter>vendor\vulkan\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glslang\Include\ResourceLimits.h">
+      <Filter>vendor\vulkan\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glslang\Include\SpirvIntrinsics.h">
+      <Filter>vendor\vulkan\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glslang\Include\Types.h">
+      <Filter>vendor\vulkan\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glslang\Include\arrays.h">
+      <Filter>vendor\vulkan\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glslang\Include\intermediate.h">
+      <Filter>vendor\vulkan\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glslang\MachineIndependent\Versions.h">
+      <Filter>vendor\vulkan\include\glslang\MachineIndependent</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glslang\MachineIndependent\localintermediate.h">
+      <Filter>vendor\vulkan\include\glslang\MachineIndependent</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glslang\Public\ResourceLimits.h">
+      <Filter>vendor\vulkan\include\glslang\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glslang\Public\ShaderLang.h">
+      <Filter>vendor\vulkan\include\glslang\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glslang\Public\resource_limits_c.h">
+      <Filter>vendor\vulkan\include\glslang\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glslang\SPIRV\GlslangToSpv.h">
+      <Filter>vendor\vulkan\include\glslang\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glslang\SPIRV\Logger.h">
+      <Filter>vendor\vulkan\include\glslang\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glslang\SPIRV\SPVRemapper.h">
+      <Filter>vendor\vulkan\include\glslang\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glslang\SPIRV\SpvTools.h">
+      <Filter>vendor\vulkan\include\glslang\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\glslang\SPIRV\spvIR.h">
+      <Filter>vendor\vulkan\include\glslang\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\shaderc\env.h">
+      <Filter>vendor\vulkan\include\shaderc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\shaderc\shaderc.h">
+      <Filter>vendor\vulkan\include\shaderc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\shaderc\status.h">
+      <Filter>vendor\vulkan\include\shaderc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\shaderc\visibility.h">
+      <Filter>vendor\vulkan\include\shaderc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\spirv-headers\GLSL.std.450.h">
+      <Filter>vendor\vulkan\include\spirv-headers</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\spirv-headers\spirv.h">
+      <Filter>vendor\vulkan\include\spirv-headers</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\spirv-tools\libspirv.h">
+      <Filter>vendor\vulkan\include\spirv-tools</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\spirv_cross\GLSL.std.450.h">
+      <Filter>vendor\vulkan\include\spirv_cross</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\spirv_cross\spirv.h">
+      <Filter>vendor\vulkan\include\spirv_cross</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\spirv_cross\spirv_cross_c.h">
+      <Filter>vendor\vulkan\include\spirv_cross</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vk_video\vulkan_video_codec_h264std.h">
+      <Filter>vendor\vulkan\include\vk_video</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vk_video\vulkan_video_codec_h264std_decode.h">
+      <Filter>vendor\vulkan\include\vk_video</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vk_video\vulkan_video_codec_h264std_encode.h">
+      <Filter>vendor\vulkan\include\vk_video</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vk_video\vulkan_video_codec_h265std.h">
+      <Filter>vendor\vulkan\include\vk_video</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vk_video\vulkan_video_codec_h265std_decode.h">
+      <Filter>vendor\vulkan\include\vk_video</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vk_video\vulkan_video_codec_h265std_encode.h">
+      <Filter>vendor\vulkan\include\vk_video</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vk_video\vulkan_video_codecs_common.h">
+      <Filter>vendor\vulkan\include\vk_video</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vma\vk_mem_alloc.h">
+      <Filter>vendor\vulkan\include\vma</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vk_enum_string_helper.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vk_icd.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vk_layer.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vk_platform.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_android.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_beta.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_core.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_directfb.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_fuchsia.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_ggp.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_ios.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_macos.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_metal.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_screen.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_vi.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_wayland.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_win32.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_xcb.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_xlib.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_xlib_xrandr.h">
+      <Filter>vendor\vulkan\include\vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application.cpp">
       <Filter>src\Magnefu</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Core\Assertions.cpp">
-      <Filter>src\Magnefu</Filter>
+      <Filter>src\Magnefu\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\Log.cpp">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\Maths\Matrices.cpp">
+      <Filter>src\Magnefu\Core\Maths</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\Maths\Primitive2D.cpp">
+      <Filter>src\Magnefu\Core\Maths</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\Maths\Primitive3D.cpp">
+      <Filter>src\Magnefu\Core\Maths</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\Maths\Quaternion.cpp">
+      <Filter>src\Magnefu\Core\Maths</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\Maths\Vectors.cpp">
+      <Filter>src\Magnefu\Core\Maths</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\MemoryAllocation\PoolAllocator.cpp">
+      <Filter>src\Magnefu\Core\MemoryAllocation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\MemoryAllocation\StackAllocator.cpp">
+      <Filter>src\Magnefu\Core\MemoryAllocation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\NumGen.cpp">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\TimeStep.cpp">
+      <Filter>src\Magnefu\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\ImGui\ImGuiBuild.cpp">
       <Filter>src\Magnefu\ImGui</Filter>
@@ -754,10 +1340,25 @@
     <ClCompile Include="src\Magnefu\LayerStack.cpp">
       <Filter>src\Magnefu</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Core\Log.cpp">
-      <Filter>src\Magnefu</Filter>
-    </ClCompile>
     <ClCompile Include="src\Magnefu\Renderer\Buffer.cpp">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Renderer\Camera.cpp">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Renderer\GraphicsContext.cpp">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Renderer\Light.cpp">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Renderer\Material.cpp">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Renderer\Mesh.cpp">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Renderer\Model.cpp">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Renderer\RenderCommand.cpp">
@@ -769,29 +1370,20 @@
     <ClCompile Include="src\Magnefu\Renderer\RendererAPI.cpp">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\Magnefu\Renderer\SceneCamera.cpp">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Renderer\Shader.cpp">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Renderer\Texture.cpp">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\Magnefu\Renderer\VertexArray.cpp">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\Camera.cpp">
-      <Filter>src\Magnefu\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\SceneCamera.cpp">
-      <Filter>src\Magnefu\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Core\Maths\Matrices.cpp">
-      <Filter>src\Maths</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Core\Maths\Primitive2D.cpp">
-      <Filter>src\Maths</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Core\Maths\Primitive3D.cpp">
-      <Filter>src\Maths</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Core\Maths\Quaternion.cpp">
-      <Filter>src\Maths</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Core\Maths\Vectors.cpp">
-      <Filter>src\Maths</Filter>
+    <ClCompile Include="src\Magnefu\ResourceManagement\ResourceCache.cpp">
+      <Filter>src\Magnefu\ResourceManagement</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp">
       <Filter>src\Platform\OpenGL</Filter>
@@ -799,26 +1391,29 @@
     <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLMaterial.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLShader.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLTexture.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp">
       <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\VK\VKContext.cpp">
+      <Filter>src\Platform\VK</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
       <Filter>src\Platform\Windows</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp">
       <Filter>src\Platform\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\ResourceManagement\ResourceCache.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Platform\OpenGL\OpenGLShader.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Platform\OpenGL\OpenGLTexture.cpp">
-      <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\mfpch.cpp">
       <Filter>src</Filter>
@@ -850,17 +1445,8 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Core\TimeStep.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\Texture.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\Shader.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\OpenGLMaterial.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\Material.cpp" />
-    <ClCompile Include="src\Magnefu\Core\NumGen.cpp" />
-    <ClCompile Include="src\Magnefu\Core\MemoryAllocation\StackAllocator.cpp" />
-    <ClCompile Include="src\Magnefu\Core\MemoryAllocation\PoolAllocator.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\Light.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="src\Magnefu\Core\core.cfg" />
+    <ClCompile Include="vendor\vulkan\include\glm\detail\glm.cpp">
+      <Filter>vendor\vulkan\include\glm\detail</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
