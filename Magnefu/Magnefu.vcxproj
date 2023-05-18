@@ -179,6 +179,7 @@
     <ClInclude Include="src\Magnefu\Renderer\Buffer.h" />
     <ClInclude Include="src\Magnefu\Renderer\Camera.h" />
     <ClInclude Include="src\Magnefu\Renderer\Font.h" />
+    <ClInclude Include="src\Magnefu\Renderer\FrameBuffer.h" />
     <ClInclude Include="src\Magnefu\Renderer\GraphicsContext.h" />
     <ClInclude Include="src\Magnefu\Renderer\Light.h" />
     <ClInclude Include="src\Magnefu\Renderer\Material.h" />
@@ -204,6 +205,7 @@
     <ClInclude Include="src\Platform\OpenGL\OpenGLTexture.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h" />
     <ClInclude Include="src\Platform\VK\VKContext.h" />
+    <ClInclude Include="src\Platform\VK\VKFrameBuffer.h" />
     <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
     <ClInclude Include="src\mfpch.h" />
@@ -536,6 +538,7 @@
     <ClCompile Include="src\Magnefu\LayerStack.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Buffer.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Camera.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\FrameBuffer.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\GraphicsContext.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Light.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Material.cpp" />
@@ -557,6 +560,7 @@
     <ClCompile Include="src\Platform\OpenGL\OpenGLTexture.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
     <ClCompile Include="src\Platform\VK\VKContext.cpp" />
+    <ClCompile Include="src\Platform\VK\VKFrameBuffer.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
     <ClCompile Include="src\mfpch.cpp">
