@@ -10,8 +10,6 @@
 
 namespace Magnefu
 {
-	
-
 	VKContext::VKContext(GLFWwindow* windowHandle) :
 		m_WindowHandle(windowHandle), m_VkInstance(VkInstance()), m_VkPhysicalDevice(VK_NULL_HANDLE)
 	{
@@ -20,6 +18,10 @@ namespace Magnefu
 
 	VKContext::~VKContext()
 	{
+		for (auto imageView : m_SwapChainImageViews) {
+			vkDestroyImageView(m_VkDevice, imageView, nullptr);
+		}
+
 		vkDestroySwapchainKHR(m_VkDevice, m_SwapChain, nullptr);
 		vkDestroySurfaceKHR(m_VkInstance, m_WindowSurface, nullptr);
 		vkDestroyInstance(m_VkInstance, nullptr);
@@ -257,6 +259,52 @@ namespace Magnefu
 		if (vkCreateSwapchainKHR(m_VkDevice, &swapChainCreateInfo, nullptr, &m_SwapChain) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "Failed to create swap chain!");
 
+		vkGetSwapchainImagesKHR(m_VkDevice, m_SwapChain, &imageCount, nullptr);
+		m_SwapChainImages.resize(imageCount);
+		vkGetSwapchainImagesKHR(m_VkDevice, m_SwapChain, &imageCount, m_SwapChainImages.data());
+
+		m_SwapChainImageFormat = surfaceFormat.format;
+		m_SwapChainExtent = extent;
+
+		// ---------------------------------------- //
+
+		// -- Creating Image Views -- //
+
+		m_SwapChainImageViews.resize(m_SwapChainImages.size());
+
+		for (size_t i = 0; i < m_SwapChainImages.size(); i++) {
+			VkImageViewCreateInfo imageViewCreateInfo{};
+			imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			imageViewCreateInfo.image = m_SwapChainImages[i];
+			imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D; // VK_IMAGE_VIEW_TYPE_CUBE -> for cube map
+			imageViewCreateInfo.format = m_SwapChainImageFormat;
+
+			imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+			imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+			imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+			imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+			imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+			imageViewCreateInfo.subresourceRange.levelCount = 1;
+			imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+			imageViewCreateInfo.subresourceRange.layerCount = 1;
+
+			if (vkCreateImageView(m_VkDevice, &imageViewCreateInfo, nullptr, &m_SwapChainImageViews[i]) != VK_SUCCESS) 
+				MF_CORE_ASSERT(false, "Failed to assert image view {}", i);
+		}
+
+		// ---------------------------------------- //
+
+
+		// -- Creating Graphics Pipeline -- //
+
+		std::string shaderFile = "res/shaders/Cube.shader";
+		ShaderProgramSource source = ParseShader(shaderFile);
+
+		VkShaderModule vertShaderModule = CreateShaderModule(source.VertexSource);
+		VkShaderModule fragShaderModule = CreateShaderModule(source.FragmentSource);
+
 		// ---------------------------------------- //
 
 		/*MF_CORE_DEBUG("Renderer Info: ");
@@ -430,6 +478,56 @@ namespace Magnefu
 
 			return actualExtent;
 		}
+	}
+
+	// TODO: Move to VKShader (DON'T delete OpenGLShader yet! There are pertinent changes there for identifying uniforms)
+	ShaderProgramSource VKContext::ParseShader(const String& filepath) 
+	{
+		std::ifstream stream(filepath);
+
+		enum class ShaderType
+		{
+			NONE = -1,
+			VERTEX = 0,
+			FRAGMENT = 1
+		};
+
+		String line;
+		std::stringstream ss[2];
+		ShaderType type = ShaderType::NONE;
+		while (std::getline(stream, line))
+		{
+			if (line.find("#shader") != String::npos)
+			{
+				if (line.find("vertex") != String::npos)
+				{
+					type = ShaderType::VERTEX;
+				}
+				else if (line.find("fragment") != String::npos)
+				{
+					type = ShaderType::FRAGMENT;
+				}
+			}
+			else
+			{
+				ss[(int)type] << line << '\n';
+			}
+		}
+		return { ss[0].str(), ss[1].str() };
+	}
+
+	VkShaderModule VKContext::CreateShaderModule(const String& code)
+	{
+		VkShaderModuleCreateInfo createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+		createInfo.codeSize = code.size();
+		createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+
+		VkShaderModule shaderModule;
+		if (vkCreateShaderModule(m_VkDevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) 
+			MF_CORE_ASSERT(false, "Failed to create a shader module");
+
+		return shaderModule;
 	}
 }
 

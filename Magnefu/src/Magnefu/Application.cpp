@@ -168,7 +168,7 @@ namespace Magnefu
         ImGui::End();
 
         m_Window->OnImGuiRender();
-        Renderer::OnImGuiRender();
+        //Renderer::OnImGuiRender();
 
 #ifdef MF_DEBUG
         ImGui::Begin("Stats");

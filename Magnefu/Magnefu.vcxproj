@@ -186,6 +186,7 @@
     <ClInclude Include="src\Magnefu\Renderer\Mesh.h" />
     <ClInclude Include="src\Magnefu\Renderer\Model.h" />
     <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h" />
+    <ClInclude Include="src\Magnefu\Renderer\RenderPipeline.h" />
     <ClInclude Include="src\Magnefu\Renderer\Renderer.h" />
     <ClInclude Include="src\Magnefu\Renderer\RendererAPI.h" />
     <ClInclude Include="src\Magnefu\Renderer\Scene.h" />
@@ -206,6 +207,8 @@
     <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h" />
     <ClInclude Include="src\Platform\VK\VKContext.h" />
     <ClInclude Include="src\Platform\VK\VKFrameBuffer.h" />
+    <ClInclude Include="src\Platform\VK\VKGraphicsPipeline.h" />
+    <ClInclude Include="src\Platform\VK\VKShader.h" />
     <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
     <ClInclude Include="src\mfpch.h" />
@@ -258,6 +261,7 @@
     <ClInclude Include="vendor\glm\simd\vector_relational.h" />
     <ClInclude Include="vendor\imgui\backends\imgui_impl_glfw.h" />
     <ClInclude Include="vendor\imgui\backends\imgui_impl_opengl3.h" />
+    <ClInclude Include="vendor\imgui\backends\imgui_impl_vulkan.h" />
     <ClInclude Include="vendor\imgui\imconfig.h" />
     <ClInclude Include="vendor\imgui\imgui.h" />
     <ClInclude Include="vendor\imgui\imgui_internal.h" />
@@ -545,6 +549,7 @@
     <ClCompile Include="src\Magnefu\Renderer\Mesh.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Model.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\RenderCommand.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\RenderPipeline.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Renderer.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\RendererAPI.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\SceneCamera.cpp" />
@@ -561,6 +566,8 @@
     <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
     <ClCompile Include="src\Platform\VK\VKContext.cpp" />
     <ClCompile Include="src\Platform\VK\VKFrameBuffer.cpp" />
+    <ClCompile Include="src\Platform\VK\VKGraphicsPipeline.cpp" />
+    <ClCompile Include="src\Platform\VK\VKShader.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
     <ClCompile Include="src\mfpch.cpp">
@@ -569,6 +576,7 @@
     <ClCompile Include="vendor\glm\detail\glm.cpp" />
     <ClCompile Include="vendor\imgui\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="vendor\imgui\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="vendor\imgui\backends\imgui_impl_vulkan.cpp" />
     <ClCompile Include="vendor\imgui\imgui.cpp" />
     <ClCompile Include="vendor\imgui\imgui_demo.cpp" />
     <ClCompile Include="vendor\imgui\imgui_draw.cpp" />

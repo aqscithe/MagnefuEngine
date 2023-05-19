@@ -8,6 +8,7 @@
 #include "imgui_internal.h"
 #include "imgui/backends/imgui_impl_glfw.h"
 #include "imgui/backends/imgui_impl_opengl3.h"
+#include "imgui/backends/imgui_impl_vulkan.h"
 
 #define GLFW_INCLUDE_VULKAN
 #include "GLFW/glfw3.h"
@@ -62,13 +63,18 @@ namespace Magnefu
 
 		// Setup Platform/Renderer backends
 		const char* glsl_version = "#version 460";
-		ImGui_ImplGlfw_InitForOpenGL(window, true);
-		ImGui_ImplOpenGL3_Init(glsl_version);
+		//ImGui_ImplGlfw_InitForOpenGL(window, true);
+		//ImGui_ImplOpenGL3_Init(glsl_version);
+		ImGui_ImplGlfw_InitForVulkan(window, true); // TODO: Make this based on an API switch
+		//ImGui_ImplVulkan_Init(ImGui_ImplVulkan_InitInfo * info, VkRenderPass render_pass);
+
+		
 	}
 
 	void ImGuiLayer::OnDetach()
 	{
-		ImGui_ImplOpenGL3_Shutdown();
+		//ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
 	}
@@ -91,7 +97,9 @@ namespace Magnefu
 		io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
 
 		// Start the Dear ImGui frame
-		ImGui_ImplOpenGL3_NewFrame();
+		//ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplVulkan_NewFrame();
+
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
@@ -100,7 +108,8 @@ namespace Magnefu
 	void ImGuiLayer::EndFrame()
 	{
 		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		//ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		//ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), VkCommandBuffer, VkPipeline pipeline = VkPipeline(nullptr));
 
 		ImGuiIO& io = ImGui::GetIO();
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)

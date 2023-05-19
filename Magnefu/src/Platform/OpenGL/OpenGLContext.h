@@ -14,6 +14,7 @@ namespace Magnefu
 		void Init() override;
 		void SwapBuffers() override;
 		void OnImGuiRender() override;
+		void GetImGuiInitData() override {int x = 1;}
 
 	private:
 		GLFWwindow* m_WindowHandle;

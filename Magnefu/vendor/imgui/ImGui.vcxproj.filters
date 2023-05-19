@@ -12,6 +12,9 @@
     <ClInclude Include="backends\imgui_impl_opengl3.h">
       <Filter>backends</Filter>
     </ClInclude>
+    <ClInclude Include="backends\imgui_impl_vulkan.h">
+      <Filter>backends</Filter>
+    </ClInclude>
     <ClInclude Include="imconfig.h" />
     <ClInclude Include="imgui.h" />
     <ClInclude Include="imgui_internal.h" />
@@ -24,6 +27,9 @@
       <Filter>backends</Filter>
     </ClCompile>
     <ClCompile Include="backends\imgui_impl_opengl3.cpp">
+      <Filter>backends</Filter>
+    </ClCompile>
+    <ClCompile Include="backends\imgui_impl_vulkan.cpp">
       <Filter>backends</Filter>
     </ClCompile>
     <ClCompile Include="imgui.cpp" />

@@ -13,7 +13,7 @@ public:
 	GameLayer() :
 		Layer("3D Primitives")
 	{
-		m_Plane.Size = { 20.f, 0.f, 20.f };
+		/*m_Plane.Size = { 20.f, 0.f, 20.f };
 		m_Plane.Color = { 0.5f, 0.5f, 0.5f };
 		m_Plane.Rotation = { 0.f, 0.f, 0.f };
 		m_Plane.Translation = { 0.f, -1.f, 0.f };
@@ -37,7 +37,7 @@ public:
 		m_Sphere.Color = { 0.1f, 0.73f, 0.4f };
 		m_Sphere.Rotation = { 0.f, 0.f, 0.f };
 		m_Sphere.Translation = { 0.f, 3.f,0.f };
-		m_Sphere.Angle = 0.f;
+		m_Sphere.Angle = 0.f;*/
 
 		m_Camera = std::static_pointer_cast<Magnefu::SceneCamera>(Magnefu::Application::Get().GetWindow().GetSceneCamera());
 	}
@@ -59,16 +59,16 @@ public:
 
 	void OnRender() override
 	{
-		Magnefu::RenderCommand::ClearColor(0.08f, 0.08f, 0.08f, 1.f);
-		Magnefu::RenderCommand::Clear();
+		//Magnefu::RenderCommand::ClearColor(0.08f, 0.08f, 0.08f, 1.f);
+		//Magnefu::RenderCommand::Clear();
 
-		Magnefu::Renderer::BeginScene();
+		//Magnefu::Renderer::BeginScene();
 		//Magnefu::Renderer::DrawPlane(m_Plane);
 		//Magnefu::Renderer::DrawCube(m_Cube);
 		//Magnefu::Renderer::DrawRectangularPrism(m_RecPrism);
 		//Magnefu::Renderer::DrawSphere(m_Sphere);
 		//Magnefu::Renderer::DrawSkybox();
-		Magnefu::Renderer::EndScene();
+		//Magnefu::Renderer::EndScene();
 	}
 
 	void OnGUIRender() override
@@ -77,7 +77,7 @@ public:
 		ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
 		if (ImGui::BeginTabBar("Scene", tab_bar_flags))
 		{
-			if (ImGui::BeginTabItem("PLANE"))
+			/*if (ImGui::BeginTabItem("PLANE"))
 			{
 				ImGui::SliderFloat3("Size", m_Plane.Size.e, 1.f, 20.f);
 				ImGui::SliderFloat("Angle", &m_Plane.Angle, -360.f, 360.f);
@@ -112,7 +112,7 @@ public:
 				ImGui::SliderFloat3("Translation", m_Sphere.Translation.e, -20.f, 20.f);
 				ImGui::ColorEdit3("Color", m_Sphere.Color.e);
 				ImGui::EndTabItem();
-			}
+			}*/
 			ImGui::EndTabBar();
 		}
 		ImGui::End();
@@ -125,10 +125,10 @@ public:
 
 private:
 	Magnefu::Ref<Magnefu::SceneCamera> m_Camera;
-	Magnefu::PrimitiveData m_Plane;
+	/*Magnefu::PrimitiveData m_Plane;
 	Magnefu::PrimitiveData m_Cube;
 	Magnefu::PrimitiveData m_RecPrism;
-	Magnefu::SphereData m_Sphere;
+	Magnefu::SphereData m_Sphere;*/
 };
 
 

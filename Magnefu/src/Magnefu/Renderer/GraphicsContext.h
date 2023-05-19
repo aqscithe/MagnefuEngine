@@ -21,6 +21,7 @@ namespace Magnefu
 		virtual void Init() = 0;
 		virtual void SwapBuffers() = 0;
 		virtual void OnImGuiRender() = 0;
+		virtual void GetImGuiInitData() = 0;
 
 		static GraphicsContext* Create(GLFWwindow* windowHandle);
 
