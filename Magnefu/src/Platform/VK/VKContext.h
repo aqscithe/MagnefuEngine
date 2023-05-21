@@ -11,8 +11,8 @@ namespace Magnefu
 
 	struct ShaderProgramSource
 	{
-		String VertexSource;
-		String FragmentSource;
+		std::vector<char> VertexSource;
+		std::vector<char> FragmentSource;
 	};
 
 	static const std::vector<const char*> deviceExtensions = 
@@ -64,9 +64,9 @@ namespace Magnefu
 		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
 		// Place in VKShader
-		ShaderProgramSource ParseShader(const String& filepath);
-		//VkShaderModule CreateShaderModule(const std::vector<char>& code);
-		VkShaderModule CreateShaderModule(const String& code);
+		ShaderProgramSource ParseShader(const String& filename);
+		void ReadFile(std::istream& s, std::vector<char>& data);
+		VkShaderModule CreateShaderModule(const String& filename);
 
 	private:
 		GLFWwindow*              m_WindowHandle;

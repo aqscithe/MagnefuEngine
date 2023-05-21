@@ -91,6 +91,7 @@ project "Magnefu"
         "glfw3_mt",
         "vulkan-1",
         "opengl32",
+        "shaderc_shared"
     }
 
     filter "system:windows"
@@ -145,6 +146,9 @@ project "Sandbox"
         "Magnefu/src/Maths",
         "%{prj.name}/src",
         "%{IncludeDir.GLAD}",
+    }
+
+    libdirs {
     }
 
     links {

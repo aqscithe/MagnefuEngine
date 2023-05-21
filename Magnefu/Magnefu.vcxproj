@@ -89,7 +89,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;opengl32.lib;shaderc_shared.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -115,7 +115,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;opengl32.lib;shaderc_shared.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -141,7 +141,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;opengl32.lib;shaderc_shared.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -261,7 +261,6 @@
     <ClInclude Include="vendor\glm\simd\vector_relational.h" />
     <ClInclude Include="vendor\imgui\backends\imgui_impl_glfw.h" />
     <ClInclude Include="vendor\imgui\backends\imgui_impl_opengl3.h" />
-    <ClInclude Include="vendor\imgui\backends\imgui_impl_vulkan.h" />
     <ClInclude Include="vendor\imgui\imconfig.h" />
     <ClInclude Include="vendor\imgui\imgui.h" />
     <ClInclude Include="vendor\imgui\imgui_internal.h" />
@@ -576,7 +575,6 @@
     <ClCompile Include="vendor\glm\detail\glm.cpp" />
     <ClCompile Include="vendor\imgui\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="vendor\imgui\backends\imgui_impl_opengl3.cpp" />
-    <ClCompile Include="vendor\imgui\backends\imgui_impl_vulkan.cpp" />
     <ClCompile Include="vendor\imgui\imgui.cpp" />
     <ClCompile Include="vendor\imgui\imgui_demo.cpp" />
     <ClCompile Include="vendor\imgui\imgui_draw.cpp" />

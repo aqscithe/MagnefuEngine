@@ -5,8 +5,9 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#include <set>
+#include "shaderc/shaderc.hpp"
 
+#include <set>
 
 namespace Magnefu
 {
@@ -299,12 +300,11 @@ namespace Magnefu
 
 		// -- Creating Graphics Pipeline -- //
 
-		std::string shaderFile = "res/shaders/Cube.shader";
-		ShaderProgramSource source = ParseShader(shaderFile);
+		std::string vertexFile = "res/shaders/Cube-vert.glsl";
+		std::string fragmentFile = "res/shaders/Cube-frag.glsl";
 
-		VkShaderModule vertShaderModule = CreateShaderModule(source.VertexSource);
-		VkShaderModule fragShaderModule = CreateShaderModule(source.FragmentSource);
-
+		VkShaderModule vertShaderModule = CreateShaderModule(vertexFile);
+		VkShaderModule fragShaderModule = CreateShaderModule(fragmentFile);
 		// ---------------------------------------- //
 
 		/*MF_CORE_DEBUG("Renderer Info: ");
@@ -480,54 +480,59 @@ namespace Magnefu
 		}
 	}
 
-	// TODO: Move to VKShader (DON'T delete OpenGLShader yet! There are pertinent changes there for identifying uniforms)
-	ShaderProgramSource VKContext::ParseShader(const String& filepath) 
+	VkShaderModule VKContext::CreateShaderModule(const String& filename)
 	{
-		std::ifstream stream(filepath);
 
-		enum class ShaderType
-		{
-			NONE = -1,
-			VERTEX = 0,
-			FRAGMENT = 1
-		};
+		std::vector<char> shaderContents;
+		std::ifstream shaderFile(filename, std::ios_base::in | std::ios_base::binary);
 
-		String line;
-		std::stringstream ss[2];
-		ShaderType type = ShaderType::NONE;
-		while (std::getline(stream, line))
+		if (!shaderFile.good())
+			MF_CORE_ASSERT(false, "Failed to load shader contents");
+
+		ReadFile(shaderFile, shaderContents);
+
+		String source = shaderContents.data();
+		// Compile shader to spv binary
+		// Create an instance of the compiler
+		shaderc::Compiler compiler;
+		shaderc::CompileOptions options;
+
+		// Compile the shader code
+		shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(source, shaderc_vertex_shader, "shader.glsl", options);
+
+		if (result.GetCompilationStatus() != shaderc_compilation_status_success) 
 		{
-			if (line.find("#shader") != String::npos)
-			{
-				if (line.find("vertex") != String::npos)
-				{
-					type = ShaderType::VERTEX;
-				}
-				else if (line.find("fragment") != String::npos)
-				{
-					type = ShaderType::FRAGMENT;
-				}
-			}
-			else
-			{
-				ss[(int)type] << line << '\n';
-			}
+			// Compilation failed, handle the error
+			MF_CORE_ASSERT(false, "Error: Compilation failed: {} ", result.GetErrorMessage());
 		}
-		return { ss[0].str(), ss[1].str() };
-	}
 
-	VkShaderModule VKContext::CreateShaderModule(const String& code)
-	{
+		// The result object is an iterable object providing a begin() and end() iterator for the SPIR-V binary.
+		std::vector<uint32_t> spirv_binary(result.begin(), result.end());
+
+
+		
+
 		VkShaderModuleCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-		createInfo.codeSize = code.size();
-		createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+		createInfo.codeSize = spirv_binary.size();
+		createInfo.pCode = reinterpret_cast<const uint32_t*>(spirv_binary.data());
 
 		VkShaderModule shaderModule;
 		if (vkCreateShaderModule(m_VkDevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) 
+		{
 			MF_CORE_ASSERT(false, "Failed to create a shader module");
+		}
 
 		return shaderModule;
+	}
+
+	void VKContext::ReadFile(std::istream& s, std::vector<char>& data)
+	{
+		s.seekg(0, std::ios_base::end);
+		data.resize(s.tellg());
+		s.clear();
+		s.seekg(0, std::ios_base::beg);
+		s.read(data.data(), data.size());
 	}
 }
 

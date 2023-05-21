@@ -139,6 +139,12 @@
     <None Include="res\shaders\BatchRender.shader">
       <Filter>res\shaders</Filter>
     </None>
+    <None Include="res\shaders\Cube-frag.glsl">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Cube-vert.glsl">
+      <Filter>res\shaders</Filter>
+    </None>
     <None Include="res\shaders\Cube.shader">
       <Filter>res\shaders</Filter>
     </None>

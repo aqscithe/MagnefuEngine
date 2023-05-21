@@ -163,6 +163,8 @@
     <None Include="res\meshes\wooden_watch_tower2.obj" />
     <None Include="res\shaders\Basic.shader" />
     <None Include="res\shaders\BatchRender.shader" />
+    <None Include="res\shaders\Cube-frag.glsl" />
+    <None Include="res\shaders\Cube-vert.glsl" />
     <None Include="res\shaders\Cube.shader" />
     <None Include="res\shaders\LightCube.shader" />
     <None Include="res\shaders\Plane.shader" />
