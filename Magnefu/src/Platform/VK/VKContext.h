@@ -9,6 +9,12 @@ namespace Magnefu
 {
 	using String = std::string;
 
+	enum class ShaderType
+	{
+		Vertex,
+		Fragment
+	};
+
 	struct ShaderProgramSource
 	{
 		String VertexSource;
@@ -65,8 +71,8 @@ namespace Magnefu
 
 		// Place in VKShader
 		ShaderProgramSource ParseShader(const String& filepath);
-		void ReadFile(std::istream& s, std::vector<char>& data);
-		VkShaderModule CreateShaderModule(const String& filename);
+		String ReadFile(const String& filename);
+		VkShaderModule CreateShaderModule(const String& filename, ShaderType shaderType);
 
 	private:
 		GLFWwindow*              m_WindowHandle;

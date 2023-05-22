@@ -303,8 +303,8 @@ namespace Magnefu
 		std::string vertexFile = "res/shaders/Basic-vert.glsl";
 		std::string fragmentFile = "res/shaders/Basic-frag.glsl";
 
-		VkShaderModule vertShaderModule = CreateShaderModule(vertexFile);
-		VkShaderModule fragShaderModule = CreateShaderModule(fragmentFile);
+		VkShaderModule vertShaderModule = CreateShaderModule(vertexFile, ShaderType::Vertex);
+		VkShaderModule fragShaderModule = CreateShaderModule(fragmentFile, ShaderType::Fragment);
 
 		/*std::string shaderFilepath = "res/shaders/Basic.shader";
 		ShaderProgramSource source = ParseShader(shaderFilepath);
@@ -487,25 +487,9 @@ namespace Magnefu
 		}
 	}
 
-	VkShaderModule VKContext::CreateShaderModule(const String& filename)
+	VkShaderModule VKContext::CreateShaderModule(const String& filename, ShaderType shaderType)
 	{
-
-		std::vector<char> shaderContents;
-		std::ifstream shaderFile(filename, std::ios_base::ate | std::ios_base::binary);
-
-		if (!shaderFile.good())
-			MF_CORE_ASSERT(false, "Failed to load shader contents");
-
-		size_t fileSize = (size_t)shaderFile.tellg();
-		std::string buffer(fileSize, '\0');
-
-		shaderFile.seekg(0);
-		shaderFile.read(buffer.data(), fileSize);
-		shaderFile.close();
-
-		//ReadFile(shaderFile, shaderContents);
-
-		//String source = shaderContents.data();
+		String source = ReadFile(filename);
 
 		// Compile shader to spv binary
 		// Create an instance of the compiler
@@ -513,7 +497,27 @@ namespace Magnefu
 		shaderc::CompileOptions options;
 
 		// Compile the shader code
-		shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(buffer, shaderc_vertex_shader, "shader.glsl", options);
+		shaderc::SpvCompilationResult result;
+		
+		switch (shaderType)
+		{
+			case Magnefu::ShaderType::Vertex:
+			{
+				result = compiler.CompileGlslToSpv(source, shaderc_vertex_shader, "vertex.glsl", options);
+				break;
+			}
+			case Magnefu::ShaderType::Fragment:
+			{
+				result = compiler.CompileGlslToSpv(source, shaderc_fragment_shader, "fragment.glsl", options);
+				break;
+			}
+			default:
+			{
+				MF_CORE_ASSERT(false, "Unknown shader type: {}", static_cast<int>(shaderType));
+				break;
+			}
+		}
+		
 
 		if (result.GetCompilationStatus() != shaderc_compilation_status_success) 
 		{
@@ -576,13 +580,21 @@ namespace Magnefu
 		return { ss[0].str(), ss[1].str() };
 	}
 
-	void VKContext::ReadFile(std::istream& s, std::vector<char>& data)
+	String VKContext::ReadFile(const String& filename)
 	{
-		s.seekg(0, std::ios_base::end);
-		data.resize(s.tellg());
-		s.clear();
-		s.seekg(0, std::ios_base::beg);
-		s.read(data.data(), data.size());
+		std::ifstream shaderFile(filename, std::ios_base::ate | std::ios_base::binary);
+
+		if (!shaderFile.good())
+			MF_CORE_ASSERT(false, "Failed to load shader contents");
+
+		size_t fileSize = (size_t)shaderFile.tellg();
+		std::string buffer(fileSize, '\0');
+
+		shaderFile.seekg(0);
+		shaderFile.read(buffer.data(), fileSize);
+		shaderFile.close();
+
+		return buffer;
 	}
 }
 
