@@ -181,6 +181,8 @@
     <None Include="res\shaders\Texture2D.shader">
       <Filter>res\shaders</Filter>
     </None>
+    <None Include="res\shaders\Basic-vert.glsl" />
+    <None Include="res\shaders\Basic-frag.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\textures\12221_Cat_v1_l3\Cat_ao.jpg">

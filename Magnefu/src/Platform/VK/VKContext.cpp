@@ -300,11 +300,18 @@ namespace Magnefu
 
 		// -- Creating Graphics Pipeline -- //
 
-		std::string vertexFile = "res/shaders/Cube-vert.glsl";
-		std::string fragmentFile = "res/shaders/Cube-frag.glsl";
+		std::string vertexFile = "res/shaders/Basic-vert.glsl";
+		std::string fragmentFile = "res/shaders/Basic-frag.glsl";
 
 		VkShaderModule vertShaderModule = CreateShaderModule(vertexFile);
 		VkShaderModule fragShaderModule = CreateShaderModule(fragmentFile);
+
+		/*std::string shaderFilepath = "res/shaders/Basic.shader";
+		ShaderProgramSource source = ParseShader(shaderFilepath);
+		VkShaderModule vertShaderModule = CreateShaderModule(source.VertexSource);
+		VkShaderModule fragShaderModule = CreateShaderModule(source.FragmentSource);*/
+
+
 		// ---------------------------------------- //
 
 		/*MF_CORE_DEBUG("Renderer Info: ");
@@ -484,21 +491,29 @@ namespace Magnefu
 	{
 
 		std::vector<char> shaderContents;
-		std::ifstream shaderFile(filename, std::ios_base::in | std::ios_base::binary);
+		std::ifstream shaderFile(filename, std::ios_base::ate | std::ios_base::binary);
 
 		if (!shaderFile.good())
 			MF_CORE_ASSERT(false, "Failed to load shader contents");
 
-		ReadFile(shaderFile, shaderContents);
+		size_t fileSize = (size_t)shaderFile.tellg();
+		std::string buffer(fileSize, '\0');
 
-		String source = shaderContents.data();
+		shaderFile.seekg(0);
+		shaderFile.read(buffer.data(), fileSize);
+		shaderFile.close();
+
+		//ReadFile(shaderFile, shaderContents);
+
+		//String source = shaderContents.data();
+
 		// Compile shader to spv binary
 		// Create an instance of the compiler
 		shaderc::Compiler compiler;
 		shaderc::CompileOptions options;
 
 		// Compile the shader code
-		shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(source, shaderc_vertex_shader, "shader.glsl", options);
+		shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(buffer, shaderc_vertex_shader, "shader.glsl", options);
 
 		if (result.GetCompilationStatus() != shaderc_compilation_status_success) 
 		{
@@ -507,15 +522,12 @@ namespace Magnefu
 		}
 
 		// The result object is an iterable object providing a begin() and end() iterator for the SPIR-V binary.
-		std::vector<uint32_t> spirv_binary(result.begin(), result.end());
-
-
-		
+		std::vector<uint32_t> spirv_binary(result.cbegin(), result.cend());
 
 		VkShaderModuleCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-		createInfo.codeSize = spirv_binary.size();
-		createInfo.pCode = reinterpret_cast<const uint32_t*>(spirv_binary.data());
+		createInfo.codeSize = spirv_binary.size() * sizeof(uint32_t);
+		createInfo.pCode = spirv_binary.data();
 
 		VkShaderModule shaderModule;
 		if (vkCreateShaderModule(m_VkDevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) 
@@ -524,6 +536,44 @@ namespace Magnefu
 		}
 
 		return shaderModule;
+	}
+
+	ShaderProgramSource VKContext::ParseShader(const String& filepath)
+	{
+		std::ifstream stream(filepath);
+
+		if (!stream.good())
+			MF_CORE_ASSERT(false, "Failed to load shader contents");
+
+		enum class ShaderType
+		{
+			NONE = -1,
+			VERTEX = 0,
+			FRAGMENT = 1
+		};
+
+		String line;
+		std::stringstream ss[2];
+		ShaderType type = ShaderType::NONE;
+		while (std::getline(stream, line))
+		{
+			if (line.find("#shader") != String::npos)
+			{
+				if (line.find("vertex") != String::npos)
+				{
+					type = ShaderType::VERTEX;
+				}
+				else if (line.find("fragment") != String::npos)
+				{
+					type = ShaderType::FRAGMENT;
+				}
+			}
+			else
+			{
+				ss[(int)type] << line << '\n';
+			}
+		}
+		return { ss[0].str(), ss[1].str() };
 	}
 
 	void VKContext::ReadFile(std::istream& s, std::vector<char>& data)
