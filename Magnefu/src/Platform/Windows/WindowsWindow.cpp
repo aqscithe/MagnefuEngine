@@ -81,7 +81,8 @@ namespace Magnefu
 			m_Context->Init();
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
-		SetVSync(true);
+
+		// vsync set by presentation mode in vulkan swap chain
 
 		// Set GLFW Callbacks
 		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
@@ -210,14 +211,6 @@ namespace Magnefu
 		glfwDestroyWindow(m_Window);
 	}
 
-	void WindowsWindow::SetVSync(bool enabled)
-	{
-		if (enabled)
-			glfwSwapInterval(1);
-		else
-			glfwSwapInterval(0);
-		m_Data.VSync = enabled;
-	}
 
 	void WindowsWindow::SetSceneCamera(const Ref<Camera>& cam)
 	{

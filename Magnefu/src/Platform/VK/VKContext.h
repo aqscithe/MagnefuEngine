@@ -11,14 +11,21 @@ namespace Magnefu
 
 	enum class ShaderType
 	{
+		None = -1,
 		Vertex,
 		Fragment
 	};
 
-	struct ShaderProgramSource
+	struct ShaderSource
 	{
-		String VertexSource;
-		String FragmentSource;
+		String Text;
+		ShaderType Type;
+	};
+
+	struct ShaderList
+	{
+		ShaderSource Vertex;
+		ShaderSource Fragment;
 	};
 
 	static const std::vector<const char*> deviceExtensions = 
@@ -70,9 +77,8 @@ namespace Magnefu
 		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
 		// Place in VKShader
-		ShaderProgramSource ParseShader(const String& filepath);
-		String ReadFile(const String& filename);
-		VkShaderModule CreateShaderModule(const String& filename, ShaderType shaderType);
+		ShaderList ParseShader(const String& filepath);
+		VkShaderModule CreateShaderModule(const ShaderSource& source);
 
 	private:
 		GLFWwindow*              m_WindowHandle;
@@ -89,6 +95,9 @@ namespace Magnefu
 		VkFormat                 m_SwapChainImageFormat;
 		VkExtent2D               m_SwapChainExtent;
 		std::vector<VkImageView> m_SwapChainImageViews;
-		GraphicsPipelines        m_GraphicsPipelines;
+		VkRenderPass             m_RenderPass;
+		VkPipelineLayout         m_PipelineLayout;
+		//GraphicsPipelines        m_GraphicsPipelines;
+		VkPipeline               m_GraphicsPipeline;
 	};
 }

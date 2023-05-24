@@ -38,7 +38,6 @@ namespace Magnefu
 
 		// Window attributes
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
-		virtual void SetVSync(bool enabled) = 0;
 		virtual bool IsVSync() const = 0;
 		virtual void SetSceneCamera(const Ref<Camera>&) = 0;
 		virtual Ref<Camera>& GetSceneCamera() = 0;

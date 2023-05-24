@@ -1,4 +1,5 @@
 #include "mfpch.h"
+#include <iterator>
 
 #include "VKContext.h"
 
@@ -19,9 +20,12 @@ namespace Magnefu
 
 	VKContext::~VKContext()
 	{
-		for (auto imageView : m_SwapChainImageViews) {
+		vkDestroyPipeline(m_VkDevice, m_GraphicsPipeline, nullptr);
+		vkDestroyPipelineLayout(m_VkDevice, m_PipelineLayout, nullptr);
+		vkDestroyRenderPass(m_VkDevice, m_RenderPass, nullptr);
+
+		for (auto imageView : m_SwapChainImageViews) 
 			vkDestroyImageView(m_VkDevice, imageView, nullptr);
-		}
 
 		vkDestroySwapchainKHR(m_VkDevice, m_SwapChain, nullptr);
 		vkDestroySurfaceKHR(m_VkInstance, m_WindowSurface, nullptr);
@@ -133,9 +137,7 @@ namespace Magnefu
 		// -- Window Surface -- //
 
 		if (glfwVulkanSupported() == GLFW_FALSE) 
-		{
 			MF_CORE_DEBUG("Vulkan not Supported!!");
-		}
 		
 		if (glfwCreateWindowSurface(m_VkInstance, m_WindowHandle, nullptr, &m_WindowSurface) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "Failed to create a window surface!");
@@ -297,20 +299,204 @@ namespace Magnefu
 
 		// ---------------------------------------- //
 
+		// ------- Creating Render Pass ------- //
 
-		// -- Creating Graphics Pipeline -- //
+		VkAttachmentDescription colorAttachment{};
+		colorAttachment.format = m_SwapChainImageFormat;
+		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 
-		std::string vertexFile = "res/shaders/Basic-vert.glsl";
-		std::string fragmentFile = "res/shaders/Basic-frag.glsl";
+		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
-		VkShaderModule vertShaderModule = CreateShaderModule(vertexFile, ShaderType::Vertex);
-		VkShaderModule fragShaderModule = CreateShaderModule(fragmentFile, ShaderType::Fragment);
+		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-		/*std::string shaderFilepath = "res/shaders/Basic.shader";
-		ShaderProgramSource source = ParseShader(shaderFilepath);
-		VkShaderModule vertShaderModule = CreateShaderModule(source.VertexSource);
-		VkShaderModule fragShaderModule = CreateShaderModule(source.FragmentSource);*/
+		VkAttachmentReference colorAttachmentRef{};
+		colorAttachmentRef.attachment = 0;
+		colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+		VkSubpassDescription subpass{};
+		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
+		VkRenderPassCreateInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		renderPassInfo.attachmentCount = 1;
+		renderPassInfo.pAttachments = &colorAttachment;
+		renderPassInfo.subpassCount = 1;
+		renderPassInfo.pSubpasses = &subpass;
+
+		if (vkCreateRenderPass(m_VkDevice, &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "failed to create render pass!");
+		
+
+		// ------- -------------------------- ------- //
+
+		// ------- Creating Graphics Pipeline ------- //
+
+		// Shader Modules
+		std::string shaderFilepath = "res/shaders/Basic.shader";
+		ShaderList list = ParseShader(shaderFilepath);
+		VkShaderModule vertShaderModule = CreateShaderModule(list.Vertex);
+		VkShaderModule fragShaderModule = CreateShaderModule(list.Fragment);
+
+		VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
+		vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+
+		vertShaderStageInfo.module = vertShaderModule;
+
+		// shader entrypoint - for fragment shaders, this means it is possible
+		// to include several fragment shaders in a single shader module and 
+		// use different entry points to differentiate between their behaviors
+		vertShaderStageInfo.pName = "main";
+
+		// delcare shader constants here. Ex: float PI = 3.1415926535897932384626;
+		vertShaderStageInfo.pSpecializationInfo = nullptr; 
+
+
+		VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
+		fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+		fragShaderStageInfo.module = fragShaderModule;
+		fragShaderStageInfo.pName = "main";
+		fragShaderStageInfo.pSpecializationInfo = nullptr;
+
+		VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
+
+		// Vertex Input
+		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+		vertexInputInfo.vertexBindingDescriptionCount = 0;
+		vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optional
+		vertexInputInfo.vertexAttributeDescriptionCount = 0;
+		vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optional
+
+		// Input Assembly
+		VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
+		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+		inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		inputAssembly.primitiveRestartEnable = VK_FALSE;
+
+		// Viewport & Scissors
+		VkViewport viewport{};
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = (float)m_SwapChainExtent.width;
+		viewport.height = (float)m_SwapChainExtent.height;
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+
+		VkRect2D scissor{};
+		scissor.offset = { 0, 0 };
+		scissor.extent = m_SwapChainExtent;
+
+		// Dynamic State
+		std::vector<VkDynamicState> dynamicStates = {
+			VK_DYNAMIC_STATE_VIEWPORT,
+			VK_DYNAMIC_STATE_SCISSOR
+		};
+
+		VkPipelineDynamicStateCreateInfo dynamicState{};
+		dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+		dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+		dynamicState.pDynamicStates = dynamicStates.data();
+
+		VkPipelineViewportStateCreateInfo viewportState{};
+		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+		viewportState.viewportCount = 1;
+		viewportState.scissorCount = 1;
+
+		// Rasterizer
+		VkPipelineRasterizationStateCreateInfo rasterizer{};
+		rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+		rasterizer.depthClampEnable = VK_FALSE;
+		rasterizer.rasterizerDiscardEnable = VK_FALSE;
+		rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+		rasterizer.lineWidth = 1.f;
+		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+		rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		rasterizer.depthBiasEnable = VK_FALSE;
+		rasterizer.depthBiasConstantFactor = 0.0f; // Optional
+		rasterizer.depthBiasClamp = 0.0f; // Optional
+		rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
+
+		// MSAA
+		VkPipelineMultisampleStateCreateInfo multisampling{};
+		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+		multisampling.sampleShadingEnable = VK_FALSE;
+		multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+		multisampling.minSampleShading = 1.0f; // Optional
+		multisampling.pSampleMask = nullptr; // Optional
+		multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
+		multisampling.alphaToOneEnable = VK_FALSE; // Optional
+
+		// Depth & Stencil Testing
+		/*VkPipelineDepthStencilStateCreateInfo depthAndStencil{};
+		depthAndStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+		depthAndStencil.flags = 
+		depthAndStencil.depthTestEnable = */
+
+		// Color blending
+		VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+		colorBlendAttachment.blendEnable = VK_FALSE;
+		colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
+		colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
+		colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD; // Optional
+		colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
+		colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
+		colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD; // Optional
+
+		VkPipelineColorBlendStateCreateInfo colorBlending{};
+		colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+		colorBlending.logicOpEnable = VK_FALSE;
+		colorBlending.logicOp = VK_LOGIC_OP_COPY; // Optional
+		colorBlending.attachmentCount = 1;
+		colorBlending.pAttachments = &colorBlendAttachment;
+		colorBlending.blendConstants[0] = 0.0f; // Optional
+		colorBlending.blendConstants[1] = 0.0f; // Optional
+		colorBlending.blendConstants[2] = 0.0f; // Optional
+		colorBlending.blendConstants[3] = 0.0f; // Optional
+
+		// Pipeline Layout
+		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		pipelineLayoutInfo.setLayoutCount = 0; // Optional
+		pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
+		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
+		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
+
+		if (vkCreatePipelineLayout(m_VkDevice, &pipelineLayoutInfo, nullptr, &m_PipelineLayout) != VK_SUCCESS) 
+			MF_CORE_ASSERT(false, "Failed to create pipeline layout!");
+
+
+		// Pipeline struct
+		VkGraphicsPipelineCreateInfo pipelineInfo{};
+		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+		pipelineInfo.stageCount = 2;
+		pipelineInfo.pStages = shaderStages;
+
+		pipelineInfo.pVertexInputState = &vertexInputInfo;
+		pipelineInfo.pInputAssemblyState = &inputAssembly;
+		pipelineInfo.pViewportState = &viewportState;
+		pipelineInfo.pRasterizationState = &rasterizer;
+		pipelineInfo.pMultisampleState = &multisampling;
+		pipelineInfo.pDepthStencilState = nullptr; // Optional
+		pipelineInfo.pColorBlendState = &colorBlending;
+		pipelineInfo.pDynamicState = &dynamicState;
+
+		pipelineInfo.layout = m_PipelineLayout;
+
+		pipelineInfo.renderPass = m_RenderPass;
+		pipelineInfo.subpass = 0;
+
+		if (vkCreateGraphicsPipelines(m_VkDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "Failed to create graphics pipeline");
+
+		vkDestroyShaderModule(m_VkDevice, vertShaderModule, nullptr);
+		vkDestroyShaderModule(m_VkDevice, fragShaderModule, nullptr);
 
 		// ---------------------------------------- //
 
@@ -323,7 +509,7 @@ namespace Magnefu
 
 	void VKContext::SwapBuffers()
 	{
-
+		//vkQueuePresentKHR(m_PresentQueue,)
 	}
 
 	void VKContext::OnImGuiRender()
@@ -487,9 +673,9 @@ namespace Magnefu
 		}
 	}
 
-	VkShaderModule VKContext::CreateShaderModule(const String& filename, ShaderType shaderType)
+	VkShaderModule VKContext::CreateShaderModule(const ShaderSource& source)
 	{
-		String source = ReadFile(filename);
+		//String rawText = ReadFile(source.Text);
 
 		// Compile shader to spv binary
 		// Create an instance of the compiler
@@ -499,21 +685,21 @@ namespace Magnefu
 		// Compile the shader code
 		shaderc::SpvCompilationResult result;
 		
-		switch (shaderType)
+		switch (source.Type)
 		{
 			case Magnefu::ShaderType::Vertex:
 			{
-				result = compiler.CompileGlslToSpv(source, shaderc_vertex_shader, "vertex.glsl", options);
+				result = compiler.CompileGlslToSpv(source.Text, shaderc_vertex_shader, "vertex.glsl", options);
 				break;
 			}
 			case Magnefu::ShaderType::Fragment:
 			{
-				result = compiler.CompileGlslToSpv(source, shaderc_fragment_shader, "fragment.glsl", options);
+				result = compiler.CompileGlslToSpv(source.Text, shaderc_fragment_shader, "fragment.glsl", options);
 				break;
 			}
 			default:
 			{
-				MF_CORE_ASSERT(false, "Unknown shader type: {}", static_cast<int>(shaderType));
+				MF_CORE_ASSERT(false, "Unknown shader type: {}", static_cast<int>(source.Type));
 				break;
 			}
 		}
@@ -542,34 +728,27 @@ namespace Magnefu
 		return shaderModule;
 	}
 
-	ShaderProgramSource VKContext::ParseShader(const String& filepath)
+	ShaderList VKContext::ParseShader(const String& filepath)
 	{
 		std::ifstream stream(filepath);
 
 		if (!stream.good())
 			MF_CORE_ASSERT(false, "Failed to load shader contents");
 
-		enum class ShaderType
-		{
-			NONE = -1,
-			VERTEX = 0,
-			FRAGMENT = 1
-		};
-
 		String line;
 		std::stringstream ss[2];
-		ShaderType type = ShaderType::NONE;
+		ShaderType type = ShaderType::None;
 		while (std::getline(stream, line))
 		{
 			if (line.find("#shader") != String::npos)
 			{
 				if (line.find("vertex") != String::npos)
 				{
-					type = ShaderType::VERTEX;
+					type = ShaderType::Vertex;
 				}
 				else if (line.find("fragment") != String::npos)
 				{
-					type = ShaderType::FRAGMENT;
+					type = ShaderType::Fragment;
 				}
 			}
 			else
@@ -577,24 +756,11 @@ namespace Magnefu
 				ss[(int)type] << line << '\n';
 			}
 		}
-		return { ss[0].str(), ss[1].str() };
-	}
 
-	String VKContext::ReadFile(const String& filename)
-	{
-		std::ifstream shaderFile(filename, std::ios_base::ate | std::ios_base::binary);
-
-		if (!shaderFile.good())
-			MF_CORE_ASSERT(false, "Failed to load shader contents");
-
-		size_t fileSize = (size_t)shaderFile.tellg();
-		std::string buffer(fileSize, '\0');
-
-		shaderFile.seekg(0);
-		shaderFile.read(buffer.data(), fileSize);
-		shaderFile.close();
-
-		return buffer;
+		return {
+			{ ss[0].str(), ShaderType::Vertex },
+			{ ss[1].str(), ShaderType::Fragment }
+		};
 	}
 }
 
