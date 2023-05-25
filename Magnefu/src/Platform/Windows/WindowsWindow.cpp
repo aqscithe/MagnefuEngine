@@ -206,9 +206,15 @@ namespace Magnefu
 		m_Context->SwapBuffers();
 	}
 
+	void WindowsWindow::DrawFrame()
+	{
+		m_Context->DrawFrame();
+	}
+
 	void WindowsWindow::Shutdown()
 	{
 		glfwDestroyWindow(m_Window);
+		glfwTerminate();
 	}
 
 

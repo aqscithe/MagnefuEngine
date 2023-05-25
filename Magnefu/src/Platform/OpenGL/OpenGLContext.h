@@ -13,6 +13,7 @@ namespace Magnefu
 
 		void Init() override;
 		void SwapBuffers() override;
+		void DrawFrame() override;
 		void OnImGuiRender() override;
 		void GetImGuiInitData() override {int x = 1;}
 

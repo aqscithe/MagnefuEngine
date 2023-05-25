@@ -12,6 +12,34 @@
 
 namespace Magnefu
 {
+	static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
+	{
+		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+		if (func != nullptr) {
+			return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+		}
+		else {
+			return VK_ERROR_EXTENSION_NOT_PRESENT;
+		}
+	}
+
+	static void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
+		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+		if (func != nullptr) {
+			func(instance, debugMessenger, pAllocator);
+		}
+	}
+
+	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+		VkDebugUtilsMessageTypeFlagsEXT messageType,
+		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+		void* pUserData) {
+		MF_CORE_ERROR("validation layer: {}",  pCallbackData->pMessage);
+
+		return VK_FALSE;
+	}
+
 	VKContext::VKContext(GLFWwindow* windowHandle) :
 		m_WindowHandle(windowHandle), m_VkInstance(VkInstance()), m_VkPhysicalDevice(VK_NULL_HANDLE)
 	{
@@ -20,8 +48,18 @@ namespace Magnefu
 
 	VKContext::~VKContext()
 	{
+		vkDestroySemaphore(m_VkDevice, m_ImageAvailableSemaphore, nullptr);
+		vkDestroySemaphore(m_VkDevice, m_RenderFinishedSemaphore, nullptr);
+		vkDestroyFence(m_VkDevice, m_InFlightFence, nullptr);
+
+		vkDestroyCommandPool(m_VkDevice, m_CommandPool, nullptr);
+
 		vkDestroyPipeline(m_VkDevice, m_GraphicsPipeline, nullptr);
 		vkDestroyPipelineLayout(m_VkDevice, m_PipelineLayout, nullptr);
+
+		for (auto framebuffer : m_SwapChainFramebuffers) 
+			vkDestroyFramebuffer(m_VkDevice, framebuffer, nullptr);
+
 		vkDestroyRenderPass(m_VkDevice, m_RenderPass, nullptr);
 
 		for (auto imageView : m_SwapChainImageViews) 
@@ -29,6 +67,10 @@ namespace Magnefu
 
 		vkDestroySwapchainKHR(m_VkDevice, m_SwapChain, nullptr);
 		vkDestroySurfaceKHR(m_VkInstance, m_WindowSurface, nullptr);
+
+		if (m_EnableValidationLayers)
+			DestroyDebugUtilsMessengerEXT(m_VkInstance, m_DebugMessenger, nullptr);
+		
 		vkDestroyInstance(m_VkInstance, nullptr);
 		vkDestroyDevice(m_VkDevice, nullptr);
 	}
@@ -46,23 +88,20 @@ namespace Magnefu
 		};
 
 #ifdef MF_DEBUG
-		const bool enableValidationLayers = true;
-
+		// Print extensions
 		uint32_t extensionCount = 0;
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-		std::vector<VkExtensionProperties> extensions(extensionCount);
-		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
+		std::vector<VkExtensionProperties> vkextensions(extensionCount);
+		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, vkextensions.data());
 		MF_CORE_DEBUG("Available Vulkan Extensions: ");
-		for (const auto& extension : extensions)
+		for (const auto& extension : vkextensions)
 		{
 			MF_CORE_DEBUG("\t{}", extension.extensionName);
 		}
-#else
-		const bool enableValidationLayers = false;
 #endif
 		// Check validation layer support
 		bool allLayersAvailable = true;
-		if (enableValidationLayers)
+		if (m_EnableValidationLayers)
 		{
 			uint32_t layerCount;
 			vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -93,6 +132,8 @@ namespace Magnefu
 		}
 		
 
+		
+
 		// Creating the VkInstance 
 
 		VkApplicationInfo appInfo{};
@@ -107,18 +148,24 @@ namespace Magnefu
 		instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		instanceCreateInfo.pApplicationInfo = &appInfo;
 
-		uint32_t glfwExtensionCount = 0;
-		const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-		instanceCreateInfo.enabledExtensionCount = glfwExtensionCount;
-		instanceCreateInfo.ppEnabledExtensionNames = glfwExtensions;
-		if (enableValidationLayers && allLayersAvailable)
+
+		auto extensions = GetRequiredExtensions();
+		instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+		instanceCreateInfo.ppEnabledExtensionNames = extensions.data();
+
+		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
+		if (m_EnableValidationLayers && allLayersAvailable)
 		{
 			instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
 			instanceCreateInfo.ppEnabledLayerNames = validationLayers.data();
+
+			PopulateDebugMessengerCreateInfo(debugCreateInfo);
+			instanceCreateInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
 		}
 		else
 		{
 			instanceCreateInfo.enabledLayerCount = 0;
+			instanceCreateInfo.pNext = nullptr;
 		}
 		
 
@@ -127,10 +174,20 @@ namespace Magnefu
 
 		// ---------------------------------------- //
 
-
 		// -- Setting Up Debug Messenger -- //
-		
-		
+
+
+
+		if (m_EnableValidationLayers)
+		{
+			VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
+			PopulateDebugMessengerCreateInfo(debugCreateInfo);
+
+			if (CreateDebugUtilsMessengerEXT(m_VkInstance, &debugCreateInfo, nullptr, &m_DebugMessenger) != VK_SUCCESS)
+				MF_CORE_ERROR("failed to set up debug messenger!");
+
+		}
+
 		// -------------------------------- //
 
 
@@ -195,6 +252,19 @@ namespace Magnefu
 
 
 		// Create the logical device
+
+#ifdef MF_DEBUG
+		// Print device extensions
+		uint32_t deviceExtensionCount = 0;
+		vkEnumerateDeviceExtensionProperties(m_VkPhysicalDevice, nullptr, &deviceExtensionCount, nullptr);
+		std::vector<VkExtensionProperties> vkDeviceExtensions(deviceExtensionCount);
+		vkEnumerateDeviceExtensionProperties(m_VkPhysicalDevice, nullptr, &deviceExtensionCount, vkDeviceExtensions.data());
+		MF_CORE_DEBUG("Available Device Extensions: ");
+		for (const auto& extension : vkDeviceExtensions)
+		{
+			MF_CORE_DEBUG("\t{}", extension.extensionName);
+		}
+#endif
 		VkDeviceCreateInfo logicalDevCreateInfo{};
 		logicalDevCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		logicalDevCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
@@ -202,6 +272,16 @@ namespace Magnefu
 		logicalDevCreateInfo.pEnabledFeatures = &deviceFeatures;
 		logicalDevCreateInfo.enabledExtensionCount = deviceExtensions.size();
 		logicalDevCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
+
+		if (m_EnableValidationLayers) 
+		{
+			logicalDevCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+			logicalDevCreateInfo.ppEnabledLayerNames = validationLayers.data();
+		}
+		else 
+		{
+			logicalDevCreateInfo.enabledLayerCount = 0;
+		}
 
 		// Instantiate the logical device
 		if (vkCreateDevice(m_VkPhysicalDevice, &logicalDevCreateInfo, nullptr, &m_VkDevice) != VK_SUCCESS)
@@ -211,6 +291,31 @@ namespace Magnefu
 		vkGetDeviceQueue(m_VkDevice, m_QueueFamilyIndices.GraphicsFamily.value(), 0, &m_GraphicsQueue); // that 0 is the queue family index
 		vkGetDeviceQueue(m_VkDevice, m_QueueFamilyIndices.PresentFamily.value(), 0, &m_PresentQueue); 
 																						
+
+		/*VkPhysicalDeviceIDProperties vkPhysicalDeviceIDProperties = {};
+		vkPhysicalDeviceIDProperties.sType =
+			VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES;
+		vkPhysicalDeviceIDProperties.pNext = NULL;
+
+		VkPhysicalDeviceProperties2 vkPhysicalDeviceProperties2 = {};
+		vkPhysicalDeviceProperties2.sType =
+			VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+		vkPhysicalDeviceProperties2.pNext = &vkPhysicalDeviceIDProperties;
+
+		PFN_vkGetPhysicalDeviceProperties2 fpGetPhysicalDeviceProperties2;
+		fpGetPhysicalDeviceProperties2 =
+			(PFN_vkGetPhysicalDeviceProperties2)vkGetInstanceProcAddr(
+				m_instance, "vkGetPhysicalDeviceProperties2");
+		if (fpGetPhysicalDeviceProperties2 == NULL) {
+			throw std::runtime_error(
+				"Vulkan: Proc address for \"vkGetPhysicalDeviceProperties2KHR\" not "
+				"found.\n");
+		}
+
+		fpGetPhysicalDeviceProperties2(m_physicalDevice,
+			&vkPhysicalDeviceProperties2);
+
+		memcpy(m_vkDeviceUUID, vkPhysicalDeviceIDProperties.deviceUUID, VK_UUID_SIZE);*/
 
 		// ---------------------------------------- //
 
@@ -224,7 +329,8 @@ namespace Magnefu
 		VkExtent2D extent = ChooseSwapExtent(swapChainSupport.Capabilities);
 
 		uint32_t imageCount = swapChainSupport.Capabilities.minImageCount + 1;
-		if (swapChainSupport.Capabilities.maxImageCount > 0 && imageCount > swapChainSupport.Capabilities.maxImageCount) {
+		if (swapChainSupport.Capabilities.maxImageCount > 0 && imageCount > swapChainSupport.Capabilities.maxImageCount) 
+		{
 			imageCount = swapChainSupport.Capabilities.maxImageCount;
 		}
 
@@ -319,6 +425,9 @@ namespace Magnefu
 
 		VkSubpassDescription subpass{};
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		subpass.colorAttachmentCount = 1;
+		subpass.pColorAttachments = &colorAttachmentRef;
+		//subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
 		VkRenderPassCreateInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -416,7 +525,7 @@ namespace Magnefu
 		rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 		rasterizer.lineWidth = 1.f;
 		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-		rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE; //VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		rasterizer.depthBiasEnable = VK_FALSE;
 		rasterizer.depthBiasConstantFactor = 0.0f; // Optional
 		rasterizer.depthBiasClamp = 0.0f; // Optional
@@ -464,7 +573,7 @@ namespace Magnefu
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipelineLayoutInfo.setLayoutCount = 0; // Optional
-		pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
+		pipelineLayoutInfo.pSetLayouts = nullptr; // Optional	
 		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
@@ -500,6 +609,78 @@ namespace Magnefu
 
 		// ---------------------------------------- //
 
+
+		// ------- Creating Framebuffers ------- //
+
+		m_SwapChainFramebuffers.resize(m_SwapChainImageViews.size());
+
+		for (size_t i = 0; i < m_SwapChainImageViews.size(); i++) 
+		{
+			VkImageView attachments = m_SwapChainImageViews[i];
+
+			VkFramebufferCreateInfo framebufferInfo{};
+			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+			framebufferInfo.renderPass = m_RenderPass;
+			framebufferInfo.attachmentCount = 1;
+			framebufferInfo.pAttachments = &attachments;
+			framebufferInfo.width = m_SwapChainExtent.width;
+			framebufferInfo.height = m_SwapChainExtent.height;
+			framebufferInfo.layers = 1;
+
+			if (vkCreateFramebuffer(m_VkDevice, &framebufferInfo, nullptr, &m_SwapChainFramebuffers[i]) != VK_SUCCESS) 
+				MF_CORE_ASSERT(false, "failed to create framebuffer!");
+		}
+
+		// ---------------------------------------- //
+
+
+		// ------- Creating Command Buffers ------- //
+
+		VkCommandPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		poolInfo.queueFamilyIndex = m_QueueFamilyIndices.GraphicsFamily.value();
+
+		if (vkCreateCommandPool(m_VkDevice, &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "failed to create command pool!");
+
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.commandPool = m_CommandPool;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandBufferCount = 1;
+
+		if (vkAllocateCommandBuffers(m_VkDevice, &allocInfo, &m_CommandBuffer) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "failed to allocate command buffers!");
+		
+		// ---------------------------------------- //
+
+
+		// ------- Create Sync Objects ------- //
+
+		VkSemaphoreCreateInfo semaphoreInfo{};
+		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+		VkFenceCreateInfo fenceInfo{};
+		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+		if (vkCreateSemaphore(m_VkDevice, &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore) != VK_SUCCESS ||
+			vkCreateSemaphore(m_VkDevice, &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore) != VK_SUCCESS ||
+			vkCreateFence(m_VkDevice, &fenceInfo, nullptr, &m_InFlightFence) != VK_SUCCESS) 
+		{
+			MF_CORE_ASSERT(false, "failed to create semaphores!");
+		}
+
+		// ---------------------------------------- //
+
+
+		
+			
+		
+		
+		
+
 		/*MF_CORE_DEBUG("Renderer Info: ");
 		MF_CORE_DEBUG("\tVersion: {}", m_RendererInfo.Version);
 		MF_CORE_DEBUG("\tVendor: {}", m_RendererInfo.Vendor);
@@ -512,9 +693,102 @@ namespace Magnefu
 		//vkQueuePresentKHR(m_PresentQueue,)
 	}
 
+	void VKContext::DrawFrame()
+	{
+		// Wait for previous frame
+		vkWaitForFences(m_VkDevice, 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
+
+		// Reset fences
+		vkResetFences(m_VkDevice, 1, &m_InFlightFence);
+
+		// Acquire image from swap chain
+		uint32_t imageIndex;
+		vkAcquireNextImageKHR(m_VkDevice, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+		// Reset and Record Command Buffer
+		vkResetCommandBuffer(m_CommandBuffer, 0);
+		RecordCommandBuffer(m_CommandBuffer, imageIndex);
+
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+		VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphore };
+		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		submitInfo.waitSemaphoreCount = 1;
+		submitInfo.pWaitSemaphores = waitSemaphores;
+		submitInfo.pWaitDstStageMask = waitStages;
+
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &m_CommandBuffer;
+
+		VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = signalSemaphores;
+
+		if (vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_InFlightFence) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "failed to submit draw command buffer!");
+		
+		// Subpass Dependencies
+		VkSubpassDependency dependency{};
+		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependency.dstSubpass = 0;
+
+		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency.srcAccessMask = 0;
+
+		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+
+		VkRenderPassCreateInfo renderPassInfo{};
+		renderPassInfo.dependencyCount = 1;
+		renderPassInfo.pDependencies = &dependency;
+
+		// Presentation (submitting image back to swap chain)
+		VkPresentInfoKHR presentInfo{};
+		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pWaitSemaphores = signalSemaphores;
+
+		VkSwapchainKHR swapChains[] = { m_SwapChain };
+		presentInfo.swapchainCount = 1;
+		presentInfo.pSwapchains = swapChains;
+		presentInfo.pImageIndices = &imageIndex;
+
+		presentInfo.pResults = nullptr; // Optional
+
+		vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+	}
+
 	void VKContext::OnImGuiRender()
 	{
 
+	}
+
+	std::vector<const char*> VKContext::GetRequiredExtensions()
+	{
+		uint32_t glfwExtensionCount = 0;
+		const char** glfwExtensions;
+		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+		std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+		if (m_EnableValidationLayers)
+			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+
+
+		return extensions;
+	}
+
+	void VKContext::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
+	{
+		createInfo = {};
+		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+		createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+		createInfo.pfnUserCallback = debugCallback;
+		createInfo.pUserData = nullptr; // Optional
 	}
 
 	bool VKContext::IsDeviceSuitable(VkPhysicalDevice device)
@@ -671,6 +945,53 @@ namespace Magnefu
 
 			return actualExtent;
 		}
+	}
+
+	void VKContext::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+	{
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = 0; // Optional
+		beginInfo.pInheritanceInfo = nullptr; // Optional
+
+		if (vkBeginCommandBuffer(m_CommandBuffer, &beginInfo) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "failed to begin recording command buffer!");
+
+		VkRenderPassBeginInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassInfo.renderPass = m_RenderPass;
+		renderPassInfo.framebuffer = m_SwapChainFramebuffers[imageIndex];
+		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.extent = m_SwapChainExtent;
+
+		VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
+		renderPassInfo.clearValueCount = 1;
+		renderPassInfo.pClearValues = &clearColor;
+
+		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline);
+
+		VkViewport viewport{};
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = static_cast<float>(m_SwapChainExtent.width);
+		viewport.height = static_cast<float>(m_SwapChainExtent.height);
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+		VkRect2D scissor{};
+		scissor.offset = { 0, 0 };
+		scissor.extent = m_SwapChainExtent;
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+
+		vkCmdEndRenderPass(commandBuffer);
+
+		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "failed to record command buffer!");
 	}
 
 	VkShaderModule VKContext::CreateShaderModule(const ShaderSource& source)

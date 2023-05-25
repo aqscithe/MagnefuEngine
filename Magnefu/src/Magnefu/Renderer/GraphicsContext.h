@@ -20,6 +20,7 @@ namespace Magnefu
 	public:
 		virtual void Init() = 0;
 		virtual void SwapBuffers() = 0;
+		virtual void DrawFrame() = 0;
 		virtual void OnImGuiRender() = 0;
 		virtual void GetImGuiInitData() = 0;
 

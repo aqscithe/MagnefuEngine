@@ -38,6 +38,10 @@ namespace Magnefu
 		glfwSwapBuffers(m_WindowHandle);
 	}
 
+	void OpenGLContext::DrawFrame()
+	{
+	}
+
 	void OpenGLContext::OnImGuiRender()
 	{
 		ImGui::Text("Version: %s", m_RendererInfo.Version.c_str());

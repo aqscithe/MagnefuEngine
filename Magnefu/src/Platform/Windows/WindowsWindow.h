@@ -15,6 +15,7 @@ namespace Magnefu
 		~WindowsWindow();
 
 		void OnUpdate() override;
+		void DrawFrame() override;
 		void OnImGuiRender() override;
 
 		inline uint16_t GetWidth() const override { return m_Data.Width; }

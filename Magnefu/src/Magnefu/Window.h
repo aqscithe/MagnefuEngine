@@ -29,6 +29,7 @@ namespace Magnefu
 		virtual ~Window() {}
 
 		virtual void OnUpdate() = 0;
+		virtual void DrawFrame() = 0;
 		virtual void OnImGuiRender() = 0;
 
 		virtual uint16_t GetWidth() const = 0;
