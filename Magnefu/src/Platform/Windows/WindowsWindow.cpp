@@ -4,7 +4,9 @@
 #include "Magnefu/Core/Events/MouseEvent.h"
 #include "Magnefu/Core/Events/KeyEvent.h"
 #include "Platform/OpenGL/OpenGLContext.h"
+#include "Platform/VK/VKContext.h"
 #include "Magnefu/Renderer/Camera.h"
+#include "Magnefu/Renderer/RendererAPI.h"
 
 #include "imgui.h"
 
@@ -53,20 +55,34 @@ namespace Magnefu
 			s_GLFWInitialized = true;
 		}
 
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		switch (RendererAPI::GetAPI())
+		{
+			case RendererAPI::API::OPENGL:
+			{
+				glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+				glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+				glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+				break;
+			}
+			case RendererAPI::API::VULKAN:
+			{
+				glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+				glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+				break;
+			}
+		}
 
 		m_Window = glfwCreateWindow(m_Data.Width, m_Data.Height, m_Data.Title.c_str(), NULL, NULL);
 		MF_CORE_ASSERT(m_Window, "Failed to create GLFW window");
 
-		m_Context = new OpenGLContext(m_Window);
+		m_Context = GraphicsContext::Create(m_Window);
 
 		if(m_Context)
 			m_Context->Init();
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
-		SetVSync(true);
+
+		// vsync set by presentation mode in vulkan swap chain
 
 		// Set GLFW Callbacks
 		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
@@ -190,19 +206,17 @@ namespace Magnefu
 		m_Context->SwapBuffers();
 	}
 
+	void WindowsWindow::DrawFrame()
+	{
+		m_Context->DrawFrame();
+	}
+
 	void WindowsWindow::Shutdown()
 	{
 		glfwDestroyWindow(m_Window);
+		glfwTerminate();
 	}
 
-	void WindowsWindow::SetVSync(bool enabled)
-	{
-		if (enabled)
-			glfwSwapInterval(1);
-		else
-			glfwSwapInterval(0);
-		m_Data.VSync = enabled;
-	}
 
 	void WindowsWindow::SetSceneCamera(const Ref<Camera>& cam)
 	{
@@ -266,6 +280,11 @@ namespace Magnefu
 			ImGui::EndTabBar();
 		}
 		ImGui::End();
+	}
+
+	void WindowsWindow::OnFinish()
+	{
+		m_Context->OnFinish();
 	}
 
 }

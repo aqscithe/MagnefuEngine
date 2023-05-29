@@ -165,6 +165,9 @@
     <None Include="res\shaders\BatchRender.shader" />
     <None Include="res\shaders\Cube.shader" />
     <None Include="res\shaders\LightCube.shader" />
+    <None Include="res\shaders\Plane.shader" />
+    <None Include="res\shaders\Primitive.shader" />
+    <None Include="res\shaders\RecPrism.shader" />
     <None Include="res\shaders\Skybox.shader" />
     <None Include="res\shaders\Sphere.shader" />
     <None Include="res\shaders\Test.shader" />
@@ -212,6 +215,9 @@
     <Image Include="res\textures\darkmarble\dark-marbled-stone_d.jpg" />
     <Image Include="res\textures\darkmarble\dark-marbled-stone_n.jpg" />
     <Image Include="res\textures\darkmarble\dark-marbled-stone_s.jpg" />
+    <Image Include="res\textures\defaults\diffuse.jpg" />
+    <Image Include="res\textures\defaults\metallic.png" />
+    <Image Include="res\textures\defaults\roughness.jpg" />
     <Image Include="res\textures\grass.jpg" />
     <Image Include="res\textures\leaf_1-2K\2K-leaf_1-ao.jpg" />
     <Image Include="res\textures\leaf_1-2K\2K-leaf_1-diffuse.jpg" />
@@ -232,6 +238,10 @@
     <Image Include="res\textures\old_copper\2K_old_copper_normal.png" />
     <Image Include="res\textures\old_copper\2K_old_copper_roughness.png" />
     <Image Include="res\textures\old_copper\2K_old_copper_specular_level.png" />
+    <Image Include="res\textures\painted-wall-sky-blue\diffuse.png" />
+    <Image Include="res\textures\painted-wall-sky-blue\metallic.png" />
+    <Image Include="res\textures\painted-wall-sky-blue\normal.png" />
+    <Image Include="res\textures\painted-wall-sky-blue\roughness.png" />
     <Image Include="res\textures\pluto.png" />
     <Image Include="res\textures\retrotv0319\retrotv0319_Main_AO.png" />
     <Image Include="res\textures\retrotv0319\retrotv0319_Main_BaseColor.png" />
@@ -252,6 +262,12 @@
     <Image Include="res\textures\santa_hat\rough.png" />
     <Image Include="res\textures\santa_hat\softnessmap.jpg" />
     <Image Include="res\textures\santa_hat\specular.jpg" />
+    <Image Include="res\textures\skybox\default\back-nz.png" />
+    <Image Include="res\textures\skybox\default\bottom-ny.png" />
+    <Image Include="res\textures\skybox\default\front-pz.png" />
+    <Image Include="res\textures\skybox\default\left-nx.png" />
+    <Image Include="res\textures\skybox\default\right-px.png" />
+    <Image Include="res\textures\skybox\default\top-py.png" />
     <Image Include="res\textures\snow_field_aerial\snow_f_a_spec.jpg" />
     <Image Include="res\textures\snow_field_aerial\snow_field_aerial_diff_2k.jpg" />
     <Image Include="res\textures\snow_field_aerial\snow_field_aerial_rough_2k.jpg" />

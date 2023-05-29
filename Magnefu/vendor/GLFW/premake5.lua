@@ -18,6 +18,19 @@ project "GLFW"
 		"src/window.c"
 	}
 
+	includedirs {
+        "%{wks.location}/Magnefu/vendor/vulkan/include"
+    }
+
+	libdirs {
+        "%{wks.location}/Magnefu/vendor/vulkan/lib"
+    }
+
+    links {
+        "vulkan-1"
+    }
+
+
 	filter "system:linux"
 		pic "on"
 

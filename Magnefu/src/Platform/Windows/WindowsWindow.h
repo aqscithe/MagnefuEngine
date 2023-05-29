@@ -3,6 +3,7 @@
 #include "Magnefu/Window.h"
 #include "Magnefu/Renderer/GraphicsContext.h"
 
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
 namespace Magnefu
@@ -14,7 +15,11 @@ namespace Magnefu
 		~WindowsWindow();
 
 		void OnUpdate() override;
+		void DrawFrame() override;
 		void OnImGuiRender() override;
+
+		// Main Loop Completed
+		void OnFinish() override; 
 
 		inline uint16_t GetWidth() const override { return m_Data.Width; }
 		inline uint16_t GetHeight() const override { return m_Data.Height; }
@@ -23,7 +28,6 @@ namespace Magnefu
 
 		// Window attributes
 		void SetEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; }
-		void SetVSync(bool enabled) override;
 		void SetSceneCamera(const Ref<Camera>& cam) override;
 		bool IsVSync() const override { return m_Data.VSync; }
 

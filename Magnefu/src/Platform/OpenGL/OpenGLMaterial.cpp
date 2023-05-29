@@ -8,13 +8,14 @@
 namespace Magnefu
 {
     std::unordered_map<TextureType, String> TextureTypeNameMap = {
-        {TextureType::AMBIENT, "Ambient"},
         {TextureType::DIFFUSE, "Diffuse"},
         {TextureType::BUMP, "Bump"},
         {TextureType::ROUGHNESS, "Roughness"},
-        {TextureType::SPECULAR, "Specular"},
+        {TextureType::METALLIC, "Metallic"},
+        {TextureType::DISPLACEMENT, "Displacement"},
+        {TextureType::NORMAL, "Normal"},
+        {TextureType::AO, "AO"},
         {TextureType::EMISSIVE, "Emissive"},
-        {TextureType::METALLIC, "Metallic"}
     };
 
 
@@ -22,6 +23,8 @@ namespace Magnefu
         m_Options(options)
     {
         MF_PROFILE_FUNCTION();
+
+        m_VertexArray = VertexArray::Create();
 
         if (m_Options & MaterialOptions_Skybox)
             m_Shader = Shader::Create("res/shaders/Skybox.shader");
@@ -62,11 +65,15 @@ namespace Magnefu
 
         // SET DEFAULT TEXTURES
         if (m_Options & MaterialOptions_Skybox)
-            m_TextureMap[TextureType::DIFFUSE] = Texture::Create(TextureOptions_Skybox);
+            m_Spec.TextureMap[TextureType::DIFFUSE] = Texture::Create(TextureOptions_Skybox);
         else
-            m_TextureMap[TextureType::DIFFUSE] = Texture::Create();
+        {
+            m_Spec.TextureMap[TextureType::DIFFUSE] = Texture::Create(TextureOptions_None,   "res/textures/painted-wall-sky-blue/diffuse.png");
+            m_Spec.TextureMap[TextureType::ROUGHNESS] = Texture::Create(TextureOptions_None, "res/textures/painted-wall-sky-blue/roughness.png");
+            m_Spec.TextureMap[TextureType::METALLIC] = Texture::Create(TextureOptions_None,  "res/textures/painted-wall-sky-blue/metallic.png");
+        }
 
-        for (auto& texture : m_TextureMap)
+        for (auto& texture : m_Spec.TextureMap)
         {
             String uniformName = "u_" + TextureTypeNameMap[texture.first] + "Texture";
             SetUniformValue(uniformName, (int)texture.second->GetSlot());
@@ -74,6 +81,14 @@ namespace Magnefu
 
         // TODO: Textures do not change often. Any way to only send the texture uniform if there was an update
         // to the selected texture slot?
+
+        // SET REMAINING MATERIAL SPECS
+        m_Spec.Ka = Maths::vec3(0.f);
+        m_Spec.Kd = Maths::vec3(1.f);
+        m_Spec.Ks = Maths::vec3(1.f);
+        m_Spec.TintColor = Maths::vec3(1.f);
+        m_Spec.Reflectance = 0.5f;
+        m_Spec.Opacity = 1.f;
     }
 
     void OpenGLMaterial::OnImGuiRender()
@@ -92,18 +107,46 @@ namespace Magnefu
                     InitUniforms();
                 }
                 m_Shader->OnImGuiRender();
-                ImGui::SeparatorText("Textures");
-                if (!m_TextureMap.empty())
+                ImGui::SeparatorText("Options");
+                if (m_Options & MaterialOptions_Skybox)
                 {
-                    auto& Textures = m_TextureMap;
-                    if (ImGui::CollapsingHeader("Diffuse"))
+
+                }
+                else
+                {
+                    ImGui::SliderFloat3("Ka", m_Spec.Ka.e, 0.f, 1.f);
+                    ImGui::SliderFloat3("Kd", m_Spec.Kd.e, 0.f, 1.f);
+                    ImGui::SliderFloat3("Ks", m_Spec.Ks.e, 0.f, 1.f);
+                    ImGui::SliderFloat3("Tint Color", m_Spec.TintColor.e, 0.f, 1.f);
+                    ImGui::SliderFloat("Reflectance", &m_Spec.Reflectance, 0.f, 1.f);
+                    ImGui::SliderFloat("Opacity", &m_Spec.Opacity, 0.f, 1.f);
+                }
+                ImGui::SeparatorText("Textures");
+                if (!m_Spec.TextureMap.empty())
+                {
+                    auto& Textures = m_Spec.TextureMap;
+                    if (ImGui::CollapsingHeader("Diffuse") && Textures.find(TextureType::DIFFUSE) != Textures.end())
                         Textures[TextureType::DIFFUSE]->OnImGuiRender();
+                    if (ImGui::CollapsingHeader("Roughness") && Textures.find(TextureType::ROUGHNESS) != Textures.end())
+                        Textures[TextureType::ROUGHNESS]->OnImGuiRender();
+                    if (ImGui::CollapsingHeader("Metallic") && Textures.find(TextureType::METALLIC) != Textures.end())
+                        Textures[TextureType::METALLIC]->OnImGuiRender();
                 }
                 ImGui::EndTabItem();
             }
             ImGui::EndTabBar();
         }
         ImGui::End();
+    }
+
+    void OpenGLMaterial::UpdateMaterialSpec()
+    {
+        SetUniformValue("u_Ka", m_Spec.Ka);
+        SetUniformValue("u_Kd", m_Spec.Kd);
+        SetUniformValue("u_Ks", m_Spec.Ks);
+        SetUniformValue("u_Tint", m_Spec.TintColor);
+        SetUniformValue("u_Reflectance", m_Spec.Reflectance);
+        SetUniformValue("u_Opacity", m_Spec.Opacity);
     }
 
     void OpenGLMaterial::Bind()
@@ -116,7 +159,7 @@ namespace Magnefu
         m_Shader->UploadUniforms(m_Uniforms);
 
         // BIND TEXTURES
-        for (auto& texture : m_TextureMap)
+        for (auto& texture : m_Spec.TextureMap)
             texture.second->Bind();
     }
 
@@ -125,7 +168,7 @@ namespace Magnefu
         MF_PROFILE_FUNCTION();
         m_Shader->Unbind();
 
-        for (auto& texture : m_TextureMap)
+        for (auto& texture : m_Spec.TextureMap)
             texture.second->Unbind();
     }
 

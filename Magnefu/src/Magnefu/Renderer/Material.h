@@ -3,6 +3,8 @@
 #include "Magnefu/Core/SmartPointers.h"
 #include "Magnefu/Core/Maths/MathsCommon.h"
 #include "Texture.h"
+#include "VertexArray.h"
+#include "Buffer.h"
 #include "Magnefu/Renderer/Scene.h"
 
 
@@ -17,36 +19,18 @@ namespace Magnefu
 		MaterialOptions_All = 1
 	};
 
-	// all values that would be sent to the shader as a uniform
-	struct MaterialProps
+	struct MaterialSpec
 	{
-		MaterialProps()
-		{
-			Name = "BlackHole";
-			Library = "Universe";
-			ID = 999;
-			TextureMap[TextureType::DIFFUSE] = Texture::Create();
-			Ka = { 0.01f, 0.01f, 0.01f};
-			Kd = { 1.f, 1.f, 1.f};
-			Ks = { 0.5f, 0.5f, 0.5f};
-			Ni = 1.52f;
-			Ns = 10.f;
-			Opacity = 1.f;
-		}
-
-		String		Name;
-		String		Library;
-		uint32_t    ID;
-		
+		TextureMap  TextureMap;
 		Maths::vec3 Ka;
 		Maths::vec3 Kd;
 		Maths::vec3 Ks;
-		float Ni;
-		float Ns;
+		Maths::vec3 TintColor;
+		float Reflectance;  // [0.0, 1.0] - Dielectrics
 		float Opacity;
-		TextureMap  TextureMap;
-
+		//subsurface scattering variable;
 	};
+
 
 	class Material
 	{
@@ -78,9 +62,15 @@ namespace Magnefu
 		virtual void Bind() = 0;
 		virtual void Unbind() = 0;
 
-		//virtual Ref<SceneData>& GetRenderData() = 0;
 		virtual void OnImGuiRender() = 0;
-		//virtual void InitRenderData(const Ref<SceneData>&) = 0;
+
+		virtual const MaterialSpec& GetMaterialSpec() const = 0;
+
+		virtual void UpdateMaterialSpec() = 0;
+
+		virtual const Ref<VertexArray>& GetVertexArray() const = 0;
+		virtual void AddVertexBuffer(const Ref<VertexBuffer>& vbo) = 0;
+		virtual void SetIndexBuffer(const Ref<IndexBuffer>& ibo) = 0;
 
 		static Ref<Material> Create(const String& shaderPath = "res/shaders/Basic.shader", const MaterialOptions& options = MaterialOptions::MaterialOptions_None);
 	};

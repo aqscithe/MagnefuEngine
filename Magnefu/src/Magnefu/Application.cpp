@@ -118,28 +118,32 @@ namespace Magnefu
                 for (Layer* layer : m_LayerStack)
                     layer->OnUpdate(ts.GetDeltaTime());
 
-                OnUpdate(ts.GetDeltaTime());
+                //OnUpdate(ts.GetDeltaTime());
             }
             
             {
                 MF_PROFILE_SCOPE("Application Render");
-                if (m_ImGuiLayer)
-                    m_ImGuiLayer->BeginFrame();
+                /*if (m_ImGuiLayer)
+                    m_ImGuiLayer->BeginFrame();*/
 
+                // Temp implementation while I figure out an optimal design for vulkan rendering
+                m_Window->DrawFrame();
 
-                for (Layer* layer : m_LayerStack)
+                // Temporarily disabling while I test vulkan
+                /*for (Layer* layer : m_LayerStack)
                 {
                     layer->OnRender();
                     layer->OnGUIRender();
-                }
+                }*/
                    
-                OnGUIRender();
+                /*OnGUIRender();
 
                 if (m_ImGuiLayer)
-                    m_ImGuiLayer->EndFrame();
+                    m_ImGuiLayer->EndFrame();*/
             }
 
         }   
+        m_Window->OnFinish();
     }
 
     void Application::OnGUIRender()
@@ -168,7 +172,7 @@ namespace Magnefu
         ImGui::End();
 
         m_Window->OnImGuiRender();
-        Renderer::OnImGuiRender();
+        //Renderer::OnImGuiRender();
 
 #ifdef MF_DEBUG
         ImGui::Begin("Stats");

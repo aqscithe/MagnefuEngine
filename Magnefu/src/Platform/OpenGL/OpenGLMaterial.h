@@ -22,15 +22,6 @@ namespace Magnefu
 	public:
 		OpenGLMaterial(const String& shaderFile, const MaterialOptions& options);
 
-		void Bind() override;
-		void Unbind() override;
-
-		/*void InitRenderData(const Ref<SceneData>&) override;
-
-		Ref<SceneData>& GetRenderData() override { return m_RenderData; }*/
-
-		void OnImGuiRender() override;
-
 		void SetUniformValueImpl(const std::string& name, const bool& value) override;
 		void SetUniformValueImpl(const std::string& name, const int& value) override;
 		void SetUniformValueImpl(const std::string& name, const int* value) override;
@@ -40,17 +31,29 @@ namespace Magnefu
 		void SetUniformValueImpl(const std::string& name, const Maths::vec4& value) override;
 		void SetUniformValueImpl(const std::string& name, const Maths::mat4& value) override;
 
-		//void NullifyTextures();
+		void Bind() override;
+		void Unbind() override;
+
+		void OnImGuiRender() override;
+
+		void UpdateMaterialSpec() override;
+
+		inline const MaterialSpec& GetMaterialSpec() const override { return m_Spec; }
+		inline const Ref<VertexArray>& GetVertexArray() const override { return m_VertexArray; }
+
+		void AddVertexBuffer(const Ref<VertexBuffer>& vbo) override { m_VertexArray->AddVertexBuffer(vbo); }
+		void SetIndexBuffer(const Ref<IndexBuffer>& ibo) override { m_VertexArray->SetIndexBuffer(ibo); }
 
 	private:
 		void InitUniforms();
 		
 	private: 
 		std::unordered_map<String, Uniform> m_Uniforms;
-		TextureMap  m_TextureMap;
+		MaterialSpec m_Spec;
 		String		m_Name;
 		String		m_Library;
 		Ref<Shader> m_Shader;
+		Ref<VertexArray> m_VertexArray;
 		uint32_t m_ID;
 		MaterialOptions m_Options;
 	};

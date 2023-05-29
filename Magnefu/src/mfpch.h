@@ -20,6 +20,7 @@
 #include <fstream>
 
 #include "Magnefu/Core/Maths/MathsCommon.h"
+#include "Magnefu/Core/Maths/PrimitiveCommon.h"
 #include "Magnefu/Core/Maths/Vectors.h"
 #include "Magnefu/Core/Maths/Matrices.h"
 #include "Magnefu/Core/Log.h"

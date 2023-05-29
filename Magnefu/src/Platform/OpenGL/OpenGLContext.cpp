@@ -2,7 +2,7 @@
 #include "OpenGLContext.h"
 
 #include "Magnefu/Core/Log.h"
-
+#define GLFW_INCLUDE_VULKAN
 #include "GLFW/glfw3.h"
 #include "GLAD/glad.h"
 #include "imgui.h"
@@ -38,10 +38,17 @@ namespace Magnefu
 		glfwSwapBuffers(m_WindowHandle);
 	}
 
+	void OpenGLContext::DrawFrame()
+	{
+	}
+
 	void OpenGLContext::OnImGuiRender()
 	{
 		ImGui::Text("Version: %s", m_RendererInfo.Version.c_str());
 		ImGui::Text("Vendor: %s", m_RendererInfo.Vendor.c_str());
 		ImGui::Text("Renderer: %s", m_RendererInfo.Renderer.c_str());
+	}
+	void OpenGLContext::OnFinish()
+	{
 	}
 }

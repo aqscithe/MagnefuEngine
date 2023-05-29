@@ -7,8 +7,6 @@
 #include "Magnefu/Renderer/Shader.h"
 #include "Magnefu/ResourceManagement/CacheableResource.h"
 
-#include "Magnefu/Tests/Test.h"
-
 #include <string>
 
 

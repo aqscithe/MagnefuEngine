@@ -79,8 +79,13 @@ namespace Magnefu
 
                     pos = end_pos + 1;
                     end_pos = line.find(" ", pos);
-                    if (end_pos != String::npos)
-                        name = line.substr(pos, end_pos - pos - 1);
+                    if (end_pos != String::npos) 
+                    {
+                        if(line.find("=") != String::npos)
+                            name = line.substr(pos, end_pos - pos);
+                        else
+                            name = line.substr(pos, end_pos - pos - 1);
+                    }
                     else
                     {
                         name = line.substr(pos);

@@ -10,7 +10,8 @@ namespace Magnefu
 		enum class API
 		{
 			NONE = 0,
-			OPENGL = 1
+			OPENGL = 1,
+			VULKAN = 2,
 		};
 
 	public:

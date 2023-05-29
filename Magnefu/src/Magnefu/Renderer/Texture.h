@@ -9,13 +9,14 @@ namespace Magnefu
 	enum TextureType
 	{
 		NONE = -1,
-		AMBIENT,
 		DIFFUSE,
-		SPECULAR,
-		EMISSIVE,
-		BUMP,
 		ROUGHNESS,
-		METALLIC
+		METALLIC,
+		BUMP,
+		NORMAL,
+		DISPLACEMENT,
+		AO,
+		EMISSIVE
 	};
 
 	enum TextureOptions {
