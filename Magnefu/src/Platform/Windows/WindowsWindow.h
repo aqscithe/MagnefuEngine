@@ -18,6 +18,9 @@ namespace Magnefu
 		void DrawFrame() override;
 		void OnImGuiRender() override;
 
+		// Main Loop Completed
+		void OnFinish() override; 
+
 		inline uint16_t GetWidth() const override { return m_Data.Width; }
 		inline uint16_t GetHeight() const override { return m_Data.Height; }
 		inline void* GetNativeWindow() const override { return m_Window; }

@@ -143,6 +143,7 @@ namespace Magnefu
             }
 
         }   
+        m_Window->OnFinish();
     }
 
     void Application::OnGUIRender()

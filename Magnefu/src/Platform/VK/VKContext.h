@@ -28,11 +28,6 @@ namespace Magnefu
 		ShaderSource Fragment;
 	};
 
-	static const std::vector<const char*> deviceExtensions = 
-	{
-		VK_KHR_SWAPCHAIN_EXTENSION_NAME
-	};
-
 	struct QueueFamilyIndices 
 	{
 		std::optional<uint32_t> GraphicsFamily;
@@ -66,6 +61,7 @@ namespace Magnefu
 		void SwapBuffers() override;
 		void DrawFrame() override;
 		void OnImGuiRender() override;
+		void OnFinish() override; // main loop completed
 		void GetImGuiInitData() override { int x = 1; }
 
 	private:
@@ -85,35 +81,36 @@ namespace Magnefu
 		VkShaderModule CreateShaderModule(const ShaderSource& source);
 
 	private:
-		GLFWwindow*                m_WindowHandle;
-		RendererInfo               m_RendererInfo;
-		VkInstance                 m_VkInstance;
-		VkDebugUtilsMessengerEXT   m_DebugMessenger;
-		VkPhysicalDevice           m_VkPhysicalDevice;
-		VkDevice                   m_VkDevice;
-		VkQueue                    m_GraphicsQueue;
-		VkSurfaceKHR               m_WindowSurface;
-		VkQueue			           m_PresentQueue;
-		QueueFamilyIndices         m_QueueFamilyIndices;
-		VkSwapchainKHR             m_SwapChain;
-		std::vector<VkImage>       m_SwapChainImages;
-		VkFormat                   m_SwapChainImageFormat;
-		VkExtent2D                 m_SwapChainExtent;
-		std::vector<VkImageView>   m_SwapChainImageViews;
-		VkRenderPass               m_RenderPass;
-		VkPipelineLayout           m_PipelineLayout;
-		//GraphicsPipelines          m_GraphicsPipelines;
-		VkPipeline                 m_GraphicsPipeline;
-		std::vector<VkFramebuffer> m_SwapChainFramebuffers;
-		VkCommandPool              m_CommandPool;
-		VkCommandBuffer            m_CommandBuffer;
-		VkSemaphore                m_ImageAvailableSemaphore;
-		VkSemaphore                m_RenderFinishedSemaphore;
-		VkFence                    m_InFlightFence;
+		GLFWwindow*                  m_WindowHandle;
+		RendererInfo                 m_RendererInfo;
+		VkInstance                   m_VkInstance;
+		VkDebugUtilsMessengerEXT     m_DebugMessenger;
+		VkPhysicalDevice             m_VkPhysicalDevice;
+		VkDevice                     m_VkDevice;
+		VkQueue                      m_GraphicsQueue;
+		VkSurfaceKHR                 m_WindowSurface;
+		VkQueue			             m_PresentQueue;
+		QueueFamilyIndices           m_QueueFamilyIndices;
+		VkSwapchainKHR               m_SwapChain;
+		std::vector<VkImage>         m_SwapChainImages;
+		VkFormat                     m_SwapChainImageFormat;
+		VkExtent2D                   m_SwapChainExtent;
+		std::vector<VkImageView>     m_SwapChainImageViews;
+		VkRenderPass                 m_RenderPass;
+		VkPipelineLayout             m_PipelineLayout;
+		//GraphicsPipelines            m_GraphicsPipelines;
+		VkPipeline                   m_GraphicsPipeline;
+		std::vector<VkFramebuffer>   m_SwapChainFramebuffers;
+		VkCommandPool                m_CommandPool;
+		std::vector<VkCommandBuffer> m_CommandBuffers;
+		std::vector<VkSemaphore>     m_ImageAvailableSemaphores;
+		std::vector<VkSemaphore>     m_RenderFinishedSemaphores;
+		std::vector<VkFence>         m_InFlightFences;
+		uint32_t                     m_CurrentFrame = 0;
 #ifdef MF_DEBUG
-		const bool                 m_EnableValidationLayers = true;
+		const bool                   m_EnableValidationLayers = true;
 #else			                   
-		const bool                 m_EnableValidationLayers = false;
+		const bool                   m_EnableValidationLayers = false;
 #endif
 	};
 }

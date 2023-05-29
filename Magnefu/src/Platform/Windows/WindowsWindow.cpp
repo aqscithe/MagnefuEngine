@@ -282,4 +282,9 @@ namespace Magnefu
 		ImGui::End();
 	}
 
+	void WindowsWindow::OnFinish()
+	{
+		m_Context->OnFinish();
+	}
+
 }

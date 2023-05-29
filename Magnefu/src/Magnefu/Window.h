@@ -32,6 +32,9 @@ namespace Magnefu
 		virtual void DrawFrame() = 0;
 		virtual void OnImGuiRender() = 0;
 
+		// Main Loop Completed
+		virtual void OnFinish() = 0;
+
 		virtual uint16_t GetWidth() const = 0;
 		virtual uint16_t GetHeight() const = 0;
 		virtual void* GetNativeWindow() const = 0;

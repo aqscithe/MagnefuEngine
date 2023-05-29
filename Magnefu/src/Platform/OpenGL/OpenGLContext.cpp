@@ -48,4 +48,7 @@ namespace Magnefu
 		ImGui::Text("Vendor: %s", m_RendererInfo.Vendor.c_str());
 		ImGui::Text("Renderer: %s", m_RendererInfo.Renderer.c_str());
 	}
+	void OpenGLContext::OnFinish()
+	{
+	}
 }
