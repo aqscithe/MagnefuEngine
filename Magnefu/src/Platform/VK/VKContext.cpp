@@ -15,6 +15,10 @@ namespace Magnefu
 
 	static const int MAX_FRAMES_IN_FLIGHT = 2;
 
+	static const std::vector<const char*> validationLayers = {
+			"VK_LAYER_KHRONOS_validation"
+	};
+
 	static const std::vector<const char*> deviceExtensions =
 	{
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME
@@ -91,62 +95,115 @@ namespace Magnefu
 	{
 		MF_PROFILE_FUNCTION();
 
-		// -- Creating a VkInstance -- //
+		CreateVkInstance();
+		SetupDebugMessenger();
+		CreateWindowSurface();
+		SelectPhysicalDevice();
+		CreateLogicalDevice();
+		CreateSwapChain();
+		CreateImageViews();
+		CreateRenderPass();
+		CreateGraphicsPipeline();
+		CreateFrameBuffers();
+		CreateCommandBuffers();
+		CreateSyncObjects();
 
-		// -- Validation Layers
+		/*MF_CORE_DEBUG("Renderer Info: ");
+		MF_CORE_DEBUG("\tVersion: {}", m_RendererInfo.Version);
+		MF_CORE_DEBUG("\tVendor: {}", m_RendererInfo.Vendor);
+		MF_CORE_DEBUG("\tRenderer: {}", m_RendererInfo.Renderer);*/
 
-		const std::vector<const char*> validationLayers = {
-			"VK_LAYER_KHRONOS_validation"
-		};
+	}
 
-#ifdef MF_DEBUG
-		// Print extensions
-		uint32_t extensionCount = 0;
-		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-		std::vector<VkExtensionProperties> vkextensions(extensionCount);
-		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, vkextensions.data());
-		MF_CORE_DEBUG("Available Vulkan Extensions: ");
-		for (const auto& extension : vkextensions)
-		{
-			MF_CORE_DEBUG("\t{}", extension.extensionName);
-		}
-#endif
-		// Check validation layer support
+	void VKContext::SwapBuffers()
+	{
+		// Done at the end of DrawFrame()
+	}
+
+	void VKContext::DrawFrame()
+	{
+		m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
+		// Wait for previous frame
+		vkWaitForFences(m_VkDevice, 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
+
+		// Reset fences
+		vkResetFences(m_VkDevice, 1, &m_InFlightFences[m_CurrentFrame]);
+
+		// Acquire image from swap chain
+		uint32_t imageIndex;
+		vkAcquireNextImageKHR(m_VkDevice, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &imageIndex);
+
+		// Reset and Record Command Buffer
+		vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
+		RecordCommandBuffer(m_CommandBuffers[m_CurrentFrame], imageIndex);
+
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+		VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphores[m_CurrentFrame] };
+		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		submitInfo.waitSemaphoreCount = 1;
+		submitInfo.pWaitSemaphores = waitSemaphores;
+		submitInfo.pWaitDstStageMask = waitStages;
+
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &m_CommandBuffers[m_CurrentFrame];
+
+		VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphores[m_CurrentFrame] };
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = signalSemaphores;
+
+		if (vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_InFlightFences[m_CurrentFrame]) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "failed to submit draw command buffer!");
+		
+		// Subpass Dependencies
+		VkSubpassDependency dependency{};
+		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependency.dstSubpass = 0;
+
+		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency.srcAccessMask = 0;
+
+		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+
+		VkRenderPassCreateInfo renderPassInfo{};
+		renderPassInfo.dependencyCount = 1;
+		renderPassInfo.pDependencies = &dependency;
+
+		// Presentation (submitting image back to swap chain)
+		VkPresentInfoKHR presentInfo{};
+		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pWaitSemaphores = signalSemaphores;
+
+		VkSwapchainKHR swapChains[] = { m_SwapChain };
+		presentInfo.swapchainCount = 1;
+		presentInfo.pSwapchains = swapChains;
+		presentInfo.pImageIndices = &imageIndex;
+
+		presentInfo.pResults = nullptr; // Optional
+
+		vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+	}
+
+	void VKContext::OnImGuiRender()
+	{
+
+	}
+
+	void VKContext::OnFinish()
+	{
+		vkDeviceWaitIdle(m_VkDevice);
+	}
+
+	void VKContext::CreateVkInstance()
+	{
 		bool allLayersAvailable = true;
-		if (m_EnableValidationLayers)
-		{
-			uint32_t layerCount;
-			vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
-			std::vector<VkLayerProperties> availableLayers(layerCount);
-			vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
-
-			for (const char* layerName : validationLayers) 
-			{
-				bool layerFound = false;
-
-				for (const auto& layerProperties : availableLayers) 
-				{
-					if (strcmp(layerName, layerProperties.layerName) == 0) 
-					{
-						layerFound = true;
-						break;
-					}
-				}
-
-				if (!layerFound)
-				{
-					MF_CORE_ASSERT(layerFound, "Requested validation layer unavailable: {}", layerName);
-					allLayersAvailable = false;
-					break;
-				}
-			}
-		}
-		
-
-		
-
-		// Creating the VkInstance 
+		SetupValidationLayers(allLayersAvailable);
 
 		VkApplicationInfo appInfo{};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -179,17 +236,61 @@ namespace Magnefu
 			instanceCreateInfo.enabledLayerCount = 0;
 			instanceCreateInfo.pNext = nullptr;
 		}
-		
+
 
 		if (vkCreateInstance(&instanceCreateInfo, nullptr, &m_VkInstance) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "Failed to create Vulkan VkInstance");
+	}
 
-		// ---------------------------------------- //
+	void VKContext::SetupValidationLayers(bool& allLayersAvailable)
+	{
+#ifdef MF_DEBUG
+		// Print extensions
+		uint32_t extensionCount = 0;
+		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+		std::vector<VkExtensionProperties> vkextensions(extensionCount);
+		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, vkextensions.data());
+		MF_CORE_DEBUG("Available Vulkan Extensions: ");
+		for (const auto& extension : vkextensions)
+		{
+			MF_CORE_DEBUG("\t{}", extension.extensionName);
+		}
+#endif
+		// Check validation layer support
 
-		// -- Setting Up Debug Messenger -- //
+		if (m_EnableValidationLayers)
+		{
+			uint32_t layerCount;
+			vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
+			std::vector<VkLayerProperties> availableLayers(layerCount);
+			vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
+			for (const char* layerName : validationLayers)
+			{
+				bool layerFound = false;
 
+				for (const auto& layerProperties : availableLayers)
+				{
+					if (strcmp(layerName, layerProperties.layerName) == 0)
+					{
+						layerFound = true;
+						break;
+					}
+				}
+
+				if (!layerFound)
+				{
+					MF_CORE_ASSERT(layerFound, "Requested validation layer unavailable: {}", layerName);
+					allLayersAvailable = false;
+					break;
+				}
+			}
+		}
+	}
+
+	void VKContext::SetupDebugMessenger()
+	{
 		if (m_EnableValidationLayers)
 		{
 			VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
@@ -199,24 +300,19 @@ namespace Magnefu
 				MF_CORE_ERROR("failed to set up debug messenger!");
 
 		}
+	}
 
-		// -------------------------------- //
+	void VKContext::CreateWindowSurface()
+	{
+		if (glfwVulkanSupported() == GLFW_FALSE)
+			MF_CORE_DEBUG("GLFW - Vulkan not Supported!!");
 
-
-		// -- Window Surface -- //
-
-		if (glfwVulkanSupported() == GLFW_FALSE) 
-			MF_CORE_DEBUG("Vulkan not Supported!!");
-		
 		if (glfwCreateWindowSurface(m_VkInstance, m_WindowHandle, nullptr, &m_WindowSurface) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "Failed to create a window surface!");
+	}
 
-		// -------------------------------- //
-		
-
-
-		// -- Selecting the physical device(GPU) -- //
-
+	void VKContext::SelectPhysicalDevice()
+	{
 		uint32_t deviceCount = 0;
 		vkEnumeratePhysicalDevices(m_VkInstance, &deviceCount, nullptr);
 		MF_CORE_ASSERT(deviceCount, "Failed to find a GPU with Vulkan support");
@@ -224,9 +320,9 @@ namespace Magnefu
 		std::vector<VkPhysicalDevice> devices(deviceCount);
 		vkEnumeratePhysicalDevices(m_VkInstance, &deviceCount, devices.data());
 
-		for (const auto& device : devices) 
+		for (const auto& device : devices)
 		{
-			if (IsDeviceSuitable(device)) 
+			if (IsDeviceSuitable(device))
 			{
 				m_VkPhysicalDevice = device;
 				break;
@@ -234,16 +330,12 @@ namespace Magnefu
 		}
 
 		MF_CORE_ASSERT(m_VkPhysicalDevice, "Failed to find a suitable GPU!");
+	}
 
-
-		// ---------------------------------------- //
-
-
-
-		// -- Creating logical device(s) -- //
-
+	void VKContext::CreateLogicalDevice()
+	{
 		// Specifying queues to be created
-		
+
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 		queueCreateInfos.reserve(2);
 		std::set<uint32_t> uniqueQueueFamilies = { m_QueueFamilyIndices.GraphicsFamily.value(), m_QueueFamilyIndices.PresentFamily.value() };
@@ -258,7 +350,7 @@ namespace Magnefu
 			queueCreateInfo.pQueuePriorities = &queuePriority;
 			queueCreateInfos.push_back(queueCreateInfo);
 		}
-		
+
 		// Specifying device features to be used
 		VkPhysicalDeviceFeatures deviceFeatures{}; //empty for now
 
@@ -285,12 +377,12 @@ namespace Magnefu
 		logicalDevCreateInfo.enabledExtensionCount = deviceExtensions.size();
 		logicalDevCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
-		if (m_EnableValidationLayers) 
+		if (m_EnableValidationLayers)
 		{
 			logicalDevCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
 			logicalDevCreateInfo.ppEnabledLayerNames = validationLayers.data();
 		}
-		else 
+		else
 		{
 			logicalDevCreateInfo.enabledLayerCount = 0;
 		}
@@ -298,11 +390,11 @@ namespace Magnefu
 		// Instantiate the logical device
 		if (vkCreateDevice(m_VkPhysicalDevice, &logicalDevCreateInfo, nullptr, &m_VkDevice) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to create logical device!");
-		
+
 		// Retrieving queue handles
 		vkGetDeviceQueue(m_VkDevice, m_QueueFamilyIndices.GraphicsFamily.value(), 0, &m_GraphicsQueue); // that 0 is the queue family index
-		vkGetDeviceQueue(m_VkDevice, m_QueueFamilyIndices.PresentFamily.value(), 0, &m_PresentQueue); 
-																						
+		vkGetDeviceQueue(m_VkDevice, m_QueueFamilyIndices.PresentFamily.value(), 0, &m_PresentQueue);
+
 
 		/*VkPhysicalDeviceIDProperties vkPhysicalDeviceIDProperties = {};
 		vkPhysicalDeviceIDProperties.sType =
@@ -328,10 +420,10 @@ namespace Magnefu
 			&vkPhysicalDeviceProperties2);
 
 		memcpy(m_vkDeviceUUID, vkPhysicalDeviceIDProperties.deviceUUID, VK_UUID_SIZE);*/
+	}
 
-		// ---------------------------------------- //
-
-
+	void VKContext::CreateSwapChain()
+	{
 		// -- Creating the swap chain (infrastructure for the frame buffer) -- // TODO: Move to VKFrameBuffer class
 
 		SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(m_VkPhysicalDevice);
@@ -341,7 +433,7 @@ namespace Magnefu
 		VkExtent2D extent = ChooseSwapExtent(swapChainSupport.Capabilities);
 
 		uint32_t imageCount = swapChainSupport.Capabilities.minImageCount + 1;
-		if (swapChainSupport.Capabilities.maxImageCount > 0 && imageCount > swapChainSupport.Capabilities.maxImageCount) 
+		if (swapChainSupport.Capabilities.maxImageCount > 0 && imageCount > swapChainSupport.Capabilities.maxImageCount)
 		{
 			imageCount = swapChainSupport.Capabilities.maxImageCount;
 		}
@@ -356,7 +448,7 @@ namespace Magnefu
 		swapChainCreateInfo.imageArrayLayers = 1;
 
 		// NOTE Renders directly to swap chain image; Use VK_IMAGE_USAGE_TRANSFER_DST_BIT for post processing
-		swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT; 
+		swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
 		uint32_t queueFamilyIndices[] = { m_QueueFamilyIndices.GraphicsFamily.value(), m_QueueFamilyIndices.PresentFamily.value() };
 
@@ -386,11 +478,10 @@ namespace Magnefu
 
 		m_SwapChainImageFormat = surfaceFormat.format;
 		m_SwapChainExtent = extent;
+	}
 
-		// ---------------------------------------- //
-
-		// -- Creating Image Views -- //
-
+	void VKContext::CreateImageViews()
+	{
 		m_SwapChainImageViews.resize(m_SwapChainImages.size());
 
 		for (size_t i = 0; i < m_SwapChainImages.size(); i++) {
@@ -411,14 +502,13 @@ namespace Magnefu
 			imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 			imageViewCreateInfo.subresourceRange.layerCount = 1;
 
-			if (vkCreateImageView(m_VkDevice, &imageViewCreateInfo, nullptr, &m_SwapChainImageViews[i]) != VK_SUCCESS) 
+			if (vkCreateImageView(m_VkDevice, &imageViewCreateInfo, nullptr, &m_SwapChainImageViews[i]) != VK_SUCCESS)
 				MF_CORE_ASSERT(false, "Failed to assert image view {}", i);
 		}
+	}
 
-		// ---------------------------------------- //
-
-		// ------- Creating Render Pass ------- //
-
+	void VKContext::CreateRenderPass()
+	{
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = m_SwapChainImageFormat;
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -450,12 +540,10 @@ namespace Magnefu
 
 		if (vkCreateRenderPass(m_VkDevice, &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to create render pass!");
-		
+	}
 
-		// ------- -------------------------- ------- //
-
-		// ------- Creating Graphics Pipeline ------- //
-
+	void VKContext::CreateGraphicsPipeline()
+	{
 		// Shader Modules
 		std::string shaderFilepath = "res/shaders/Basic.shader";
 		ShaderList list = ParseShader(shaderFilepath);
@@ -474,7 +562,7 @@ namespace Magnefu
 		vertShaderStageInfo.pName = "main";
 
 		// delcare shader constants here. Ex: float PI = 3.1415926535897932384626;
-		vertShaderStageInfo.pSpecializationInfo = nullptr; 
+		vertShaderStageInfo.pSpecializationInfo = nullptr;
 
 
 		VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
@@ -556,7 +644,7 @@ namespace Magnefu
 		// Depth & Stencil Testing
 		/*VkPipelineDepthStencilStateCreateInfo depthAndStencil{};
 		depthAndStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-		depthAndStencil.flags = 
+		depthAndStencil.flags =
 		depthAndStencil.depthTestEnable = */
 
 		// Color blending
@@ -589,7 +677,7 @@ namespace Magnefu
 		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
-		if (vkCreatePipelineLayout(m_VkDevice, &pipelineLayoutInfo, nullptr, &m_PipelineLayout) != VK_SUCCESS) 
+		if (vkCreatePipelineLayout(m_VkDevice, &pipelineLayoutInfo, nullptr, &m_PipelineLayout) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "Failed to create pipeline layout!");
 
 
@@ -618,15 +706,13 @@ namespace Magnefu
 
 		vkDestroyShaderModule(m_VkDevice, vertShaderModule, nullptr);
 		vkDestroyShaderModule(m_VkDevice, fragShaderModule, nullptr);
+	}
 
-		// ---------------------------------------- //
-
-
-		// ------- Creating Framebuffers ------- //
-
+	void VKContext::CreateFrameBuffers()
+	{
 		m_SwapChainFramebuffers.resize(m_SwapChainImageViews.size());
 
-		for (size_t i = 0; i < m_SwapChainImageViews.size(); i++) 
+		for (size_t i = 0; i < m_SwapChainImageViews.size(); i++)
 		{
 			VkImageView attachments = m_SwapChainImageViews[i];
 
@@ -639,15 +725,13 @@ namespace Magnefu
 			framebufferInfo.height = m_SwapChainExtent.height;
 			framebufferInfo.layers = 1;
 
-			if (vkCreateFramebuffer(m_VkDevice, &framebufferInfo, nullptr, &m_SwapChainFramebuffers[i]) != VK_SUCCESS) 
+			if (vkCreateFramebuffer(m_VkDevice, &framebufferInfo, nullptr, &m_SwapChainFramebuffers[i]) != VK_SUCCESS)
 				MF_CORE_ASSERT(false, "failed to create framebuffer!");
 		}
+	}
 
-		// ---------------------------------------- //
-
-
-		// ------- Creating Command Buffers ------- //
-
+	void VKContext::CreateCommandBuffers()
+	{
 		m_CommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
 		VkCommandPoolCreateInfo poolInfo{};
@@ -662,16 +746,14 @@ namespace Magnefu
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.commandPool = m_CommandPool;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandBufferCount = (uint32_t) m_CommandBuffers.size();
+		allocInfo.commandBufferCount = (uint32_t)m_CommandBuffers.size();
 
 		if (vkAllocateCommandBuffers(m_VkDevice, &allocInfo, m_CommandBuffers.data()) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to allocate command buffers!");
-		
-		// ---------------------------------------- //
+	}
 
-
-		// ------- Create Sync Objects ------- //
-
+	void VKContext::CreateSyncObjects()
+	{
 		m_ImageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 		m_RenderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 		m_InFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
@@ -692,101 +774,6 @@ namespace Magnefu
 				MF_CORE_ASSERT(false, "failed to create semaphores!");
 			}
 		}
-		
-
-		// ---------------------------------------- //
-
-
-		/*MF_CORE_DEBUG("Renderer Info: ");
-		MF_CORE_DEBUG("\tVersion: {}", m_RendererInfo.Version);
-		MF_CORE_DEBUG("\tVendor: {}", m_RendererInfo.Vendor);
-		MF_CORE_DEBUG("\tRenderer: {}", m_RendererInfo.Renderer);*/
-
-	}
-
-	void VKContext::SwapBuffers()
-	{
-		//vkQueuePresentKHR(m_PresentQueue,)
-	}
-
-	void VKContext::DrawFrame()
-	{
-		m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-
-		// Wait for previous frame
-		vkWaitForFences(m_VkDevice, 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
-
-		// Reset fences
-		vkResetFences(m_VkDevice, 1, &m_InFlightFences[m_CurrentFrame]);
-
-		// Acquire image from swap chain
-		uint32_t imageIndex;
-		vkAcquireNextImageKHR(m_VkDevice, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &imageIndex);
-
-		// Reset and Record Command Buffer
-		vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
-		RecordCommandBuffer(m_CommandBuffers[m_CurrentFrame], imageIndex);
-
-		VkSubmitInfo submitInfo{};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-		VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphores[m_CurrentFrame] };
-		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-		submitInfo.waitSemaphoreCount = 1;
-		submitInfo.pWaitSemaphores = waitSemaphores;
-		submitInfo.pWaitDstStageMask = waitStages;
-
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &m_CommandBuffers[m_CurrentFrame];
-
-		VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphores[m_CurrentFrame] };
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = signalSemaphores;
-
-		if (vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_InFlightFences[m_CurrentFrame]) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "failed to submit draw command buffer!");
-		
-		// Subpass Dependencies
-		VkSubpassDependency dependency{};
-		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-		dependency.dstSubpass = 0;
-
-		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		dependency.srcAccessMask = 0;
-
-		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-
-		VkRenderPassCreateInfo renderPassInfo{};
-		renderPassInfo.dependencyCount = 1;
-		renderPassInfo.pDependencies = &dependency;
-
-		// Presentation (submitting image back to swap chain)
-		VkPresentInfoKHR presentInfo{};
-		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
-		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = signalSemaphores;
-
-		VkSwapchainKHR swapChains[] = { m_SwapChain };
-		presentInfo.swapchainCount = 1;
-		presentInfo.pSwapchains = swapChains;
-		presentInfo.pImageIndices = &imageIndex;
-
-		presentInfo.pResults = nullptr; // Optional
-
-		vkQueuePresentKHR(m_PresentQueue, &presentInfo);
-	}
-
-	void VKContext::OnImGuiRender()
-	{
-
-	}
-
-	void VKContext::OnFinish()
-	{
-		vkDeviceWaitIdle(m_VkDevice);
 	}
 
 	std::vector<const char*> VKContext::GetRequiredExtensions()

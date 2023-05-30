@@ -65,6 +65,20 @@ namespace Magnefu
 		void GetImGuiInitData() override { int x = 1; }
 
 	private:
+		void CreateVkInstance();
+		void SetupValidationLayers(bool& allLayersAvailable);
+		void SetupDebugMessenger();
+		void CreateWindowSurface();
+		void SelectPhysicalDevice();
+		void CreateLogicalDevice();
+		void CreateSwapChain();
+		void CreateImageViews();
+		void CreateRenderPass();
+		void CreateGraphicsPipeline();
+		void CreateFrameBuffers();
+		void CreateCommandBuffers();
+		void CreateSyncObjects();
+
 		std::vector<const char*> GetRequiredExtensions();
 		void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 		bool IsDeviceSuitable(VkPhysicalDevice);
