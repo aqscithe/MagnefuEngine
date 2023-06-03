@@ -20,6 +20,11 @@ namespace Magnefu
 		MF_CORE_ERROR("GLFW Error: {0} | {1}", code, msg);
 	}
 
+	static void FramebufferResizeCallback(GLFWwindow* window, int width, int height) 
+	{
+		//WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+	}
+
 	Window* Window::Create(const WindowProps& props)
 	{
 		MF_PROFILE_FUNCTION();
@@ -44,6 +49,7 @@ namespace Magnefu
 		m_Data.Width = props.Width;
 		m_Data.Height = props.Height;
 		m_Data.CamData = &m_SceneCamera->GetData();
+		m_Data.WindowPtr = this;
 
 		MF_CORE_INFO("Launching Window: {0} - {1}x{2}", m_Data.Title, m_Data.Width, m_Data.Height);
 
@@ -80,11 +86,25 @@ namespace Magnefu
 		if(m_Context)
 			m_Context->Init();
 
+		// maybe i pass WindowData as an argument to the context init function
+
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 
 		// vsync set by presentation mode in vulkan swap chain
 
 		// Set GLFW Callbacks
+
+		glfwSetFramebufferSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
+		{
+			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+
+			WindowsWindow* win = dynamic_cast<WindowsWindow*>(data.WindowPtr);
+			if (win)
+				win->SetFramebufferResized(true);
+
+			//MF_CORE_DEBUG("A framebuffer resize event");
+		});
+
 		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
 		{
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
@@ -93,6 +113,8 @@ namespace Magnefu
 
 			WindowResizeEvent event(width, height);
 			data.EventCallback(event);
+
+			//MF_CORE_DEBUG("A window resize event");
 
 		});
 
@@ -222,6 +244,11 @@ namespace Magnefu
 	{
 		m_SceneCamera = cam;
 		m_Data.CamData = &m_SceneCamera->GetData();
+	}
+
+	void WindowsWindow::SetFramebufferResized(bool framebufferResized)
+	{
+		m_Context->SetFramebufferResized(framebufferResized);
 	}
 
 	void WindowsWindow::processInput()

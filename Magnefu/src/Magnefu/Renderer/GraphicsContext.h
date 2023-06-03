@@ -24,6 +24,7 @@ namespace Magnefu
 		virtual void OnImGuiRender() = 0;
 		virtual void OnFinish() = 0;
 		virtual void GetImGuiInitData() = 0;
+		virtual void SetFramebufferResized(bool framebufferResized) = 0;
 
 		static GraphicsContext* Create(GLFWwindow* windowHandle);
 

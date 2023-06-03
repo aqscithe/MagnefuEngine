@@ -45,6 +45,7 @@ namespace Magnefu
 		virtual bool IsVSync() const = 0;
 		virtual void SetSceneCamera(const Ref<Camera>&) = 0;
 		virtual Ref<Camera>& GetSceneCamera() = 0;
+		virtual void SetFramebufferResized(bool framebufferResized) = 0;
 
 		static Window* Create(const WindowProps& props = WindowProps());
 	};

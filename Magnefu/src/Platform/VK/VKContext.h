@@ -63,6 +63,7 @@ namespace Magnefu
 		void OnImGuiRender() override;
 		void OnFinish() override; // main loop completed
 		void GetImGuiInitData() override { int x = 1; }
+		void SetFramebufferResized(bool framebufferResized) override { m_FramebufferResized = framebufferResized; }
 
 	private:
 		void CreateVkInstance();
@@ -89,6 +90,8 @@ namespace Magnefu
 		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+		void RecreateSwapChain();
+		void CleanupSwapChain();
 
 		// Place in VKShader
 		ShaderList ParseShader(const String& filepath);
@@ -120,7 +123,8 @@ namespace Magnefu
 		std::vector<VkSemaphore>     m_ImageAvailableSemaphores;
 		std::vector<VkSemaphore>     m_RenderFinishedSemaphores;
 		std::vector<VkFence>         m_InFlightFences;
-		uint32_t                     m_CurrentFrame = 0;
+		uint32_t                     m_CurrentFrame;
+		bool						 m_FramebufferResized;
 #ifdef MF_DEBUG
 		const bool                   m_EnableValidationLayers = true;
 #else			                   

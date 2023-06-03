@@ -61,6 +61,13 @@ namespace Magnefu
 
 	VKContext::~VKContext()
 	{
+		CleanupSwapChain();
+
+		vkDestroyPipeline(m_VkDevice, m_GraphicsPipeline, nullptr);
+		vkDestroyPipelineLayout(m_VkDevice, m_PipelineLayout, nullptr);
+
+		vkDestroyRenderPass(m_VkDevice, m_RenderPass, nullptr);
+
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			vkDestroySemaphore(m_VkDevice, m_ImageAvailableSemaphores[i], nullptr);
@@ -69,31 +76,24 @@ namespace Magnefu
 		}
 
 		vkDestroyCommandPool(m_VkDevice, m_CommandPool, nullptr);
-
-		vkDestroyPipeline(m_VkDevice, m_GraphicsPipeline, nullptr);
-		vkDestroyPipelineLayout(m_VkDevice, m_PipelineLayout, nullptr);
-
-		for (auto framebuffer : m_SwapChainFramebuffers) 
-			vkDestroyFramebuffer(m_VkDevice, framebuffer, nullptr);
-
-		vkDestroyRenderPass(m_VkDevice, m_RenderPass, nullptr);
-
-		for (auto imageView : m_SwapChainImageViews) 
-			vkDestroyImageView(m_VkDevice, imageView, nullptr);
-
-		vkDestroySwapchainKHR(m_VkDevice, m_SwapChain, nullptr);
-		vkDestroySurfaceKHR(m_VkInstance, m_WindowSurface, nullptr);
+		
+		vkDestroyDevice(m_VkDevice, nullptr);
 
 		if (m_EnableValidationLayers)
 			DestroyDebugUtilsMessengerEXT(m_VkInstance, m_DebugMessenger, nullptr);
+
+		vkDestroySurfaceKHR(m_VkInstance, m_WindowSurface, nullptr);
 		
 		vkDestroyInstance(m_VkInstance, nullptr);
-		vkDestroyDevice(m_VkDevice, nullptr);
+		
 	}
 
 	void VKContext::Init()
 	{
 		MF_PROFILE_FUNCTION();
+
+		m_FramebufferResized = false;
+		m_CurrentFrame = 0;
 
 		CreateVkInstance();
 		SetupDebugMessenger();
@@ -122,17 +122,20 @@ namespace Magnefu
 
 	void VKContext::DrawFrame()
 	{
-		m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-
 		// Wait for previous frame
 		vkWaitForFences(m_VkDevice, 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
 
-		// Reset fences
-		vkResetFences(m_VkDevice, 1, &m_InFlightFences[m_CurrentFrame]);
-
 		// Acquire image from swap chain
 		uint32_t imageIndex;
-		vkAcquireNextImageKHR(m_VkDevice, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &imageIndex);
+		VkResult result = vkAcquireNextImageKHR(m_VkDevice, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &imageIndex);
+
+		if (result == VK_ERROR_OUT_OF_DATE_KHR)
+			RecreateSwapChain();
+		else
+			MF_CORE_ASSERT(result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR, "Failed to acquire next image for swap chain.");
+
+		// Reset fences
+		vkResetFences(m_VkDevice, 1, &m_InFlightFences[m_CurrentFrame]);
 
 		// Reset and Record Command Buffer
 		vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
@@ -187,7 +190,19 @@ namespace Magnefu
 
 		presentInfo.pResults = nullptr; // Optional
 
-		vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+		result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+
+		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_FramebufferResized)
+		{
+			m_FramebufferResized = false;
+			RecreateSwapChain();
+		}
+		else
+		{
+			MF_CORE_ASSERT(result == VK_SUCCESS, "Failed to submit image back to swap chain");
+		}
+
+		m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}
 
 	void VKContext::OnImGuiRender()
@@ -198,6 +213,7 @@ namespace Magnefu
 	void VKContext::OnFinish()
 	{
 		vkDeviceWaitIdle(m_VkDevice);
+
 	}
 
 	void VKContext::CreateVkInstance()
@@ -1002,6 +1018,41 @@ namespace Magnefu
 
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to record command buffer!");
+	}
+
+
+	// The disadvantage of this approach is that we need to stop all rendering before creating the new swap chain.
+	// It is possible to create a new swap chain while drawing commands on an image from the old swap chain are still 
+	// in - flight.You need to pass the previous swap chain to the oldSwapChain field in the VkSwapchainCreateInfoKHR 
+	// struct and destroy the old swap chain as soon as you've finished using it.
+	void VKContext::RecreateSwapChain()
+	{
+		int width = 0, height = 0;
+		glfwGetFramebufferSize(m_WindowHandle, &width, &height);
+		while (width == 0 || height == 0) 
+		{
+			glfwGetFramebufferSize(m_WindowHandle, &width, &height);
+			glfwWaitEvents();
+		}
+
+		vkDeviceWaitIdle(m_VkDevice);
+
+		CleanupSwapChain();
+
+		CreateSwapChain();
+		CreateImageViews();
+		CreateFrameBuffers();
+	}
+
+	void VKContext::CleanupSwapChain()
+	{
+		for (auto framebuffer : m_SwapChainFramebuffers)
+			vkDestroyFramebuffer(m_VkDevice, framebuffer, nullptr);
+
+		for (auto imageView : m_SwapChainImageViews)
+			vkDestroyImageView(m_VkDevice, imageView, nullptr);
+
+		vkDestroySwapchainKHR(m_VkDevice, m_SwapChain, nullptr);
 	}
 
 	VkShaderModule VKContext::CreateShaderModule(const ShaderSource& source)
