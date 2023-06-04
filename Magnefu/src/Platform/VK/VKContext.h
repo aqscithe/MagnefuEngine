@@ -51,6 +51,38 @@ namespace Magnefu
 		VkPipeline Skybox;
 	};
 
+	struct Vertex 
+	{
+		Maths::vec2 pos;
+		Maths::vec3 color;
+
+		static VkVertexInputBindingDescription GetBindingDescription() 
+		{
+			VkVertexInputBindingDescription bindingDescription{};
+			bindingDescription.binding = 0;
+			bindingDescription.stride = sizeof(Vertex);
+			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+			return bindingDescription;
+		}
+
+		static std::array<VkVertexInputAttributeDescription, 2> GetAttributeDescriptions()
+		{
+			std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+			attributeDescriptions[0].binding = 0;
+			attributeDescriptions[0].location = 0;
+			attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+			attributeDescriptions[0].offset = offsetof(Vertex, pos);
+
+			attributeDescriptions[1].binding = 0;
+			attributeDescriptions[1].location = 1;
+			attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributeDescriptions[1].offset = offsetof(Vertex, color);
+
+
+			return attributeDescriptions;
+		}
+	};
+
 	class VKContext : public GraphicsContext
 	{
 	public:
@@ -77,6 +109,7 @@ namespace Magnefu
 		void CreateRenderPass();
 		void CreateGraphicsPipeline();
 		void CreateFrameBuffers();
+		void CreateVertexBuffer();
 		void CreateCommandBuffers();
 		void CreateSyncObjects();
 
@@ -92,13 +125,14 @@ namespace Magnefu
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 		void RecreateSwapChain();
 		void CleanupSwapChain();
+		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 		// Place in VKShader
 		ShaderList ParseShader(const String& filepath);
 		VkShaderModule CreateShaderModule(const ShaderSource& source);
 
 	private:
-		GLFWwindow*                  m_WindowHandle;
+		GLFWwindow* m_WindowHandle;
 		RendererInfo                 m_RendererInfo;
 		VkInstance                   m_VkInstance;
 		VkDebugUtilsMessengerEXT     m_DebugMessenger;
@@ -125,6 +159,9 @@ namespace Magnefu
 		std::vector<VkFence>         m_InFlightFences;
 		uint32_t                     m_CurrentFrame;
 		bool						 m_FramebufferResized;
+		VkBuffer                     m_VertexBuffer;
+		VkDeviceMemory               m_VertexBufferMemory;
+
 #ifdef MF_DEBUG
 		const bool                   m_EnableValidationLayers = true;
 #else			                   

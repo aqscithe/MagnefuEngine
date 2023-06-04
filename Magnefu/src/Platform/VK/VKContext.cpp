@@ -24,6 +24,11 @@ namespace Magnefu
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME
 	};
 
+	static const std::vector<Vertex> vertices = {
+			{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+			{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+	};
 
 	static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
 	{
@@ -62,6 +67,9 @@ namespace Magnefu
 	VKContext::~VKContext()
 	{
 		CleanupSwapChain();
+
+		vkDestroyBuffer(m_VkDevice, m_VertexBuffer, nullptr);
+		vkFreeMemory(m_VkDevice, m_VertexBufferMemory, nullptr);
 
 		vkDestroyPipeline(m_VkDevice, m_GraphicsPipeline, nullptr);
 		vkDestroyPipelineLayout(m_VkDevice, m_PipelineLayout, nullptr);
@@ -105,6 +113,7 @@ namespace Magnefu
 		CreateRenderPass();
 		CreateGraphicsPipeline();
 		CreateFrameBuffers();
+		CreateVertexBuffer();
 		CreateCommandBuffers();
 		CreateSyncObjects();
 
@@ -591,12 +600,15 @@ namespace Magnefu
 		VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
 
 		// Vertex Input
+		auto bindingDescription = Vertex::GetBindingDescription();
+		auto attributeDescriptions = Vertex::GetAttributeDescriptions();
+
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertexInputInfo.vertexBindingDescriptionCount = 0;
-		vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optional
-		vertexInputInfo.vertexAttributeDescriptionCount = 0;
-		vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optional
+		vertexInputInfo.vertexBindingDescriptionCount = 1;
+		vertexInputInfo.pVertexBindingDescriptions = &bindingDescription; // Optional
+		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+		vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data(); // Optional
 
 		// Input Assembly
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
@@ -744,6 +756,37 @@ namespace Magnefu
 			if (vkCreateFramebuffer(m_VkDevice, &framebufferInfo, nullptr, &m_SwapChainFramebuffers[i]) != VK_SUCCESS)
 				MF_CORE_ASSERT(false, "failed to create framebuffer!");
 		}
+	}
+
+	void VKContext::CreateVertexBuffer()
+	{
+		VkBufferCreateInfo bufferInfo{};
+		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufferInfo.size = sizeof(vertices[0]) * vertices.size();
+		bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		//bufferInfo.flags = 
+
+		if (vkCreateBuffer(m_VkDevice, &bufferInfo, nullptr, &m_VertexBuffer) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "failed to create vertex buffer!");
+
+		VkMemoryRequirements memRequirements;
+		vkGetBufferMemoryRequirements(m_VkDevice, m_VertexBuffer, &memRequirements);
+
+		VkMemoryAllocateInfo memAllocInfo{};
+		memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		memAllocInfo.allocationSize = memRequirements.size;
+		memAllocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+		if (vkAllocateMemory(m_VkDevice, &memAllocInfo, nullptr, &m_VertexBufferMemory) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "failed to allocate vertex buffer memory!");
+
+		vkBindBufferMemory(m_VkDevice, m_VertexBuffer, m_VertexBufferMemory, 0);
+
+		void* data;
+		vkMapMemory(m_VkDevice, m_VertexBufferMemory, 0, bufferInfo.size, 0, &data);
+		memcpy(data, vertices.data(), (size_t)bufferInfo.size);
+		vkUnmapMemory(m_VkDevice, m_VertexBufferMemory);
 	}
 
 	void VKContext::CreateCommandBuffers()
@@ -1012,7 +1055,11 @@ namespace Magnefu
 		scissor.extent = m_SwapChainExtent;
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+		VkBuffer vertexBuffers[] = { m_VertexBuffer };
+		VkDeviceSize offsets[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+		vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 
 		vkCmdEndRenderPass(commandBuffer);
 
@@ -1053,6 +1100,22 @@ namespace Magnefu
 			vkDestroyImageView(m_VkDevice, imageView, nullptr);
 
 		vkDestroySwapchainKHR(m_VkDevice, m_SwapChain, nullptr);
+	}
+
+	uint32_t VKContext::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+	{
+		VkPhysicalDeviceMemoryProperties memProperties;
+		vkGetPhysicalDeviceMemoryProperties(m_VkPhysicalDevice, &memProperties);
+
+		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+			if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+				return i;
+			}
+		}
+
+		MF_CORE_ASSERT(false, "failed to find suitable memory type!");
+
+		return 0;
 	}
 
 	VkShaderModule VKContext::CreateShaderModule(const ShaderSource& source)
