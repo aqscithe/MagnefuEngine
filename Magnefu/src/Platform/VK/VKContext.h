@@ -83,6 +83,13 @@ namespace Magnefu
 		}
 	};
 
+	struct UniformBufferObject 
+	{
+		alignas(16) Maths::mat4 model;
+		alignas(16) Maths::mat4 view;
+		alignas(16) Maths::mat4 proj;
+	};
+
 	class VKContext : public GraphicsContext
 	{
 	public:
@@ -107,9 +114,18 @@ namespace Magnefu
 		void CreateSwapChain();
 		void CreateImageViews();
 		void CreateRenderPass();
+		void CreateDescriptorSetLayout();
 		void CreateGraphicsPipeline();
 		void CreateFrameBuffers();
+		void CreateCommandPool();
+		void CreateTextureImage();
+		void CreateTextureImageView();
+		void CreateTextureSampler();
 		void CreateVertexBuffer();
+		void CreateIndexBuffer();
+		void CreateUniformBuffers();
+		void CreateDescriptorPool();
+		void CreateDescriptorSets();
 		void CreateCommandBuffers();
 		void CreateSyncObjects();
 
@@ -126,6 +142,16 @@ namespace Magnefu
 		void RecreateSwapChain();
 		void CleanupSwapChain();
 		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+		void UpdateUniformBuffer();
+		void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+		VkCommandBuffer BeginSingleTimeCommands();
+		void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
+		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+		VkImageView CreateImageView(VkImage image, VkFormat format);
+
 
 		// Place in VKShader
 		ShaderList ParseShader(const String& filepath);
@@ -148,6 +174,7 @@ namespace Magnefu
 		VkExtent2D                   m_SwapChainExtent;
 		std::vector<VkImageView>     m_SwapChainImageViews;
 		VkRenderPass                 m_RenderPass;
+		VkDescriptorSetLayout        m_DescriptorSetLayout;
 		VkPipelineLayout             m_PipelineLayout;
 		//GraphicsPipelines            m_GraphicsPipelines;
 		VkPipeline                   m_GraphicsPipeline;
@@ -161,6 +188,17 @@ namespace Magnefu
 		bool						 m_FramebufferResized;
 		VkBuffer                     m_VertexBuffer;
 		VkDeviceMemory               m_VertexBufferMemory;
+		VkBuffer                     m_IndexBuffer;
+		VkDeviceMemory               m_IndexBufferMemory;
+		std::vector<VkBuffer>        m_UniformBuffers;
+		std::vector<VkDeviceMemory>  m_UniformBuffersMemory;
+		std::vector<void*>           m_UniformBuffersMapped;
+		VkDescriptorPool             m_DescriptorPool;
+		std::vector<VkDescriptorSet> m_DescriptorSets;
+		VkImage                      m_TextureImage;
+		VkDeviceMemory               m_TextureImageMemory;
+		VkImageView                  m_TextureImageView;
+		VkSampler                    m_TextureSampler;
 
 #ifdef MF_DEBUG
 		const bool                   m_EnableValidationLayers = true;
