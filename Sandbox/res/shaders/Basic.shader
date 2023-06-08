@@ -1,35 +1,40 @@
 #shader vertex
 #version 450 core
 
-vec2 positions[3] = vec2[](
-    vec2(0.0, -0.5),
-    vec2(0.5, 0.5),
-    vec2(-0.5, 0.5)
-    );
+layout(binding = 0) uniform UniformBufferObject
+{
+    mat4 model;
+    mat4 view;
+    mat4 proj;
+} ubo;
 
-vec3 colors[3] = vec3[](
-    vec3(1.0, 0.0, 0.0),
-    vec3(0.0, 1.0, 0.0),
-    vec3(0.0, 0.0, 1.0)
-    );
+layout(location = 0) in vec2 InPosition;
+layout(location = 1) in vec3 InColor;
+layout(location = 2) in vec2 InTexCoord;
 
-layout(location = 0) out vec3 color;
+layout(location = 0) out vec3 FragColor;
+layout(location = 1) out vec2 FragTexCoord;
 
 void main()
 {
-    gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);
-    color = colors[gl_VertexIndex];
+    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(InPosition, 0.0, 1.0);
+    FragColor = InColor;
+    FragTexCoord = InTexCoord;
 }
 
 
 #shader fragment
 #version 450 core
 
-layout(location = 0) in vec3 color;
+layout(binding = 1) uniform sampler2D TexSampler;
 
-layout(location = 0) out vec4 fragColor;
+layout(location = 0) in vec3 FragColor;
+layout(location = 1) in vec2 FragTexCoord;
+
+layout(location = 0) out vec4 OutColor;
 
 void main()
 {
-	fragColor = vec4(color, 1.0);
+    OutColor = texture(TexSampler, FragTexCoord);
+    //OutColor = vec4(FragColor * texture(TexSampler, FragTexCoord).rgb, 1.0);
 }

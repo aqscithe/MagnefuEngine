@@ -18,7 +18,7 @@ namespace Magnefu
         float Angle;
     };
 
-    struct Triangle
+    /*struct Triangle
     {
         Vertex v0;
         Vertex v1;
@@ -31,7 +31,7 @@ namespace Magnefu
         Vertex v1;
         Vertex v2;
         Vertex v3;
-    };
+    };*/
 
    // Quad CreateQuad(float x, float y, unsigned int texID = 99);
 }

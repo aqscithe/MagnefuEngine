@@ -51,6 +51,51 @@ namespace Magnefu
 		VkPipeline Skybox;
 	};
 
+	struct Vertex 
+	{
+		Maths::vec2 pos;
+		Maths::vec3 color;
+		Maths::vec2 texCoord;
+
+		static VkVertexInputBindingDescription GetBindingDescription() 
+		{
+			VkVertexInputBindingDescription bindingDescription{};
+			bindingDescription.binding = 0;
+			bindingDescription.stride = sizeof(Vertex);
+			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+			return bindingDescription;
+		}
+
+		static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions()
+		{
+			std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
+			attributeDescriptions[0].binding = 0;
+			attributeDescriptions[0].location = 0;
+			attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+			attributeDescriptions[0].offset = offsetof(Vertex, pos);
+
+			attributeDescriptions[1].binding = 0;
+			attributeDescriptions[1].location = 1;
+			attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributeDescriptions[1].offset = offsetof(Vertex, color);
+
+			attributeDescriptions[2].binding = 0;
+			attributeDescriptions[2].location = 2;
+			attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+			attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
+
+
+			return attributeDescriptions;
+		}
+	};
+
+	struct UniformBufferObject 
+	{
+		alignas(16) Maths::mat4 model;
+		alignas(16) Maths::mat4 view;
+		alignas(16) Maths::mat4 proj;
+	};
+
 	class VKContext : public GraphicsContext
 	{
 	public:
@@ -63,8 +108,33 @@ namespace Magnefu
 		void OnImGuiRender() override;
 		void OnFinish() override; // main loop completed
 		void GetImGuiInitData() override { int x = 1; }
+		void SetFramebufferResized(bool framebufferResized) override { m_FramebufferResized = framebufferResized; }
 
 	private:
+		void CreateVkInstance();
+		void SetupValidationLayers(bool& allLayersAvailable);
+		void SetupDebugMessenger();
+		void CreateWindowSurface();
+		void SelectPhysicalDevice();
+		void CreateLogicalDevice();
+		void CreateSwapChain();
+		void CreateImageViews();
+		void CreateRenderPass();
+		void CreateDescriptorSetLayout();
+		void CreateGraphicsPipeline();
+		void CreateFrameBuffers();
+		void CreateCommandPool();
+		void CreateTextureImage();
+		void CreateTextureImageView();
+		void CreateTextureSampler();
+		void CreateVertexBuffer();
+		void CreateIndexBuffer();
+		void CreateUniformBuffers();
+		void CreateDescriptorPool();
+		void CreateDescriptorSets();
+		void CreateCommandBuffers();
+		void CreateSyncObjects();
+
 		std::vector<const char*> GetRequiredExtensions();
 		void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 		bool IsDeviceSuitable(VkPhysicalDevice);
@@ -75,13 +145,26 @@ namespace Magnefu
 		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+		void RecreateSwapChain();
+		void CleanupSwapChain();
+		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+		void UpdateUniformBuffer();
+		void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+		VkCommandBuffer BeginSingleTimeCommands();
+		void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
+		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+		VkImageView CreateImageView(VkImage image, VkFormat format);
+
 
 		// Place in VKShader
 		ShaderList ParseShader(const String& filepath);
 		VkShaderModule CreateShaderModule(const ShaderSource& source);
 
 	private:
-		GLFWwindow*                  m_WindowHandle;
+		GLFWwindow* m_WindowHandle;
 		RendererInfo                 m_RendererInfo;
 		VkInstance                   m_VkInstance;
 		VkDebugUtilsMessengerEXT     m_DebugMessenger;
@@ -97,6 +180,7 @@ namespace Magnefu
 		VkExtent2D                   m_SwapChainExtent;
 		std::vector<VkImageView>     m_SwapChainImageViews;
 		VkRenderPass                 m_RenderPass;
+		VkDescriptorSetLayout        m_DescriptorSetLayout;
 		VkPipelineLayout             m_PipelineLayout;
 		//GraphicsPipelines            m_GraphicsPipelines;
 		VkPipeline                   m_GraphicsPipeline;
@@ -106,7 +190,22 @@ namespace Magnefu
 		std::vector<VkSemaphore>     m_ImageAvailableSemaphores;
 		std::vector<VkSemaphore>     m_RenderFinishedSemaphores;
 		std::vector<VkFence>         m_InFlightFences;
-		uint32_t                     m_CurrentFrame = 0;
+		uint32_t                     m_CurrentFrame;
+		bool						 m_FramebufferResized;
+		VkBuffer                     m_VertexBuffer;
+		VkDeviceMemory               m_VertexBufferMemory;
+		VkBuffer                     m_IndexBuffer;
+		VkDeviceMemory               m_IndexBufferMemory;
+		std::vector<VkBuffer>        m_UniformBuffers;
+		std::vector<VkDeviceMemory>  m_UniformBuffersMemory;
+		std::vector<void*>           m_UniformBuffersMapped;
+		VkDescriptorPool             m_DescriptorPool;
+		std::vector<VkDescriptorSet> m_DescriptorSets;
+		VkImage                      m_TextureImage;
+		VkDeviceMemory               m_TextureImageMemory;
+		VkImageView                  m_TextureImageView;
+		VkSampler                    m_TextureSampler;
+
 #ifdef MF_DEBUG
 		const bool                   m_EnableValidationLayers = true;
 #else			                   

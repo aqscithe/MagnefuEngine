@@ -25,6 +25,7 @@ namespace Magnefu
 		void ProcessInput(float deltaTime) override;
 		void OnImGuiRender() override;
 		void SetDefaultProps() override;
+		void SetAspectRatio(float aspectRatio) { m_Data.AspectRatio = aspectRatio; }
 
 	protected:
 		void Init(const CameraOrientation& orientation, const CameraProps& props) override;

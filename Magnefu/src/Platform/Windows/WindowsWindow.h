@@ -30,6 +30,7 @@ namespace Magnefu
 		void SetEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; }
 		void SetSceneCamera(const Ref<Camera>& cam) override;
 		bool IsVSync() const override { return m_Data.VSync; }
+		void SetFramebufferResized(bool framebufferResized) override;
 
 	private:
 		virtual void Init(const WindowProps& props);
@@ -40,6 +41,7 @@ namespace Magnefu
 		struct WindowData
 		{
 			std::string Title;
+			WindowsWindow* WindowPtr;
 			CameraData* CamData;
 			EventCallbackFn EventCallback;
 			uint16_t Width;

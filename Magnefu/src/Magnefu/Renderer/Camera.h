@@ -85,6 +85,7 @@ namespace Magnefu
 		virtual void ProcessInput(float deltaTime) = 0;
 		virtual void OnImGuiRender() = 0;
 		virtual void SetDefaultProps() = 0;
+		virtual void SetAspectRatio(float) = 0;
 
 		static Camera* Create(const CameraOrientation& orientation = CameraOrientation(), const CameraProps& props = CameraProps());
 

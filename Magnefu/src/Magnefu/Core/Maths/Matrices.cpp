@@ -110,11 +110,10 @@ namespace Maths
         };
     }
 
-    mat4 rotate(const float angleInDegrees, const vec3& axis)
+    mat4 rotate(const float radians, const vec3& axis)
     {
-        float angleInRadians = toRadians(angleInDegrees);
-        float c = cos(angleInRadians);
-        float s = sin(angleInRadians);
+        float c = cos(radians);
+        float s = sin(radians);
 
 
         return

@@ -17,6 +17,7 @@ namespace Magnefu
 		void OnImGuiRender() override;
 		void OnFinish() override;
 		void GetImGuiInitData() override {int x = 1;}
+		void SetFramebufferResized(bool framebufferResized) override { int x = 1; }
 
 	private:
 		GLFWwindow* m_WindowHandle;
