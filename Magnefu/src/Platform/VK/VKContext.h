@@ -3,7 +3,11 @@
 #include "Magnefu/Renderer/GraphicsContext.h"
 #include "vulkan/vulkan.h"
 
+//#define GLM_ENABLE_EXPERIMENTAL
+//#include <glm/gtx/hash.hpp>
+
 struct GLFWwindow;
+
 
 namespace Magnefu
 {
@@ -84,10 +88,12 @@ namespace Magnefu
 			attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
 			attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
 
-
+			
 			return attributeDescriptions;
 		}
+
 	};
+
 
 	struct UniformBufferObject 
 	{
@@ -221,5 +227,16 @@ namespace Magnefu
 #else			                   
 		const bool                   m_EnableValidationLayers = false;
 #endif
+	};
+}
+
+namespace std
+{
+	template<> struct hash<Magnefu::Vertex> {
+		size_t operator()(Magnefu::Vertex const& vertex) const {
+			return ((hash<Maths::vec3>()(vertex.pos) ^
+				(hash<Maths::vec3>()(vertex.color) << 1)) >> 1) ^
+				(hash<Maths::vec2>()(vertex.texCoord) << 1);
+		}
 	};
 }

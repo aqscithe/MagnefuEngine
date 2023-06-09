@@ -17,6 +17,7 @@
 #include "tiny_obj_loader/tiny_obj_loader.h"
 
 #include <set>
+#include <unordered_map>
 
 namespace Magnefu
 {
@@ -32,22 +33,10 @@ namespace Magnefu
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME
 	};
 
-	/*static const std::vector<Vertex> vertices = {
-		{{-0.5f, -0.5f, 0.0f},  {1.0f, 0.0f, 0.0f},  {1.0f, 0.0f}},
-		{{ 0.5f, -0.5f, 0.0f},  {0.0f, 1.0f, 0.0f},  {0.0f, 0.0f}},
-		{{ 0.5f,  0.5f, 0.0f},  {0.0f, 0.0f, 1.0f},  {0.0f, 1.0f}},
-		{{-0.5f,  0.5f, 0.0f},  {1.0f, 1.0f, 1.0f},  {1.0f, 1.0f}},
-	
-		{{-0.5f, -0.5f, -0.5f},  {1.0f, 0.0f, 0.0f},  {1.0f, 0.0f}},
-		{{ 0.5f, -0.5f, -0.5f},  {0.0f, 1.0f, 0.0f},  {0.0f, 0.0f}},
-		{{ 0.5f,  0.5f, -0.5f},  {0.0f, 0.0f, 1.0f},  {0.0f, 1.0f}},
-		{{-0.5f,  0.5f, -0.5f},  {1.0f, 1.0f, 1.0f},  {1.0f, 1.0f}}
-	};
-
-	static const std::vector<uint16_t> indices = {
-		0, 1, 2, 2, 3, 0,
-		4, 5, 6, 6, 7, 4
-	};*/
+	bool operator==(const Vertex& a, const Vertex& b)
+	{
+		return a.pos == b.pos && a.color == b.color && a.texCoord == b.texCoord;
+	}
 
 	static const std::string MODEL_PATH = "res/meshes/viking_room.obj";
 	static const std::string TEXTURE_PATH = "res/textures/viking_room.png";
@@ -988,6 +977,8 @@ namespace Magnefu
 			MF_CORE_WARN(warn);
 			MF_CORE_ERROR(err);
 		}
+
+		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
 			
 		for (const auto& shape : shapes) {
 			for (const auto& index : shape.mesh.indices) {
@@ -1006,8 +997,15 @@ namespace Magnefu
 
 				vertex.color = { 1.0f, 1.0f, 1.0f };
 
-				m_Vertices.push_back(vertex);
-				m_Indices.push_back(m_Indices.size());
+				
+
+				if (uniqueVertices.count(vertex) == 0)
+				{
+					uniqueVertices[vertex] = static_cast<uint32_t>(m_Vertices.size());
+					m_Vertices.push_back(vertex);
+				}
+
+				m_Indices.push_back(uniqueVertices[vertex]);
 			}
 		}
 		

@@ -1,7 +1,10 @@
 #pragma once
 
+
+
 #include <iostream>
 #include <typeindex>
+
 
 namespace Maths
 {
@@ -149,6 +152,12 @@ namespace Maths
 #pragma endregion
 
 #pragma region Operator Overloads
+
+	inline bool operator==(const vec2& a, const vec2& b) { return a.x == b.x && a.y == b.y; }
+	inline bool operator==(const vec3& a, const vec3& b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
+
+
+
 	inline vec2 operator+(const vec2& a, const vec2& b) { return { a.x + b.x, a.y + b.y }; }
 
 	inline vec2 operator+=(vec2& a, const vec2& b)
@@ -184,6 +193,7 @@ namespace Maths
 		return a;
 	}
 
+	
 	inline vec3 operator+(const vec3& a, const vec3& b) { return { a.x + b.x, a.y + b.y, a.z + b.z }; }
 
 	inline vec3 operator+=(vec3& a, const vec3& b)
@@ -295,4 +305,45 @@ namespace Maths
 	vec3 RotateVector(const vec3& v, const vec3& rotAxis, float angle);
 
 #pragma endregion
+
+}
+
+namespace std
+{
+	template <>
+	struct hash<Maths::vec2>
+	{
+		size_t operator()(Maths::vec2 const& v) const
+		{
+			std::hash<float> hasher;
+			std::size_t seed = 0;
+
+			// Prime numbers
+			const std::size_t prime1 = 73856093;
+			const std::size_t prime2 = 19349663;
+
+			seed = prime1 * hasher(v.e[0]) ^ prime2 * hasher(v.e[1]);
+
+			return seed;
+		}
+	};
+
+	template <>
+	struct hash<Maths::vec3>
+	{
+		size_t operator()(Maths::vec3 const& v) const
+		{
+			std::hash<float> hasher;
+			std::size_t seed = 0;
+
+			// Prime numbers
+			const std::size_t prime1 = 73856093;
+			const std::size_t prime2 = 19349663;
+			const std::size_t prime3 = 83492791;
+
+			seed = prime1 * hasher(v.e[0]) ^ prime2 * hasher(v.e[1]) ^ prime3 * hasher(v.e[2]);
+
+			return seed;
+		}
+	};
 }

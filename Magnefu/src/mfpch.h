@@ -19,6 +19,7 @@
 #include <sstream>
 #include <fstream>
 
+
 #include "Magnefu/Core/Maths/MathsCommon.h"
 #include "Magnefu/Core/Maths/PrimitiveCommon.h"
 #include "Magnefu/Core/Maths/Vectors.h"
@@ -27,6 +28,12 @@
 #include "Magnefu/Core/SmartPointers.h"
 
 #include "Magnefu/Debug/Instrumentor.h"
+
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>4
+
+
 
 #ifdef MF_PLATFORM_WINDOWS
 #include <Windows.h>
