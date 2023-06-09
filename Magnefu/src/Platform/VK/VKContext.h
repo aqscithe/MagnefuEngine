@@ -128,6 +128,7 @@ namespace Magnefu
 		void CreateTextureImage();
 		void CreateTextureImageView();
 		void CreateTextureSampler();
+		void LoadModel();
 		void CreateVertexBuffer();
 		void CreateIndexBuffer();
 		void CreateUniformBuffers();
@@ -196,6 +197,8 @@ namespace Magnefu
 		std::vector<VkFence>         m_InFlightFences;
 		uint32_t                     m_CurrentFrame;
 		bool						 m_FramebufferResized;
+		std::vector<Vertex>          m_Vertices;
+		std::vector<uint32_t>        m_Indices;
 		VkBuffer                     m_VertexBuffer;
 		VkDeviceMemory               m_VertexBufferMemory;
 		VkBuffer                     m_IndexBuffer;

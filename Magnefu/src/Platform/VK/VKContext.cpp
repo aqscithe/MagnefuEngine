@@ -3,6 +3,7 @@
 
 #include "VKContext.h"
 #include "Magnefu/Application.h"
+#include "Magnefu/Core/Maths/Quaternion.h"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -11,6 +12,9 @@
 #include "stb_image/stb_image.h"
 
 #include "shaderc/shaderc.hpp"
+
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "tiny_obj_loader/tiny_obj_loader.h"
 
 #include <set>
 
@@ -28,7 +32,7 @@ namespace Magnefu
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME
 	};
 
-	static const std::vector<Vertex> vertices = {
+	/*static const std::vector<Vertex> vertices = {
 		{{-0.5f, -0.5f, 0.0f},  {1.0f, 0.0f, 0.0f},  {1.0f, 0.0f}},
 		{{ 0.5f, -0.5f, 0.0f},  {0.0f, 1.0f, 0.0f},  {0.0f, 0.0f}},
 		{{ 0.5f,  0.5f, 0.0f},  {0.0f, 0.0f, 1.0f},  {0.0f, 1.0f}},
@@ -43,7 +47,12 @@ namespace Magnefu
 	static const std::vector<uint16_t> indices = {
 		0, 1, 2, 2, 3, 0,
 		4, 5, 6, 6, 7, 4
-	};
+	};*/
+
+	static const std::string MODEL_PATH = "res/meshes/viking_room.obj";
+	static const std::string TEXTURE_PATH = "res/textures/viking_room.png";
+	static const std::string SHADER_PATH = "res/shaders/Basic.shader";
+
 
 	static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
 	{
@@ -152,6 +161,7 @@ namespace Magnefu
 		CreateTextureImage();
 		CreateTextureImageView();
 		CreateTextureSampler();
+		LoadModel();
 		CreateVertexBuffer();
 		CreateIndexBuffer();
 		CreateUniformBuffers();
@@ -642,8 +652,7 @@ namespace Magnefu
 	void VKContext::CreateGraphicsPipeline()
 	{
 		// Shader Modules
-		std::string shaderFilepath = "res/shaders/Basic.shader";
-		ShaderList list = ParseShader(shaderFilepath);
+		ShaderList list = ParseShader(SHADER_PATH);
 		VkShaderModule vertShaderModule = CreateShaderModule(list.Vertex);
 		VkShaderModule fragShaderModule = CreateShaderModule(list.Fragment);
 
@@ -872,7 +881,7 @@ namespace Magnefu
 	void VKContext::CreateTextureImage()
 	{
 		int width, height, channels;
-		stbi_uc* pixels = stbi_load("res/textures/Lava_03-2K/Lava_03_emissive-2K.png", &width, &height, &channels, STBI_rgb_alpha); // channels = BPP (bits per pixel)
+		stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &width, &height, &channels, STBI_rgb_alpha); // channels = BPP (bits per pixel)
 		VkDeviceSize imageSize = width * height * 4;
 
 		if (!pixels)
@@ -967,6 +976,43 @@ namespace Magnefu
 			MF_CORE_ASSERT(false, "failed to create texture sampler!");
 	}
 
+	void VKContext::LoadModel()
+	{
+		tinyobj::attrib_t attrib;
+		std::vector<tinyobj::shape_t> shapes;
+		std::vector<tinyobj::material_t> materials;
+		std::string warn, err;
+
+		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_PATH.c_str()))
+		{
+			MF_CORE_WARN(warn);
+			MF_CORE_ERROR(err);
+		}
+			
+		for (const auto& shape : shapes) {
+			for (const auto& index : shape.mesh.indices) {
+				Vertex vertex{};
+
+				vertex.pos = {
+					attrib.vertices[3 * index.vertex_index + 0],
+					attrib.vertices[3 * index.vertex_index + 1],
+					attrib.vertices[3 * index.vertex_index + 2]
+				};
+
+				vertex.texCoord = {
+					attrib.texcoords[2 * index.texcoord_index + 0],
+					1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
+				};
+
+				vertex.color = { 1.0f, 1.0f, 1.0f };
+
+				m_Vertices.push_back(vertex);
+				m_Indices.push_back(m_Indices.size());
+			}
+		}
+		
+	}
+
 	void VKContext::CreateVertexBuffer()
 	{
 		// TODO:
@@ -980,7 +1026,7 @@ namespace Magnefu
 		// refreshed, of course. This is known as aliasing and some Vulkan functions have explicit 
 		 // flags to specify that you want to do this.
 		
-		VkDeviceSize bufferSize = static_cast<uint64_t>(sizeof(vertices[0]) * vertices.size());
+		VkDeviceSize bufferSize = static_cast<uint64_t>(sizeof(m_Vertices[0]) * m_Vertices.size());
 
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;
@@ -995,7 +1041,7 @@ namespace Magnefu
 
 		void* data;
 		vkMapMemory(m_VkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-		memcpy(data, vertices.data(), (size_t)bufferSize);
+		memcpy(data, m_Vertices.data(), (size_t)bufferSize);
 		vkUnmapMemory(m_VkDevice, stagingBufferMemory);
 
 		CreateBuffer(
@@ -1014,7 +1060,7 @@ namespace Magnefu
 
 	void VKContext::CreateIndexBuffer()
 	{
-		VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+		VkDeviceSize bufferSize = sizeof(m_Indices[0]) * m_Indices.size();
 
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;
@@ -1028,7 +1074,7 @@ namespace Magnefu
 
 		void* data;
 		vkMapMemory(m_VkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-		memcpy(data, indices.data(), (size_t)bufferSize);
+		memcpy(data, m_Indices.data(), (size_t)bufferSize);
 		vkUnmapMemory(m_VkDevice, stagingBufferMemory);
 
 		CreateBuffer(
@@ -1401,12 +1447,12 @@ namespace Magnefu
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-		vkCmdBindIndexBuffer(commandBuffer, m_IndexBuffer, 0, VK_INDEX_TYPE_UINT16);
+		vkCmdBindIndexBuffer(commandBuffer, m_IndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &m_DescriptorSets[m_CurrentFrame], 0, nullptr);
 
 		//vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(m_Indices.size()), 1, 0, 0, 0);
 
 		vkCmdEndRenderPass(commandBuffer);
 
@@ -1534,7 +1580,8 @@ namespace Magnefu
 		camera->SetAspectRatio((float)m_SwapChainExtent.width / (float)m_SwapChainExtent.height);
 		
 		UniformBufferObject ubo{};
-		ubo.model = Maths::rotate(time * Maths::toRadians(90.f), Maths::vec3(0.0f, 0.0f, 1.0f));
+		//ubo.model = Maths::rotate(time * Maths::toRadians(90.f), Maths::vec3(0.0f, 0.0f, 1.0f));
+		ubo.model = Maths::Quaternion::CalculateRotationMatrix(time * 45.f, Maths::vec3(0.0f, 1.0f, 0.0f));
 		ubo.view = camera->CalculateView();
 		ubo.proj = camera->CalculateProjection();
 
@@ -1877,60 +1924,3 @@ namespace Magnefu
 		};
 	}
 }
-
-
-
-
-
-//switch (deviceProperties.vendorID) {
-//case 0x10DE:
-//{
-//	m_RendererInfo.Vendor = "NVIDIA";
-//	break;
-//}
-//case 0x1002:
-//{
-//	m_RendererInfo.Vendor = "AMD";
-//	m_RendererInfo.Version = "INSERT GPU VERSION HERE";
-//	break;
-//}
-//case 0x8086:
-//{
-//	m_RendererInfo.Vendor = "Intel";
-//	m_RendererInfo.Version = "INSERT GPU VERSION HERE";
-//	break;
-//}
-//case 0x13B5:
-//{
-//	m_RendererInfo.Vendor = "ARM";
-//	m_RendererInfo.Version = "INSERT GPU VERSION HERE";
-//	break;
-//}
-//case 0x1010:
-//{
-//	m_RendererInfo.Vendor = "Imagination Technologies";
-//	m_RendererInfo.Version = "INSERT GPU VERSION HERE";
-//	break;
-//}
-//case 0x5143:
-//{
-//	m_RendererInfo.Vendor = "Qualcomm";
-//	m_RendererInfo.Version = "INSERT GPU VERSION HERE";
-//	break;
-//}
-//default:
-//{
-//	m_RendererInfo.Vendor = "UNKNOWN";
-//	m_RendererInfo.Version = "UNKNOWN";
-//}
-//}
-//
-//
-//
-//uint32_t driverVersion = deviceProperties.driverVersion;
-//std::string major = std::to_string(VK_VERSION_MAJOR(driverVersion));
-//std::string minor = std::to_string(VK_VERSION_MINOR(driverVersion));
-//std::string patch = std::to_string(VK_VERSION_PATCH(driverVersion));
-//
-//m_RendererInfo.Version = major + "." + minor + "." + patch;
-//m_RendererInfo.Renderer = deviceProperties.deviceName;
