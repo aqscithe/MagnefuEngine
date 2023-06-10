@@ -930,17 +930,6 @@ namespace Magnefu
 
 	void VKContext::CreateTextureSampler()
 	{
-		/// <summary>
-		/// TODO;
-		/// These VkPhysicalDeviceProperties should be queried once and saved in a 
-		/// class member and then passed around as needed.
-		/// </summary>
-		VkPhysicalDeviceProperties properties{};
-		vkGetPhysicalDeviceProperties(m_VkPhysicalDevice, &properties);
-
-		VkPhysicalDeviceFeatures supportedFeatures;
-		vkGetPhysicalDeviceFeatures(m_VkPhysicalDevice, &supportedFeatures);
-
 		VkSamplerCreateInfo samplerInfo{};
 		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 		samplerInfo.magFilter = VK_FILTER_LINEAR;
@@ -949,10 +938,10 @@ namespace Magnefu
 		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 
-		if (supportedFeatures.samplerAnisotropy)
+		if (m_SupportedFeatures.samplerAnisotropy)
 		{
 			samplerInfo.anisotropyEnable = VK_TRUE;
-			samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+			samplerInfo.maxAnisotropy = m_Properties.limits.maxSamplerAnisotropy;
 		}
 		else
 		{
@@ -1269,11 +1258,18 @@ namespace Magnefu
 			swapChainAdequate = !swapChainSupport.Formats.empty() && !swapChainSupport.PresentModes.empty();
 		}
 			
-		return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && 
-			m_QueueFamilyIndices.IsComplete() && 
+		if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
+			m_QueueFamilyIndices.IsComplete() &&
 			extensionsSupported &&
 			swapChainAdequate &&
-			deviceFeatures.samplerAnisotropy;
+			deviceFeatures.samplerAnisotropy)
+		{
+			m_SupportedFeatures = deviceFeatures;
+			m_Properties = deviceProperties;
+			return true;
+		}
+
+		return false;
 		
 	}
 
@@ -1842,7 +1838,7 @@ namespace Magnefu
 
 	void VKContext::GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels)
 	{
-		// Check if image format supports linear blitting
+		// Check if image format supports linear blitting(linear filtering)
 		VkFormatProperties formatProperties;
 		vkGetPhysicalDeviceFormatProperties(m_VkPhysicalDevice, imageFormat, &formatProperties);
 
@@ -1895,7 +1891,7 @@ namespace Magnefu
 			blit.dstSubresource.mipLevel = i;
 			blit.dstSubresource.baseArrayLayer = 0;
 			blit.dstSubresource.layerCount = 1;
-
+			
 			vkCmdBlitImage(commandBuffer,
 				image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
 				image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,

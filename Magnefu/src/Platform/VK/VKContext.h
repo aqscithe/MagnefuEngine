@@ -224,6 +224,9 @@ namespace Magnefu
 		VkDeviceMemory               m_DepthImageMemory;
 		VkImageView                  m_DepthImageView;
 
+		VkPhysicalDeviceProperties   m_Properties{};
+		VkPhysicalDeviceFeatures     m_SupportedFeatures;
+
 #ifdef MF_DEBUG
 		const bool                   m_EnableValidationLayers = true;
 #else			                   
