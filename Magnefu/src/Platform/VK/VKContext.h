@@ -130,6 +130,7 @@ namespace Magnefu
 		void CreateGraphicsPipeline();
 		void CreateFrameBuffers();
 		void CreateCommandPool();
+		void CreateColorResources();
 		void CreateDepthResources();
 		void CreateTextureImage();
 		void CreateTextureImageView();
@@ -159,7 +160,7 @@ namespace Magnefu
 		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 		void UpdateUniformBuffer();
-		void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+		void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
 		VkCommandBuffer BeginSingleTimeCommands();
 		void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
@@ -169,6 +170,7 @@ namespace Magnefu
 		VkFormat FindDepthFormat();
 		bool HasStencilComponent(VkFormat format);
 		void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
+		VkSampleCountFlagBits GetMaxUsableSampleCount();
 
 
 		// Place in VKShader
@@ -223,6 +225,10 @@ namespace Magnefu
 		VkImage                      m_DepthImage;
 		VkDeviceMemory               m_DepthImageMemory;
 		VkImageView                  m_DepthImageView;
+		VkImage                      m_ColorImage;
+		VkDeviceMemory               m_ColorImageMemory;
+		VkImageView                  m_ColorImageView;
+		VkSampleCountFlagBits        m_MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
 		VkPhysicalDeviceProperties   m_Properties{};
 		VkPhysicalDeviceFeatures     m_SupportedFeatures;

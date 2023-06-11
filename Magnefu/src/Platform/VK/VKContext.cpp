@@ -145,6 +145,7 @@ namespace Magnefu
 		CreateDescriptorSetLayout();
 		CreateGraphicsPipeline();
 		CreateCommandPool();
+		CreateColorResources();
 		CreateDepthResources();
 		CreateFrameBuffers();
 		CreateTextureImage();
@@ -394,6 +395,8 @@ namespace Magnefu
 			if (IsDeviceSuitable(device))
 			{
 				m_VkPhysicalDevice = device;
+				m_MSAASamples = GetMaxUsableSampleCount();
+				MF_CORE_DEBUG("MSAA x{}", m_MSAASamples);
 				break;
 			}
 		}
@@ -564,15 +567,13 @@ namespace Magnefu
 	{
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = m_SwapChainImageFormat;
-		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		colorAttachment.samples = m_MSAASamples;
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-
 		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-
 		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // flag used b/c of msaa
 
 		VkAttachmentReference colorAttachmentRef{};
 		colorAttachmentRef.attachment = 0;
@@ -580,7 +581,7 @@ namespace Magnefu
 
 		VkAttachmentDescription depthAttachment{};
 		depthAttachment.format = FindDepthFormat();
-		depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		depthAttachment.samples = m_MSAASamples;
 		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -592,13 +593,28 @@ namespace Magnefu
 		depthAttachmentRef.attachment = 1;
 		depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
+		VkAttachmentDescription colorAttachmentResolve{};
+		colorAttachmentResolve.format = m_SwapChainImageFormat;
+		colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
+		colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+		VkAttachmentReference colorAttachmentResolveRef{};
+		colorAttachmentResolveRef.attachment = 2;
+		colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
 		VkSubpassDescription subpass{};
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 		subpass.colorAttachmentCount = 1;
 		subpass.pColorAttachments = &colorAttachmentRef;
 		subpass.pDepthStencilAttachment = &depthAttachmentRef;
+		subpass.pResolveAttachments = &colorAttachmentResolveRef;
 
-		std::array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
+		std::array<VkAttachmentDescription, 3> attachments = { colorAttachment, depthAttachment, colorAttachmentResolve };
 
 		VkRenderPassCreateInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -733,7 +749,7 @@ namespace Magnefu
 		VkPipelineMultisampleStateCreateInfo multisampling{};
 		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		multisampling.sampleShadingEnable = VK_FALSE;
-		multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+		multisampling.rasterizationSamples = m_MSAASamples;
 		multisampling.minSampleShading = 1.0f; // Optional
 		multisampling.pSampleMask = nullptr; // Optional
 		multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
@@ -821,7 +837,7 @@ namespace Magnefu
 
 		for (size_t i = 0; i < m_SwapChainImageViews.size(); i++)
 		{
-			std::array<VkImageView, 2> attachments = { m_SwapChainImageViews[i], m_DepthImageView };
+			std::array<VkImageView, 3> attachments = { m_ColorImageView, m_DepthImageView, m_SwapChainImageViews[i] };
 
 			VkFramebufferCreateInfo framebufferInfo{};
 			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -848,6 +864,26 @@ namespace Magnefu
 			MF_CORE_ASSERT(false, "failed to create command pool!");
 	}
 
+	void VKContext::CreateColorResources()
+	{
+		VkFormat colorFormat = m_SwapChainImageFormat;
+
+		CreateImage(
+			m_SwapChainExtent.width, 
+			m_SwapChainExtent.height, 
+			1, m_MSAASamples, 
+			colorFormat, 
+			VK_IMAGE_TYPE_2D, 
+			VK_IMAGE_TILING_OPTIMAL, 
+			VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, 
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
+			m_ColorImage, 
+			m_ColorImageMemory
+		);
+
+		m_ColorImageView = CreateImageView(m_ColorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+	}
+
 	void VKContext::CreateDepthResources()
 	{
 		VkFormat depthFormat = FindDepthFormat();
@@ -856,6 +892,7 @@ namespace Magnefu
 			m_SwapChainExtent.width, 
 			m_SwapChainExtent.height, 
 			1,
+			m_MSAASamples,
 			depthFormat, 
 			VK_IMAGE_TYPE_2D, // ???
 			VK_IMAGE_TILING_OPTIMAL, 
@@ -904,6 +941,7 @@ namespace Magnefu
 			static_cast<uint32_t>(width),
 			static_cast<uint32_t>(height),
 			m_MipLevels,
+			VK_SAMPLE_COUNT_1_BIT,
 			VK_FORMAT_R8G8B8A8_SRGB,
 			VK_IMAGE_TYPE_2D,
 			VK_IMAGE_TILING_OPTIMAL,
@@ -1483,12 +1521,17 @@ namespace Magnefu
 
 		CreateSwapChain();
 		CreateImageViews();
+		CreateColorResources();
 		CreateDepthResources();
 		CreateFrameBuffers();
 	}
 
 	void VKContext::CleanupSwapChain()
 	{
+		vkDestroyImageView(m_VkDevice, m_ColorImageView, nullptr);
+		vkDestroyImage(m_VkDevice, m_ColorImage, nullptr);
+		vkFreeMemory(m_VkDevice, m_ColorImageMemory, nullptr);
+
 		vkDestroyImageView(m_VkDevice, m_DepthImageView, nullptr);
 		vkDestroyImage(m_VkDevice,     m_DepthImage, nullptr);
 		vkFreeMemory(m_VkDevice,       m_DepthImageMemory, nullptr);
@@ -1573,17 +1616,17 @@ namespace Magnefu
 
 	void VKContext::UpdateUniformBuffer()
 	{
-		static auto startTime = std::chrono::high_resolution_clock::now();
+		/*static auto startTime = std::chrono::high_resolution_clock::now();
 
 		auto currentTime = std::chrono::high_resolution_clock::now();
-		float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+		float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();*/
 
 		auto& camera = Application::Get().GetWindow().GetSceneCamera();
 		camera->SetAspectRatio((float)m_SwapChainExtent.width / (float)m_SwapChainExtent.height);
 		
 		UniformBufferObject ubo{};
-		//ubo.model = Maths::rotate(time * Maths::toRadians(90.f), Maths::vec3(0.0f, 0.0f, 1.0f));
-		ubo.model = Maths::Quaternion::CalculateRotationMatrix(time * 45.f, Maths::vec3(0.0f, 1.0f, 0.0f));
+		//ubo.model = Maths::Quaternion::CalculateRotationMatrix(time * 45.f, Maths::vec3(0.0f, 1.0f, 0.0f));
+		ubo.model = Maths::Quaternion::CalculateRotationMatrix(0.f, Maths::vec3(0.0f, 1.0f, 0.0f));
 		ubo.view = camera->CalculateView();
 		ubo.proj = camera->CalculateProjection();
 
@@ -1592,7 +1635,7 @@ namespace Magnefu
 		memcpy(m_UniformBuffersMapped[m_CurrentFrame], &ubo, sizeof(ubo));
 	}
 
-	void VKContext::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
+	void VKContext::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
 	{
 		VkPhysicalDeviceImageFormatInfo2 imageFormatInfo = {};
 		imageFormatInfo.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2;
@@ -1620,7 +1663,7 @@ namespace Magnefu
 		imageInfo.tiling = tiling;
 		imageInfo.usage = usage;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		imageInfo.samples = numSamples;
 		imageInfo.flags = 0; // Optional
 
 		if (vkCreateImage(m_VkDevice, &imageInfo, nullptr, &image) != VK_SUCCESS)
@@ -1927,6 +1970,20 @@ namespace Magnefu
 
 		EndSingleTimeCommands(commandBuffer);
 
+	}
+
+	VkSampleCountFlagBits VKContext::GetMaxUsableSampleCount()
+	{
+		VkSampleCountFlags counts = m_Properties.limits.framebufferColorSampleCounts & m_Properties.limits.framebufferDepthSampleCounts;
+
+		if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
+		if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
+		if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
+		if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
+		if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
+		if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
+
+		return VK_SAMPLE_COUNT_1_BIT;
 	}
 
 	VkShaderModule VKContext::CreateShaderModule(const ShaderSource& source)
