@@ -17,7 +17,8 @@ namespace Magnefu
 	{
 		None = -1,
 		Vertex,
-		Fragment
+		Fragment,
+		Compute
 	};
 
 	struct ShaderSource
@@ -30,15 +31,17 @@ namespace Magnefu
 	{
 		ShaderSource Vertex;
 		ShaderSource Fragment;
+		ShaderSource Compute;
 	};
 
 	struct QueueFamilyIndices 
 	{
 		std::optional<uint32_t> GraphicsFamily;
 		std::optional<uint32_t> PresentFamily;
+		std::optional<uint32_t> ComputeFamily;
 
 		bool IsComplete() {
-			return (GraphicsFamily.has_value() && PresentFamily.has_value());
+			return (GraphicsFamily.has_value() && PresentFamily.has_value() && ComputeFamily.has_value());
 		}
 	};
 
@@ -102,6 +105,12 @@ namespace Magnefu
 		alignas(16) Maths::mat4 proj;
 	};
 
+	struct Particle {
+		Maths::vec2 position;
+		Maths::vec2 velocity;
+		Maths::vec4 color;
+	};
+
 	class VKContext : public GraphicsContext
 	{
 	public:
@@ -130,6 +139,8 @@ namespace Magnefu
 		void CreateGraphicsPipeline();
 		void CreateFrameBuffers();
 		void CreateCommandPool();
+		void CreateShaderStorageBuffers();
+		void CreateComputePipeline();
 		void CreateColorResources();
 		void CreateDepthResources();
 		void CreateTextureImage();
@@ -139,8 +150,11 @@ namespace Magnefu
 		void CreateVertexBuffer();
 		void CreateIndexBuffer();
 		void CreateUniformBuffers();
+		void CreateComputeUniformBuffers();
 		void CreateDescriptorPool();
+		void CreateComputeDescriptorPool();
 		void CreateDescriptorSets();
+		void CreateComputeDescriptorSets();
 		void CreateCommandBuffers();
 		void CreateSyncObjects();
 
@@ -187,6 +201,7 @@ namespace Magnefu
 		VkQueue                      m_GraphicsQueue;
 		VkSurfaceKHR                 m_WindowSurface;
 		VkQueue			             m_PresentQueue;
+		VkQueue                      m_ComputeQueue;
 		QueueFamilyIndices           m_QueueFamilyIndices;
 		VkSwapchainKHR               m_SwapChain;
 		std::vector<VkImage>         m_SwapChainImages;
@@ -195,6 +210,7 @@ namespace Magnefu
 		std::vector<VkImageView>     m_SwapChainImageViews;
 		VkRenderPass                 m_RenderPass;
 		VkDescriptorSetLayout        m_DescriptorSetLayout;
+		ShaderList                   m_ShaderList;
 		VkPipelineLayout             m_PipelineLayout;
 		//GraphicsPipelines            m_GraphicsPipelines;
 		VkPipeline                   m_GraphicsPipeline;
@@ -229,6 +245,19 @@ namespace Magnefu
 		VkDeviceMemory               m_ColorImageMemory;
 		VkImageView                  m_ColorImageView;
 		VkSampleCountFlagBits        m_MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+
+		//------------------- Compute Shader ---------------------- //
+		std::vector<VkBuffer>        m_ShaderStorageBuffers;
+		std::vector<VkDeviceMemory>  m_ShaderStorageBuffersMemory;
+		VkDescriptorSetLayout        m_ComputeDescriptorSetLayout;
+		VkDescriptorPool             m_ComputeDescriptorPool;
+		std::vector<VkDescriptorSet> m_ComputeDescriptorSets;
+		std::vector<VkBuffer>        m_ComputeUniformBuffers;
+		std::vector<VkDeviceMemory>  m_ComputeUniformBuffersMemory;
+		std::vector<void*>           m_ComputeUniformBuffersMapped;
+		VkPipeline                   m_ComputePipeline;
+		VkPipelineLayout             m_ComputePipelineLayout;
+		// -------------------------------------------------------- //
 
 		VkPhysicalDeviceProperties   m_Properties{};
 		VkPhysicalDeviceFeatures     m_SupportedFeatures;

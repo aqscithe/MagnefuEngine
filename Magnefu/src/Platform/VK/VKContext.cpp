@@ -23,6 +23,10 @@ namespace Magnefu
 {
 
 	static const int MAX_FRAMES_IN_FLIGHT = 2;
+	static const int PARTICLE_COUNT = 30;
+	static const float PARTICLE_HEIGHT = 600.f;
+	static const float PARTICLE_WIDTH = 600.f;
+
 
 	static const std::vector<const char*> validationLayers = {
 			"VK_LAYER_KHRONOS_validation"
@@ -80,6 +84,25 @@ namespace Magnefu
 	VKContext::~VKContext()
 	{
 		CleanupSwapChain();
+
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			vkDestroyBuffer(m_VkDevice, m_ComputeUniformBuffers[i], nullptr);
+			vkFreeMemory(m_VkDevice, m_ComputeUniformBuffersMemory[i], nullptr);
+		}
+
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			vkDestroyBuffer(m_VkDevice, m_ShaderStorageBuffers[i], nullptr);
+			vkFreeMemory(m_VkDevice, m_ShaderStorageBuffersMemory[i], nullptr);
+		}
+
+		vkDestroyDescriptorPool(m_VkDevice, m_ComputeDescriptorPool, nullptr);
+		vkDestroyDescriptorSetLayout(m_VkDevice, m_ComputeDescriptorSetLayout, nullptr);
+
+		/// <summary>
+		/// 
+		/// </summary>
 
 		vkDestroySampler(m_VkDevice, m_TextureSampler, nullptr);
 		vkDestroyImageView(m_VkDevice, m_TextureImageView, nullptr);
@@ -145,6 +168,8 @@ namespace Magnefu
 		CreateDescriptorSetLayout();
 		CreateGraphicsPipeline();
 		CreateCommandPool();
+		CreateShaderStorageBuffers(); // For Compute pipeline
+		CreateComputePipeline();
 		CreateColorResources();
 		CreateDepthResources();
 		CreateFrameBuffers();
@@ -155,8 +180,11 @@ namespace Magnefu
 		CreateVertexBuffer();
 		CreateIndexBuffer();
 		CreateUniformBuffers();
+		CreateComputeUniformBuffers();
 		CreateDescriptorPool();
+		CreateComputeDescriptorPool();
 		CreateDescriptorSets();
+		CreateComputeDescriptorSets();
 		CreateCommandBuffers();
 		CreateSyncObjects();
 
@@ -426,6 +454,7 @@ namespace Magnefu
 		// Specifying device features to be used
 		VkPhysicalDeviceFeatures deviceFeatures{}; //empty for now
 		deviceFeatures.samplerAnisotropy = VK_TRUE;
+		deviceFeatures.sampleRateShading = VK_FALSE;
 
 		// Create the logical device
 
@@ -466,6 +495,8 @@ namespace Magnefu
 		// Retrieving queue handles
 		vkGetDeviceQueue(m_VkDevice, m_QueueFamilyIndices.GraphicsFamily.value(), 0, &m_GraphicsQueue); // that 0 is the queue family index
 		vkGetDeviceQueue(m_VkDevice, m_QueueFamilyIndices.PresentFamily.value(), 0, &m_PresentQueue);
+		vkGetDeviceQueue(m_VkDevice, m_QueueFamilyIndices.ComputeFamily.value(), 0, &m_PresentQueue);
+		
 
 
 		/*VkPhysicalDeviceIDProperties vkPhysicalDeviceIDProperties = {};
@@ -657,18 +688,17 @@ namespace Magnefu
 	void VKContext::CreateGraphicsPipeline()
 	{
 		// Shader Modules
-		ShaderList list = ParseShader(SHADER_PATH);
-		VkShaderModule vertShaderModule = CreateShaderModule(list.Vertex);
-		VkShaderModule fragShaderModule = CreateShaderModule(list.Fragment);
+		m_ShaderList = ParseShader(SHADER_PATH);
+		VkShaderModule vertShaderModule = CreateShaderModule(m_ShaderList.Vertex);
+		VkShaderModule fragShaderModule = CreateShaderModule(m_ShaderList.Fragment);
 
 		VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
 		vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-
 		vertShaderStageInfo.module = vertShaderModule;
 
 		// shader entrypoint - for fragment shaders, this means it is possible
-		// to include several fragment shaders in a single shader module and 
+		// to include several shaders(of the same type) in a single shader module and 
 		// use different entry points to differentiate between their behaviors
 		vertShaderStageInfo.pName = "main";
 
@@ -682,6 +712,7 @@ namespace Magnefu
 		fragShaderStageInfo.module = fragShaderModule;
 		fragShaderStageInfo.pName = "main";
 		fragShaderStageInfo.pSpecializationInfo = nullptr;
+
 
 		VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
 
@@ -750,7 +781,7 @@ namespace Magnefu
 		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		multisampling.sampleShadingEnable = VK_FALSE;
 		multisampling.rasterizationSamples = m_MSAASamples;
-		multisampling.minSampleShading = 1.0f; // Optional
+		multisampling.minSampleShading = 1.f; // Optional
 		multisampling.pSampleMask = nullptr; // Optional
 		multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
 		multisampling.alphaToOneEnable = VK_FALSE; // Optional
@@ -793,8 +824,6 @@ namespace Magnefu
 		// Pipeline Layout
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = 0; // Optional
-		pipelineLayoutInfo.pSetLayouts = nullptr; // Optional	
 		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 		pipelineLayoutInfo.setLayoutCount = 1;
@@ -829,6 +858,119 @@ namespace Magnefu
 
 		vkDestroyShaderModule(m_VkDevice, vertShaderModule, nullptr);
 		vkDestroyShaderModule(m_VkDevice, fragShaderModule, nullptr);
+	}
+
+	void VKContext::CreateShaderStorageBuffers()
+	{
+		m_ShaderStorageBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+		m_ShaderStorageBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+
+		// Initialize particles
+		std::default_random_engine rndEngine((unsigned)time(nullptr));
+		std::uniform_real_distribution<float> rndDist(0.0f, 1.0f);
+
+		// Initial particle positions on a circle
+		std::vector<Particle> particles(PARTICLE_COUNT);
+		for (auto& particle : particles) {
+			float r = 0.25f * sqrt(rndDist(rndEngine));
+			float theta = rndDist(rndEngine) * 2 * 3.14159265358979323846;
+			float x = r * cos(theta) * PARTICLE_HEIGHT / PARTICLE_WIDTH;
+			float y = r * sin(theta);
+			particle.position = Maths::vec2(x, y);
+			particle.velocity = Maths::normalize(Maths::vec2(x, y)) * 0.00025f;
+			particle.color    = Maths::vec4(rndDist(rndEngine), rndDist(rndEngine), rndDist(rndEngine), 1.0f);
+		}
+
+		VkDeviceSize bufferSize = sizeof(Particle) * PARTICLE_COUNT;
+
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingBufferMemory;
+
+		CreateBuffer(
+			bufferSize,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			stagingBuffer,
+			stagingBufferMemory
+		);
+
+		void* data;
+		vkMapMemory(m_VkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+		memcpy(data, particles.data(), (size_t)bufferSize);
+		vkUnmapMemory(m_VkDevice, stagingBufferMemory);
+
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			CreateBuffer(
+				bufferSize,
+				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+				m_ShaderStorageBuffers[i],
+				m_ShaderStorageBuffersMemory[i]
+			);
+
+			// Copy data from the staging buffer (host) to the shader storage buffer (GPU)
+			CopyBuffer(stagingBuffer, m_ShaderStorageBuffers[i], bufferSize);
+		}
+
+		std::array<VkDescriptorSetLayoutBinding, 3> layoutBindings{};
+		layoutBindings[0].binding = 0;
+		layoutBindings[0].descriptorCount = 1;
+		layoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		layoutBindings[0].pImmutableSamplers = nullptr;
+		layoutBindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+		layoutBindings[1].binding = 1;
+		layoutBindings[1].descriptorCount = 1;
+		layoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		layoutBindings[1].pImmutableSamplers = nullptr;
+		layoutBindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+		layoutBindings[2].binding = 2;
+		layoutBindings[2].descriptorCount = 1;
+		layoutBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		layoutBindings[2].pImmutableSamplers = nullptr;
+		layoutBindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+		VkDescriptorSetLayoutCreateInfo layoutInfo{};
+		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		layoutInfo.bindingCount = 3;
+		layoutInfo.pBindings = layoutBindings.data();
+
+		if (vkCreateDescriptorSetLayout(m_VkDevice, &layoutInfo, nullptr, &m_ComputeDescriptorSetLayout) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "failed to create COMPUTE descriptor set layout!");
+		
+
+	}
+
+	void VKContext::CreateComputePipeline()
+	{
+		VkShaderModule computeShaderModule = CreateShaderModule(m_ShaderList.Compute);
+
+		VkPipelineShaderStageCreateInfo computeShaderStageInfo{};
+		computeShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		computeShaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+		computeShaderStageInfo.module = computeShaderModule;
+		computeShaderStageInfo.pName = "main";
+		computeShaderStageInfo.pSpecializationInfo = nullptr;
+
+		VkComputePipelineCreateInfo pipelineInfo{};
+		pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+		pipelineInfo.layout = m_ComputePipelineLayout;
+		pipelineInfo.stage = computeShaderStageInfo;
+
+		if (vkCreateComputePipelines(m_VkDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_ComputePipeline) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create compute pipeline!");
+		}
+
+		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		pipelineLayoutInfo.setLayoutCount = 1;
+		pipelineLayoutInfo.pSetLayouts = &m_ComputeDescriptorSetLayout;
+
+		if (vkCreatePipelineLayout(m_VkDevice, &pipelineLayoutInfo, nullptr, &m_ComputePipelineLayout) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create compute pipeline layout!");
+		}
 	}
 
 	void VKContext::CreateFrameBuffers()
@@ -1133,9 +1275,36 @@ namespace Magnefu
 		m_UniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_UniformBuffers[i], m_UniformBuffersMemory[i]);
+			CreateBuffer(
+				bufferSize, 
+				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+				m_UniformBuffers[i], 
+				m_UniformBuffersMemory[i]
+			);
 
 			vkMapMemory(m_VkDevice, m_UniformBuffersMemory[i], 0, bufferSize, 0, &m_UniformBuffersMapped[i]);
+		}
+	}
+
+	void VKContext::CreateComputeUniformBuffers()
+	{
+		VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+
+		m_UniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+		m_UniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+		m_UniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+			CreateBuffer(
+				bufferSize,
+				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+				m_ComputeUniformBuffers[i],
+				m_ComputeUniformBuffersMemory[i]
+			);
+
+			vkMapMemory(m_VkDevice, m_ComputeUniformBuffersMemory[i], 0, bufferSize, 0, &m_ComputeUniformBuffersMapped[i]);
 		}
 	}
 
@@ -1160,6 +1329,26 @@ namespace Magnefu
 
 		if (vkCreateDescriptorPool(m_VkDevice, &poolInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to create descriptor pool!");
+	}
+
+	void VKContext::CreateComputeDescriptorPool()
+	{
+		std::array<VkDescriptorPoolSize, 2> poolSizes{};
+
+		poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+
+		poolSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * 2;
+
+		VkDescriptorPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+		poolInfo.pPoolSizes = poolSizes.data();
+		poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+
+		if (vkCreateDescriptorPool(m_VkDevice, &poolInfo, nullptr, &m_ComputeDescriptorPool) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "failed to create COMPUTE descriptor pool!");
 	}
 
 	void VKContext::CreateDescriptorSets()
@@ -1211,6 +1400,69 @@ namespace Magnefu
 			vkUpdateDescriptorSets(m_VkDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 		}
 		
+	}
+
+	void VKContext::CreateComputeDescriptorSets()
+	{
+		std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_ComputeDescriptorSetLayout);
+		VkDescriptorSetAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		allocInfo.descriptorPool = m_ComputeDescriptorPool;
+		allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+		allocInfo.pSetLayouts = layouts.data();
+
+		m_DescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+		if (vkAllocateDescriptorSets(m_VkDevice, &allocInfo, m_ComputeDescriptorSets.data()) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "failed to allocate COMPUTE descriptor sets!");
+
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
+
+			VkDescriptorBufferInfo uniformBufferInfo{};
+			uniformBufferInfo.buffer = m_ComputeUniformBuffers[i];
+			uniformBufferInfo.offset = 0;
+			uniformBufferInfo.range = sizeof(UniformBufferObject);
+
+			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[0].dstSet = m_ComputeDescriptorSets[i];
+			descriptorWrites[0].dstBinding = 0;
+			descriptorWrites[0].dstArrayElement = 0;
+			descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			descriptorWrites[0].descriptorCount = 1;
+			descriptorWrites[0].pBufferInfo = &uniformBufferInfo;
+			descriptorWrites[0].pImageInfo = nullptr; // Optional
+			descriptorWrites[0].pTexelBufferView = nullptr; // Optional
+
+			VkDescriptorBufferInfo storageBufferInfoLastFrame{};
+			storageBufferInfoLastFrame.buffer = m_ShaderStorageBuffers[(i - 1) % MAX_FRAMES_IN_FLIGHT];
+			storageBufferInfoLastFrame.offset = 0;
+			storageBufferInfoLastFrame.range = sizeof(Particle) * PARTICLE_COUNT;
+
+			descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[1].dstSet = m_ComputeDescriptorSets[i];
+			descriptorWrites[1].dstBinding = 1;
+			descriptorWrites[1].dstArrayElement = 0;
+			descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+			descriptorWrites[1].descriptorCount = 1;
+			descriptorWrites[1].pBufferInfo = &storageBufferInfoLastFrame;
+
+			VkDescriptorBufferInfo storageBufferInfoCurrentFrame{};
+			storageBufferInfoCurrentFrame.buffer = m_ShaderStorageBuffers[i];
+			storageBufferInfoCurrentFrame.offset = 0;
+			storageBufferInfoCurrentFrame.range = sizeof(Particle) * PARTICLE_COUNT;
+
+			descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[2].dstSet = m_ComputeDescriptorSets[i];
+			descriptorWrites[2].dstBinding = 2;
+			descriptorWrites[2].dstArrayElement = 0;
+			descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+			descriptorWrites[2].descriptorCount = 1;
+			descriptorWrites[2].pBufferInfo = &storageBufferInfoCurrentFrame;
+
+			vkUpdateDescriptorSets(m_VkDevice, 3, descriptorWrites.data(), 0, nullptr);
+
+		}
 	}
 
 	void VKContext::CreateCommandBuffers()
@@ -1345,10 +1597,11 @@ namespace Magnefu
 			vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_WindowSurface, &presentSupport);
 
 			// Preferring a physical device that supports drawing and presentation in the same queue
-			if (presentSupport && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+			if (presentSupport && (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) && (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT))
 			{
 				indices.PresentFamily = i;
 				indices.GraphicsFamily = i;
+				indices.ComputeFamily = i;
 				MF_CORE_DEBUG("Supported Number of Queues: {}", queueFamily.queueCount);
 			}
 
@@ -2010,6 +2263,11 @@ namespace Magnefu
 				result = compiler.CompileGlslToSpv(source.Text, shaderc_fragment_shader, "fragment.glsl", options);
 				break;
 			}
+			case Magnefu::ShaderType::Compute:
+			{
+				result = compiler.CompileGlslToSpv(source.Text, shaderc_compute_shader, "compute.glsl", options);
+				break;
+			}
 			default:
 			{
 				MF_CORE_ASSERT(false, "Unknown shader type: {}", static_cast<int>(source.Type));
@@ -2049,7 +2307,8 @@ namespace Magnefu
 			MF_CORE_ASSERT(false, "Failed to load shader contents");
 
 		String line;
-		std::stringstream ss[2];
+		
+		std::stringstream ss[3];
 		ShaderType type = ShaderType::None;
 		while (std::getline(stream, line))
 		{
@@ -2063,6 +2322,10 @@ namespace Magnefu
 				{
 					type = ShaderType::Fragment;
 				}
+				else if (line.find("compute") != String::npos)
+				{
+					type = ShaderType::Compute;
+				}
 			}
 			else
 			{
@@ -2072,7 +2335,8 @@ namespace Magnefu
 
 		return {
 			{ ss[0].str(), ShaderType::Vertex },
-			{ ss[1].str(), ShaderType::Fragment }
+			{ ss[1].str(), ShaderType::Fragment },
+			{ ss[2].str(), ShaderType::Compute }
 		};
 	}
 }

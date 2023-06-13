@@ -161,6 +161,7 @@
     <None Include="res\meshes\retrotv0319.obj" />
     <None Include="res\meshes\santa_hat(DEFAULT).obj" />
     <None Include="res\meshes\wooden_watch_tower2.obj" />
+    <None Include="res\shaders\Basic-Compute.shader" />
     <None Include="res\shaders\Basic.shader" />
     <None Include="res\shaders\BatchRender.shader" />
     <None Include="res\shaders\Cube.shader" />
