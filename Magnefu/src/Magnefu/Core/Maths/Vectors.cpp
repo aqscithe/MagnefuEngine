@@ -22,6 +22,15 @@ namespace Maths
         return { vec[0], vec[1], vec[2] };
     }
 
+    vec2 normalize(const vec2& v)
+    {
+        float mag = magnitude(v);
+        if (mag == 0.f)
+            return { 0.f, 0.f };
+
+        return { v.x / mag, v.y / mag };
+    }
+
     vec3 normalize(const vec3& v)
     {
         float mag = magnitude(v);

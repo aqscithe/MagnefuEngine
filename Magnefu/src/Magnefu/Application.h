@@ -12,6 +12,8 @@
 #include "Magnefu/Core/MemoryAllocation/StackAllocator.h"
 #include "Magnefu/Core/MemoryAllocation/LinkedListAlloc.h"
 
+#include "Magnefu/Core/TimeStep.h"
+
 
 namespace Magnefu
 {
@@ -33,6 +35,7 @@ namespace Magnefu
 
 		inline Window& GetWindow() { return *m_Window; }
 		inline ResourceCache& GetResourceCache() { return *m_ResourceCache; }
+		inline TimeStep& GetTimeStep() { return m_TimeStep; }
 
 		inline static Application& Get() { return *s_Instance; }
 
@@ -43,6 +46,7 @@ namespace Magnefu
 	private:
 		static Application* s_Instance;
 
+		TimeStep m_TimeStep;
 		LayerStack m_LayerStack;
 		ImGuiLayer* m_ImGuiLayer;
 		Scope<ResourceCache> m_ResourceCache;

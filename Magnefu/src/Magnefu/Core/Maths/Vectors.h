@@ -177,7 +177,7 @@ namespace Maths
 
 	inline vec2 operator/(vec2& v, float w) { return { v.x / w, v.y / w }; }
 
-	inline vec2 operator*(vec2& v, float k) { return { v.x * k, v.y * k }; }
+	inline vec2 operator*(const vec2& v, float k) { return { v.x * k, v.y * k }; }
 	inline vec2 operator*(float k, const vec2& v) { return { v.x * k, v.y * k }; }
 	inline vec2 operator*(const vec2& a, const vec2& b) { return { a.x * b.x, a.y * b.y }; }
 
@@ -277,13 +277,16 @@ namespace Maths
 #pragma region Functions
 	vec3 StrtoVec3(const std::string& str);
 
+	vec2 normalize(const vec2& v);
 	vec3 normalize(const vec3& v);
 	vec4 normalize(const vec4& v);
 	vec3 crossProduct(const vec3& v, const vec3& k);
 
+	inline float dotProduct(const vec2& ua, const vec2& ub) { return ua.x * ub.x + ua.y * ub.y; }
 	inline float dotProduct(const vec3& ua, const vec3& ub) { return ua.x * ub.x + ua.y * ub.y + ua.z * ub.z; };
 	inline float dotProduct(const vec4& ua, const vec4& ub) { return ua.x * ub.x + ua.y * ub.y + ua.z * ub.z + ua.w * ub.w; };
 
+	inline float magnitude(const vec2& v) { return sqrtf(dotProduct(v, v)); }
 	inline float magnitude(const vec3& v) { return sqrtf(dotProduct(v, v)); }
 	inline float magnitude(const vec4& v) { return sqrtf(dotProduct(v, v)); }
 

@@ -15,10 +15,16 @@ namespace Magnefu
 		// TODO: Include frame target
 		// TODO: Ability to adjust frame target 30, 45, 60, 120, 144, unlocked
 		TimeStep(float frameTarget = 1.f / 144.f) :
-			m_FrameTarget(frameTarget)
+			m_FrameTarget(frameTarget), m_DeltaTime(0.f)
 		{
 			m_CurrentTime = Clock::now();
-			//m_AccumulatedTime = 0.0;
+		}
+
+		// Used if TimeStep initialization needs to be explicitly controlled
+		// i.e. when a member variable.
+		void Init()
+		{
+			m_CurrentTime = Clock::now();
 		}
 
 		void CalculateDeltaTime()
