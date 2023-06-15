@@ -23,9 +23,9 @@ namespace Magnefu
 {
 
 	static const int MAX_FRAMES_IN_FLIGHT = 2;
-	static const int PARTICLE_COUNT = 1024;
-	static const float PARTICLE_HEIGHT = 1080.f;
-	static const float PARTICLE_WIDTH = 1000.f;
+	static const int PARTICLE_COUNT = 8192;
+	static const float HEIGHT = 1080;
+	static const float WIDTH = 1920;
 
 
 	static const std::vector<const char*> validationLayers = {
@@ -1073,7 +1073,7 @@ namespace Magnefu
 		for (auto& particle : particles) {
 			float r = 0.25f * sqrt(rndDist(rndEngine));
 			float theta = rndDist(rndEngine) * 2 * 3.14159265358979323846;
-			float x = r * cos(theta) * PARTICLE_HEIGHT / PARTICLE_WIDTH;
+			float x = r * cos(theta) * HEIGHT / WIDTH;
 			float y = r * sin(theta);
 			particle.position = Maths::vec2(x, y);
 			particle.velocity = Maths::normalize(Maths::vec2(x, y)) * 0.00025f;
@@ -1167,9 +1167,9 @@ namespace Magnefu
 		pipelineInfo.layout = m_ComputePipelineLayout;
 		pipelineInfo.stage = computeShaderStageInfo;
 
-		if (vkCreateComputePipelines(m_VkDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_ComputePipeline) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create compute pipeline!");
-		}
+		if (vkCreateComputePipelines(m_VkDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_ComputePipeline) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "failed to create compute pipeline!");
+		
 
 	}
 
@@ -2154,7 +2154,7 @@ namespace Magnefu
 	{
 		//Application& app = Application::Get();
 		ParticleUniformBufferObject ubo{};
-		ubo.deltaTime = Application::Get().GetTimeStep().GetDeltaTime() * 2.0f;
+		ubo.deltaTime = Application::Get().GetTimeStep().GetDeltaTime() * 1000.f * 2.0f;
 
 		memcpy(m_ComputeUniformBuffersMapped[m_CurrentFrame], &ubo, sizeof(ubo));
 	}
