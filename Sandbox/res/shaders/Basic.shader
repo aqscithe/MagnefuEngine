@@ -38,7 +38,3 @@ void main()
     OutColor = texture(TexSampler, FragTexCoord);
     //OutColor = vec4(FragColor * texture(TexSampler, FragTexCoord).rgb, 1.0);
 }
-
-
-#shader compute
-#version 450 core

@@ -105,10 +105,40 @@ namespace Magnefu
 		alignas(16) Maths::mat4 proj;
 	};
 
+	struct ParticleUniformBufferObject 
+	{
+		float deltaTime = 1.0f;
+	};
+
 	struct Particle {
 		Maths::vec2 position;
 		Maths::vec2 velocity;
 		Maths::vec4 color;
+
+		static VkVertexInputBindingDescription GetBindingDescription() {
+			VkVertexInputBindingDescription bindingDescription{};
+			bindingDescription.binding = 0;
+			bindingDescription.stride = sizeof(Particle);
+			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+			return bindingDescription;
+		}
+
+		static std::array<VkVertexInputAttributeDescription, 2> GetAttributeDescriptions() {
+			std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+
+			attributeDescriptions[0].binding = 0;
+			attributeDescriptions[0].location = 0;
+			attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+			attributeDescriptions[0].offset = offsetof(Particle, position);
+
+			attributeDescriptions[1].binding = 0;
+			attributeDescriptions[1].location = 1;
+			attributeDescriptions[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+			attributeDescriptions[1].offset = offsetof(Particle, color);
+
+			return attributeDescriptions;
+		}
 	};
 
 	class VKContext : public GraphicsContext
@@ -136,7 +166,9 @@ namespace Magnefu
 		void CreateImageViews();
 		void CreateRenderPass();
 		void CreateDescriptorSetLayout();
+		void CreateComputeDescriptorSetLayout();
 		void CreateGraphicsPipeline();
+		void CreateParticleGraphicsPipeline();
 		void CreateFrameBuffers();
 		void CreateCommandPool();
 		void CreateShaderStorageBuffers();
@@ -156,6 +188,7 @@ namespace Magnefu
 		void CreateDescriptorSets();
 		void CreateComputeDescriptorSets();
 		void CreateCommandBuffers();
+		void CreateComputeCommandBuffers();
 		void CreateSyncObjects();
 
 		std::vector<const char*> GetRequiredExtensions();
@@ -174,6 +207,7 @@ namespace Magnefu
 		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 		void UpdateUniformBuffer();
+		void UpdateComputeUniformBuffer();
 		void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
 		VkCommandBuffer BeginSingleTimeCommands();
 		void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
@@ -185,6 +219,7 @@ namespace Magnefu
 		bool HasStencilComponent(VkFormat format);
 		void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 		VkSampleCountFlagBits GetMaxUsableSampleCount();
+		void RecordComputeCommandBuffer(VkCommandBuffer commandBuffer);
 
 
 		// Place in VKShader
@@ -210,7 +245,7 @@ namespace Magnefu
 		std::vector<VkImageView>     m_SwapChainImageViews;
 		VkRenderPass                 m_RenderPass;
 		VkDescriptorSetLayout        m_DescriptorSetLayout;
-		ShaderList                   m_ShaderList;
+		ShaderList                   m_ParticleShaderList;
 		VkPipelineLayout             m_PipelineLayout;
 		//GraphicsPipelines            m_GraphicsPipelines;
 		VkPipeline                   m_GraphicsPipeline;
@@ -246,7 +281,7 @@ namespace Magnefu
 		VkImageView                  m_ColorImageView;
 		VkSampleCountFlagBits        m_MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
-		//------------------- Compute Shader ---------------------- //
+		//------------------- Particles     ---------------------- //
 		std::vector<VkBuffer>        m_ShaderStorageBuffers;
 		std::vector<VkDeviceMemory>  m_ShaderStorageBuffersMemory;
 		VkDescriptorSetLayout        m_ComputeDescriptorSetLayout;
@@ -257,6 +292,12 @@ namespace Magnefu
 		std::vector<void*>           m_ComputeUniformBuffersMapped;
 		VkPipeline                   m_ComputePipeline;
 		VkPipelineLayout             m_ComputePipelineLayout;
+		std::vector<VkFence>         m_ComputeInFlightFences;
+		std::vector<VkSemaphore>     m_ComputeFinishedSemaphores;
+		std::vector<VkCommandBuffer> m_ComputeCommandBuffers;
+
+		VkPipeline                   m_ParticleGraphicsPipeline;
+		VkPipelineLayout             m_ParticleGraphicsPipelineLayout;
 		// -------------------------------------------------------- //
 
 		VkPhysicalDeviceProperties   m_Properties{};

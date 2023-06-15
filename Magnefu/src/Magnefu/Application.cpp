@@ -1,9 +1,6 @@
 #include "mfpch.h"
 
 #include "Application.h"
-#include "Magnefu/Core/TimeStep.h"
-
-
 
 //TEMP
 #include "imgui/imgui.h"
@@ -101,7 +98,7 @@ namespace Magnefu
         Scope<StackAllocator>& SingleFrameAllocator = StackAllocator::Get();
 
         // TODO: Create setting to switch between locked and unlocked frame rate
-        TimeStep ts;
+        m_TimeStep.Init();
 
         while (m_Running)
         {
@@ -111,12 +108,12 @@ namespace Magnefu
             {
                 MF_PROFILE_SCOPE("Application Update");
 
-                ts.CalculateDeltaTime();
+                m_TimeStep.CalculateDeltaTime();
 
                 m_Window->OnUpdate();
 
                 for (Layer* layer : m_LayerStack)
-                    layer->OnUpdate(ts.GetDeltaTime());
+                    layer->OnUpdate(m_TimeStep.GetDeltaTime());
 
                 //OnUpdate(ts.GetDeltaTime());
             }
