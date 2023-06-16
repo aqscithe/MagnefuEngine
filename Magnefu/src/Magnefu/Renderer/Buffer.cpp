@@ -1,5 +1,4 @@
 #include "mfpch.h"
-#include "Platform/OpenGL/OpenGLBuffer.h"
 #include "Renderer.h"
 
 namespace Magnefu
@@ -11,8 +10,6 @@ namespace Magnefu
 		case RendererAPI::API::NONE:
 			MF_CORE_ASSERT(false, "RendererAPI::API::NONE VertexBuffer not supported");
 			return nullptr;
-		case RendererAPI::API::OPENGL:
-			return CreateRef<OpenGLVertexBuffer>(size);
 		}
 
 		MF_CORE_ASSERT(false, "Unknown Renderer API - VertexBuffer");
@@ -26,8 +23,6 @@ namespace Magnefu
 		case RendererAPI::API::NONE:
 			MF_CORE_ASSERT(false, "RendererAPI::API::NONE VertexBuffer not supported");
 			return nullptr;
-		case RendererAPI::API::OPENGL:
-			return CreateRef< OpenGLVertexBuffer>(size, data);
 		}
 
 		MF_CORE_ASSERT(false, "Unknown Renderer API - VertexBuffer");
@@ -41,8 +36,6 @@ namespace Magnefu
 		case RendererAPI::API::NONE:
 			MF_CORE_ASSERT(false, "RendererAPI::API::NONE IndexBuffer not supported");
 			return nullptr;
-		case RendererAPI::API::OPENGL:
-			return CreateRef<OpenGLIndexBuffer>(count, data);
 		}
 
 		MF_CORE_ASSERT(false, "Unknown Renderer API - IndexBuffer");

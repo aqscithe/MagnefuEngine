@@ -1,6 +1,5 @@
 #include "mfpch.h"
 #include "Shader.h"
-#include "Platform/OpenGL/OpenGLShader.h"
 #include "Renderer.h"
 #include "Magnefu/Application.h"
 
@@ -14,11 +13,6 @@ namespace Magnefu
 		case RendererAPI::API::NONE:
 			MF_CORE_ASSERT(false, "RendererAPI::API::NONE Shader not supported");
 			return nullptr;
-		case RendererAPI::API::OPENGL:
-		{
-			Application& app = Application::Get();
-			return app.GetResourceCache().RequestResource<OpenGLShader>(filepath);
-		}
 
 		}
 
@@ -33,11 +27,6 @@ namespace Magnefu
 		case RendererAPI::API::NONE:
 			MF_CORE_ASSERT(false, "RendererAPI::API::NONE Shader not supported");
 			return nullptr;
-		case RendererAPI::API::OPENGL:
-		{
-			Application& app = Application::Get();
-			return app.GetResourceCache().Get<OpenGLShader>(name);
-		}
 
 		}
 	}

@@ -34,9 +34,6 @@
     <Filter Include="src\Platform">
       <UniqueIdentifier>{21CA02E5-0D2D-9289-B6B2-CA3FA2F45D0C}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Platform\OpenGL">
-      <UniqueIdentifier>{35A49437-A105-7245-2A73-B8F796D3A804}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\Platform\VK">
       <UniqueIdentifier>{D175994C-3D01-0711-4612-8A05B21C6311}</UniqueIdentifier>
     </Filter>
@@ -117,6 +114,9 @@
     </Filter>
     <Filter Include="vendor\stb_image">
       <UniqueIdentifier>{0DA0BA59-F998-D9AB-22CB-BE300E23B9B7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\tiny_obj_loader">
+      <UniqueIdentifier>{D6D36F96-C2CD-98E8-AB3A-2FF997D3FE54}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor\vulkan">
       <UniqueIdentifier>{F30DBE29-5FCE-3960-2809-83DD94887E3C}</UniqueIdentifier>
@@ -291,12 +291,6 @@
     <ClInclude Include="src\Magnefu\Renderer\Material.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\Mesh.h">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\Model.h">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
@@ -335,27 +329,6 @@
     </ClInclude>
     <ClInclude Include="src\Magnefu\Window.h">
       <Filter>src\Magnefu</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Platform\OpenGL\OpenGLBuffer.h">
-      <Filter>src\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h">
-      <Filter>src\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Platform\OpenGL\OpenGLMaterial.h">
-      <Filter>src\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h">
-      <Filter>src\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Platform\OpenGL\OpenGLShader.h">
-      <Filter>src\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Platform\OpenGL\OpenGLTexture.h">
-      <Filter>src\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h">
-      <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\VK\VKContext.h">
       <Filter>src\Platform\VK</Filter>
@@ -520,9 +493,6 @@
       <Filter>vendor\glm\simd</Filter>
     </ClInclude>
     <ClInclude Include="vendor\imgui\backends\imgui_impl_glfw.h">
-      <Filter>vendor\imgui\backends</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui\backends\imgui_impl_opengl3.h">
       <Filter>vendor\imgui\backends</Filter>
     </ClInclude>
     <ClInclude Include="vendor\imgui\imconfig.h">
@@ -854,6 +824,9 @@
     </ClInclude>
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\tiny_obj_loader\tiny_obj_loader.h">
+      <Filter>vendor\tiny_obj_loader</Filter>
     </ClInclude>
     <ClInclude Include="vendor\vulkan\include\SDL2\SDL.h">
       <Filter>vendor\vulkan\include\SDL2</Filter>
@@ -1373,12 +1346,6 @@
     <ClCompile Include="src\Magnefu\Renderer\Material.cpp">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\Mesh.cpp">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\Model.cpp">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="src\Magnefu\Renderer\RenderCommand.cpp">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClCompile>
@@ -1406,27 +1373,6 @@
     <ClCompile Include="src\Magnefu\ResourceManagement\ResourceCache.cpp">
       <Filter>src\Magnefu\ResourceManagement</Filter>
     </ClCompile>
-    <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp">
-      <Filter>src\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp">
-      <Filter>src\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Platform\OpenGL\OpenGLMaterial.cpp">
-      <Filter>src\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp">
-      <Filter>src\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Platform\OpenGL\OpenGLShader.cpp">
-      <Filter>src\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Platform\OpenGL\OpenGLTexture.cpp">
-      <Filter>src\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp">
-      <Filter>src\Platform\OpenGL</Filter>
-    </ClCompile>
     <ClCompile Include="src\Platform\VK\VKContext.cpp">
       <Filter>src\Platform\VK</Filter>
     </ClCompile>
@@ -1452,9 +1398,6 @@
       <Filter>vendor\glm\detail</Filter>
     </ClCompile>
     <ClCompile Include="vendor\imgui\backends\imgui_impl_glfw.cpp">
-      <Filter>vendor\imgui\backends</Filter>
-    </ClCompile>
-    <ClCompile Include="vendor\imgui\backends\imgui_impl_opengl3.cpp">
       <Filter>vendor\imgui\backends</Filter>
     </ClCompile>
     <ClCompile Include="vendor\imgui\imgui.cpp">

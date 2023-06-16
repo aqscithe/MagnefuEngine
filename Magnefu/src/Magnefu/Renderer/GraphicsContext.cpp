@@ -1,7 +1,6 @@
 #include "mfpch.h"
 #include "GraphicsContext.h"
 #include "Magnefu/Renderer/Renderer.h"
-#include "Platform/OpenGL/OpenGLContext.h"
 #include "Platform/VK/VKContext.h"
 
 
@@ -11,12 +10,6 @@ namespace Magnefu
 	{
 		switch (Renderer::GetAPI())
 		{
-		
-			case RendererAPI::API::OPENGL:
-			{
-				return new OpenGLContext(windowHandle);
-			}
-
 			case RendererAPI::API::VULKAN:
 			{
 				return new VKContext(windowHandle);

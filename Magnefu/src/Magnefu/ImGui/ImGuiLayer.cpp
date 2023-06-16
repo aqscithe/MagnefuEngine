@@ -7,7 +7,6 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "imgui/backends/imgui_impl_glfw.h"
-#include "imgui/backends/imgui_impl_opengl3.h"
 #include "imgui/backends/imgui_impl_vulkan.h"
 
 #define GLFW_INCLUDE_VULKAN
@@ -62,9 +61,6 @@ namespace Magnefu
 		GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
 
 		// Setup Platform/Renderer backends
-		const char* glsl_version = "#version 460";
-		//ImGui_ImplGlfw_InitForOpenGL(window, true);
-		//ImGui_ImplOpenGL3_Init(glsl_version);
 		ImGui_ImplGlfw_InitForVulkan(window, true); // TODO: Make this based on an API switch
 		//ImGui_ImplVulkan_Init(ImGui_ImplVulkan_InitInfo * info, VkRenderPass render_pass);
 

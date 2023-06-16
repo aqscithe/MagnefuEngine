@@ -4,8 +4,6 @@
 #include "Magnefu/Core/Events/Input.h"
 #include "Magnefu/Core/Events/KeyCodes.h"
 
-#include "Magnefu/Renderer/RenderCommand.h"
-
 #include "imgui.h"
 
 namespace Magnefu

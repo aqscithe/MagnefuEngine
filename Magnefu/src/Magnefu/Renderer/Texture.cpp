@@ -1,7 +1,6 @@
 #include "mfpch.h"
 #include "Texture.h"
 #include "Magnefu/ResourceManagement/CacheableResource.h"
-#include "Platform/OpenGL/OpenGLTexture.h"
 #include "Renderer.h"
 #include "Magnefu/Application.h"
 
@@ -16,11 +15,6 @@ namespace Magnefu
 			{
 				MF_CORE_ASSERT(false, "RendererAPI::API::NONE Texture not supported");
 				return nullptr;
-			}
-			case RendererAPI::API::OPENGL:
-			{
-				Application& app = Application::Get();
-				return app.GetResourceCache().RequestResource<OpenGLTexture>(options, filepath);
 			}
 			
 		}
