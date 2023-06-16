@@ -30,7 +30,7 @@ namespace Magnefu
 
 	bool SceneCamera::OnWindowResize(WindowResizeEvent& e)
 	{
-		RenderCommand::SetWindowSize(e.GetWidth(), e.GetHeight());
+		//RenderCommand::SetWindowSize(e.GetWidth(), e.GetHeight());
 		return false;
 	}
 

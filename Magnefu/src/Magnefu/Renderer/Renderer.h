@@ -30,7 +30,7 @@ namespace Magnefu
 		//
 		//static void OnImGuiRender();
 		
-		//inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
+		inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 	private:
 
 	};
