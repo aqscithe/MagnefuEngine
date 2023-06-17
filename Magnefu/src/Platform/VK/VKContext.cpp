@@ -326,6 +326,19 @@ namespace Magnefu
 
 	}
 
+	std::any VKContext::GetContextInfo(const std::string& name)
+	{
+		if (name == "Instance") return m_VkInstance;
+		else if (name == "PhysicalDevice") return m_VkPhysicalDevice;
+		else if (name == "Device") return m_VkDevice;
+		else if (name == "Surface") return m_WindowSurface;
+		else if (name == "SurfaceFormat") return m_SurfaceFormat;
+		else if (name == "ImageCount") return m_ImageCount;
+		else if (name == "QueueFamily") return m_QueueFamilyIndices.GraphicsFamily.value();
+		else if (name == "Queue") return m_GraphicsQueue;
+		
+	}
+
 	void VKContext::CreateVkInstance()
 	{
 		bool allLayersAvailable = true;
@@ -568,6 +581,11 @@ namespace Magnefu
 		{
 			imageCount = swapChainSupport.Capabilities.maxImageCount;
 		}
+
+		//--For ImGui--//
+		m_SurfaceFormat = surfaceFormat;
+		m_ImageCount = imageCount;
+		//-------------//
 
 		VkSwapchainCreateInfoKHR swapChainCreateInfo{};
 		swapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;

@@ -21,7 +21,7 @@ namespace Magnefu
 		virtual void DrawFrame() = 0;
 		virtual void OnImGuiRender() = 0;
 		virtual void OnFinish() = 0;
-		virtual void GetImGuiInitData() = 0;
+		virtual std::any GetContextInfo(const std::string& name) = 0;
 		virtual void SetFramebufferResized(bool framebufferResized) = 0;
 
 		static GraphicsContext* Create(void* windowHandle);

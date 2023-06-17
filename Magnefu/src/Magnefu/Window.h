@@ -5,6 +5,7 @@
 #include "Magnefu/Core/Assertions.h"
 #include "Magnefu/Core/Events/Event.h"
 #include "Magnefu/Renderer/Camera.h"
+#include "Magnefu/Renderer/GraphicsContext.h"
 
 
 namespace Magnefu
@@ -46,6 +47,7 @@ namespace Magnefu
 		virtual void SetSceneCamera(const Ref<Camera>&) = 0;
 		virtual Ref<Camera>& GetSceneCamera() = 0;
 		virtual void SetFramebufferResized(bool framebufferResized) = 0;
+		virtual GraphicsContext* GetGraphicsContext() = 0;
 
 		static Window* Create(const WindowProps& props = WindowProps());
 	};

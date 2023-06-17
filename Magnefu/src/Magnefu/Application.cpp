@@ -115,7 +115,6 @@ namespace Magnefu
                 for (Layer* layer : m_LayerStack)
                     layer->OnUpdate(m_TimeStep.GetDeltaTime());
 
-                //OnUpdate(ts.GetDeltaTime());
             }
             
             {

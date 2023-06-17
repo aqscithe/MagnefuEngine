@@ -149,8 +149,10 @@ namespace Magnefu
 		void DrawFrame() override;
 		void OnImGuiRender() override;
 		void OnFinish() override; // main loop completed
-		void GetImGuiInitData() override { int x = 1; }
+		std::any GetContextInfo(const std::string& name) override;
 		void SetFramebufferResized(bool framebufferResized) override { m_FramebufferResized = framebufferResized; }
+
+		
 
 	private:
 		void CreateVkInstance();
@@ -235,6 +237,8 @@ namespace Magnefu
 		VkQueue			             m_PresentQueue;
 		VkQueue                      m_ComputeQueue;
 		QueueFamilyIndices           m_QueueFamilyIndices;
+		VkSurfaceFormatKHR           m_SurfaceFormat;
+		uint32_t                     m_ImageCount;
 		VkSwapchainKHR               m_SwapChain;
 		std::vector<VkImage>         m_SwapChainImages;
 		VkFormat                     m_SwapChainImageFormat;
@@ -244,7 +248,6 @@ namespace Magnefu
 		VkDescriptorSetLayout        m_DescriptorSetLayout;
 		ShaderList                   m_ParticleShaderList;
 		VkPipelineLayout             m_PipelineLayout;
-		//GraphicsPipelines            m_GraphicsPipelines;
 		VkPipeline                   m_GraphicsPipeline;
 		std::vector<VkFramebuffer>   m_SwapChainFramebuffers;
 		VkCommandPool                m_CommandPool;
