@@ -105,25 +105,22 @@ namespace Magnefu
             //SingleFrameAllocator->Clear();
             MF_PROFILE_SCOPE("Run Loop");
 
-            {
+            
                 MF_PROFILE_SCOPE("Application Update");
 
                 m_TimeStep.CalculateDeltaTime();
 
                 m_Window->OnUpdate();
 
+                if (m_ImGuiLayer)
+                    m_ImGuiLayer->BeginFrame();
+
                 for (Layer* layer : m_LayerStack)
                     layer->OnUpdate(m_TimeStep.GetDeltaTime());
 
-            }
-            
-            {
-                MF_PROFILE_SCOPE("Application Render");
-                /*if (m_ImGuiLayer)
-                    m_ImGuiLayer->BeginFrame();*/
-
                 // Temp implementation while I figure out an optimal design for vulkan rendering
                 m_Window->DrawFrame();
+
 
                 // Temporarily disabling while I test vulkan
                 /*for (Layer* layer : m_LayerStack)
@@ -132,11 +129,11 @@ namespace Magnefu
                     layer->OnGUIRender();
                 }*/
                    
-                /*OnGUIRender();
+                OnGUIRender();
 
                 if (m_ImGuiLayer)
-                    m_ImGuiLayer->EndFrame();*/
-            }
+                    m_ImGuiLayer->EndFrame();
+            
 
         }   
         m_Window->OnFinish();
@@ -167,7 +164,7 @@ namespace Magnefu
         }
         ImGui::End();
 
-        m_Window->OnImGuiRender();
+       // m_Window->OnImGuiRender();
         //Renderer::OnImGuiRender();
 
 #ifdef MF_DEBUG

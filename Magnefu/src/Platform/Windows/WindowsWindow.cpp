@@ -217,7 +217,7 @@ namespace Magnefu
 		processInput();
 		glfwPollEvents();
 		
-		m_Context->SwapBuffers();
+		//m_Context->SwapBuffers();
 	}
 
 	void WindowsWindow::DrawFrame()

@@ -237,6 +237,7 @@ namespace Magnefu
 		uint32_t imageIndex;
 		VkResult result = vkAcquireNextImageKHR(m_VkDevice, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &imageIndex);
 
+		m_SwapChainRebuild = false;
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)
 			RecreateSwapChain();
 		else
@@ -2040,6 +2041,8 @@ namespace Magnefu
 	// struct and destroy the old swap chain as soon as you've finished using it.
 	void VKContext::RecreateSwapChain()
 	{
+		m_SwapChainRebuild = true; // for ImGui
+
 		int width = 0, height = 0;
 		glfwGetFramebufferSize(m_WindowHandle, &width, &height);
 		while (width == 0 || height == 0) 

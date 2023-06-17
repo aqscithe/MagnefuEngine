@@ -239,6 +239,7 @@ namespace Magnefu
 		QueueFamilyIndices           m_QueueFamilyIndices;
 		VkSurfaceFormatKHR           m_SurfaceFormat;
 		uint32_t                     m_ImageCount;
+		bool                         m_SwapChainRebuild = false;
 		VkSwapchainKHR               m_SwapChain;
 		std::vector<VkImage>         m_SwapChainImages;
 		VkFormat                     m_SwapChainImageFormat;
