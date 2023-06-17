@@ -1,8 +1,6 @@
 #pragma once
 
-#define GLFW_INCLUDE_VULKAN
-#include "GLFW/glfw3.h"
-#include <string>
+
 
 namespace Magnefu
 {
@@ -26,7 +24,7 @@ namespace Magnefu
 		virtual void GetImGuiInitData() = 0;
 		virtual void SetFramebufferResized(bool framebufferResized) = 0;
 
-		static GraphicsContext* Create(GLFWwindow* windowHandle);
+		static GraphicsContext* Create(void* windowHandle);
 
 	private:
 

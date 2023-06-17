@@ -3,11 +3,8 @@
 #include "Magnefu/Renderer/GraphicsContext.h"
 #include "vulkan/vulkan.h"
 
-//#define GLM_ENABLE_EXPERIMENTAL
-//#include <glm/gtx/hash.hpp>
 
 struct GLFWwindow;
-
 
 namespace Magnefu
 {
