@@ -17,6 +17,7 @@ namespace Magnefu
 		void OnAttach() override;
 		void OnDetach() override;
 		void OnEvent(Event&) override;
+		void OnRender() override;
 
 		void BeginFrame();
 		void EndFrame();

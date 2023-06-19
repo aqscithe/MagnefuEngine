@@ -343,6 +343,11 @@ namespace Magnefu
 	void ImGuiLayer::EndFrame()
 	{
 		ImGui::Render();
+		
+	}
+
+	void ImGuiLayer::OnRender()
+	{
 		ImDrawData* draw_data = ImGui::GetDrawData();
 		const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
 		ImGui_ImplVulkanH_Window* wd = &s_MainWindowData;

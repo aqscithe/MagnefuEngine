@@ -118,8 +118,14 @@ namespace Magnefu
                 for (Layer* layer : m_LayerStack)
                     layer->OnUpdate(m_TimeStep.GetDeltaTime());
 
+                if (m_ImGuiLayer)
+                    m_ImGuiLayer->EndFrame();
+
                 // Temp implementation while I figure out an optimal design for vulkan rendering
                 m_Window->DrawFrame();
+
+                if (m_ImGuiLayer)
+                    m_ImGuiLayer->OnRender();
 
 
                 // Temporarily disabling while I test vulkan
@@ -129,10 +135,8 @@ namespace Magnefu
                     layer->OnGUIRender();
                 }*/
                    
-                OnGUIRender();
+                //OnGUIRender();
 
-                if (m_ImGuiLayer)
-                    m_ImGuiLayer->EndFrame();
             
 
         }   
