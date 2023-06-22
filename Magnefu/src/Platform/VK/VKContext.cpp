@@ -134,8 +134,10 @@ namespace Magnefu
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			vkDestroySemaphore(m_VkDevice, m_ImageAvailableSemaphores[i], nullptr);
+			vkDestroySemaphore(m_VkDevice, m_ImGuiRenderFinishedSemaphores[i], nullptr);
 			vkDestroySemaphore(m_VkDevice, m_RenderFinishedSemaphores[i], nullptr);
 			vkDestroyFence(m_VkDevice, m_InFlightFences[i], nullptr);
+			vkDestroyFence(m_VkDevice, m_ImGuiInFlightFences[i], nullptr);
 		}
 
 		vkDestroyCommandPool(m_VkDevice, m_CommandPool, nullptr);
@@ -206,86 +208,19 @@ namespace Magnefu
 
 	void VKContext::DrawFrame()
 	{
-		VkSubmitInfo submitInfo{};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-		// COMPUTE SUBMISSION //
-		vkWaitForFences(m_VkDevice, 1, &m_ComputeInFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
+	}
 
-		UpdateComputeUniformBuffer();
+	void VKContext::BeginFrame()
+	{
+		PerformComputeOps();
+		PerformGraphicsOps();
+	}
 
-		vkResetFences(m_VkDevice, 1, &m_ComputeInFlightFences[m_CurrentFrame]);
-
-		vkResetCommandBuffer(m_ComputeCommandBuffers[m_CurrentFrame], /*VkCommandBufferResetFlagBits*/ 0);
-		RecordComputeCommandBuffer(m_ComputeCommandBuffers[m_CurrentFrame]);
-
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &m_ComputeCommandBuffers[m_CurrentFrame];
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = &m_ComputeFinishedSemaphores[m_CurrentFrame];
-
-		if (vkQueueSubmit(m_ComputeQueue, 1, &submitInfo, m_ComputeInFlightFences[m_CurrentFrame]) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "failed to submit compute command buffer!");
-		
-
-		// GRAPHICS SUBMISSION //
-		
-		// Wait for previous frame
-		vkWaitForFences(m_VkDevice, 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
-
-		// Acquire image from swap chain
-		uint32_t imageIndex;
-		VkResult result = vkAcquireNextImageKHR(m_VkDevice, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &imageIndex);
-
-		m_SwapChainRebuild = false;
-		if (result == VK_ERROR_OUT_OF_DATE_KHR)
-			RecreateSwapChain();
-		else
-			MF_CORE_ASSERT(result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR, "Failed to acquire next image for swap chain.");
-
-		// Reset fences
-		vkResetFences(m_VkDevice, 1, &m_InFlightFences[m_CurrentFrame]);
-
-		// Reset and Record Command Buffer
-		vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
-		RecordCommandBuffer(m_CommandBuffers[m_CurrentFrame], imageIndex);
-
-		UpdateUniformBuffer();
-
-		submitInfo = {};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-		VkSemaphore waitSemaphores[] = { m_ComputeFinishedSemaphores[m_CurrentFrame], m_ImageAvailableSemaphores[m_CurrentFrame]};
-		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-		submitInfo.waitSemaphoreCount = 2;
-		submitInfo.pWaitSemaphores = waitSemaphores;
-		submitInfo.pWaitDstStageMask = waitStages;
-
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &m_CommandBuffers[m_CurrentFrame];
-
-		VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphores[m_CurrentFrame] };
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = signalSemaphores;
-
-		if (vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_InFlightFences[m_CurrentFrame]) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "failed to submit draw command buffer!");
-		
-		// Subpass Dependencies
-		VkSubpassDependency dependency{};
-		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-		dependency.dstSubpass = 0;
-
-		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-		dependency.srcAccessMask = 0;
-
-		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-
-		VkRenderPassCreateInfo renderPassInfo{};
-		renderPassInfo.dependencyCount = 1;
-		renderPassInfo.pDependencies = &dependency;
+	void VKContext::EndFrame()
+	{
+		VkSemaphore signalSemaphores[] = { m_ImGuiRenderFinishedSemaphores[m_CurrentFrame]};
+		//VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphores[m_CurrentFrame]};
 
 		// Presentation (submitting image back to swap chain)
 		VkPresentInfoKHR presentInfo{};
@@ -297,11 +232,11 @@ namespace Magnefu
 		VkSwapchainKHR swapChains[] = { m_SwapChain };
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = swapChains;
-		presentInfo.pImageIndices = &imageIndex;
+		presentInfo.pImageIndices = &m_ImageIndex;
 
 		presentInfo.pResults = nullptr; // Optional
 
-		result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+		VkResult result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_FramebufferResized)
 		{
@@ -337,7 +272,19 @@ namespace Magnefu
 		else if (name == "ImageCount") return m_ImageCount;
 		else if (name == "QueueFamily") return m_QueueFamilyIndices.GraphicsFamily.value();
 		else if (name == "Queue") return m_GraphicsQueue;
-		
+		else if (name == "PresentMode") return m_PresentMode;
+		else if (name == "CurrentFrame") return m_CurrentFrame;
+		else if (name == "SwapChain") return m_SwapChain;
+		else if (name == "CommandPool") return m_CommandPool;
+		else if (name == "CommandBuffer") return m_CommandBuffers[m_CurrentFrame];
+		else if (name == "ImGuiCommandBuffer") return m_ImGuiCommandBuffers[m_CurrentFrame];
+		else if (name == "SwapChainImages") return m_SwapChainImages.data();
+		else if (name == "SwapChainExtent") return m_SwapChainExtent;
+		else if (name == "SwapChainRebuild") return m_SwapChainRebuild;
+		else if (name == "InFlightFence") return m_InFlightFences[m_CurrentFrame];
+		else if (name == "ImGuiInFlightFence") return m_ImGuiInFlightFences[m_CurrentFrame];
+		else if (name == "ImGuiWaitSemaphores") return &m_RenderFinishedSemaphores[m_CurrentFrame];
+		else if (name == "ImGuiSignalSemaphores") return &m_ImGuiRenderFinishedSemaphores[m_CurrentFrame];
 	}
 
 	void VKContext::CreateVkInstance()
@@ -574,7 +521,7 @@ namespace Magnefu
 		SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(m_VkPhysicalDevice);
 
 		VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.Formats);
-		VkPresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.PresentModes);
+		m_PresentMode = ChooseSwapPresentMode(swapChainSupport.PresentModes);
 		VkExtent2D extent = ChooseSwapExtent(swapChainSupport.Capabilities);
 
 		uint32_t imageCount = swapChainSupport.Capabilities.minImageCount + 1;
@@ -615,7 +562,7 @@ namespace Magnefu
 
 		swapChainCreateInfo.preTransform = swapChainSupport.Capabilities.currentTransform;
 		swapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-		swapChainCreateInfo.presentMode = presentMode;
+		swapChainCreateInfo.presentMode = m_PresentMode;
 		swapChainCreateInfo.clipped = VK_TRUE;
 		swapChainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
@@ -692,6 +639,15 @@ namespace Magnefu
 		subpass.pDepthStencilAttachment = &depthAttachmentRef;
 		subpass.pResolveAttachments = &colorAttachmentResolveRef;
 
+		// Subpass Dependencies
+		VkSubpassDependency dependency{};
+		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependency.dstSubpass = 0;
+		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		dependency.srcAccessMask = 0;
+		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;		
+
 		std::array<VkAttachmentDescription, 3> attachments = { colorAttachment, depthAttachment, colorAttachmentResolve };
 
 		VkRenderPassCreateInfo renderPassInfo{};
@@ -700,6 +656,8 @@ namespace Magnefu
 		renderPassInfo.pAttachments = attachments.data();
 		renderPassInfo.subpassCount = 1;
 		renderPassInfo.pSubpasses = &subpass;
+		renderPassInfo.dependencyCount = 1;
+		renderPassInfo.pDependencies = &dependency;
 
 		if (vkCreateRenderPass(m_VkDevice, &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to create render pass!");
@@ -1698,6 +1656,18 @@ namespace Magnefu
 
 		if (vkAllocateCommandBuffers(m_VkDevice, &allocInfo, m_CommandBuffers.data()) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to allocate command buffers!");
+
+		m_ImGuiCommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+
+		allocInfo = {};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.commandPool = m_CommandPool;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandBufferCount = (uint32_t)m_ImGuiCommandBuffers.size();
+
+		if (vkAllocateCommandBuffers(m_VkDevice, &allocInfo, m_ImGuiCommandBuffers.data()) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "failed to allocate command buffers!");
+		
 	}
 
 	void VKContext::CreateComputeCommandBuffers()
@@ -1730,8 +1700,11 @@ namespace Magnefu
 
 
 		m_ImageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+		m_ImGuiRenderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 		m_RenderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+
 		m_InFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+		m_ImGuiInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
 
 		VkSemaphoreCreateInfo semaphoreInfo{};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -1749,8 +1722,10 @@ namespace Magnefu
 			}
 
 			if (vkCreateSemaphore(m_VkDevice, &semaphoreInfo, nullptr, &m_ImageAvailableSemaphores[i]) != VK_SUCCESS ||
+				vkCreateSemaphore(m_VkDevice, &semaphoreInfo, nullptr, &m_ImGuiRenderFinishedSemaphores[i]) != VK_SUCCESS ||
 				vkCreateSemaphore(m_VkDevice, &semaphoreInfo, nullptr, &m_RenderFinishedSemaphores[i]) != VK_SUCCESS ||
-				vkCreateFence(m_VkDevice, &fenceInfo, nullptr, &m_InFlightFences[i]) != VK_SUCCESS)
+				vkCreateFence(m_VkDevice, &fenceInfo, nullptr, &m_InFlightFences[i]) != VK_SUCCESS ||
+				vkCreateFence(m_VkDevice, &fenceInfo, nullptr, &m_ImGuiInFlightFences[i]) != VK_SUCCESS)
 			{
 				MF_CORE_ASSERT(false, "failed to create GRAPHICS semaphores and/or fences!");
 			}
@@ -2060,6 +2035,10 @@ namespace Magnefu
 		CreateColorResources();
 		CreateDepthResources();
 		CreateFrameBuffers();
+
+		// Recreate ImGui Resources
+		Application::Get().GetImGuiLayer()->RecreateImageResources();
+
 	}
 
 	void VKContext::CleanupSwapChain()
@@ -2549,6 +2528,86 @@ namespace Magnefu
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to record compute command buffer!");
 		
+	}
+
+	void VKContext::PerformComputeOps()
+	{
+		// COMPUTE SUBMISSION //
+
+		// Wait for previous frame
+		vkWaitForFences(m_VkDevice, 1, &m_ComputeInFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
+
+		UpdateComputeUniformBuffer();
+
+		vkResetFences(m_VkDevice, 1, &m_ComputeInFlightFences[m_CurrentFrame]);
+
+		vkResetCommandBuffer(m_ComputeCommandBuffers[m_CurrentFrame], /*VkCommandBufferResetFlagBits*/ 0);
+		RecordComputeCommandBuffer(m_ComputeCommandBuffers[m_CurrentFrame]);
+
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &m_ComputeCommandBuffers[m_CurrentFrame];
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = &m_ComputeFinishedSemaphores[m_CurrentFrame];
+
+		if (vkQueueSubmit(m_ComputeQueue, 1, &submitInfo, m_ComputeInFlightFences[m_CurrentFrame]) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "failed to submit compute command buffer!");
+	}
+
+	void VKContext::PerformGraphicsOps()
+	{
+		// GRAPHICS SUBMISSION //
+
+		// Wait for previous frame
+		vkWaitForFences(m_VkDevice, 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
+
+		// Acquire image from swap chain
+		VkResult result = vkAcquireNextImageKHR(m_VkDevice, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &m_ImageIndex);
+
+
+		m_SwapChainRebuild = false;
+		if (result == VK_ERROR_OUT_OF_DATE_KHR)
+			RecreateSwapChain();
+		else
+			MF_CORE_ASSERT(result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR, "Failed to acquire next image for swap chain.");
+
+		// Reset fences
+		vkResetFences(m_VkDevice, 1, &m_InFlightFences[m_CurrentFrame]);
+
+		// Reset and Record Command Buffer - Game Objects
+		vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
+		RecordCommandBuffer(m_CommandBuffers[m_CurrentFrame], m_ImageIndex);
+
+		UpdateUniformBuffer();
+
+		VkSemaphore waitSemaphores[] = { m_ComputeFinishedSemaphores[m_CurrentFrame], m_ImageAvailableSemaphores[m_CurrentFrame] };
+		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.waitSemaphoreCount = 2;
+		submitInfo.pWaitSemaphores = waitSemaphores;
+		submitInfo.pWaitDstStageMask = waitStages;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &m_CommandBuffers[m_CurrentFrame];
+
+		VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphores[m_CurrentFrame] };
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = signalSemaphores;
+
+		if (vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_InFlightFences[m_CurrentFrame]) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "failed to submit draw command buffer!");
+
+
+		// Wait for Game Object Command Execution to Finish
+		vkWaitForFences(m_VkDevice, 1, &m_ImGuiInFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
+
+		// Reset fences
+		vkResetFences(m_VkDevice, 1, &m_ImGuiInFlightFences[m_CurrentFrame]);
+
+		Application::Get().GetImGuiLayer()->RecordAndSubmitCommandBuffer();
+
 	}
 
 	VkShaderModule VKContext::CreateShaderModule(const ShaderSource& source)

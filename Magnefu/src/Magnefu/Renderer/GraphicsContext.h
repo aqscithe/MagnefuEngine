@@ -19,10 +19,14 @@ namespace Magnefu
 		virtual void Init() = 0;
 		virtual void SwapBuffers() = 0;
 		virtual void DrawFrame() = 0;
+		virtual void BeginFrame() = 0;
+		virtual void EndFrame() = 0;
 		virtual void OnImGuiRender() = 0;
 		virtual void OnFinish() = 0;
 		virtual std::any GetContextInfo(const std::string& name) = 0;
 		virtual void SetFramebufferResized(bool framebufferResized) = 0;
+
+		
 
 		static GraphicsContext* Create(void* windowHandle);
 

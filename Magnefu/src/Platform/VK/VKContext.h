@@ -147,6 +147,8 @@ namespace Magnefu
 		void Init() override;
 		void SwapBuffers() override;
 		void DrawFrame() override;
+		void BeginFrame() override;
+		void EndFrame() override;
 		void OnImGuiRender() override;
 		void OnFinish() override; // main loop completed
 		std::any GetContextInfo(const std::string& name) override;
@@ -220,6 +222,9 @@ namespace Magnefu
 		VkSampleCountFlagBits GetMaxUsableSampleCount();
 		void RecordComputeCommandBuffer(VkCommandBuffer commandBuffer);
 
+		void PerformComputeOps();
+		void PerformGraphicsOps();
+
 
 		// Place in VKShader
 		ShaderList ParseShader(const String& filepath);
@@ -239,7 +244,9 @@ namespace Magnefu
 		QueueFamilyIndices           m_QueueFamilyIndices;
 		VkSurfaceFormatKHR           m_SurfaceFormat;
 		uint32_t                     m_ImageCount;
+		uint32_t                     m_ImageIndex;
 		bool                         m_SwapChainRebuild = false;
+		VkPresentModeKHR             m_PresentMode;
 		VkSwapchainKHR               m_SwapChain;
 		std::vector<VkImage>         m_SwapChainImages;
 		VkFormat                     m_SwapChainImageFormat;
@@ -254,6 +261,7 @@ namespace Magnefu
 		VkCommandPool                m_CommandPool;
 		std::vector<VkCommandBuffer> m_CommandBuffers;
 		std::vector<VkSemaphore>     m_ImageAvailableSemaphores;
+		std::vector<VkSemaphore>     m_ImGuiRenderFinishedSemaphores;
 		std::vector<VkSemaphore>     m_RenderFinishedSemaphores;
 		std::vector<VkFence>         m_InFlightFences;
 		uint32_t                     m_CurrentFrame;
@@ -300,6 +308,13 @@ namespace Magnefu
 		VkPipeline                   m_ParticleGraphicsPipeline;
 		VkPipelineLayout             m_ParticleGraphicsPipelineLayout;
 		// -------------------------------------------------------- //
+
+		//------------------- ImGui ---------------------- //
+
+		std::vector<VkCommandBuffer> m_ImGuiCommandBuffers;
+		std::vector<VkFence>         m_ImGuiInFlightFences;
+
+		// ----------------------------------------------- //
 
 		VkPhysicalDeviceProperties   m_Properties{};
 		VkPhysicalDeviceFeatures     m_SupportedFeatures;

@@ -1,6 +1,8 @@
 #include "mfpch.h"
 
 #include "Application.h"
+#include "Renderer/GraphicsContext.h"
+
 
 //TEMP
 #include "imgui/imgui.h"
@@ -91,11 +93,14 @@ namespace Magnefu
 
     }
 
-
+    // TODO: Make graphics context a child of application, not window
 	void Application::Run()
 	{        
         MF_PROFILE_FUNCTION();
         Scope<StackAllocator>& SingleFrameAllocator = StackAllocator::Get();
+
+        // Maybe Do a unique pointer(Scope) as there should only be one
+        GraphicsContext* GraphicsContext = m_Window->GetGraphicsContext();
 
         // TODO: Create setting to switch between locked and unlocked frame rate
         m_TimeStep.Init();
@@ -105,39 +110,60 @@ namespace Magnefu
             //SingleFrameAllocator->Clear();
             MF_PROFILE_SCOPE("Run Loop");
 
-            
-                MF_PROFILE_SCOPE("Application Update");
-
                 m_TimeStep.CalculateDeltaTime();
 
+                // -- Poll and Handle Events -- //
                 m_Window->OnUpdate();
+                // -- ---------------------------------------- -- //
 
+
+
+                // -- Start ImGui Frame -- //
                 if (m_ImGuiLayer)
                     m_ImGuiLayer->BeginFrame();
+                // -- ---------------------------------------- -- //
 
+
+
+                // -- Game Logic And ImGui Widget Updates Here -- //
                 for (Layer* layer : m_LayerStack)
                     layer->OnUpdate(m_TimeStep.GetDeltaTime());
 
-                if (m_ImGuiLayer)
-                    m_ImGuiLayer->EndFrame();
 
-                // Temp implementation while I figure out an optimal design for vulkan rendering
-                m_Window->DrawFrame();
-
-                if (m_ImGuiLayer)
-                    m_ImGuiLayer->OnRender();
-
-
-                // Temporarily disabling while I test vulkan
                 /*for (Layer* layer : m_LayerStack)
                 {
-                    layer->OnRender();
                     layer->OnGUIRender();
                 }*/
-                   
-                //OnGUIRender();
 
-            
+                OnGUIRender();
+
+                // -- ---------------------------------------- -- //
+
+
+
+                // -- This constructs the draw data for the ImGui frame, but doesn't actually submit any draw commands. -- //
+                if (m_ImGuiLayer)
+                    m_ImGuiLayer->EndFrame();
+                // -- ---------------------------------------- -- //
+
+
+                // -- Start Vulkan command buffer recording -- //
+                // -- Issue draw calls for game objects -- //
+
+                GraphicsContext->BeginFrame();
+
+
+                // -- ---------------------------------------- -- //
+
+
+
+                // -- Presentation (i.e., call vkQueuePresentKHR()) -- //
+
+                
+                GraphicsContext->EndFrame();
+
+                // -- ---------------------------------------- -- //
+
 
         }   
         m_Window->OnFinish();

@@ -27,7 +27,7 @@ static ImGui_ImplVulkanH_Window s_MainWindowData;
 static int                      s_MinImageCount = 2;
 static bool                     s_SwapChainRebuild = false;
 
-static ImVec4                   s_ClearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+static ImVec4                   s_ClearColor = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
 
 
 static void SetupVulkan()
@@ -66,9 +66,9 @@ static void SetupVulkanWindow(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface
 	wd->Surface = surface;
 
 	// Select Surface Format
-	//const VkFormat requestSurfaceImageFormat[] = { VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM };
-	//const VkColorSpaceKHR requestSurfaceColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
-	//wd->SurfaceFormat = ImGui_ImplVulkanH_SelectSurfaceFormat(s_PhysicalDevice, wd->Surface, requestSurfaceImageFormat, (size_t)IM_ARRAYSIZE(requestSurfaceImageFormat), requestSurfaceColorSpace);
+	const VkFormat requestSurfaceImageFormat[] = { VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM };
+	const VkColorSpaceKHR requestSurfaceColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+	wd->SurfaceFormat = ImGui_ImplVulkanH_SelectSurfaceFormat(s_PhysicalDevice, wd->Surface, requestSurfaceImageFormat, (size_t)IM_ARRAYSIZE(requestSurfaceImageFormat), requestSurfaceColorSpace);
 
 	// Select Present Mode
 #ifdef IMGUI_UNLIMITED_FRAME_RATE
@@ -89,31 +89,132 @@ static void CleanupVulkanWindow()
 	ImGui_ImplVulkanH_DestroyWindow(s_Instance, s_Device, &s_MainWindowData, s_Allocator);
 }
 
-static void FrameRender(ImGui_ImplVulkanH_Window* wd, ImDrawData* draw_data)
+static void SetupImGuiVulkanPrimitives(ImGui_ImplVulkanH_Window* wd, Magnefu::VKContext* context)
 {
-	VkResult err;
+	wd->ImageCount = s_MinImageCount;
+	wd->SurfaceFormat = std::any_cast<VkSurfaceFormatKHR>(context->GetContextInfo("SurfaceFormat"));
+	wd->Surface = std::any_cast<VkSurfaceKHR>(context->GetContextInfo("Surface"));
+	wd->PresentMode = std::any_cast<VkPresentModeKHR>(context->GetContextInfo("PresentMode"));
+	wd->Swapchain = std::any_cast<VkSwapchainKHR>(context->GetContextInfo("SwapChain"));
+	VkExtent2D swapChainExtent = std::any_cast<VkExtent2D>(context->GetContextInfo("SwapChainExtent"));
+	wd->Width = swapChainExtent.width;
+	wd->Height = swapChainExtent.height;
+	wd->FrameIndex = std::any_cast<uint32_t>(context->GetContextInfo("CurrentFrame"));
+}
 
-	VkSemaphore image_acquired_semaphore = wd->FrameSemaphores[wd->SemaphoreIndex].ImageAcquiredSemaphore;
-	VkSemaphore render_complete_semaphore = wd->FrameSemaphores[wd->SemaphoreIndex].RenderCompleteSemaphore;
-	err = vkAcquireNextImageKHR(s_Device, wd->Swapchain, UINT64_MAX, image_acquired_semaphore, VK_NULL_HANDLE, &wd->FrameIndex);
-	if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
+static void SetupImGuiVulkanFrames(ImGui_ImplVulkanH_Window* wd, Magnefu::VKContext* context)
+{
+	wd->Frames = nullptr;
+	IM_ASSERT(wd->Frames == nullptr);
+	wd->Frames = (ImGui_ImplVulkanH_Frame*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_Frame) * wd->ImageCount);
+	wd->FrameSemaphores = (ImGui_ImplVulkanH_FrameSemaphores*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_FrameSemaphores) * wd->ImageCount);
+	memset(wd->Frames, 0, sizeof(wd->Frames[0]) * wd->ImageCount);
+	memset(wd->FrameSemaphores, 0, sizeof(wd->FrameSemaphores[0]) * wd->ImageCount);
+
+	VkImage* swapChainImages = std::any_cast<VkImage*>(context->GetContextInfo("SwapChainImages"));
+	VkCommandPool commandPool = std::any_cast<VkCommandPool>(context->GetContextInfo("CommandPool"));
+
+	for (uint32_t i = 0; i < wd->ImageCount; i++)
 	{
-		s_SwapChainRebuild = true;
-		return;
+		wd->Frames[i].Backbuffer = swapChainImages[i];  // this is m_SwapChainImages.data() in vkcontext.cpp so do a get contextinfo for swapchainimages
+		wd->Frames[i].CommandPool = commandPool;
 	}
+}
 
+static void CreateImageViews(ImGui_ImplVulkanH_Window* wd)
+{
+	VkImageViewCreateInfo info = {};
+	info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	info.format = wd->SurfaceFormat.format;
+	info.components.r = VK_COMPONENT_SWIZZLE_R;
+	info.components.g = VK_COMPONENT_SWIZZLE_G;
+	info.components.b = VK_COMPONENT_SWIZZLE_B;
+	info.components.a = VK_COMPONENT_SWIZZLE_A;
+	VkImageSubresourceRange image_range = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+	info.subresourceRange = image_range;
+
+	for (size_t i = 0; i < wd->ImageCount; i++)
+	{
+		ImGui_ImplVulkanH_Frame* fd = &wd->Frames[i];
+		info.image = fd->Backbuffer;
+		vkCreateImageView(s_Device, &info, s_Allocator, &fd->BackbufferView);
+
+	}
+}
+
+static void CreateRenderPass(ImGui_ImplVulkanH_Window* wd)
+{
+	VkAttachmentDescription attachment = {};
+	attachment.format = wd->SurfaceFormat.format;
+	attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+	attachment.loadOp = wd->ClearEnable ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+	VkAttachmentReference color_attachment = {};
+	color_attachment.attachment = 0;
+	color_attachment.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkSubpassDescription subpass = {};
+	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpass.colorAttachmentCount = 1;
+	subpass.pColorAttachments = &color_attachment;
+
+	VkSubpassDependency dependency = {};
+	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+	dependency.dstSubpass = 0;
+	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency.srcAccessMask = 0;
+	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+	VkRenderPassCreateInfo info = {};
+	info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	info.attachmentCount = 1;
+	info.pAttachments = &attachment;
+	info.subpassCount = 1;
+	info.pSubpasses = &subpass;
+	info.dependencyCount = 1;
+	info.pDependencies = &dependency;
+	if (vkCreateRenderPass(s_Device, &info, s_Allocator, &wd->RenderPass) != VK_SUCCESS)
+		MF_CORE_ASSERT(false, "Failed to create ImGui Render Pass");
+}
+
+static void CreateFrameBuffers(ImGui_ImplVulkanH_Window* wd)
+{
+	VkImageView attachment[1];
+	VkFramebufferCreateInfo info = {};
+	info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+	info.renderPass = wd->RenderPass;
+	info.attachmentCount = 1;
+	info.pAttachments = attachment;
+	info.width = wd->Width;
+	info.height = wd->Height;
+	info.layers = 1;
+	for (uint32_t i = 0; i < wd->ImageCount; i++)
+	{
+		ImGui_ImplVulkanH_Frame* fd = &wd->Frames[i];
+		attachment[0] = fd->BackbufferView;
+		if (vkCreateFramebuffer(s_Device, &info, s_Allocator, &fd->Framebuffer) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "Failed to to create ImGui Framebuffers");
+	}
+}
+
+static void FrameRender(ImGui_ImplVulkanH_Window* wd, ImDrawData* draw_data, VkSemaphore* waitSemaphores, VkSemaphore* signalSemaphores)
+{
 	ImGui_ImplVulkanH_Frame* fd = &wd->Frames[wd->FrameIndex];
-	{
-		vkWaitForFences(s_Device, 1, &fd->Fence, VK_TRUE, UINT64_MAX);    // wait indefinitely instead of periodically checking
 
-		vkResetFences(s_Device, 1, &fd->Fence);
-	}
 	{
-		vkResetCommandPool(s_Device, fd->CommandPool, 0);
+		vkResetCommandBuffer(fd->CommandBuffer, 0);
 		VkCommandBufferBeginInfo info = {};
 		info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-		err = vkBeginCommandBuffer(fd->CommandBuffer, &info);
+		if (vkBeginCommandBuffer(fd->CommandBuffer, &info) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "Failed to begin imgui command buffer");
 	}
 	{
 		VkRenderPassBeginInfo info = {};
@@ -137,38 +238,16 @@ static void FrameRender(ImGui_ImplVulkanH_Window* wd, ImDrawData* draw_data)
 		VkSubmitInfo info = {};
 		info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		info.waitSemaphoreCount = 1;
-		info.pWaitSemaphores = &image_acquired_semaphore;
+		info.pWaitSemaphores = waitSemaphores;
 		info.pWaitDstStageMask = &wait_stage;
 		info.commandBufferCount = 1;
 		info.pCommandBuffers = &fd->CommandBuffer;
 		info.signalSemaphoreCount = 1;
-		info.pSignalSemaphores = &render_complete_semaphore;
+		info.pSignalSemaphores = signalSemaphores;
 
 		vkEndCommandBuffer(fd->CommandBuffer);
 		vkQueueSubmit(s_Queue, 1, &info, fd->Fence);
 	}
-}
-
-static void FramePresent(ImGui_ImplVulkanH_Window* wd)
-{
-	if (s_SwapChainRebuild)
-		return;
-	VkSemaphore render_complete_semaphore = wd->FrameSemaphores[wd->SemaphoreIndex].RenderCompleteSemaphore;
-	VkPresentInfoKHR info = {};
-	info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-	info.waitSemaphoreCount = 1;
-	info.pWaitSemaphores = &render_complete_semaphore;
-	info.swapchainCount = 1;
-	info.pSwapchains = &wd->Swapchain;
-	info.pImageIndices = &wd->FrameIndex;
-	VkResult err = vkQueuePresentKHR(s_Queue, &info);
-	if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
-	{
-		s_SwapChainRebuild = true;
-		return;
-	}
-
-	wd->SemaphoreIndex = (wd->SemaphoreIndex + 1) % wd->ImageCount; // Now we can use the next set of semaphores
 }
 
 
@@ -196,7 +275,6 @@ namespace Magnefu
 		GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
 		VKContext* context = static_cast<VKContext*>(app.GetWindow().GetGraphicsContext());
 
-		VkSurfaceKHR surface = std::any_cast<VkSurfaceKHR>(context->GetContextInfo("Surface"));
 		s_Instance = std::any_cast<VkInstance>(context->GetContextInfo("Instance"));
 		s_Device = std::any_cast<VkDevice>(context->GetContextInfo("Device"));
 		s_PhysicalDevice = std::any_cast<VkPhysicalDevice>(context->GetContextInfo("PhysicalDevice"));
@@ -204,14 +282,17 @@ namespace Magnefu
 		s_Queue = std::any_cast<VkQueue>(context->GetContextInfo("Queue"));
 		s_MinImageCount = std::any_cast<uint32_t>(context->GetContextInfo("ImageCount"));
 
+		
 		SetupVulkan();
 
-		// Create Framebuffers
-		int w, h;
-		glfwGetFramebufferSize(window, &w, &h);
 		ImGui_ImplVulkanH_Window* wd = &s_MainWindowData;
-		s_MainWindowData.SurfaceFormat = std::any_cast<VkSurfaceFormatKHR>(context->GetContextInfo("SurfaceFormat"));
-		SetupVulkanWindow(wd, surface, w, h);
+		SetupImGuiVulkanPrimitives(wd, context);
+		
+		SetupImGuiVulkanFrames(wd, context);
+		CreateImageViews(wd);
+		CreateRenderPass(wd);
+		CreateFrameBuffers(wd);
+	
 
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
@@ -219,8 +300,8 @@ namespace Magnefu
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+		//io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
 		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
 		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
 
@@ -258,13 +339,15 @@ namespace Magnefu
 		init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 		init_info.Allocator = s_Allocator;
 		init_info.CheckVkResultFn = nullptr;
+
+		// ImGui's Vulkan Render Pipeline created here
 		ImGui_ImplVulkan_Init(&init_info, wd->RenderPass);
 
 		// Upload Fonts
 		{
 			// Use any command queue
-			VkCommandPool command_pool = wd->Frames[wd->FrameIndex].CommandPool;
-			VkCommandBuffer command_buffer = wd->Frames[wd->FrameIndex].CommandBuffer;
+			VkCommandPool command_pool = std::any_cast<VkCommandPool>(context->GetContextInfo("CommandPool"));
+			VkCommandBuffer command_buffer = std::any_cast<VkCommandBuffer>(context->GetContextInfo("ImGuiCommandBuffer"));
 
 			vkResetCommandPool(s_Device, command_pool, 0);
 			VkCommandBufferBeginInfo begin_info = {};
@@ -309,26 +392,7 @@ namespace Magnefu
 
 	void ImGuiLayer::BeginFrame()
 	{
-		// Check if Swap Chain needs rebuilding(screen size has changed)
 		Application& app = Application::Get();
-		VKContext* context = static_cast<VKContext*>(app.GetWindow().GetGraphicsContext());
-		//s_SwapChainRebuild = std::any_cast<bool>(context->GetContextInfo("SwapChainRebuild"));
-
-		if (s_SwapChainRebuild)
-		{
-			GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
-			s_MinImageCount = std::any_cast<uint32_t>(context->GetContextInfo("ImageCount"));
-
-			int width, height;
-			glfwGetFramebufferSize(window, &width, &height);
-			if (width > 0 && height > 0)
-			{
-				ImGui_ImplVulkan_SetMinImageCount(s_MinImageCount);
-				ImGui_ImplVulkanH_CreateOrResizeWindow(s_Instance, s_PhysicalDevice, s_Device, &s_MainWindowData, s_QueueFamily, s_Allocator, width, height, s_MinImageCount);
-				s_MainWindowData.FrameIndex = 0;
-				s_SwapChainRebuild = false;
-			}
-		}
 		
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
@@ -342,24 +406,8 @@ namespace Magnefu
 
 	void ImGuiLayer::EndFrame()
 	{
+		ImGui::EndFrame();
 		ImGui::Render();
-		
-	}
-
-	void ImGuiLayer::OnRender()
-	{
-		ImDrawData* draw_data = ImGui::GetDrawData();
-		const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
-		ImGui_ImplVulkanH_Window* wd = &s_MainWindowData;
-		if (!is_minimized)
-		{
-			wd->ClearValue.color.float32[0] = s_ClearColor.x * s_ClearColor.w;
-			wd->ClearValue.color.float32[1] = s_ClearColor.y * s_ClearColor.w;
-			wd->ClearValue.color.float32[2] = s_ClearColor.z * s_ClearColor.w;
-			wd->ClearValue.color.float32[3] = s_ClearColor.w;
-			FrameRender(wd, draw_data);
-			FramePresent(wd);
-		}
 
 		ImGuiIO& io = ImGui::GetIO();
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -369,6 +417,63 @@ namespace Magnefu
 			ImGui::RenderPlatformWindowsDefault();
 			glfwMakeContextCurrent(contextBackup);
 		}
+
+	}
+
+	void ImGuiLayer::RecreateImageResources()
+	{
+		Application& app = Application::Get();
+		VKContext* context = static_cast<VKContext*>(app.GetWindow().GetGraphicsContext());
+
+		GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
+		s_MinImageCount = std::any_cast<uint32_t>(context->GetContextInfo("ImageCount"));
+
+		ImGui_ImplVulkanH_Window* wd = &s_MainWindowData;
+		SetupImGuiVulkanPrimitives(wd, context);
+
+		int width, height;
+		glfwGetFramebufferSize(window, &width, &height);
+		if (width > 0 && height > 0)
+		{
+			SetupImGuiVulkanFrames(wd, context);
+			CreateImageViews(wd);
+			CreateFrameBuffers(wd);
+		}
+	}
+
+	void ImGuiLayer::RecordAndSubmitCommandBuffer()
+	{
+		Application& app = Application::Get();
+		VKContext* context = static_cast<VKContext*>(app.GetWindow().GetGraphicsContext());
+
+		ImDrawData* draw_data = ImGui::GetDrawData();
+		const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
+		ImGui_ImplVulkanH_Window* wd = &s_MainWindowData;
+
+		wd->FrameIndex = std::any_cast<uint32_t>(context->GetContextInfo("CurrentFrame"));
+
+		if (!is_minimized)
+		{
+			wd->ClearValue.color.float32[0] = s_ClearColor.x * s_ClearColor.w;
+			wd->ClearValue.color.float32[1] = s_ClearColor.y * s_ClearColor.w;
+			wd->ClearValue.color.float32[2] = s_ClearColor.z * s_ClearColor.w;
+			wd->ClearValue.color.float32[3] = s_ClearColor.w;
+
+			wd->Frames[wd->FrameIndex].Fence = std::any_cast<VkFence>(context->GetContextInfo("ImGuiInFlightFence"));
+			wd->Frames[wd->FrameIndex].CommandBuffer = std::any_cast<VkCommandBuffer>(context->GetContextInfo("ImGuiCommandBuffer"));
+
+			// get wait and signal semaphores and send them to frame render
+			VkSemaphore* wait = std::any_cast<VkSemaphore*>(context->GetContextInfo("ImGuiWaitSemaphores"));
+			VkSemaphore* signal = std::any_cast<VkSemaphore*>(context->GetContextInfo("ImGuiSignalSemaphores"));
+			
+
+			FrameRender(wd, draw_data, wait, signal);
+		}
+	}
+
+	void ImGuiLayer::OnRender()
+	{
+		
 	}
 
 	void ImGuiLayer::SetDarkThemeColors()
