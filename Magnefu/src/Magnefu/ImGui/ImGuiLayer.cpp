@@ -148,11 +148,11 @@ static void CreateRenderPass(ImGui_ImplVulkanH_Window* wd)
 	VkAttachmentDescription attachment = {};
 	attachment.format = wd->SurfaceFormat.format;
 	attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-	attachment.loadOp = wd->ClearEnable ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 	attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	attachment.initialLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 	attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
 	VkAttachmentReference color_attachment = {};
@@ -300,7 +300,7 @@ namespace Magnefu
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-		//io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
 		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
 		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
 		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
