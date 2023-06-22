@@ -23,7 +23,7 @@ namespace Magnefu
 		void BeginFrame();
 		void EndFrame();
 		void RecreateImageResources();
-		void RecordAndSubmitCommandBuffer();
+		void RecordAndSubmitCommandBuffer(uint32_t imageIndex);
 
 		void BlockEvents(bool block) { m_BlockEvents = block; }
 

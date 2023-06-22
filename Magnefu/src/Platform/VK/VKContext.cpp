@@ -2606,7 +2606,7 @@ namespace Magnefu
 		// Reset fences
 		vkResetFences(m_VkDevice, 1, &m_ImGuiInFlightFences[m_CurrentFrame]);
 
-		Application::Get().GetImGuiLayer()->RecordAndSubmitCommandBuffer();
+		Application::Get().GetImGuiLayer()->RecordAndSubmitCommandBuffer(m_ImageIndex);
 
 	}
 

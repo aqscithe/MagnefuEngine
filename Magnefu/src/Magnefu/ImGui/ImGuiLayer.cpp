@@ -441,7 +441,7 @@ namespace Magnefu
 		}
 	}
 
-	void ImGuiLayer::RecordAndSubmitCommandBuffer()
+	void ImGuiLayer::RecordAndSubmitCommandBuffer(uint32_t imageIndex)
 	{
 		Application& app = Application::Get();
 		VKContext* context = static_cast<VKContext*>(app.GetWindow().GetGraphicsContext());
@@ -450,7 +450,7 @@ namespace Magnefu
 		const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
 		ImGui_ImplVulkanH_Window* wd = &s_MainWindowData;
 
-		wd->FrameIndex = std::any_cast<uint32_t>(context->GetContextInfo("CurrentFrame"));
+		wd->FrameIndex = imageIndex;  // NEEDS TO BE THE IMAGE INDEX, NOT CURRENT FRAME
 
 		if (!is_minimized)
 		{
@@ -459,8 +459,11 @@ namespace Magnefu
 			wd->ClearValue.color.float32[2] = s_ClearColor.z * s_ClearColor.w;
 			wd->ClearValue.color.float32[3] = s_ClearColor.w;
 
-			wd->Frames[wd->FrameIndex].Fence = std::any_cast<VkFence>(context->GetContextInfo("ImGuiInFlightFence"));
-			wd->Frames[wd->FrameIndex].CommandBuffer = std::any_cast<VkCommandBuffer>(context->GetContextInfo("ImGuiCommandBuffer"));
+			// NEED TO BE SURE TO PROVIDE THESE VALUES SPECIFICALLY AS THEY MATCH THE NUMBE OF FRAMES IN FLIGHT, NOT THE IMAGE COUNT
+			// FRAMES IN FLIGHT -> 2
+			// IMAGE COUNT -> 3
+			wd->Frames[imageIndex].Fence = std::any_cast<VkFence>(context->GetContextInfo("ImGuiInFlightFence"));
+			wd->Frames[imageIndex].CommandBuffer = std::any_cast<VkCommandBuffer>(context->GetContextInfo("ImGuiCommandBuffer"));
 
 			// get wait and signal semaphores and send them to frame render
 			VkSemaphore* wait = std::any_cast<VkSemaphore*>(context->GetContextInfo("ImGuiWaitSemaphores"));
