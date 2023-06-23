@@ -1349,6 +1349,7 @@ void ImGui_ImplVulkanH_CreateWindowSwapChain(VkPhysicalDevice physical_device, V
     if (old_swapchain)
         vkDestroySwapchainKHR(device, old_swapchain, allocator);
 
+
     // Create the Render Pass
     {
         VkAttachmentDescription attachment = {};

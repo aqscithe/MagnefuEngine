@@ -130,6 +130,9 @@
     <None Include="res\meshes\santa_hat(DEFAULT).obj">
       <Filter>res\meshes</Filter>
     </None>
+    <None Include="res\meshes\viking_room.obj">
+      <Filter>res\meshes</Filter>
+    </None>
     <None Include="res\meshes\wooden_watch_tower2.obj">
       <Filter>res\meshes</Filter>
     </None>
@@ -143,6 +146,9 @@
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\LightCube.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Particles.shader">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\Plane.shader">
@@ -175,7 +181,6 @@
     <None Include="res\shaders\Texture2D.shader">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\Basic-Compute.shader" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\textures\12221_Cat_v1_l3\Cat_ao.jpg">
@@ -474,6 +479,9 @@
     </Image>
     <Image Include="res\textures\starlights\starlights_s.jpg">
       <Filter>res\textures\starlights</Filter>
+    </Image>
+    <Image Include="res\textures\viking_room.png">
+      <Filter>res\textures</Filter>
     </Image>
     <Image Include="res\textures\wall.jpg">
       <Filter>res\textures</Filter>

@@ -3,7 +3,6 @@
 #include "Magnefu/Core/Events/ApplicationEvent.h"
 #include "Magnefu/Core/Events/MouseEvent.h"
 #include "Magnefu/Core/Events/KeyEvent.h"
-#include "Platform/OpenGL/OpenGLContext.h"
 #include "Platform/VK/VKContext.h"
 #include "Magnefu/Renderer/Camera.h"
 #include "Magnefu/Renderer/RendererAPI.h"
@@ -63,13 +62,6 @@ namespace Magnefu
 
 		switch (RendererAPI::GetAPI())
 		{
-			case RendererAPI::API::OPENGL:
-			{
-				glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-				glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-				glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-				break;
-			}
 			case RendererAPI::API::VULKAN:
 			{
 				glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -225,7 +217,7 @@ namespace Magnefu
 		processInput();
 		glfwPollEvents();
 		
-		m_Context->SwapBuffers();
+		//m_Context->SwapBuffers();
 	}
 
 	void WindowsWindow::DrawFrame()

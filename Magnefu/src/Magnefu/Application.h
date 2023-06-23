@@ -2,7 +2,6 @@
 
 #include "Magnefu/Core/Assertions.h"
 #include "Window.h"
-#include "Magnefu/Renderer/Texture.h"
 #include "Magnefu/LayerStack.h"
 #include "Magnefu/ImGui/ImGuiLayer.h"
 #include "Magnefu/Core/Events/ApplicationEvent.h"
@@ -36,6 +35,7 @@ namespace Magnefu
 		inline Window& GetWindow() { return *m_Window; }
 		inline ResourceCache& GetResourceCache() { return *m_ResourceCache; }
 		inline TimeStep& GetTimeStep() { return m_TimeStep; }
+		inline ImGuiLayer* GetImGuiLayer() { return m_ImGuiLayer; }
 
 		inline static Application& Get() { return *s_Instance; }
 

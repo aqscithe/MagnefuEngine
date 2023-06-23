@@ -1,25 +1,19 @@
 #include "mfpch.h"
 #include "GraphicsContext.h"
 #include "Magnefu/Renderer/Renderer.h"
-#include "Platform/OpenGL/OpenGLContext.h"
 #include "Platform/VK/VKContext.h"
 
+#include "GLFW/glfw3.h"
 
 namespace Magnefu
 {
-	GraphicsContext* Magnefu::GraphicsContext::Create(GLFWwindow* windowHandle)
+	GraphicsContext* Magnefu::GraphicsContext::Create(void* windowHandle)
 	{
 		switch (Renderer::GetAPI())
 		{
-		
-			case RendererAPI::API::OPENGL:
-			{
-				return new OpenGLContext(windowHandle);
-			}
-
 			case RendererAPI::API::VULKAN:
 			{
-				return new VKContext(windowHandle);
+				return new VKContext(static_cast<GLFWwindow*>(windowHandle));
 			}
 
 			case RendererAPI::API::NONE:

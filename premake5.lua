@@ -61,9 +61,7 @@ project "Magnefu"
 
     files {
         "%{prj.name}/vendor/imgui/backends/imgui_impl_glfw.h",
-        "%{prj.name}/vendor/imgui/backends/imgui_impl_glfw.cpp",
-        "%{prj.name}/vendor/imgui/backends/imgui_impl_opengl3.h",
-        "%{prj.name}/vendor/imgui/backends/imgui_impl_opengl3.cpp"
+        "%{prj.name}/vendor/imgui/backends/imgui_impl_glfw.cpp"
     }
 
     includedirs {
@@ -90,7 +88,6 @@ project "Magnefu"
         "ImGui",
         "glfw3_mt",
         "vulkan-1",
-        "opengl32",
         "shaderc_shared"
     }
 
