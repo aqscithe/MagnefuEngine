@@ -144,11 +144,9 @@ namespace Magnefu
 		VKContext(GLFWwindow* windowHandle);
 		~VKContext();
 
+		// -- Inherited -- //
 		void Init() override;
-		void SwapBuffers() override;
 		void DrawFrame() override;
-		void BeginFrame() override;
-		void EndFrame() override;
 		void OnImGuiRender() override;
 		void OnFinish() override; // main loop completed
 		std::any GetContextInfo(const std::string& name) override;
@@ -157,6 +155,8 @@ namespace Magnefu
 		
 
 	private:
+
+		// -- Initialization -- //
 		void CreateVkInstance();
 		void SetupValidationLayers(bool& allLayersAvailable);
 		void SetupDebugMessenger();
@@ -192,57 +192,100 @@ namespace Magnefu
 		void CreateComputeCommandBuffers();
 		void CreateSyncObjects();
 
+
+		// -- Device -- //
 		std::vector<const char*> GetRequiredExtensions();
 		void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 		bool IsDeviceSuitable(VkPhysicalDevice);
 		bool CheckDeviceExtensionSupport(VkPhysicalDevice);
+
+
+		// -- Swap Chain -- //
 		QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice);
 		SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice);
 		VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
-		void RecreateSwapChain();
-		void CleanupSwapChain();
-		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-		void UpdateUniformBuffer();
-		void UpdateComputeUniformBuffer();
-		void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
-		VkCommandBuffer BeginSingleTimeCommands();
-		void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
-		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
-		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
-		VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
-		VkFormat FindDepthFormat();
-		bool HasStencilComponent(VkFormat format);
-		void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
-		VkSampleCountFlagBits GetMaxUsableSampleCount();
-		void RecordComputeCommandBuffer(VkCommandBuffer commandBuffer);
 
-		void PerformComputeOps();
-		void PerformGraphicsOps();
+		
+		VkFormat FindDepthFormat();
+		VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
 
 		// Place in VKShader
 		ShaderList ParseShader(const String& filepath);
 		VkShaderModule CreateShaderModule(const ShaderSource& source);
 
+		
+		// Buffers
+		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+		VkCommandBuffer BeginSingleTimeCommands();
+		void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
+
+		// Uniforms
+		void UpdateUniformBuffer();
+		void UpdateComputeUniformBuffer();
+
+		// Image Manipulation
+		void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
+		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
+		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+		
+		// Depth 
+		bool HasStencilComponent(VkFormat format);
+		
+		// Mip Maps
+		void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
+		VkSampleCountFlagBits GetMaxUsableSampleCount();
+		
+
+		// Part of Render Loop
+		void RecordComputeCommandBuffer(VkCommandBuffer commandBuffer);
+		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+		void RecreateSwapChain();
+		void PerformComputeOps();
+		void PerformGraphicsOps();
+		void PresentImage();
+
+
+		// -- Clean Up -- //
+		void CleanupSwapChain();
+
 	private:
-		GLFWwindow* m_WindowHandle;
+
+#ifdef MF_DEBUG
+		const bool                   m_EnableValidationLayers = true;
+#else			                   
+		const bool                   m_EnableValidationLayers = false;
+#endif
+
+
+		// -- Device Properties and Features -- //
+		VkPhysicalDeviceProperties   m_Properties{};
+		VkPhysicalDeviceFeatures     m_SupportedFeatures;
+
+		// -- Device Primitives -- //
 		RendererInfo                 m_RendererInfo;
-		VkInstance                   m_VkInstance;
 		VkDebugUtilsMessengerEXT     m_DebugMessenger;
+		VkInstance                   m_VkInstance;
 		VkPhysicalDevice             m_VkPhysicalDevice;
 		VkDevice                     m_VkDevice;
-		VkQueue                      m_GraphicsQueue;
+
+		// -- Window Primitives -- //
+		GLFWwindow*                  m_WindowHandle;
 		VkSurfaceKHR                 m_WindowSurface;
+
+		// -- Queues -- //
+		VkQueue                      m_GraphicsQueue;
 		VkQueue			             m_PresentQueue;
 		VkQueue                      m_ComputeQueue;
 		QueueFamilyIndices           m_QueueFamilyIndices;
 		VkSurfaceFormatKHR           m_SurfaceFormat;
+
+		// -- Swap Chain -- //
 		uint32_t                     m_ImageCount;
 		uint32_t                     m_ImageIndex;
 		bool                         m_SwapChainRebuild = false;
@@ -252,6 +295,8 @@ namespace Magnefu
 		VkFormat                     m_SwapChainImageFormat;
 		VkExtent2D                   m_SwapChainExtent;
 		std::vector<VkImageView>     m_SwapChainImageViews;
+
+		// -- Render Pass and Pipeline Primitives -- //
 		VkRenderPass                 m_RenderPass;
 		VkDescriptorSetLayout        m_DescriptorSetLayout;
 		ShaderList                   m_ParticleShaderList;
@@ -260,12 +305,17 @@ namespace Magnefu
 		std::vector<VkFramebuffer>   m_SwapChainFramebuffers;
 		VkCommandPool                m_CommandPool;
 		std::vector<VkCommandBuffer> m_CommandBuffers;
+		uint32_t                     m_CurrentFrame;
+		bool						 m_FramebufferResized;
+
+		// -- Synchronization Primitives -- //
 		std::vector<VkSemaphore>     m_ImageAvailableSemaphores;
 		std::vector<VkSemaphore>     m_ImGuiRenderFinishedSemaphores;
 		std::vector<VkSemaphore>     m_RenderFinishedSemaphores;
 		std::vector<VkFence>         m_InFlightFences;
-		uint32_t                     m_CurrentFrame;
-		bool						 m_FramebufferResized;
+
+		
+		// -- Shader Buffers (Uniforms, Indices, Vertices) -- //
 		std::vector<Vertex>          m_Vertices;
 		std::vector<uint32_t>        m_Indices;
 		VkBuffer                     m_VertexBuffer;
@@ -277,7 +327,12 @@ namespace Magnefu
 		std::vector<void*>           m_UniformBuffersMapped;
 		VkDescriptorPool             m_DescriptorPool;
 		std::vector<VkDescriptorSet> m_DescriptorSets;
+
+		// -- Mip Map Info -- //
+		VkSampleCountFlagBits        m_MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 		uint32_t                     m_MipLevels;
+
+		// -- Image Buffers -- //
 		VkImage                      m_TextureImage;
 		VkDeviceMemory               m_TextureImageMemory;
 		VkImageView                  m_TextureImageView;
@@ -288,9 +343,9 @@ namespace Magnefu
 		VkImage                      m_ColorImage;
 		VkDeviceMemory               m_ColorImageMemory;
 		VkImageView                  m_ColorImageView;
-		VkSampleCountFlagBits        m_MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+		
 
-		//------------------- Particles     ---------------------- //
+		//------------------- Compute Shader ---------------------- //
 		std::vector<VkBuffer>        m_ShaderStorageBuffers;
 		std::vector<VkDeviceMemory>  m_ShaderStorageBuffersMemory;
 		VkDescriptorSetLayout        m_ComputeDescriptorSetLayout;
@@ -309,6 +364,7 @@ namespace Magnefu
 		VkPipelineLayout             m_ParticleGraphicsPipelineLayout;
 		// -------------------------------------------------------- //
 
+
 		//------------------- ImGui ---------------------- //
 
 		std::vector<VkCommandBuffer> m_ImGuiCommandBuffers;
@@ -316,14 +372,6 @@ namespace Magnefu
 
 		// ----------------------------------------------- //
 
-		VkPhysicalDeviceProperties   m_Properties{};
-		VkPhysicalDeviceFeatures     m_SupportedFeatures;
-
-#ifdef MF_DEBUG
-		const bool                   m_EnableValidationLayers = true;
-#else			                   
-		const bool                   m_EnableValidationLayers = false;
-#endif
 	};
 }
 

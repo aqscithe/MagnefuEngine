@@ -201,54 +201,11 @@ namespace Magnefu
 
 	}
 
-	void VKContext::SwapBuffers()
-	{
-		// Done at the end of DrawFrame()
-	}
-
 	void VKContext::DrawFrame()
-	{
-
-	}
-
-	void VKContext::BeginFrame()
 	{
 		PerformComputeOps();
 		PerformGraphicsOps();
-	}
-
-	void VKContext::EndFrame()
-	{
-		VkSemaphore signalSemaphores[] = { m_ImGuiRenderFinishedSemaphores[m_CurrentFrame]};
-		//VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphores[m_CurrentFrame]};
-
-		// Presentation (submitting image back to swap chain)
-		VkPresentInfoKHR presentInfo{};
-		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
-		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = signalSemaphores;
-
-		VkSwapchainKHR swapChains[] = { m_SwapChain };
-		presentInfo.swapchainCount = 1;
-		presentInfo.pSwapchains = swapChains;
-		presentInfo.pImageIndices = &m_ImageIndex;
-
-		presentInfo.pResults = nullptr; // Optional
-
-		VkResult result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
-
-		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_FramebufferResized)
-		{
-			m_FramebufferResized = false;
-			RecreateSwapChain();
-		}
-		else
-		{
-			MF_CORE_ASSERT(result == VK_SUCCESS, "Failed to submit image back to swap chain");
-		}
-
-		m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+		PresentImage();
 	}
 
 	void VKContext::OnImGuiRender()
@@ -485,33 +442,7 @@ namespace Magnefu
 		vkGetDeviceQueue(m_VkDevice, m_QueueFamilyIndices.GraphicsFamily.value(), 0, &m_GraphicsQueue); // that 0 is the queue family index
 		vkGetDeviceQueue(m_VkDevice, m_QueueFamilyIndices.PresentFamily.value(), 0, &m_PresentQueue);
 		vkGetDeviceQueue(m_VkDevice, m_QueueFamilyIndices.ComputeFamily.value(), 0, &m_ComputeQueue);
-		
 
-
-		/*VkPhysicalDeviceIDProperties vkPhysicalDeviceIDProperties = {};
-		vkPhysicalDeviceIDProperties.sType =
-			VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES;
-		vkPhysicalDeviceIDProperties.pNext = NULL;
-
-		VkPhysicalDeviceProperties2 vkPhysicalDeviceProperties2 = {};
-		vkPhysicalDeviceProperties2.sType =
-			VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-		vkPhysicalDeviceProperties2.pNext = &vkPhysicalDeviceIDProperties;
-
-		PFN_vkGetPhysicalDeviceProperties2 fpGetPhysicalDeviceProperties2;
-		fpGetPhysicalDeviceProperties2 =
-			(PFN_vkGetPhysicalDeviceProperties2)vkGetInstanceProcAddr(
-				m_instance, "vkGetPhysicalDeviceProperties2");
-		if (fpGetPhysicalDeviceProperties2 == NULL) {
-			throw std::runtime_error(
-				"Vulkan: Proc address for \"vkGetPhysicalDeviceProperties2KHR\" not "
-				"found.\n");
-		}
-
-		fpGetPhysicalDeviceProperties2(m_physicalDevice,
-			&vkPhysicalDeviceProperties2);
-
-		memcpy(m_vkDeviceUUID, vkPhysicalDeviceIDProperties.deviceUUID, VK_UUID_SIZE);*/
 	}
 
 	void VKContext::CreateSwapChain()
@@ -2608,6 +2539,40 @@ namespace Magnefu
 
 		Application::Get().GetImGuiLayer()->RecordAndSubmitCommandBuffer(m_ImageIndex);
 
+	}
+
+	void VKContext::PresentImage()
+	{
+		VkSemaphore signalSemaphores[] = { m_ImGuiRenderFinishedSemaphores[m_CurrentFrame] };
+		//VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphores[m_CurrentFrame]};
+
+		// Presentation (submitting image back to swap chain)
+		VkPresentInfoKHR presentInfo{};
+		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pWaitSemaphores = signalSemaphores;
+
+		VkSwapchainKHR swapChains[] = { m_SwapChain };
+		presentInfo.swapchainCount = 1;
+		presentInfo.pSwapchains = swapChains;
+		presentInfo.pImageIndices = &m_ImageIndex;
+
+		presentInfo.pResults = nullptr; // Optional
+
+		VkResult result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+
+		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_FramebufferResized)
+		{
+			m_FramebufferResized = false;
+			RecreateSwapChain();
+		}
+		else
+		{
+			MF_CORE_ASSERT(result == VK_SUCCESS, "Failed to submit image back to swap chain");
+		}
+
+		m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}
 
 	VkShaderModule VKContext::CreateShaderModule(const ShaderSource& source)

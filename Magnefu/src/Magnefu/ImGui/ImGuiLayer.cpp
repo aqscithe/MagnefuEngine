@@ -264,6 +264,7 @@ namespace Magnefu
 	{
 
 	}
+
 	void ImGuiLayer::OnAttach()
 	{
 

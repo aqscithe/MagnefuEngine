@@ -137,32 +137,16 @@ namespace Magnefu
 
                 OnGUIRender();
 
-                // -- ---------------------------------------- -- //
-
-
 
                 // -- This constructs the draw data for the ImGui frame, but doesn't actually submit any draw commands. -- //
                 if (m_ImGuiLayer)
                     m_ImGuiLayer->EndFrame();
-                // -- ---------------------------------------- -- //
 
 
                 // -- Start Vulkan command buffer recording -- //
-                // -- Issue draw calls for game objects -- //
+                // -- Issue draw calls for game objects and imgui widgets-- //
+                GraphicsContext->DrawFrame();
 
-                GraphicsContext->BeginFrame();
-
-
-                // -- ---------------------------------------- -- //
-
-
-
-                // -- Presentation (i.e., call vkQueuePresentKHR()) -- //
-
-                
-                GraphicsContext->EndFrame();
-
-                // -- ---------------------------------------- -- //
 
 
         }   
