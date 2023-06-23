@@ -27,8 +27,8 @@ namespace Magnefu
 			float aspect = 1920.f / 1080.f,  // Should come from the window
 			float fov = 45.f, 
 			float _near = 0.01f, 
-			float _far = 100.f,
-			float speed = 8.f
+			float _far = 800.f,
+			float speed = 50.f
 		)
 			: Type(type), AspectRatio(aspect), FOV(fov), Near(_near), Far(_far), Speed(speed)
 		{}

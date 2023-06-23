@@ -42,8 +42,8 @@ namespace Magnefu
 		return a.pos == b.pos && a.color == b.color && a.texCoord == b.texCoord;
 	}
 
-	static const std::string MODEL_PATH = "res/meshes/viking_room.obj";
-	static const std::string TEXTURE_PATH = "res/textures/viking_room.png";
+	static const std::string MODEL_PATH = "res/meshes/corridor.obj";
+	static const std::string TEXTURE_PATH = "res/textures/scificorridor/scene_1001_BaseColor.png";
 	static const std::string SHADER_PATH = "res/shaders/Basic.shader";
 	static const std::string PARTICLE_SHADER_PATH = "res/shaders/Particles.shader";
 
@@ -203,7 +203,7 @@ namespace Magnefu
 
 	void VKContext::DrawFrame()
 	{
-		PerformComputeOps();
+		//PerformComputeOps();
 		PerformGraphicsOps();
 		PresentImage();
 	}
@@ -1911,7 +1911,7 @@ namespace Magnefu
 			}
 
 			// PARTICLE PIPELINE
-			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_ParticleGraphicsPipeline);
+			/*vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_ParticleGraphicsPipeline);
 
 			{
 				VkViewport viewport{};
@@ -1932,7 +1932,7 @@ namespace Magnefu
 				vkCmdBindVertexBuffers(commandBuffer, 0, 1, &m_ShaderStorageBuffers[m_CurrentFrame], offsets);
 
 				vkCmdDraw(commandBuffer, PARTICLE_COUNT, 1, 0, 0);
-			}
+			}*/
 
 		vkCmdEndRenderPass(commandBuffer);
 
@@ -2512,12 +2512,14 @@ namespace Magnefu
 
 		UpdateUniformBuffer();
 
-		VkSemaphore waitSemaphores[] = { m_ComputeFinishedSemaphores[m_CurrentFrame], m_ImageAvailableSemaphores[m_CurrentFrame] };
-		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		//VkSemaphore waitSemaphores[] = { m_ComputeFinishedSemaphores[m_CurrentFrame], m_ImageAvailableSemaphores[m_CurrentFrame] };
+		VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphores[m_CurrentFrame] };
+		//VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		submitInfo.waitSemaphoreCount = 2;
+		submitInfo.waitSemaphoreCount = 1;
 		submitInfo.pWaitSemaphores = waitSemaphores;
 		submitInfo.pWaitDstStageMask = waitStages;
 		submitInfo.commandBufferCount = 1;
