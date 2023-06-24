@@ -42,8 +42,8 @@ namespace Magnefu
 		return a.pos == b.pos && a.color == b.color && a.texCoord == b.texCoord;
 	}
 
-	static const std::string MODEL_PATH = "res/meshes/viking_room.obj";
-	static const std::string TEXTURE_PATH = "res/textures/viking_room.png";
+	static const std::string MODEL_PATH = "res/meshes/corridor.obj";
+	static const std::string TEXTURE_PATH = "res/textures/scificorridor/scene_1001_BaseColor.png";
 	static const std::string SHADER_PATH = "res/shaders/Basic.shader";
 	static const std::string PARTICLE_SHADER_PATH = "res/shaders/Particles.shader";
 
@@ -194,11 +194,6 @@ namespace Magnefu
 		CreateComputeCommandBuffers();
 		CreateSyncObjects();
 
-		/*MF_CORE_DEBUG("Renderer Info: ");
-		MF_CORE_DEBUG("\tVersion: {}", m_RendererInfo.Version);
-		MF_CORE_DEBUG("\tVendor: {}", m_RendererInfo.Vendor);
-		MF_CORE_DEBUG("\tRenderer: {}", m_RendererInfo.Renderer);*/
-
 	}
 
 	void VKContext::DrawFrame()
@@ -210,7 +205,7 @@ namespace Magnefu
 
 	void VKContext::OnImGuiRender()
 	{
-
+		
 	}
 
 	void VKContext::OnFinish()
@@ -1717,6 +1712,12 @@ namespace Magnefu
 		{
 			m_SupportedFeatures = deviceFeatures;
 			m_Properties = deviceProperties;
+
+
+			//MF_CORE_DEBUG("Renderer Info: ");
+			//MF_CORE_DEBUG("\tVersion: {}", m_RendererInfo.Version);
+			//MF_CORE_DEBUG("\tVendor: {}", m_RendererInfo.Vendor);
+			//MF_CORE_DEBUG("\tRenderer: {}", m_RendererInfo.Renderer);
 			return true;
 		}
 
@@ -2513,7 +2514,9 @@ namespace Magnefu
 		UpdateUniformBuffer();
 
 		VkSemaphore waitSemaphores[] = { m_ComputeFinishedSemaphores[m_CurrentFrame], m_ImageAvailableSemaphores[m_CurrentFrame] };
+		//VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphores[m_CurrentFrame] };
 		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		//VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

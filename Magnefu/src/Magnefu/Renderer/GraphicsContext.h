@@ -22,6 +22,7 @@ namespace Magnefu
 		virtual void OnFinish() = 0;
 		virtual std::any GetContextInfo(const std::string& name) = 0;
 		virtual void SetFramebufferResized(bool framebufferResized) = 0;
+		virtual const RendererInfo& GetRendererInfo() const = 0;
 
 		
 

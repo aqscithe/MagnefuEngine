@@ -178,8 +178,28 @@ namespace Magnefu
         }
         ImGui::End();
 
-       // m_Window->OnImGuiRender();
-        //Renderer::OnImGuiRender();
+        /*GraphicsContext* GraphicsContext = m_Window->GetGraphicsContext();
+        ImGui::Begin("Renderer");
+        ImGui::Text("Renderer: %s", GraphicsContext->GetRendererInfo().Renderer);
+        ImGui::Text("Version: %s", GraphicsContext->GetRendererInfo().Version);
+        ImGui::Text("Vendor: %s", GraphicsContext->GetRendererInfo().Vendor);
+        ImGui::End();*/
+
+        CameraData& data = GetWindow().GetSceneCamera()->GetData();
+     
+        ImGui::Begin("Camera");
+        //ImGui::Text("Type: %s", data.Type);
+        ImGui::Text("Aspect Ration: %f", data.AspectRatio);
+        ImGui::SliderFloat("FOV", &data.FOV, 45.f, 100.f);
+        ImGui::SliderFloat("Near", &data.Near, 0.01f, 10.f);
+        ImGui::SliderFloat("Far", &data.Far, 700.f, 1000.f);
+        ImGui::SliderFloat("Speed", &data.Speed, 15.f, 100.f);
+        ImGui::SliderFloat3("Position", data.Position.e, -500.f, 500.f);
+        ImGui::SliderFloat("Pitch", &data.Pitch, -360.f, 360.f);
+        ImGui::SliderFloat("Yaw", &data.Yaw, -360.f, 360.f);
+        ImGui::End();
+
+
 
 #ifdef MF_DEBUG
         ImGui::Begin("Stats");
