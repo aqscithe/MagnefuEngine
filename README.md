@@ -1,5 +1,8 @@
 # Magnefu Game Engine
 
+<!-- TABLE OF CONTENTS -->
+
+
 ## Description
 
 With the 3 pillars of Physics, AI, and Chemistry, the Magnefu Game Engine aims to be a game development tool for creating truly novel gameplay experiences, not just focusing purely on graphics but on interactions with the systems and AI of the game world. The hope is to create a base for truly emergent AI that surprises the player at every turn, physics that mimic(as much as possible) what one would expect and world systems that feel intuitive. ~For now, only OpenGL is being used but Vulkan and Direct3D graphics APIs will be supported in the future(perhaps Metal as well).~ Actually, I just made the switch from OpenGL to Vulkan. It was about time. Vulkan is challenging, but both from a performance and organization perspective, I feel the change is worth it.
@@ -26,14 +29,33 @@ Note that if you receive a message about Magnefu.dll not being a valid win32 app
 - Key binds
 > ![controls.png](./SCREENS/controls.png)
 
-- Finding Controls
-> ![howtocontrols.gif](./SCREENS/howtocontrols.gif)
 
 ## Features
 
-### Current 
+### Events
 
-- 
+
+### Math Library
+
+
+### Memory Allocation
+
+
+### Renderer
+- Model Loading & Diffuse Textures
+> ![SpaceshipCorridor.png](./SCREENS/SpaceshipCorridor.png)
+> ![CorridorISOView.png](./SCREENS/CorridorISOView.png)
+
+- MSAA
+> ![NoMSAA.png](/SCREENS/NoMSAA.png)
+> ![MSAAx8.png](./SCREENS/MSAAx8.png)
+
+- Compute Shader
+>![Particles-ComputeShader.gif](./SCREENS/Particles-ComputeShader.gif)
+
+
+### Resource Management
+
 
 
 ## Incomplete Features
@@ -41,11 +63,10 @@ Note that if you receive a message about Magnefu.dll not being a valid win32 app
 
 ## Known Bugs
 
-- Texture on first model displays correctly. Artifacting of textures on all subsequently loaded models.
 
 
-### Updates!
-From here on out, I'll post weekly updates on the engine. This includes new features, refactors, optimizations and more!
+## Updates!
+From here on out, I'll post weekly updates on the engine. This includes new features, refactors, optimizations and more! Blog <span style="color:blue;">blog.alleriumlabs.com</span> coming soon. It will have more in depth versions of the updates below.
 
 - 15 May 2023 -> 21 May 2023 | Starting the switch to vulkan using this [tutorial](https://vulkan-tutorial.com/). I've learned about the swap chain, setting up a graphics pipeline and how to compile shaders to the spv binary.
 
