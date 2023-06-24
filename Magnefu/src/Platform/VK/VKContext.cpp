@@ -194,11 +194,6 @@ namespace Magnefu
 		CreateComputeCommandBuffers();
 		CreateSyncObjects();
 
-		/*MF_CORE_DEBUG("Renderer Info: ");
-		MF_CORE_DEBUG("\tVersion: {}", m_RendererInfo.Version);
-		MF_CORE_DEBUG("\tVendor: {}", m_RendererInfo.Vendor);
-		MF_CORE_DEBUG("\tRenderer: {}", m_RendererInfo.Renderer);*/
-
 	}
 
 	void VKContext::DrawFrame()
@@ -210,7 +205,7 @@ namespace Magnefu
 
 	void VKContext::OnImGuiRender()
 	{
-
+		
 	}
 
 	void VKContext::OnFinish()
@@ -1717,6 +1712,12 @@ namespace Magnefu
 		{
 			m_SupportedFeatures = deviceFeatures;
 			m_Properties = deviceProperties;
+
+
+			//MF_CORE_DEBUG("Renderer Info: ");
+			//MF_CORE_DEBUG("\tVersion: {}", m_RendererInfo.Version);
+			//MF_CORE_DEBUG("\tVendor: {}", m_RendererInfo.Vendor);
+			//MF_CORE_DEBUG("\tRenderer: {}", m_RendererInfo.Renderer);
 			return true;
 		}
 
