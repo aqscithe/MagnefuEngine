@@ -22,7 +22,9 @@ project "ImGui"
 		"backends/imgui_impl_glfw.h",
 		"backends/imgui_impl_glfw.cpp",
 		"backends/imgui_impl_opengl3.h",
-		"backends/imgui_impl_opengl3.cpp"
+		"backends/imgui_impl_opengl3.cpp",
+		"backends/imgui_impl_vulkan.h",
+		"backends/imgui_impl_vulkan.cpp"
 	}
 
 	includedirs {
@@ -30,8 +32,8 @@ project "ImGui"
 		"%{wks.location}/Magnefu/src/Maths",
 		"%{wks.location}/Magnefu/vendor",
 		"%{wks.location}/Magnefu/vendor/imgui",
-		"%{wks.location}/Magnefu/vendor/GLFW/include"
-
+		"%{wks.location}/Magnefu/vendor/GLFW/include",
+		"%{wks.location}/Magnefu/vendor/vulkan/include"
 	}
 
 	filter "system:windows"

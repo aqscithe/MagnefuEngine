@@ -1,22 +1,21 @@
 #pragma once
 
-#include "Core.h"
+#include "Magnefu/Core/Assertions.h"
 #include "Window.h"
-#include "ResourceCache.h"
 #include "Magnefu/LayerStack.h"
 #include "Magnefu/ImGui/ImGuiLayer.h"
-#include "Magnefu/Events/ApplicationEvent.h"
-#include "Magnefu/Events/MouseEvent.h"
-#include "Magnefu/Events/KeyEvent.h"
+#include "Magnefu/Core/Events/ApplicationEvent.h"
+#include "Magnefu/Core/Events/MouseEvent.h"
+#include "Magnefu/Core/Events/KeyEvent.h"
+#include "Magnefu/ResourceManagement/ResourceCache.h"
+#include "Magnefu/Core/MemoryAllocation/StackAllocator.h"
+#include "Magnefu/Core/MemoryAllocation/LinkedListAlloc.h"
+
+#include "Magnefu/Core/TimeStep.h"
 
 
 namespace Magnefu
 {
-	/*struct State
-	{
-		Maths::mat4 MVP;
-	};*/
-
 	class  Application
 	{
 	public:
@@ -27,37 +26,34 @@ namespace Magnefu
 		virtual void Run();
 
 		void OnEvent(Event& event);
-		void OnImGuiRender();
+		void OnGUIRender();
+		void OnUpdate(float deltaTime);
 
 		void PushLayer(Layer* layer);
 		void PushOverlay(Layer* overlay);
 
-		void SetCurrentSceneData(SceneData& state) { m_CurrState = state; }
-		void SetPreviousSceneData(SceneData& state) { m_PrevState = state; }
-
 		inline Window& GetWindow() { return *m_Window; }
 		inline ResourceCache& GetResourceCache() { return *m_ResourceCache; }
-		inline SceneData* GetRenderData() { return &m_RenderState; }
+		inline TimeStep& GetTimeStep() { return m_TimeStep; }
+		inline ImGuiLayer* GetImGuiLayer() { return m_ImGuiLayer; }
 
 		inline static Application& Get() { return *s_Instance; }
 
 	private:
-		bool OnWindowClose(WindowCloseEvent& event);
+		bool OnWindowClose(WindowCloseEvent& e);
+		bool OnWindowResize(WindowResizeEvent& e);
 
-		std::unique_ptr<Window> m_Window;
-		bool m_Running;
-		LayerStack m_LayerStack;
-		ImGuiLayer* m_ImGuiLayer;
-
-		std::unique_ptr<ResourceCache> m_ResourceCache;
-
-		SceneData m_PrevState;
-		SceneData m_CurrState;
-		SceneData m_RenderState;
-
+	private:
 		static Application* s_Instance;
 
-		
+		TimeStep m_TimeStep;
+		LayerStack m_LayerStack;
+		ImGuiLayer* m_ImGuiLayer;
+		Scope<ResourceCache> m_ResourceCache;
+		Scope<Window> m_Window;
+
+		bool m_Running;
+		bool m_Minimized;
 	};
 
 	// to be defined in client

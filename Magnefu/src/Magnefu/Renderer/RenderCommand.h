@@ -23,6 +23,81 @@ namespace Magnefu
 			s_RendererAPI->ClearColor(r, g, b, a);
 		}
 
+		inline static void EnableFaceCulling()
+		{
+			s_RendererAPI->EnableFaceCulling();
+		}
+
+		inline static void DisableFaceCulling()
+		{
+			s_RendererAPI->DisableFaceCulling();
+		}
+
+		inline static void EnableSeamlessCubeMap()
+		{
+			s_RendererAPI->EnableSeamlessCubeMap();
+		}
+
+		inline static 	void DisableSeamlessCubeMap()
+		{
+			s_RendererAPI->DisableSeamlessCubeMap();
+		}
+
+		inline static void EnableBlending()
+		{
+			s_RendererAPI->EnableBlending();
+		}
+
+		inline static void DisableBlending()
+		{
+			s_RendererAPI->DisableBlending();
+		}
+
+		inline static void EnableDepthTest()
+		{
+			s_RendererAPI->EnableDepthTest();
+		}
+
+		inline static void DisableDepthTest()
+		{
+			s_RendererAPI->DisableDepthTest();
+		}
+
+		inline static void EnableDepthMask()
+		{
+			s_RendererAPI->EnableDepthMask();
+		}
+
+		inline static void DisableDepthMask()
+		{
+			s_RendererAPI->DisableDepthMask();
+		}
+
+		inline static void DepthFuncLEqual()
+		{
+			s_RendererAPI->DepthFuncLEqual();
+		}
+
+		inline static void DepthFuncLess()
+		{
+			s_RendererAPI->DepthFuncLess();
+		}
+
+		inline static void FrontFaceCCW()
+		{
+			s_RendererAPI->FrontFaceCCW();
+		}
+
+		inline static void FrontFaceCW()
+		{
+			s_RendererAPI->FrontFaceCW();
+		}
+
+		inline static void SetWindowSize(int width, int height)
+		{
+			s_RendererAPI->SetWindowSize(width, height);
+		}
+
 		inline static void DrawIndexed(const Ref<VertexArray>& va)
 		{
 			va->Bind();

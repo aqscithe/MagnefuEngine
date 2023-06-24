@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Magnefu/Core.h"
-#include "Magnefu/Log.h"
+#include "Magnefu/Core/Assertions.h"
+#include "Magnefu/Core/Log.h"
 
 namespace Magnefu
 {
@@ -35,9 +35,9 @@ namespace Magnefu
 	struct BufferElement
 	{
 		std::string Name;
-		ShaderDataType Type;
 		uint32_t Size;
 		uint32_t Offset;
+		ShaderDataType Type;
 		bool Normalized;
 
 		BufferElement(ShaderDataType type, const std::string& name, bool normalized = false) :

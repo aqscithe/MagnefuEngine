@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Core.h"
-#include "Magnefu/Events/Event.h"
+#include "Magnefu/Core/Assertions.h"
+#include "Magnefu/Core/Events/Event.h"
 
 namespace Magnefu
 {
@@ -15,6 +15,7 @@ namespace Magnefu
 		virtual void OnDetach() {}
 		virtual void OnUpdate(float deltaTime) {}
 		virtual void OnRender() {}
+		virtual void OnGUIRender() {}
 		virtual void OnEvent(Event& event) {}
 
 		inline const std::string& GetName() const { return m_DebugName; }

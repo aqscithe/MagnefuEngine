@@ -30,9 +30,11 @@ in vec2 TexCoords;
 
 out vec4 FragColor;
 
-uniform sampler2D u_Texture;
+uniform sampler2D u_DiffuseTexture;
 
 void main()
 {
-	FragColor = texture(u_Texture, TexCoords) * VertexColor;
+	FragColor = texture(u_DiffuseTexture, TexCoords) * VertexColor;
+	//vec4 testColor = vec4(0.1, 0.7, 0.9, 0.2);
+	//FragColor = texture(u_DiffuseTexture, TexCoords) * testColor;
 }

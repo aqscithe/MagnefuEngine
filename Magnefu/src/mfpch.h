@@ -9,6 +9,8 @@
 #include <utility>
 #include <functional>
 #include <chrono>
+#include <random>
+#include <any>
 
 #include <future>
 #include <mutex>
@@ -19,12 +21,21 @@
 #include <sstream>
 #include <fstream>
 
-#include "MathsCommon.h"
-#include "Globals.h"
-#include "Vectors.h"
-#include "Matrices.h"
-#include "Magnefu/Log.h"
-#include "Magnefu/Base.h"
+
+#include "Magnefu/Core/Maths/MathsCommon.h"
+#include "Magnefu/Core/Maths/PrimitiveCommon.h"
+#include "Magnefu/Core/Maths/Vectors.h"
+#include "Magnefu/Core/Maths/Matrices.h"
+#include "Magnefu/Core/Log.h"
+#include "Magnefu/Core/SmartPointers.h"
+
+#include "Magnefu/Debug/Instrumentor.h"
+
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>4
+
+
 
 #ifdef MF_PLATFORM_WINDOWS
 #include <Windows.h>

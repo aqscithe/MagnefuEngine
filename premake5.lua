@@ -1,3 +1,5 @@
+
+
 workspace "Magnefu"
     architecture "x64"
     configurations { "Debug", "Release", "Dist" }
@@ -11,10 +13,13 @@ IncludeDir = {}
 IncludeDir["GLFW"] = "Magnefu/vendor/GLFW/include"
 IncludeDir["GLAD"] = "Magnefu/vendor/GLAD/include"
 IncludeDir["ImGui"] = "Magnefu/vendor/imgui"
+IncludeDir["Vulkan"] = "Magnefu/vendor/vulkan/include"
 
 LibDir = {}
 LibDir["GLFW"] = "Magnefu/vendor/GLAD/lib"
+LibDir["Vulkan"] = "Magnefu/vendor/vulkan/lib"
 
+-- Includes Premake files
 include "Magnefu/vendor/GLFW"
 include "Magnefu/vendor/GLAD"
 include "Magnefu/vendor/imgui"
@@ -56,32 +61,35 @@ project "Magnefu"
 
     files {
         "%{prj.name}/vendor/imgui/backends/imgui_impl_glfw.h",
-        "%{prj.name}/vendor/imgui/backends/imgui_impl_glfw.cpp",
-        "%{prj.name}/vendor/imgui/backends/imgui_impl_opengl3.h",
-        "%{prj.name}/vendor/imgui/backends/imgui_impl_opengl3.cpp"
+        "%{prj.name}/vendor/imgui/backends/imgui_impl_glfw.cpp"
     }
 
     includedirs {
         "%{prj.name}/vendor",
         "%{prj.name}/src",
         "%{prj.name}/src/Maths",
+        "%{prj.name}/src/Renderer",
+        "%{IncludeDir.Vulkan}",
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.GLAD}",
-        "%{IncludeDir.ImGui}"
+        "%{IncludeDir.ImGui}",
+        
     }
 
     libdirs {
-        "%{LibDir.GLFW}"
+        "%{LibDir.Vulkan}",
+        "%{LibDir.GLFW}",
+        
     }
 
     links {
         "GLFW",
-        "glfw3_mt",
         "GLAD",
         "ImGui",
-        "opengl32"
+        "glfw3_mt",
+        "vulkan-1",
+        "shaderc_shared"
     }
-
 
     filter "system:windows"
         systemversion "latest"
@@ -137,6 +145,9 @@ project "Sandbox"
         "%{IncludeDir.GLAD}",
     }
 
+    libdirs {
+    }
+
     links {
         "Magnefu"
     }
@@ -150,7 +161,6 @@ project "Sandbox"
 
     postbuildcommands {
         "{COPYDIR} %{prj.location}/res/* %{cfg.buildtarget.directory}/res" 
-        --"XCOPY $(ProjectDir)res* %{cfg.buildtarget.directory}/res /S /Y"
     }
 
     filter "configurations:Debug"

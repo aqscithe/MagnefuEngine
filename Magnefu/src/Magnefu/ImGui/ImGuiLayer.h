@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Magnefu/Layer.h"
-#include "Magnefu/Events/KeyEvent.h"
-#include "Magnefu/Events/MouseEvent.h"
+#include "Magnefu/Core/Events/KeyEvent.h"
+#include "Magnefu/Core/Events/MouseEvent.h"
 #include "Magnefu/Renderer/Renderer.h"
 
 
@@ -15,19 +15,26 @@ namespace Magnefu
 		~ImGuiLayer();
 
 		void OnAttach() override;
+		
 		void OnDetach() override;
 		void OnEvent(Event&) override;
+		void OnRender() override;
 
 		void BeginFrame();
 		void EndFrame();
+		void RecreateImageResources();
+		void RecordAndSubmitCommandBuffer(uint32_t imageIndex);
 
 		void BlockEvents(bool block) { m_BlockEvents = block; }
 
 		void SetDarkThemeColors();
 
 		uint32_t GetActiveWidgetID() const;
+
+
 	private:
-		bool m_BlockEvents = true;
 		Renderer m_Renderer;
+		bool m_BlockEvents = true;
+		
 	};
 }

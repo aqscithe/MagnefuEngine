@@ -108,7 +108,7 @@ extern "C" {
 #include <stdint.h>
 
 #if defined(GLFW_INCLUDE_VULKAN)
-  #include <vulkan/vulkan.h>
+    #include <vulkan/vulkan.h>
 #endif /* Vulkan header */
 
 /* The Vulkan header may have indirectly included windows.h (because of
@@ -5689,7 +5689,6 @@ GLFWAPI int glfwVulkanSupported(void);
  *  @ingroup vulkan
  */
 GLFWAPI const char** glfwGetRequiredInstanceExtensions(uint32_t* count);
-
 #if defined(VK_VERSION_1_0)
 
 /*! @brief Returns the address of the specified Vulkan instance function.

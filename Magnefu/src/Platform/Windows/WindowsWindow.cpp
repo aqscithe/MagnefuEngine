@@ -1,10 +1,13 @@
 #include "mfpch.h"
 #include "WindowsWindow.h"
-#include "Magnefu/Events/ApplicationEvent.h"
-#include "Magnefu/Events/MouseEvent.h"
-#include "Magnefu/Events/KeyEvent.h"
-#include "Platform/OpenGL/OpenGLContext.h"
-#include "Magnefu/Scene/Camera.h"
+#include "Magnefu/Core/Events/ApplicationEvent.h"
+#include "Magnefu/Core/Events/MouseEvent.h"
+#include "Magnefu/Core/Events/KeyEvent.h"
+#include "Platform/VK/VKContext.h"
+#include "Magnefu/Renderer/Camera.h"
+#include "Magnefu/Renderer/RendererAPI.h"
+
+#include "imgui.h"
 
 
 namespace Magnefu
@@ -16,8 +19,14 @@ namespace Magnefu
 		MF_CORE_ERROR("GLFW Error: {0} | {1}", code, msg);
 	}
 
+	static void FramebufferResizeCallback(GLFWwindow* window, int width, int height) 
+	{
+		//WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+	}
+
 	Window* Window::Create(const WindowProps& props)
 	{
+		MF_PROFILE_FUNCTION();
 		return new WindowsWindow(props);
 	}
 
@@ -39,6 +48,7 @@ namespace Magnefu
 		m_Data.Width = props.Width;
 		m_Data.Height = props.Height;
 		m_Data.CamData = &m_SceneCamera->GetData();
+		m_Data.WindowPtr = this;
 
 		MF_CORE_INFO("Launching Window: {0} - {1}x{2}", m_Data.Title, m_Data.Width, m_Data.Height);
 
@@ -50,22 +60,43 @@ namespace Magnefu
 			s_GLFWInitialized = true;
 		}
 
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		switch (RendererAPI::GetAPI())
+		{
+			case RendererAPI::API::VULKAN:
+			{
+				glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+				glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+				break;
+			}
+		}
 
 		m_Window = glfwCreateWindow(m_Data.Width, m_Data.Height, m_Data.Title.c_str(), NULL, NULL);
 		MF_CORE_ASSERT(m_Window, "Failed to create GLFW window");
 
-		m_Context = new OpenGLContext(m_Window);
+		m_Context = GraphicsContext::Create(m_Window);
 
 		if(m_Context)
 			m_Context->Init();
 
+		// maybe i pass WindowData as an argument to the context init function
+
 		glfwSetWindowUserPointer(m_Window, &m_Data);
-		SetVSync(true);
+
+		// vsync set by presentation mode in vulkan swap chain
 
 		// Set GLFW Callbacks
+
+		glfwSetFramebufferSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
+		{
+			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+
+			WindowsWindow* win = dynamic_cast<WindowsWindow*>(data.WindowPtr);
+			if (win)
+				win->SetFramebufferResized(true);
+
+			//MF_CORE_DEBUG("A framebuffer resize event");
+		});
+
 		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
 		{
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
@@ -75,7 +106,7 @@ namespace Magnefu
 			WindowResizeEvent event(width, height);
 			data.EventCallback(event);
 
-			//glViewport(0, 0, width, height);
+			//MF_CORE_DEBUG("A window resize event");
 
 		});
 
@@ -170,10 +201,9 @@ namespace Magnefu
 				camData->FOV = 100.f;
 		});
 
-		Globals& global = Globals::Get();
 
-		m_Mouse.lastX = global.WIDTH / 2.f;
-		m_Mouse.lastY = global.HEIGHT / 2.f;
+		m_Mouse.lastX = m_Data.Width / 2.f;
+		m_Mouse.lastY = m_Data.Height / 2.f;
 		m_Mouse.sensitivity = 0.001f;
 		m_Mouse.X = 0.0;
 		m_Mouse.Y = 0.0;
@@ -182,31 +212,35 @@ namespace Magnefu
 
 	void WindowsWindow::OnUpdate()
 	{
+		MF_PROFILE_FUNCTION();
 		MouseUpdates();
 		processInput();
 		glfwPollEvents();
 		
-		m_Context->SwapBuffers();
+		//m_Context->SwapBuffers();
+	}
+
+	void WindowsWindow::DrawFrame()
+	{
+		m_Context->DrawFrame();
 	}
 
 	void WindowsWindow::Shutdown()
 	{
 		glfwDestroyWindow(m_Window);
+		glfwTerminate();
 	}
 
-	void WindowsWindow::SetVSync(bool enabled)
-	{
-		if (enabled)
-			glfwSwapInterval(1);
-		else
-			glfwSwapInterval(0);
-		m_Data.VSync = enabled;
-	}
 
 	void WindowsWindow::SetSceneCamera(const Ref<Camera>& cam)
 	{
 		m_SceneCamera = cam;
 		m_Data.CamData = &m_SceneCamera->GetData();
+	}
+
+	void WindowsWindow::SetFramebufferResized(bool framebufferResized)
+	{
+		m_Context->SetFramebufferResized(framebufferResized);
 	}
 
 	void WindowsWindow::processInput()
@@ -250,6 +284,26 @@ namespace Magnefu
 			camData.Pitch = Maths::toRadians(89.0f);
 		if (camData.Pitch < Maths::toRadians(-89.0f))
 			camData.Pitch = Maths::toRadians(-89.0f);
+	}
+
+	void WindowsWindow::OnImGuiRender()
+	{
+		ImGui::Begin("Renderer");
+		if (ImGui::BeginTabBar("Renderer", ImGuiTabBarFlags_None))
+		{
+			if (ImGui::BeginTabItem("Info"))
+			{
+				m_Context->OnImGuiRender();
+				ImGui::EndTabItem();
+			}
+			ImGui::EndTabBar();
+		}
+		ImGui::End();
+	}
+
+	void WindowsWindow::OnFinish()
+	{
+		m_Context->OnFinish();
 	}
 
 }

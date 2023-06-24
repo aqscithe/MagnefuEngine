@@ -1,3 +1,4 @@
+#include "mfpch.h"
 // dear imgui: Renderer Backend for Vulkan
 // This needs to be used along with a Platform Backend (e.g. GLFW, SDL, Win32, custom..)
 
@@ -1347,6 +1348,7 @@ void ImGui_ImplVulkanH_CreateWindowSwapChain(VkPhysicalDevice physical_device, V
     }
     if (old_swapchain)
         vkDestroySwapchainKHR(device, old_swapchain, allocator);
+
 
     // Create the Render Pass
     {

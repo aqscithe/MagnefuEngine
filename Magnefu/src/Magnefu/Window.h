@@ -2,9 +2,10 @@
 
 #include "mfpch.h"
 
-#include "Core.h"
-#include "Events/Event.h"
-#include "Magnefu/Scene/Camera.h"
+#include "Magnefu/Core/Assertions.h"
+#include "Magnefu/Core/Events/Event.h"
+#include "Magnefu/Renderer/Camera.h"
+#include "Magnefu/Renderer/GraphicsContext.h"
 
 
 namespace Magnefu
@@ -29,6 +30,11 @@ namespace Magnefu
 		virtual ~Window() {}
 
 		virtual void OnUpdate() = 0;
+		virtual void DrawFrame() = 0;
+		virtual void OnImGuiRender() = 0;
+
+		// Main Loop Completed
+		virtual void OnFinish() = 0;
 
 		virtual uint16_t GetWidth() const = 0;
 		virtual uint16_t GetHeight() const = 0;
@@ -37,10 +43,11 @@ namespace Magnefu
 
 		// Window attributes
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
-		virtual void SetVSync(bool enabled) = 0;
 		virtual bool IsVSync() const = 0;
 		virtual void SetSceneCamera(const Ref<Camera>&) = 0;
 		virtual Ref<Camera>& GetSceneCamera() = 0;
+		virtual void SetFramebufferResized(bool framebufferResized) = 0;
+		virtual GraphicsContext* GetGraphicsContext() = 0;
 
 		static Window* Create(const WindowProps& props = WindowProps());
 	};

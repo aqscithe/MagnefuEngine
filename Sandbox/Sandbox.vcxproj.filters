@@ -46,6 +46,9 @@
     <Filter Include="res\textures\darkmarble">
       <UniqueIdentifier>{C624BCD5-325C-046D-3B66-6890A71C2B66}</UniqueIdentifier>
     </Filter>
+    <Filter Include="res\textures\defaults">
+      <UniqueIdentifier>{C99DA46A-350A-6065-FEFD-F7C26A2982CD}</UniqueIdentifier>
+    </Filter>
     <Filter Include="res\textures\leaf_1-2K">
       <UniqueIdentifier>{C3CE32EC-AFC8-5B3E-9835-F24E84CEC1AA}</UniqueIdentifier>
     </Filter>
@@ -55,11 +58,20 @@
     <Filter Include="res\textures\old_copper">
       <UniqueIdentifier>{98A1DD65-04D9-25FD-0DE3-892079994CF6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="res\textures\painted-wall-sky-blue">
+      <UniqueIdentifier>{ECE1E741-D81D-EBAB-4130-03A32D8B93C6}</UniqueIdentifier>
+    </Filter>
     <Filter Include="res\textures\retrotv0319">
       <UniqueIdentifier>{541BB50D-4040-048E-698B-E91D550F03AC}</UniqueIdentifier>
     </Filter>
     <Filter Include="res\textures\santa_hat">
       <UniqueIdentifier>{844C2E74-7046-57C6-59B3-EDD6454CBD32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\skybox">
+      <UniqueIdentifier>{11F17DE5-7D52-5BF3-06C0-A1A5722092B2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\skybox\default">
+      <UniqueIdentifier>{853EFE59-F14B-2C40-7A32-282BE63EF8F6}</UniqueIdentifier>
     </Filter>
     <Filter Include="res\textures\snow_field_aerial">
       <UniqueIdentifier>{28966825-14BC-328C-FD01-B857E9C65758}</UniqueIdentifier>
@@ -118,6 +130,9 @@
     <None Include="res\meshes\santa_hat(DEFAULT).obj">
       <Filter>res\meshes</Filter>
     </None>
+    <None Include="res\meshes\viking_room.obj">
+      <Filter>res\meshes</Filter>
+    </None>
     <None Include="res\meshes\wooden_watch_tower2.obj">
       <Filter>res\meshes</Filter>
     </None>
@@ -127,7 +142,28 @@
     <None Include="res\shaders\BatchRender.shader">
       <Filter>res\shaders</Filter>
     </None>
+    <None Include="res\shaders\Cube.shader">
+      <Filter>res\shaders</Filter>
+    </None>
     <None Include="res\shaders\LightCube.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Particles.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Plane.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Primitive.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\RecPrism.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Skybox.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Sphere.shader">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\Test.shader">
@@ -261,6 +297,15 @@
     <Image Include="res\textures\darkmarble\dark-marbled-stone_s.jpg">
       <Filter>res\textures\darkmarble</Filter>
     </Image>
+    <Image Include="res\textures\defaults\diffuse.jpg">
+      <Filter>res\textures\defaults</Filter>
+    </Image>
+    <Image Include="res\textures\defaults\metallic.png">
+      <Filter>res\textures\defaults</Filter>
+    </Image>
+    <Image Include="res\textures\defaults\roughness.jpg">
+      <Filter>res\textures\defaults</Filter>
+    </Image>
     <Image Include="res\textures\grass.jpg">
       <Filter>res\textures</Filter>
     </Image>
@@ -320,6 +365,18 @@
     </Image>
     <Image Include="res\textures\old_copper\2K_old_copper_specular_level.png">
       <Filter>res\textures\old_copper</Filter>
+    </Image>
+    <Image Include="res\textures\painted-wall-sky-blue\diffuse.png">
+      <Filter>res\textures\painted-wall-sky-blue</Filter>
+    </Image>
+    <Image Include="res\textures\painted-wall-sky-blue\metallic.png">
+      <Filter>res\textures\painted-wall-sky-blue</Filter>
+    </Image>
+    <Image Include="res\textures\painted-wall-sky-blue\normal.png">
+      <Filter>res\textures\painted-wall-sky-blue</Filter>
+    </Image>
+    <Image Include="res\textures\painted-wall-sky-blue\roughness.png">
+      <Filter>res\textures\painted-wall-sky-blue</Filter>
     </Image>
     <Image Include="res\textures\pluto.png">
       <Filter>res\textures</Filter>
@@ -381,6 +438,24 @@
     <Image Include="res\textures\santa_hat\specular.jpg">
       <Filter>res\textures\santa_hat</Filter>
     </Image>
+    <Image Include="res\textures\skybox\default\back-nz.png">
+      <Filter>res\textures\skybox\default</Filter>
+    </Image>
+    <Image Include="res\textures\skybox\default\bottom-ny.png">
+      <Filter>res\textures\skybox\default</Filter>
+    </Image>
+    <Image Include="res\textures\skybox\default\front-pz.png">
+      <Filter>res\textures\skybox\default</Filter>
+    </Image>
+    <Image Include="res\textures\skybox\default\left-nx.png">
+      <Filter>res\textures\skybox\default</Filter>
+    </Image>
+    <Image Include="res\textures\skybox\default\right-px.png">
+      <Filter>res\textures\skybox\default</Filter>
+    </Image>
+    <Image Include="res\textures\skybox\default\top-py.png">
+      <Filter>res\textures\skybox\default</Filter>
+    </Image>
     <Image Include="res\textures\snow_field_aerial\snow_f_a_spec.jpg">
       <Filter>res\textures\snow_field_aerial</Filter>
     </Image>
@@ -404,6 +479,9 @@
     </Image>
     <Image Include="res\textures\starlights\starlights_s.jpg">
       <Filter>res\textures\starlights</Filter>
+    </Image>
+    <Image Include="res\textures\viking_room.png">
+      <Filter>res\textures</Filter>
     </Image>
     <Image Include="res\textures\wall.jpg">
       <Filter>res\textures</Filter>

@@ -1,7 +1,6 @@
 #include "mfpch.h"
 
 #include "VertexArray.h"
-#include "Platform/OpenGL/OpenGLVertexArray.h"
 #include "Buffer.h"
 #include "Renderer.h"
 
@@ -15,8 +14,6 @@ namespace Magnefu
 		case RendererAPI::API::NONE:
 			MF_CORE_ASSERT(false, "RendererAPI::NONE VertexArray not supported");
 			return nullptr;
-		case RendererAPI::API::OPENGL:
-			return  std::make_shared<OpenGLVertexArray>();
 		}
 
 		MF_CORE_ASSERT(false, "Unknown Renderer API - VertexArray");
