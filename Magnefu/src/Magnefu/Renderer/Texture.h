@@ -10,8 +10,8 @@ namespace Magnefu
 	{
 		NONE = -1,
 		DIFFUSE,
+		METAL,
 		ROUGHNESS,
-		METALLIC,
 		BUMP,
 		NORMAL,
 		DISPLACEMENT,

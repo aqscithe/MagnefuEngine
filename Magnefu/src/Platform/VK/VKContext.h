@@ -138,6 +138,17 @@ namespace Magnefu
 		}
 	};
 
+	struct TextureInfo
+	{
+		TextureType    Type;
+		uint32_t       MipLevels;
+		VkImage        Image;
+		VkImageView    ImageView;
+		VkDeviceMemory Buffer;
+		VkFormat       Format;
+		VkImageTiling  Tiling;
+	};
+
 	class VKContext : public GraphicsContext
 	{
 	public:
@@ -175,7 +186,7 @@ namespace Magnefu
 		void CreateComputePipeline();
 		void CreateColorResources();
 		void CreateDepthResources();
-		void CreateTextureImage();
+		void CreateTextures();
 		void CreateTextureImageView();
 		void CreateTextureSampler();
 		void LoadModel();
@@ -214,6 +225,13 @@ namespace Magnefu
 		// Place in VKShader
 		ShaderList ParseShader(const String& filepath);
 		VkShaderModule CreateShaderModule(const ShaderSource& source);
+
+		// Texture Creation
+		void CreateBaseTexture();
+		void CreateMetalTexture();
+		void CreateRoughnessTexture();
+		void CreateTextureImage(TextureInfo& texture);
+		void CreateTextureImageView(TextureInfo& texture);
 
 		
 		// Buffers
@@ -333,13 +351,15 @@ namespace Magnefu
 
 		// -- Mip Map Info -- //
 		VkSampleCountFlagBits        m_MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-		uint32_t                     m_MipLevels;
+
+
+		// -- Texture Info -- //
+
+		std::vector<TextureInfo>     m_Textures;  // assumption that any texture in this vector is PBR...maybe i should change the name
+		VkSampler                    m_TextureSampler;
 
 		// -- Image Buffers -- //
-		VkImage                      m_TextureImage;
-		VkDeviceMemory               m_TextureImageMemory;
-		VkImageView                  m_TextureImageView;
-		VkSampler                    m_TextureSampler;
+
 		VkImage                      m_DepthImage;
 		VkDeviceMemory               m_DepthImageMemory;
 		VkImageView                  m_DepthImageView;
