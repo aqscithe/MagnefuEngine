@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Magnefu/Renderer/GraphicsContext.h"
+#include "Magnefu/Renderer/Texture.h"
 #include "vulkan/vulkan.h"
 
 
@@ -17,6 +18,19 @@ namespace Magnefu
 		Fragment,
 		Compute
 	};
+
+	/*enum TextureType
+	{
+		NONE = -1,
+		DIFFUSE,
+		METAL,
+		ROUGHNESS,
+		BUMP,
+		NORMAL,
+		DISPLACEMENT,
+		AO,
+		EMISSIVE
+	};*/
 
 	struct ShaderSource
 	{
@@ -187,7 +201,6 @@ namespace Magnefu
 		void CreateColorResources();
 		void CreateDepthResources();
 		void CreateTextures();
-		void CreateTextureImageView();
 		void CreateTextureSampler();
 		void LoadModel();
 		void CreateVertexBuffer();

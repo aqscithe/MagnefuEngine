@@ -44,7 +44,7 @@ namespace Magnefu
 
 	static const std::string MODEL_PATH = "res/meshes/corridor.obj";
 	static const std::string BASE_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_BaseColor.png";
-	static const std::string METAL_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Metal.png";
+	static const std::string METAL_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Metalness.png";
 	static const std::string ROUGHNESS_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Roughness.png";
 	static const std::string SHADER_PATH = "res/shaders/Basic.shader";
 	static const std::string PARTICLE_SHADER_PATH = "res/shaders/Particles.shader";
@@ -598,19 +598,31 @@ namespace Magnefu
 		uboLayoutBinding.binding = 0;
 		uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		uboLayoutBinding.descriptorCount = 1;
-		uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 		uboLayoutBinding.pImmutableSamplers = nullptr; // For image sampling
+		uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-		VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-		samplerLayoutBinding.binding = 1;
-		samplerLayoutBinding.descriptorCount = 1;
-		samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		samplerLayoutBinding.pImmutableSamplers = nullptr;
-		samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+		VkDescriptorSetLayoutBinding baseSamplerLayoutBinding{};
+		baseSamplerLayoutBinding.binding = 1;
+		baseSamplerLayoutBinding.descriptorCount = 1;
+		baseSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		baseSamplerLayoutBinding.pImmutableSamplers = nullptr;
+		baseSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-		// -- Insert SAMPLER BINDINGS FOR METAL AND ROUGHNESS -- //
+		VkDescriptorSetLayoutBinding metalSamplerLayoutBinding{};
+		metalSamplerLayoutBinding.binding = 2;
+		metalSamplerLayoutBinding.descriptorCount = 1;
+		metalSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		metalSamplerLayoutBinding.pImmutableSamplers = nullptr;
+		metalSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-		std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
+		VkDescriptorSetLayoutBinding roughnessSamplerLayoutBinding{};
+		roughnessSamplerLayoutBinding.binding = 3;
+		roughnessSamplerLayoutBinding.descriptorCount = 1;
+		roughnessSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		roughnessSamplerLayoutBinding.pImmutableSamplers = nullptr;
+		roughnessSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+		std::array<VkDescriptorSetLayoutBinding, 4> bindings = { uboLayoutBinding, baseSamplerLayoutBinding, metalSamplerLayoutBinding, roughnessSamplerLayoutBinding };
 		VkDescriptorSetLayoutCreateInfo layoutInfo{};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 		layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -1427,21 +1439,36 @@ namespace Magnefu
 		if (vkAllocateDescriptorSets(m_VkDevice, &allocInfo, m_DescriptorSets.data()) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to allocate descriptor sets!");
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		std::vector<VkDescriptorImageInfo> imageInfo{};
+		imageInfo.resize(m_Textures.size());
+
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
+		{
 			VkDescriptorBufferInfo bufferInfo{};
 			bufferInfo.buffer = m_UniformBuffers[i];
 			bufferInfo.offset = 0;
 			bufferInfo.range = sizeof(UniformBufferObject);
+			
 
-			VkDescriptorImageInfo baseImageInfo{};
-			baseImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			baseImageInfo.imageView = m_TextureImageView;
-			baseImageInfo.sampler =   m_TextureSampler;
+			// Base
+			imageInfo[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo[0].imageView = m_Textures[0].ImageView;
+			imageInfo[0].sampler =   m_TextureSampler;
 
-			// -- INSERT Metal & ROUGHNESS TEXTURES HERE
+			// Metal
+			imageInfo[1].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo[1].imageView = m_Textures[1].ImageView;
+			imageInfo[1].sampler = m_TextureSampler;
 
-			std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+			// Roughness
+			imageInfo[2].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo[2].imageView = m_Textures[2].ImageView;
+			imageInfo[2].sampler = m_TextureSampler;
 
+
+			std::array<VkWriteDescriptorSet, 4> descriptorWrites{};
+
+			// UBO
 			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			descriptorWrites[0].dstSet = m_DescriptorSets[i];
 			descriptorWrites[0].dstBinding = 0;
@@ -1452,6 +1479,7 @@ namespace Magnefu
 			descriptorWrites[0].pImageInfo = nullptr; // Optional
 			descriptorWrites[0].pTexelBufferView = nullptr; // Optional
 
+			// Base Texture
 			descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			descriptorWrites[1].dstSet = m_DescriptorSets[i];
 			descriptorWrites[1].dstBinding = 1;
@@ -1459,8 +1487,30 @@ namespace Magnefu
 			descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			descriptorWrites[1].descriptorCount = 1;
 			descriptorWrites[1].pBufferInfo = nullptr;
-			descriptorWrites[1].pImageInfo = &baseImageInfo; // Optional
+			descriptorWrites[1].pImageInfo = &imageInfo[0]; // Optional
 			descriptorWrites[1].pTexelBufferView = nullptr; // Optional
+
+			// Metal Texture
+			descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[2].dstSet = m_DescriptorSets[i];
+			descriptorWrites[2].dstBinding = 2;
+			descriptorWrites[2].dstArrayElement = 0;
+			descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descriptorWrites[2].descriptorCount = 1;
+			descriptorWrites[2].pBufferInfo = nullptr;
+			descriptorWrites[2].pImageInfo = &imageInfo[1]; // Optional
+			descriptorWrites[2].pTexelBufferView = nullptr; // Optional
+
+			// Roughness Texture
+			descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[3].dstSet = m_DescriptorSets[i];
+			descriptorWrites[3].dstBinding = 3;
+			descriptorWrites[3].dstArrayElement = 0;
+			descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descriptorWrites[3].descriptorCount = 1;
+			descriptorWrites[3].pBufferInfo = nullptr;
+			descriptorWrites[3].pImageInfo = &imageInfo[2]; // Optional
+			descriptorWrites[3].pTexelBufferView = nullptr; // Optional
 
 			vkUpdateDescriptorSets(m_VkDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 		}
@@ -2391,7 +2441,7 @@ namespace Magnefu
 
 	void VKContext::CreateTextureImage(TextureInfo& texture)
 	{
-		VkFormat format;
+		int requestedChannels = 0;
 
 		texture.Tiling = VK_IMAGE_TILING_OPTIMAL;
 		switch (texture.Type)
@@ -2399,18 +2449,21 @@ namespace Magnefu
 			case TextureType::DIFFUSE:
 			{
 				texture.Format = VK_FORMAT_R8G8B8A8_SRGB;
+				requestedChannels = STBI_rgb_alpha;
 				break;
 			}
 
 			case TextureType::METAL:
 			{
 				texture.Format = VK_FORMAT_R8_UNORM;
+				requestedChannels = STBI_grey;
 				break;
 			}
 
 			case TextureType::ROUGHNESS:
 			{
 				texture.Format = VK_FORMAT_R8_UNORM;
+				requestedChannels = STBI_grey;
 				break;
 			}
 
@@ -2426,17 +2479,17 @@ namespace Magnefu
 		stbi_uc* pixels = stbi_load(
 			TEXTURE_PATHS[static_cast<uint32_t>(texture.Type)].c_str(), 
 			&width, &height, &channels, 
-			texture.Type == TextureType::DIFFUSE ? STBI_rgb_alpha : STBI_grey
+			requestedChannels
 		); // channels = BPP (bits per pixel)
-
-		texture.MipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
-
-		MF_CORE_DEBUG("Mip Levels: {0} | Width: {1} | Height: {2} | Channels: {3}", texture.MipLevels, width, height, channels);
-
-		VkDeviceSize imageSize = width * height * 4;
 
 		if (!pixels)
 			MF_CORE_ASSERT(false, "failed to load texture image!");
+
+		texture.MipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
+
+		MF_CORE_DEBUG("Mip Levels: {0} | Width: {1} | Height: {2} | Channels: {3} | Requested Channels: {4}", texture.MipLevels, width, height, channels, requestedChannels);
+
+		VkDeviceSize imageSize = width * height * requestedChannels;
 
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;
