@@ -31,7 +31,17 @@ float PI = 3.1415926535897932384626;
 
 layout(push_constant) uniform PushConstants
 {
-    vec3 Tint;
+    bool  LightEnabled;
+    float Opacity;
+    float RadiantFlux;
+    float Reflectance; // fresnel reflectance for dielectrics [0.0, 1.0]
+    vec3  Tint;
+    vec3  CameraPos;
+    vec3  LightDirection;
+    vec3  LightColor;
+    vec3  Ka;
+    vec3  Kd;
+    vec3  Ks;
 } PC;
 
 
@@ -43,6 +53,30 @@ layout(location = 0) in vec2 FragTexCoord;
 layout(location = 1) in vec3 FragNormal;
 
 layout(location = 0) out vec4 OutColor;
+
+
+
+vec3 FresnelSchlick(vec3 F0, float cosTheta)
+{
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+float D_GGX(float roughness, float NoH)
+{
+    float r_squared = roughness * roughness;
+    return r_squared / (PI * pow((NoH * NoH) * (r_squared - 1.0) + 1.0, 2));
+}
+
+float G_Schlick_GGX(float roughness, float cosTheta)
+{
+    float k = roughness / 2.0;
+    return max(cosTheta, 0.001) / (cosTheta * (1.0 - k) + k);
+}
+
+float G_Smith(float roughness, float NoL, float NoV)
+{
+    return G_Schlick_GGX(roughness, NoL) * G_Schlick_GGX(roughness, NoV);
+}
 
 void main()
 {
