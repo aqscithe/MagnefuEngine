@@ -130,10 +130,8 @@ namespace Magnefu
                     layer->OnUpdate(m_TimeStep.GetDeltaTime());
 
 
-                /*for (Layer* layer : m_LayerStack)
-                {
+                for (Layer* layer : m_LayerStack)
                     layer->OnGUIRender();
-                }*/
 
                 OnGUIRender();
 

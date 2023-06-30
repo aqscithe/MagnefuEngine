@@ -73,6 +73,7 @@ namespace Magnefu
 	{
 		Maths::vec3 pos;
 		Maths::vec3 color;
+		Maths::vec3 normal;
 		Maths::vec2 texCoord;
 
 		static VkVertexInputBindingDescription GetBindingDescription() 
@@ -84,9 +85,9 @@ namespace Magnefu
 			return bindingDescription;
 		}
 
-		static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions()
+		static std::array<VkVertexInputAttributeDescription, 4> GetAttributeDescriptions()
 		{
-			std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
+			std::array<VkVertexInputAttributeDescription, 4> attributeDescriptions{};
 			attributeDescriptions[0].binding = 0;
 			attributeDescriptions[0].location = 0;
 			attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
@@ -99,8 +100,13 @@ namespace Magnefu
 
 			attributeDescriptions[2].binding = 0;
 			attributeDescriptions[2].location = 2;
-			attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-			attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
+			attributeDescriptions[2].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributeDescriptions[2].offset = offsetof(Vertex, normal);
+
+			attributeDescriptions[3].binding = 0;
+			attributeDescriptions[3].location = 3;
+			attributeDescriptions[3].format = VK_FORMAT_R32G32_SFLOAT;
+			attributeDescriptions[3].offset = offsetof(Vertex, texCoord);
 
 			
 			return attributeDescriptions;
@@ -177,6 +183,7 @@ namespace Magnefu
 		std::any GetContextInfo(const std::string& name) override;
 		void SetFramebufferResized(bool framebufferResized) override { m_FramebufferResized = framebufferResized; }
 		const RendererInfo& GetRendererInfo() const override { return m_RendererInfo; }
+		void SetPushConstants(PushConstants& pushConstants) override { m_PushConstants = pushConstants; }
 
 	private:
 
@@ -240,9 +247,6 @@ namespace Magnefu
 		VkShaderModule CreateShaderModule(const ShaderSource& source);
 
 		// Texture Creation
-		void CreateBaseTexture();
-		void CreateMetalTexture();
-		void CreateRoughnessTexture();
 		void CreateTextureImage(TextureInfo& texture);
 		void CreateTextureImageView(TextureInfo& texture);
 
@@ -399,6 +403,8 @@ namespace Magnefu
 		VkPipeline                   m_ParticleGraphicsPipeline;
 		VkPipelineLayout             m_ParticleGraphicsPipelineLayout;
 		// -------------------------------------------------------- //
+
+		PushConstants                m_PushConstants;
 
 
 		//------------------- ImGui ---------------------- //

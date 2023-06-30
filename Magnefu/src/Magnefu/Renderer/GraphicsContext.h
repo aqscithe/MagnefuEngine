@@ -6,6 +6,11 @@ namespace Magnefu
 {
 	using String = std::string;
 
+	struct PushConstants
+	{
+		Maths::vec3 Tint;
+	};
+
 	struct RendererInfo
 	{
 		String Version;
@@ -23,6 +28,7 @@ namespace Magnefu
 		virtual std::any GetContextInfo(const std::string& name) = 0;
 		virtual void SetFramebufferResized(bool framebufferResized) = 0;
 		virtual const RendererInfo& GetRendererInfo() const = 0;
+		virtual void SetPushConstants(PushConstants& pushConstants) = 0;
 
 		
 
