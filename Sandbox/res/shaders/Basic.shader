@@ -15,12 +15,14 @@ layout(location = 3) in vec2 InTexCoord;
 
 layout(location = 0) out vec2 FragTexCoord;
 layout(location = 1) out vec3 FragNormal;
+layout(location = 2) out vec3 FragPos;
 
 void main()
 {
     gl_Position = ubo.proj * ubo.view * ubo.model * vec4(InPosition, 1.0);
     FragTexCoord = InTexCoord;
     FragNormal = InNormal;
+    FragPos = vec3(ubo.model * vec4(InPosition, 1.0));
 }
 
 
@@ -31,17 +33,17 @@ float PI = 3.1415926535897932384626;
 
 layout(push_constant) uniform PushConstants
 {
-    bool  LightEnabled;
-    float Opacity;
-    float RadiantFlux;
-    float Reflectance; // fresnel reflectance for dielectrics [0.0, 1.0]
     vec3  Tint;
     vec3  CameraPos;
-    vec3  LightDirection;
+    vec3  LightPos;
     vec3  LightColor;
     vec3  Ka;
     vec3  Kd;
     vec3  Ks;
+    float Opacity;
+    float RadiantFlux;
+    float Reflectance; // fresnel reflectance for dielectrics [0.0, 1.0]
+    int   LightEnabled;
 } PC;
 
 
@@ -51,6 +53,7 @@ layout(binding = 3) uniform sampler2D RoughnessTexSampler;
 
 layout(location = 0) in vec2 FragTexCoord;
 layout(location = 1) in vec3 FragNormal;
+layout(location = 2) in vec3 FragPos;
 
 layout(location = 0) out vec4 OutColor;
 
@@ -78,8 +81,27 @@ float G_Smith(float roughness, float NoL, float NoV)
     return G_Schlick_GGX(roughness, NoL) * G_Schlick_GGX(roughness, NoV);
 }
 
+
+// Simulating a point light
 void main()
 {
-    vec3 Radiance = vec3(texture(BaseTexSampler, FragTexCoord)) * PC.Tint;
-    OutColor = vec4(Radiance, 1.0);
+    vec3 Radiance;
+    vec3 BaseColor = vec3(texture(BaseTexSampler, FragTexCoord));
+    if (PC.LightEnabled == 1)
+    {
+        // AMBIENT PORTION          
+        Radiance = BaseColor * PC.Ka;
+
+        vec3 LightVector = normalize(PC.LightPos - FragPos);
+        vec3 ViewVector = normalize(PC.CameraPos - FragPos);
+        float Irradiance = PC.RadiantFlux;
+
+    }
+    else
+    {
+        Radiance = BaseColor * PC.Tint;
+    }
+
+    OutColor = vec4(Radiance, PC.Opacity);
+
 }

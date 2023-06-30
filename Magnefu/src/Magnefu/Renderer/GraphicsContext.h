@@ -7,17 +7,17 @@ namespace Magnefu
 
 	struct PushConstants
 	{
-		bool        LightEnabled;
-		float       Opacity;
-		float       RadiantFlux;
-		float       Reflectance = 0.5; // fresnel reflectance for dielectrics [0.0, 1.0]
-		Maths::vec3 Tint;
-		Maths::vec3 CameraPos;
-		Maths::vec3 LightDirection;
-		Maths::vec3 LightColor;
-		Maths::vec3 Ka = Maths::vec3(0.0);
-		Maths::vec3 Kd = Maths::vec3(1.0);
-		Maths::vec3 Ks = Maths::vec3(1.0);
+		alignas(16) Maths::vec3 Tint;
+		alignas(16) Maths::vec3 CameraPos;
+		alignas(16) Maths::vec3 LightPos;
+		alignas(16) Maths::vec3 LightColor;
+		alignas(16) Maths::vec3 Ka = Maths::vec3(0.0);
+		alignas(16) Maths::vec3 Kd = Maths::vec3(1.0);
+		alignas(16) Maths::vec3 Ks = Maths::vec3(1.0);
+		float                   Opacity;
+		float                   RadiantFlux;
+		float                   Reflectance = 0.5; // fresnel reflectance for dielectrics [0.0, 1.0]
+		int                     LightEnabled;
 	};
 
 	struct RendererInfo

@@ -16,9 +16,9 @@ public:
 		m_Camera = std::static_pointer_cast<Magnefu::SceneCamera>(Magnefu::Application::Get().GetWindow().GetSceneCamera());
 		m_GraphicsContext = Magnefu::Application::Get().GetWindow().GetGraphicsContext();
 
-		m_PushConstants.LightEnabled = false;
+		m_PushConstants.LightEnabled = 0;
 		m_PushConstants.LightColor = Maths::vec3(1.0f);
-		m_PushConstants.LightDirection = Maths::vec3(0.0f);
+		m_PushConstants.LightPos = { 25.f, 65.f, 10.f };
 		m_PushConstants.CameraPos = m_Camera->GetData().Position;
 		m_PushConstants.Tint = Maths::vec3(1.0f);
 		m_PushConstants.Opacity = 1.f;
@@ -59,8 +59,8 @@ public:
 				ImGui::ColorEdit3("Tint", m_PushConstants.Tint.e);
 				ImGui::SliderFloat("Opacity", &m_PushConstants.Opacity, 0.0f, 1.0f, "%.2f");
 				ImGui::Separator();
-				ImGui::Checkbox("Light Enabled", &m_PushConstants.LightEnabled);
-				ImGui::SliderFloat3("Light Direction", m_PushConstants.LightDirection.e, -1.f, 1.f);
+				ImGui::SliderInt("Light Enabled", &m_PushConstants.LightEnabled, 0, 1);
+				ImGui::SliderFloat3("Light Position", m_PushConstants.LightPos.e, -200.f, 200.f);
 				ImGui::SliderFloat3("Light Color", m_PushConstants.LightColor.e, 0.f, 1.f);
 				ImGui::SliderFloat("Radiant Flux", &m_PushConstants.RadiantFlux, 0.f, 100.f, "%.2f");
 				ImGui::SliderFloat("Reflectance", &m_PushConstants.Reflectance, 0.f, 1.f, "%.2f");

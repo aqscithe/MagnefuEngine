@@ -806,6 +806,8 @@ namespace Magnefu
 		pushConstantRange.offset = 0;
 		pushConstantRange.size = sizeof(PushConstants);
 
+		MF_CORE_DEBUG("Size of Push Constants: {}", sizeof(PushConstants));
+
 		// Pipeline Layout
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;	
