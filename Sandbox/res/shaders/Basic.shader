@@ -96,6 +96,41 @@ void main()
         vec3 ViewVector = normalize(PC.CameraPos - FragPos);
         float Irradiance = PC.RadiantFlux;
 
+        // ---Microfacet BRDF--- //
+
+        // Fresnel Reflectance
+        float metallic = float(texture(MetalTexSampler, FragTexCoord));
+        vec3 HalfwayVector = normalize(LightVector + ViewVector);
+        vec3 F0 = vec3(0.16 * (PC.Reflectance * PC.Reflectance));
+
+        // https://youtu.be/teTroOAGZjM
+        // section referring to BSDF lighting
+        F0 = mix(F0, BaseColor, metallic);  // a and b may need to be flipped
+        float VoH = clamp(dot(ViewVector, HalfwayVector), 0.0, 1.0);
+        vec3 F = FresnelSchlick(F0, VoH);
+
+        // Normal Distribution Function
+        float roughness = float(texture(RoughnessTexSampler, FragTexCoord));
+        float D = D_GGX(roughness, clamp(dot(FragNormal, HalfwayVector), 0.0, 1.0));
+
+        // Geometry Term
+        float NoL = clamp(dot(FragNormal, LightVector), 0.0, 1.0);
+        float NoV = clamp(dot(FragNormal, ViewVector), 0.0, 1.0);
+        float G = G_Smith(roughness, NoL, NoV);
+
+        vec3 spec = F * D * G / 4.0 * max(NoL, 0.001) * max(NoV, 0.001) * PC.Ks;
+
+        vec3 rhod = BaseColor * PC.Kd;
+        rhod *= vec3(1.0) - F;
+
+        rhod *= (1.0 - metallic);
+
+        vec3 diff = rhod / PI;
+
+        vec3 BRDF = diff + spec;
+
+        Radiance += BRDF * Irradiance * PC.LightColor;
+        Radiance *= PC.Tint;
     }
     else
     {
