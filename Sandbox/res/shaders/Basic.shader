@@ -50,10 +50,11 @@ layout(push_constant) uniform PushConstants
 layout(binding = 1) uniform sampler2D BaseTexSampler;
 layout(binding = 2) uniform sampler2D MetalTexSampler;
 layout(binding = 3) uniform sampler2D RoughnessTexSampler;
+layout(binding = 4) uniform sampler2D NormalTexSampler;
 
 layout(location = 0) in vec2 FragTexCoord;
 layout(location = 1) in vec3 FragNormal;
-layout(location = 2) in vec3 FragPos;
+layout(location = 2) in vec3 FragPos;  // World Position
 
 layout(location = 0) out vec4 OutColor;
 
@@ -81,8 +82,9 @@ float G_Smith(float roughness, float NoL, float NoV)
     return G_Schlick_GGX(roughness, NoL) * G_Schlick_GGX(roughness, NoV);
 }
 
+// TODO: Add attenuation - Is radiant flux attenuation?
 
-// Simulating a point light
+
 void main()
 {
     vec3 Radiance;
@@ -92,9 +94,14 @@ void main()
         // AMBIENT PORTION          
         Radiance = BaseColor * PC.Ka;
 
+        // Simulating a point light
         vec3 LightVector = normalize(PC.LightPos - FragPos);
         vec3 ViewVector = normalize(PC.CameraPos - FragPos);
         float Irradiance = PC.RadiantFlux;
+
+        // Getting Attenuation
+        /*float distance = length(PC.LightPos - FragPos);
+        float attenuation = 1.0 / (distance * distance);*/
 
         // ---Microfacet BRDF--- //
 
@@ -129,6 +136,7 @@ void main()
 
         vec3 BRDF = diff + spec;
 
+        //Radiance += BRDF * Irradiance * PC.LightColor * attenuation;
         Radiance += BRDF * Irradiance * PC.LightColor;
         Radiance *= PC.Tint;
     }
