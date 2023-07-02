@@ -61,9 +61,9 @@ public:
 				ImGui::Separator();
 				ImGui::SliderInt("Light Enabled", &m_PushConstants.LightEnabled, 0, 1);
 				ImGui::SliderFloat3("Light Position", m_PushConstants.LightPos.e, -500.f, 500.f);
-				ImGui::SliderFloat3("Light Color", m_PushConstants.LightColor.e, 0.f, 1.f);
+				ImGui::ColorEdit3("Light Color", m_PushConstants.LightColor.e);
 				ImGui::SliderFloat("Radiant Flux", &m_PushConstants.RadiantFlux, 0.f, 100.f, "%.2f");
-				ImGui::SliderFloat("Reflectance", &m_PushConstants.Reflectance, 0.f, 1.f, "%.2f");
+				ImGui::SliderFloat("Reflectance", &m_PushConstants.Reflectance, 0.f, 5.f, "%.2f");
 				ImGui::Separator();
 				ImGui::SliderFloat3("Ambient Constant", m_PushConstants.Ka.e, 0.f, 1.f, "%.2f");
 				ImGui::SliderFloat3("Diffuse Constant", m_PushConstants.Kd.e, 0.f, 1.f, "%.2f");

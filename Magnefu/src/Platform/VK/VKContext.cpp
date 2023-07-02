@@ -42,17 +42,17 @@ namespace Magnefu
 		return a.pos == b.pos && a.color == b.color && a.texCoord == b.texCoord;
 	}
 
-	static const std::string MODEL_PATH = "res/meshes/corridor.obj";
+	/*static const std::string MODEL_PATH = "res/meshes/corridor.obj";
 	static const std::string BASE_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_BaseColor.png";
 	static const std::string METAL_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Metalness.png";
 	static const std::string ROUGHNESS_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Roughness.png";
-	static const std::string NORMAL_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Normal.png";
+	static const std::string NORMAL_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Normal.png";*/
 
-	/*static const std::string MODEL_PATH = "res/meshes/Victorian_Painting.obj";
+	static const std::string MODEL_PATH = "res/meshes/Victorian_Painting.obj";
 	static const std::string BASE_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_BaseColor_Utility-sRGB-Texture.png";
 	static const std::string METAL_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_Metallic_Utility-Raw.png";
 	static const std::string ROUGHNESS_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_Roughness_Utility-Raw.png";
-	static const std::string NORMAL_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_Normal_Utility-Raw.png";*/
+	static const std::string NORMAL_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_Normal_Utility-Raw.png";
 
 	static const std::string SHADER_PATH = "res/shaders/Basic.shader";
 	static const std::string PARTICLE_SHADER_PATH = "res/shaders/Particles.shader";
@@ -1265,9 +1265,56 @@ namespace Magnefu
 		}
 
 		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+
+		// Note that this code(tangents and bitangents) does not handle mirrored UV sand other special cases, 
+		// and it does not normalize the vectors, which you may want to do depending on how you use them.
+
+		std::vector<std::vector<Maths::vec3>> tempTangents(attrib.vertices.size() / 3);
+		std::vector<std::vector<Maths::vec3>> tempBitangents(attrib.vertices.size() / 3);
+
 			
-		for (const auto& shape : shapes) {
-			for (const auto& index : shape.mesh.indices) {
+		for (const auto& shape : shapes) 
+		{
+			for (size_t i = 0; i < shape.mesh.indices.size(); i += 3)
+			{
+				tinyobj::index_t idx1 = shape.mesh.indices[i];
+				tinyobj::index_t idx2 = shape.mesh.indices[i + 1];
+				tinyobj::index_t idx3 = shape.mesh.indices[i + 2];
+
+				// Grab the three vertices of the current face
+				Maths::vec3 pos1 = Maths::vec3(&attrib.vertices[3 * idx1.vertex_index]);
+				Maths::vec3 pos2 = Maths::vec3(&attrib.vertices[3 * idx2.vertex_index]);
+				Maths::vec3 pos3 = Maths::vec3(&attrib.vertices[3 * idx3.vertex_index]);
+
+				// Same for the texture coordinates
+				Maths::vec2 uv1 = Maths::vec2(&attrib.texcoords[2 * idx1.texcoord_index]);
+				Maths::vec2 uv2 = Maths::vec2(&attrib.texcoords[2 * idx2.texcoord_index]);
+				Maths::vec2 uv3 = Maths::vec2(&attrib.texcoords[2 * idx3.texcoord_index]);
+
+				// Edges of the triangle in position and texture space
+				Maths::vec3 deltaPos1 = pos2 - pos1;
+				Maths::vec3 deltaPos2 = pos3 - pos1;
+				Maths::vec2 deltaUV1 = uv2 - uv1;
+				Maths::vec2 deltaUV2 = uv3 - uv1;
+
+				// This will give us a direction vector pointing in the direction of positive s for this triangle.
+				// It calculates how much each vertex position needs to be adjusted in space to match how it was proportionally stretched when the texture was mapped.
+				float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+				Maths::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
+				Maths::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
+
+				// Store the tangents and bitangents in the temporary vectors
+				tempTangents[idx1.vertex_index].push_back(tangent);
+				tempBitangents[idx1.vertex_index].push_back(bitangent);
+				tempTangents[idx2.vertex_index].push_back(tangent);
+				tempBitangents[idx2.vertex_index].push_back(bitangent);
+				tempTangents[idx3.vertex_index].push_back(tangent);
+				tempBitangents[idx3.vertex_index].push_back(bitangent);
+			}
+
+			for (const auto& index : shape.mesh.indices) 
+			{
+
 				Vertex vertex{};
 
 				vertex.pos = {
@@ -1289,7 +1336,9 @@ namespace Magnefu
 					attrib.normals[3 * index.normal_index + 2]
 				};
 
-				
+				vertex.tangent = Maths::normalize(std::accumulate(tempTangents[index.vertex_index].begin(), tempTangents[index.vertex_index].end(), Maths::vec3(0.0f)));
+				vertex.bitangent = Maths::normalize(std::accumulate(tempBitangents[index.vertex_index].begin(), tempBitangents[index.vertex_index].end(), Maths::vec3(0.0f)));
+
 
 				if (uniqueVertices.count(vertex) == 0)
 				{

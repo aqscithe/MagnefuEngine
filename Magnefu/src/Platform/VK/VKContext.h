@@ -74,6 +74,8 @@ namespace Magnefu
 		Maths::vec3 pos;
 		Maths::vec3 color;
 		Maths::vec3 normal;
+		Maths::vec3 tangent;
+		Maths::vec3 bitangent;
 		Maths::vec2 texCoord;
 
 		static VkVertexInputBindingDescription GetBindingDescription() 
@@ -85,9 +87,9 @@ namespace Magnefu
 			return bindingDescription;
 		}
 
-		static std::array<VkVertexInputAttributeDescription, 4> GetAttributeDescriptions()
+		static std::array<VkVertexInputAttributeDescription, 6> GetAttributeDescriptions()
 		{
-			std::array<VkVertexInputAttributeDescription, 4> attributeDescriptions{};
+			std::array<VkVertexInputAttributeDescription, 6> attributeDescriptions{};
 			attributeDescriptions[0].binding = 0;
 			attributeDescriptions[0].location = 0;
 			attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
@@ -105,10 +107,20 @@ namespace Magnefu
 
 			attributeDescriptions[3].binding = 0;
 			attributeDescriptions[3].location = 3;
-			attributeDescriptions[3].format = VK_FORMAT_R32G32_SFLOAT;
-			attributeDescriptions[3].offset = offsetof(Vertex, texCoord);
+			attributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributeDescriptions[3].offset = offsetof(Vertex, tangent);
 
-			
+			attributeDescriptions[4].binding = 0;
+			attributeDescriptions[4].location = 4;
+			attributeDescriptions[4].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributeDescriptions[4].offset = offsetof(Vertex, bitangent);
+
+			attributeDescriptions[5].binding = 0;
+			attributeDescriptions[5].location = 5;
+			attributeDescriptions[5].format = VK_FORMAT_R32G32_SFLOAT;
+			attributeDescriptions[5].offset = offsetof(Vertex, texCoord);
+
+		
 			return attributeDescriptions;
 		}
 

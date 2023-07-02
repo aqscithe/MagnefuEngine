@@ -11,11 +11,14 @@ layout(binding = 0) uniform UniformBufferObject
 layout(location = 0) in vec3 InPosition;
 layout(location = 1) in vec3 InColor;
 layout(location = 2) in vec3 InNormal;
-layout(location = 3) in vec2 InTexCoord;
+layout(location = 3) in vec3 InTangent;
+layout(location = 4) in vec3 InBitangent;
+layout(location = 5) in vec2 InTexCoord;
 
 layout(location = 0) out vec2 FragTexCoord;
 layout(location = 1) out vec3 FragNormal;
 layout(location = 2) out vec3 FragPos;
+layout(location = 3) out mat3 TBN;
 
 void main()
 {
@@ -23,6 +26,12 @@ void main()
     FragTexCoord = InTexCoord;
     FragNormal = InNormal;
     FragPos = vec3(ubo.model * vec4(InPosition, 1.0));
+
+    // Creating TBN for Normal Map Calculations
+    vec3 T = normalize(vec3(ubo.model * vec4(InTangent, 0.0)));
+    vec3 B = normalize(vec3(ubo.model * vec4(InBitangent, 0.0)));
+    vec3 N = normalize(vec3(ubo.model * vec4(InNormal, 0.0)));
+    mat3 TBN = mat3(T, B, N);
 }
 
 
@@ -55,6 +64,7 @@ layout(binding = 4) uniform sampler2D NormalTexSampler;
 layout(location = 0) in vec2 FragTexCoord;
 layout(location = 1) in vec3 FragNormal;
 layout(location = 2) in vec3 FragPos;  // World Position
+layout(location = 3) in mat3 TBN;
 
 layout(location = 0) out vec4 OutColor;
 
@@ -91,6 +101,12 @@ void main()
     vec3 BaseColor = vec3(texture(BaseTexSampler, FragTexCoord));
     if (PC.LightEnabled == 1)
     {
+
+        vec3 Normal = texture(NormalTexSampler, FragTexCoord).rgb;
+        Normal = Normal * 2.0 - 1.0;
+        Normal = normalize(TBN * Normal);
+
+
         // AMBIENT PORTION          
         Radiance = BaseColor * PC.Ka;
 
@@ -106,31 +122,34 @@ void main()
         // ---Microfacet BRDF--- //
 
         // Fresnel Reflectance
-        float metallic = float(texture(MetalTexSampler, FragTexCoord));
+        float Metallic = float(texture(MetalTexSampler, FragTexCoord));
         vec3 HalfwayVector = normalize(LightVector + ViewVector);
         vec3 F0 = vec3(0.16 * (PC.Reflectance * PC.Reflectance));
 
         // https://youtu.be/teTroOAGZjM
         // section referring to BSDF lighting
-        F0 = mix(F0, BaseColor, metallic);  // a and b may need to be flipped
+        F0 = mix(BaseColor, F0, Metallic);  // a and b may need to be flipped
         float VoH = clamp(dot(ViewVector, HalfwayVector), 0.0, 1.0);
         vec3 F = FresnelSchlick(F0, VoH);
 
         // Normal Distribution Function
-        float roughness = float(texture(RoughnessTexSampler, FragTexCoord));
-        float D = D_GGX(roughness, clamp(dot(FragNormal, HalfwayVector), 0.0, 1.0));
+        float Roughness = float(texture(RoughnessTexSampler, FragTexCoord));
+        //float D = D_GGX(Roughness, clamp(dot(FragNormal, HalfwayVector), 0.0, 1.0));
+        float D = D_GGX(Roughness, clamp(dot(Normal, HalfwayVector), 0.0, 1.0));
 
         // Geometry Term
-        float NoL = clamp(dot(FragNormal, LightVector), 0.0, 1.0);
-        float NoV = clamp(dot(FragNormal, ViewVector), 0.0, 1.0);
-        float G = G_Smith(roughness, NoL, NoV);
+        //float NoL = clamp(dot(FragNormal, LightVector), 0.0, 1.0);
+        float NoL = clamp(dot(Normal, LightVector), 0.0, 1.0);
+        //float NoV = clamp(dot(FragNormal, ViewVector), 0.0, 1.0);
+        float NoV = clamp(dot(Normal, ViewVector), 0.0, 1.0);
+        float G = G_Smith(Roughness, NoL, NoV);
 
         vec3 spec = F * D * G / 4.0 * max(NoL, 0.001) * max(NoV, 0.001) * PC.Ks;
 
         vec3 rhod = BaseColor * PC.Kd;
         rhod *= vec3(1.0) - F;
 
-        rhod *= (1.0 - metallic);
+        rhod *= (1.0 - Metallic);
 
         vec3 diff = rhod / PI;
 
