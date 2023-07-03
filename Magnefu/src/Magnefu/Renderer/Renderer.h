@@ -7,6 +7,7 @@
 
 namespace Magnefu
 {
+
 	class VertexArray;
 
 	class Renderer

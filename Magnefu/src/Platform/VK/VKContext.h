@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Magnefu/Renderer/GraphicsContext.h"
+#include "Magnefu/Renderer/Texture.h"
 #include "vulkan/vulkan.h"
 
 
@@ -59,6 +60,9 @@ namespace Magnefu
 	{
 		Maths::vec3 pos;
 		Maths::vec3 color;
+		Maths::vec3 normal;
+		Maths::vec3 tangent;
+		Maths::vec3 bitangent;
 		Maths::vec2 texCoord;
 
 		static VkVertexInputBindingDescription GetBindingDescription() 
@@ -70,9 +74,9 @@ namespace Magnefu
 			return bindingDescription;
 		}
 
-		static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions()
+		static std::array<VkVertexInputAttributeDescription, 6> GetAttributeDescriptions()
 		{
-			std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
+			std::array<VkVertexInputAttributeDescription, 6> attributeDescriptions{};
 			attributeDescriptions[0].binding = 0;
 			attributeDescriptions[0].location = 0;
 			attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
@@ -85,10 +89,25 @@ namespace Magnefu
 
 			attributeDescriptions[2].binding = 0;
 			attributeDescriptions[2].location = 2;
-			attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-			attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
+			attributeDescriptions[2].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributeDescriptions[2].offset = offsetof(Vertex, normal);
 
-			
+			attributeDescriptions[3].binding = 0;
+			attributeDescriptions[3].location = 3;
+			attributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributeDescriptions[3].offset = offsetof(Vertex, tangent);
+
+			attributeDescriptions[4].binding = 0;
+			attributeDescriptions[4].location = 4;
+			attributeDescriptions[4].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributeDescriptions[4].offset = offsetof(Vertex, bitangent);
+
+			attributeDescriptions[5].binding = 0;
+			attributeDescriptions[5].location = 5;
+			attributeDescriptions[5].format = VK_FORMAT_R32G32_SFLOAT;
+			attributeDescriptions[5].offset = offsetof(Vertex, texCoord);
+
+		
 			return attributeDescriptions;
 		}
 
@@ -138,6 +157,17 @@ namespace Magnefu
 		}
 	};
 
+	struct TextureInfo
+	{
+		TextureType    Type;
+		uint32_t       MipLevels;
+		VkImage        Image;
+		VkImageView    ImageView;
+		VkDeviceMemory Buffer;
+		VkFormat       Format;
+		VkImageTiling  Tiling;
+	};
+
 	class VKContext : public GraphicsContext
 	{
 	public:
@@ -152,6 +182,7 @@ namespace Magnefu
 		std::any GetContextInfo(const std::string& name) override;
 		void SetFramebufferResized(bool framebufferResized) override { m_FramebufferResized = framebufferResized; }
 		const RendererInfo& GetRendererInfo() const override { return m_RendererInfo; }
+		void SetPushConstants(PushConstants& pushConstants) override { m_PushConstants = pushConstants; }
 
 	private:
 
@@ -175,8 +206,7 @@ namespace Magnefu
 		void CreateComputePipeline();
 		void CreateColorResources();
 		void CreateDepthResources();
-		void CreateTextureImage();
-		void CreateTextureImageView();
+		void CreateTextures();
 		void CreateTextureSampler();
 		void LoadModel();
 		void CreateVertexBuffer();
@@ -214,6 +244,10 @@ namespace Magnefu
 		// Place in VKShader
 		ShaderList ParseShader(const String& filepath);
 		VkShaderModule CreateShaderModule(const ShaderSource& source);
+
+		// Texture Creation
+		void CreateTextureImage(TextureInfo& texture);
+		void CreateTextureImageView(TextureInfo& texture);
 
 		
 		// Buffers
@@ -333,13 +367,15 @@ namespace Magnefu
 
 		// -- Mip Map Info -- //
 		VkSampleCountFlagBits        m_MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-		uint32_t                     m_MipLevels;
+
+
+		// -- Texture Info -- //
+
+		std::vector<TextureInfo>     m_Textures;  // assumption that any texture in this vector is PBR...maybe i should change the name
+		VkSampler                    m_TextureSampler;
 
 		// -- Image Buffers -- //
-		VkImage                      m_TextureImage;
-		VkDeviceMemory               m_TextureImageMemory;
-		VkImageView                  m_TextureImageView;
-		VkSampler                    m_TextureSampler;
+
 		VkImage                      m_DepthImage;
 		VkDeviceMemory               m_DepthImageMemory;
 		VkImageView                  m_DepthImageView;
@@ -366,6 +402,8 @@ namespace Magnefu
 		VkPipeline                   m_ParticleGraphicsPipeline;
 		VkPipelineLayout             m_ParticleGraphicsPipelineLayout;
 		// -------------------------------------------------------- //
+
+		PushConstants                m_PushConstants;
 
 
 		//------------------- ImGui ---------------------- //

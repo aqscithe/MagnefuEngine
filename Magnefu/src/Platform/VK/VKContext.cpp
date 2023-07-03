@@ -43,9 +43,40 @@ namespace Magnefu
 	}
 
 	static const std::string MODEL_PATH = "res/meshes/corridor.obj";
-	static const std::string TEXTURE_PATH = "res/textures/scificorridor/scene_1001_BaseColor.png";
+	static const std::string BASE_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_BaseColor.png";
+	static const std::string METAL_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Metalness.png";
+	static const std::string ROUGHNESS_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Roughness.png";
+	static const std::string NORMAL_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Normal.png";
+	static const std::string AO_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_AO.png";
+
+
+	/*static const std::string MODEL_PATH = "res/meshes/Bronze_shield.obj";
+	static const std::string BASE_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_BaseColor.png";
+	static const std::string METAL_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_Metallic.png";
+	static const std::string ROUGHNESS_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_Roughness.png";
+	static const std::string NORMAL_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_Normal.png";
+	static const std::string AO_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_AO.png";*/
+
+
+	/*static const std::string MODEL_PATH = "res/meshes/Victorian_Painting.obj";
+	static const std::string BASE_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_BaseColor_Utility-sRGB-Texture.png";
+	static const std::string METAL_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_Metallic_Utility-Raw.png";
+	static const std::string ROUGHNESS_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_Roughness_Utility-Raw.png";
+	static const std::string NORMAL_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_Normal_Utility-Raw.png";
+	static const std::string AO_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_AO_1_Utility-Raw.png";*/
+	//static const std::string AO_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_AO_2_Utility-Raw.png";
+
+
 	static const std::string SHADER_PATH = "res/shaders/Basic.shader";
 	static const std::string PARTICLE_SHADER_PATH = "res/shaders/Particles.shader";
+
+	static const std::array<std::string, 5> TEXTURE_PATHS { 
+		BASE_TEXTURE_PATH, 
+		METAL_TEXTURE_PATH, 
+		ROUGHNESS_TEXTURE_PATH, 
+		NORMAL_TEXTURE_PATH,
+		AO_TEXTURE_PATH
+	};
 
 
 	static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
@@ -101,15 +132,15 @@ namespace Magnefu
 		vkDestroyDescriptorPool(m_VkDevice, m_ComputeDescriptorPool, nullptr);
 		vkDestroyDescriptorSetLayout(m_VkDevice, m_ComputeDescriptorSetLayout, nullptr);
 
-		/// <summary>
-		/// 
-		/// </summary>
 
 		vkDestroySampler(m_VkDevice, m_TextureSampler, nullptr);
-		vkDestroyImageView(m_VkDevice, m_TextureImageView, nullptr);
 
-		vkDestroyImage(m_VkDevice, m_TextureImage, nullptr);
-		vkFreeMemory(m_VkDevice,   m_TextureImageMemory, nullptr);
+		for (size_t i = 0; i < m_Textures.size(); i++)
+		{
+			vkDestroyImageView(m_VkDevice, m_Textures[i].ImageView, nullptr);
+			vkDestroyImage(m_VkDevice, m_Textures[i].Image, nullptr);
+			vkFreeMemory(m_VkDevice, m_Textures[i].Buffer, nullptr);
+		}
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
 		{
@@ -178,8 +209,7 @@ namespace Magnefu
 		CreateColorResources();
 		CreateDepthResources();
 		CreateFrameBuffers();
-		CreateTextureImage();
-		CreateTextureImageView();
+		CreateTextures();
 		CreateTextureSampler();
 		LoadModel();
 		CreateVertexBuffer();
@@ -198,7 +228,7 @@ namespace Magnefu
 
 	void VKContext::DrawFrame()
 	{
-		PerformComputeOps();
+		//PerformComputeOps();
 		PerformGraphicsOps();
 		PresentImage();
 	}
@@ -595,17 +625,53 @@ namespace Magnefu
 		uboLayoutBinding.binding = 0;
 		uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		uboLayoutBinding.descriptorCount = 1;
-		uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 		uboLayoutBinding.pImmutableSamplers = nullptr; // For image sampling
+		uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-		VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-		samplerLayoutBinding.binding = 1;
-		samplerLayoutBinding.descriptorCount = 1;
-		samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		samplerLayoutBinding.pImmutableSamplers = nullptr;
-		samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+		VkDescriptorSetLayoutBinding baseSamplerLayoutBinding{};
+		baseSamplerLayoutBinding.binding = 1;
+		baseSamplerLayoutBinding.descriptorCount = 1;
+		baseSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		baseSamplerLayoutBinding.pImmutableSamplers = nullptr;
+		baseSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-		std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
+		VkDescriptorSetLayoutBinding metalSamplerLayoutBinding{};
+		metalSamplerLayoutBinding.binding = 2;
+		metalSamplerLayoutBinding.descriptorCount = 1;
+		metalSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		metalSamplerLayoutBinding.pImmutableSamplers = nullptr;
+		metalSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+		VkDescriptorSetLayoutBinding roughnessSamplerLayoutBinding{};
+		roughnessSamplerLayoutBinding.binding = 3;
+		roughnessSamplerLayoutBinding.descriptorCount = 1;
+		roughnessSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		roughnessSamplerLayoutBinding.pImmutableSamplers = nullptr;
+		roughnessSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+		VkDescriptorSetLayoutBinding normalSamplerLayoutBinding{};
+		normalSamplerLayoutBinding.binding = 4;
+		normalSamplerLayoutBinding.descriptorCount = 1;
+		normalSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		normalSamplerLayoutBinding.pImmutableSamplers = nullptr;
+		normalSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+		VkDescriptorSetLayoutBinding ambientOcclusionSamplerLayoutBinding{};
+		ambientOcclusionSamplerLayoutBinding.binding = 5;
+		ambientOcclusionSamplerLayoutBinding.descriptorCount = 1;
+		ambientOcclusionSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		ambientOcclusionSamplerLayoutBinding.pImmutableSamplers = nullptr;
+		ambientOcclusionSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+		std::array<VkDescriptorSetLayoutBinding, 6> bindings = { 
+			uboLayoutBinding, 
+			baseSamplerLayoutBinding, 
+			metalSamplerLayoutBinding, 
+			roughnessSamplerLayoutBinding,
+			normalSamplerLayoutBinding,
+			ambientOcclusionSamplerLayoutBinding
+		};
+
 		VkDescriptorSetLayoutCreateInfo layoutInfo{};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 		layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -783,11 +849,19 @@ namespace Magnefu
 		colorBlending.blendConstants[2] = 0.0f; // Optional
 		colorBlending.blendConstants[3] = 0.0f; // Optional
 
+		// Push Constants
+		VkPushConstantRange pushConstantRange = {};
+		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT; // The shader stages that will use the push constants.
+		pushConstantRange.offset = 0;
+		pushConstantRange.size = sizeof(PushConstants);
+
+		MF_CORE_DEBUG("Size of Push Constants: {}", sizeof(PushConstants));
+
 		// Pipeline Layout
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
-		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
+		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;	
+		pipelineLayoutInfo.pushConstantRangeCount = 1; // Optional
+		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange; // Optional
 		pipelineLayoutInfo.setLayoutCount = 1;
 		pipelineLayoutInfo.pSetLayouts = &m_DescriptorSetLayout;
 
@@ -1150,65 +1224,24 @@ namespace Magnefu
 		m_DepthImageView = CreateImageView(m_DepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 	}
 
-	void VKContext::CreateTextureImage()
+	void VKContext::CreateTextures()
 	{
-		int width, height, channels;
-		stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &width, &height, &channels, STBI_rgb_alpha); // channels = BPP (bits per pixel)
+		m_Textures.resize(TEXTURE_PATHS.size());
+		//for (size_t i = 0; i < m_Textures.size(); i++)
+		//{
+		//	m_Textures[i].Type = static_cast<TextureType>(i);
+		//}
+		m_Textures[0].Type = TextureType::DIFFUSE;
+		m_Textures[1].Type = TextureType::METAL;
+		m_Textures[2].Type = TextureType::ROUGHNESS;
+		m_Textures[3].Type = TextureType::NORMAL;
+		m_Textures[4].Type = TextureType::AO;
 
-		m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
+		for (auto& texture : m_Textures)
+			CreateTextureImage(texture);
 
-		MF_CORE_DEBUG("Mip Levels: {0} | Width: {1} | Height: {2} | Channels: {3}", m_MipLevels, width, height, channels);
-
-		VkDeviceSize imageSize = width * height * 4;
-
-		if (!pixels)
-			MF_CORE_ASSERT(false, "failed to load texture image!");
-
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
-
-		CreateBuffer(
-			imageSize,
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			stagingBuffer,
-			stagingBufferMemory
-		);
-
-		void* data;
-		vkMapMemory(m_VkDevice, stagingBufferMemory, 0, imageSize, 0, &data);
-		memcpy(data, pixels, static_cast<size_t>(imageSize));
-		vkUnmapMemory(m_VkDevice, stagingBufferMemory);
-
-		stbi_image_free(pixels);
-
-		CreateImage(
-			static_cast<uint32_t>(width),
-			static_cast<uint32_t>(height),
-			m_MipLevels,
-			VK_SAMPLE_COUNT_1_BIT,
-			VK_FORMAT_R8G8B8A8_SRGB,
-			VK_IMAGE_TYPE_2D,
-			VK_IMAGE_TILING_OPTIMAL,
-			VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			m_TextureImage,
-			m_TextureImageMemory
-		);
-
-		TransitionImageLayout(m_TextureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_MipLevels);
-		CopyBufferToImage(stagingBuffer, m_TextureImage, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
-		//TransitionImageLayout(m_TextureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_MipLevels);
-		GenerateMipmaps(m_TextureImage, VK_FORMAT_R8G8B8A8_SRGB, width, height, m_MipLevels);
-
-		vkDestroyBuffer(m_VkDevice, stagingBuffer, nullptr);
-		vkFreeMemory(m_VkDevice, stagingBufferMemory, nullptr);
-
-	}
-
-	void VKContext::CreateTextureImageView()
-	{
-		m_TextureImageView = CreateImageView(m_TextureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, m_MipLevels);
+		for (auto& texture : m_Textures)
+			CreateTextureImageView(texture);
 	}
 
 	void VKContext::CreateTextureSampler()
@@ -1238,7 +1271,7 @@ namespace Magnefu
 		samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
 		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 		samplerInfo.minLod = 0.0f; // Optional
-		samplerInfo.maxLod = static_cast<float>(m_MipLevels);
+		samplerInfo.maxLod = static_cast<float>(m_Textures[0].MipLevels); // all pbr textures of the same mesh should have the same dimensions and thus equal miplevels
 		samplerInfo.mipLodBias = 0.0f; // Optional
 
 		if (vkCreateSampler(m_VkDevice, &samplerInfo, nullptr, &m_TextureSampler) != VK_SUCCESS)
@@ -1259,9 +1292,56 @@ namespace Magnefu
 		}
 
 		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+
+		// Note that this code(tangents and bitangents) does not handle mirrored UV sand other special cases, 
+		// and it does not normalize the vectors, which you may want to do depending on how you use them.
+
+		std::vector<std::vector<Maths::vec3>> tempTangents(attrib.vertices.size() / 3);
+		std::vector<std::vector<Maths::vec3>> tempBitangents(attrib.vertices.size() / 3);
+
 			
-		for (const auto& shape : shapes) {
-			for (const auto& index : shape.mesh.indices) {
+		for (const auto& shape : shapes) 
+		{
+			for (size_t i = 0; i < shape.mesh.indices.size(); i += 3)
+			{
+				tinyobj::index_t idx1 = shape.mesh.indices[i];
+				tinyobj::index_t idx2 = shape.mesh.indices[i + 1];
+				tinyobj::index_t idx3 = shape.mesh.indices[i + 2];
+
+				// Grab the three vertices of the current face
+				Maths::vec3 pos1 = Maths::vec3(&attrib.vertices[3 * idx1.vertex_index]);
+				Maths::vec3 pos2 = Maths::vec3(&attrib.vertices[3 * idx2.vertex_index]);
+				Maths::vec3 pos3 = Maths::vec3(&attrib.vertices[3 * idx3.vertex_index]);
+
+				// Same for the texture coordinates
+				Maths::vec2 uv1 = Maths::vec2(&attrib.texcoords[2 * idx1.texcoord_index]);
+				Maths::vec2 uv2 = Maths::vec2(&attrib.texcoords[2 * idx2.texcoord_index]);
+				Maths::vec2 uv3 = Maths::vec2(&attrib.texcoords[2 * idx3.texcoord_index]);
+
+				// Edges of the triangle in position and texture space
+				Maths::vec3 deltaPos1 = pos2 - pos1;
+				Maths::vec3 deltaPos2 = pos3 - pos1;
+				Maths::vec2 deltaUV1 = uv2 - uv1;
+				Maths::vec2 deltaUV2 = uv3 - uv1;
+
+				// This will give us a direction vector pointing in the direction of positive s for this triangle.
+				// It calculates how much each vertex position needs to be adjusted in space to match how it was proportionally stretched when the texture was mapped.
+				float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+				Maths::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
+				Maths::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
+
+				// Store the tangents and bitangents in the temporary vectors
+				tempTangents[idx1.vertex_index].push_back(tangent);
+				tempBitangents[idx1.vertex_index].push_back(bitangent);
+				tempTangents[idx2.vertex_index].push_back(tangent);
+				tempBitangents[idx2.vertex_index].push_back(bitangent);
+				tempTangents[idx3.vertex_index].push_back(tangent);
+				tempBitangents[idx3.vertex_index].push_back(bitangent);
+			}
+
+			for (const auto& index : shape.mesh.indices) 
+			{
+
 				Vertex vertex{};
 
 				vertex.pos = {
@@ -1277,7 +1357,15 @@ namespace Magnefu
 
 				vertex.color = { 1.0f, 1.0f, 1.0f };
 
-				
+				vertex.normal = {
+					attrib.normals[3 * index.normal_index + 0],
+					attrib.normals[3 * index.normal_index + 1],
+					attrib.normals[3 * index.normal_index + 2]
+				};
+
+				vertex.tangent = Maths::normalize(std::accumulate(tempTangents[index.vertex_index].begin(), tempTangents[index.vertex_index].end(), Maths::vec3(0.0f)));
+				vertex.bitangent = Maths::normalize(std::accumulate(tempBitangents[index.vertex_index].begin(), tempBitangents[index.vertex_index].end(), Maths::vec3(0.0f)));
+
 
 				if (uniqueVertices.count(vertex) == 0)
 				{
@@ -1459,6 +1547,7 @@ namespace Magnefu
 	void VKContext::CreateDescriptorSets()
 	{
 		std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_DescriptorSetLayout);
+
 		VkDescriptorSetAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 		allocInfo.descriptorPool = m_DescriptorPool;
@@ -1469,19 +1558,47 @@ namespace Magnefu
 		if (vkAllocateDescriptorSets(m_VkDevice, &allocInfo, m_DescriptorSets.data()) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to allocate descriptor sets!");
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		std::vector<VkDescriptorImageInfo> imageInfo{};
+		imageInfo.resize(m_Textures.size());
+
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
+		{
+			// UBO
 			VkDescriptorBufferInfo bufferInfo{};
 			bufferInfo.buffer = m_UniformBuffers[i];
 			bufferInfo.offset = 0;
 			bufferInfo.range = sizeof(UniformBufferObject);
+			
 
-			VkDescriptorImageInfo imageInfo{};
-			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imageInfo.imageView = m_TextureImageView;
-			imageInfo.sampler =   m_TextureSampler;
+			// Base
+			imageInfo[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo[0].imageView = m_Textures[0].ImageView;
+			imageInfo[0].sampler =   m_TextureSampler;
 
-			std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+			// Metal
+			imageInfo[1].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo[1].imageView = m_Textures[1].ImageView;
+			imageInfo[1].sampler = m_TextureSampler;
 
+			// Roughness
+			imageInfo[2].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo[2].imageView = m_Textures[2].ImageView;
+			imageInfo[2].sampler = m_TextureSampler;
+
+			// Normal
+			imageInfo[3].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo[3].imageView = m_Textures[3].ImageView;
+			imageInfo[3].sampler = m_TextureSampler;
+
+			// Ambient Occlusion
+			imageInfo[4].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo[4].imageView = m_Textures[4].ImageView;
+			imageInfo[4].sampler = m_TextureSampler;
+
+
+			std::array<VkWriteDescriptorSet, 6> descriptorWrites{};
+
+			// UBO
 			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			descriptorWrites[0].dstSet = m_DescriptorSets[i];
 			descriptorWrites[0].dstBinding = 0;
@@ -1492,6 +1609,7 @@ namespace Magnefu
 			descriptorWrites[0].pImageInfo = nullptr; // Optional
 			descriptorWrites[0].pTexelBufferView = nullptr; // Optional
 
+			// Base Texture
 			descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			descriptorWrites[1].dstSet = m_DescriptorSets[i];
 			descriptorWrites[1].dstBinding = 1;
@@ -1499,8 +1617,52 @@ namespace Magnefu
 			descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			descriptorWrites[1].descriptorCount = 1;
 			descriptorWrites[1].pBufferInfo = nullptr;
-			descriptorWrites[1].pImageInfo = &imageInfo; // Optional
+			descriptorWrites[1].pImageInfo = &imageInfo[0]; 
 			descriptorWrites[1].pTexelBufferView = nullptr; // Optional
+
+			// Metal Texture
+			descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[2].dstSet = m_DescriptorSets[i];
+			descriptorWrites[2].dstBinding = 2;
+			descriptorWrites[2].dstArrayElement = 0;
+			descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descriptorWrites[2].descriptorCount = 1;
+			descriptorWrites[2].pBufferInfo = nullptr;
+			descriptorWrites[2].pImageInfo = &imageInfo[1]; 
+			descriptorWrites[2].pTexelBufferView = nullptr; // Optional
+
+			// Roughness Texture
+			descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[3].dstSet = m_DescriptorSets[i];
+			descriptorWrites[3].dstBinding = 3;
+			descriptorWrites[3].dstArrayElement = 0;
+			descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descriptorWrites[3].descriptorCount = 1;
+			descriptorWrites[3].pBufferInfo = nullptr;
+			descriptorWrites[3].pImageInfo = &imageInfo[2]; 
+			descriptorWrites[3].pTexelBufferView = nullptr; // Optional
+
+			// Normal Texture
+			descriptorWrites[4].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[4].dstSet = m_DescriptorSets[i];
+			descriptorWrites[4].dstBinding = 4;
+			descriptorWrites[4].dstArrayElement = 0;
+			descriptorWrites[4].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descriptorWrites[4].descriptorCount = 1;
+			descriptorWrites[4].pBufferInfo = nullptr;
+			descriptorWrites[4].pImageInfo = &imageInfo[3]; 
+			descriptorWrites[4].pTexelBufferView = nullptr; // Optional
+
+			// Ambient Occlusion Texture
+			descriptorWrites[5].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[5].dstSet = m_DescriptorSets[i];
+			descriptorWrites[5].dstBinding = 5;
+			descriptorWrites[5].dstArrayElement = 0;
+			descriptorWrites[5].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descriptorWrites[5].descriptorCount = 1;
+			descriptorWrites[5].pBufferInfo = nullptr;
+			descriptorWrites[5].pImageInfo = &imageInfo[4]; 
+			descriptorWrites[5].pTexelBufferView = nullptr; // Optional
 
 			vkUpdateDescriptorSets(m_VkDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 		}
@@ -1908,11 +2070,13 @@ namespace Magnefu
 
 				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &m_DescriptorSets[m_CurrentFrame], 0, nullptr);
 
+				vkCmdPushConstants(commandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &m_PushConstants);
+
 				vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(m_Indices.size()), 1, 0, 0, 0);
 			}
 
 			// PARTICLE PIPELINE
-			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_ParticleGraphicsPipeline);
+			/*vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_ParticleGraphicsPipeline);
 
 			{
 				VkViewport viewport{};
@@ -1933,7 +2097,7 @@ namespace Magnefu
 				vkCmdBindVertexBuffers(commandBuffer, 0, 1, &m_ShaderStorageBuffers[m_CurrentFrame], offsets);
 
 				vkCmdDraw(commandBuffer, PARTICLE_COUNT, 1, 0, 0);
-			}
+			}*/
 
 		vkCmdEndRenderPass(commandBuffer);
 
@@ -2428,6 +2592,120 @@ namespace Magnefu
 
 	}
 
+
+	void VKContext::CreateTextureImage(TextureInfo& texture)
+	{
+		int requestedChannels = 0;
+
+		stbi_set_flip_vertically_on_load(0);
+		texture.Tiling = VK_IMAGE_TILING_OPTIMAL;
+		switch (texture.Type)
+		{
+			case TextureType::DIFFUSE:
+			{
+				texture.Format = VK_FORMAT_R8G8B8A8_SRGB;
+				requestedChannels = STBI_rgb_alpha;
+				break;
+			}
+
+			case TextureType::METAL:
+			{
+				texture.Format = VK_FORMAT_R8_UNORM;
+				requestedChannels = STBI_grey;
+				break;
+			}
+
+			case TextureType::ROUGHNESS:
+			{
+				texture.Format = VK_FORMAT_R8_UNORM;
+				requestedChannels = STBI_grey;
+				break;
+			}
+
+			case TextureType::NORMAL:
+			{
+				texture.Format = VK_FORMAT_R8G8B8A8_UNORM;
+				requestedChannels = STBI_rgb_alpha;
+				break;
+			}
+
+			case TextureType::AO:
+			{
+				texture.Format = VK_FORMAT_R8_UNORM;
+				requestedChannels = STBI_grey;
+				break;
+			}
+
+			default:
+			{
+				MF_CORE_ASSERT(false, "CreateTextureImage - Unknown or unsupported texture type");
+			}
+			break;
+		}
+
+
+		int width, height, channels;
+		stbi_uc* pixels = stbi_load(
+			TEXTURE_PATHS[static_cast<uint32_t>(texture.Type)].c_str(), 
+			&width, &height, &channels, 
+			requestedChannels
+		); // channels = BPP (bits per pixel)
+
+		if (!pixels)
+			MF_CORE_ASSERT(false, "failed to load texture image!");
+
+		texture.MipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
+
+		MF_CORE_DEBUG("Mip Levels: {0} | Width: {1} | Height: {2} | Channels: {3} | Requested Channels: {4}", texture.MipLevels, width, height, channels, requestedChannels);
+
+		VkDeviceSize imageSize = width * height * requestedChannels;
+
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingBufferMemory;
+
+		CreateBuffer(
+			imageSize,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			stagingBuffer,
+			stagingBufferMemory
+		);
+
+		void* data;
+		vkMapMemory(m_VkDevice, stagingBufferMemory, 0, imageSize, 0, &data);
+		memcpy(data, pixels, static_cast<size_t>(imageSize));
+		vkUnmapMemory(m_VkDevice, stagingBufferMemory);
+
+		stbi_image_free(pixels);
+
+		CreateImage(
+			static_cast<uint32_t>(width),
+			static_cast<uint32_t>(height),
+			texture.MipLevels,
+			VK_SAMPLE_COUNT_1_BIT,
+			texture.Format,
+			VK_IMAGE_TYPE_2D,
+			texture.Tiling,
+			VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+			texture.Image,
+			texture.Buffer
+		);
+
+		TransitionImageLayout(texture.Image, texture.Format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, texture.MipLevels);
+		CopyBufferToImage(stagingBuffer, texture.Image, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+		//TransitionImageLayout(m_TextureImage, texture.Format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_MipLevels);
+		GenerateMipmaps(texture.Image, texture.Format, width, height, texture.MipLevels);
+
+		vkDestroyBuffer(m_VkDevice, stagingBuffer, nullptr);
+		vkFreeMemory(m_VkDevice, stagingBufferMemory, nullptr);
+	}
+
+	void VKContext::CreateTextureImageView(TextureInfo& texture)
+	{
+		texture.ImageView = CreateImageView(texture.Image, texture.Format, VK_IMAGE_ASPECT_COLOR_BIT, texture.MipLevels);
+	}
+
 	VkSampleCountFlagBits VKContext::GetMaxUsableSampleCount()
 	{
 		VkSampleCountFlags counts = m_Properties.limits.framebufferColorSampleCounts & m_Properties.limits.framebufferDepthSampleCounts;
@@ -2513,14 +2791,15 @@ namespace Magnefu
 
 		UpdateUniformBuffer();
 
-		VkSemaphore waitSemaphores[] = { m_ComputeFinishedSemaphores[m_CurrentFrame], m_ImageAvailableSemaphores[m_CurrentFrame] };
-		//VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphores[m_CurrentFrame] };
-		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-		//VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		//VkSemaphore waitSemaphores[] = { m_ComputeFinishedSemaphores[m_CurrentFrame], m_ImageAvailableSemaphores[m_CurrentFrame] };
+		VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphores[m_CurrentFrame] };
+		//VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		submitInfo.waitSemaphoreCount = 2;
+		//submitInfo.waitSemaphoreCount = 2;
+		submitInfo.waitSemaphoreCount = 1; 
 		submitInfo.pWaitSemaphores = waitSemaphores;
 		submitInfo.pWaitDstStageMask = waitStages;
 		submitInfo.commandBufferCount = 1;
@@ -2637,6 +2916,7 @@ namespace Magnefu
 
 		return shaderModule;
 	}
+
 
 	ShaderList VKContext::ParseShader(const String& filepath)
 	{

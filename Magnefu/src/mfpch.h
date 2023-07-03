@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <utility>
 #include <functional>
+#include <numeric>
 #include <chrono>
 #include <random>
 #include <any>
