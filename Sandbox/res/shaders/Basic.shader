@@ -125,7 +125,7 @@ float G_Smith(float roughness, float NoL, float NoV)
 
 void main()
 {
-    vec3 Radiance;
+    vec3 BRDF;
     vec3 BaseColor = vec3(texture(BaseTexSampler, FragTexCoord));
     if (PC.LightEnabled == 1)
     {
@@ -134,7 +134,7 @@ void main()
 
 
         // AMBIENT PORTION          
-        Radiance = BaseColor * PC.Ka;
+        //Radiance = BaseColor * PC.Ka;
 
         // Simulating a point light
         //vec3 LightVector = normalize(PC.LightPos - FragPos);
@@ -142,11 +142,11 @@ void main()
 
         vec3 LightVector = normalize(TangentLightPos - TangentFragPos);
         vec3 ViewVector = normalize(TangentCameraPos - TangentFragPos);
-        float Irradiance = PC.RadiantFlux;
 
         // Getting Attenuation
-        /*float distance = length(PC.LightPos - FragPos);
-        float attenuation = 1.0 / (distance * distance);*/
+        float distance = length(TangentLightPos - TangentFragPos);
+        float attenuation = 1.0 / (distance * distance);
+        vec3 Radiance = PC.LightColor * attenuation;
 
         // ---Microfacet BRDF--- //
 
@@ -161,6 +161,7 @@ void main()
         float VoH = clamp(dot(ViewVector, HalfwayVector), 0.0, 1.0);
         vec3 F = FresnelSchlick(F0, VoH);
 
+
         // Normal Distribution Function
         float Roughness = float(texture(RoughnessTexSampler, FragTexCoord));
         //float D = D_GGX(Roughness, clamp(dot(FragNormal, HalfwayVector), 0.0, 1.0));
@@ -173,26 +174,35 @@ void main()
         float NoV = clamp(dot(Normal, ViewVector), 0.0, 1.0);
         float G = G_Smith(Roughness, NoL, NoV);
 
-        vec3 spec = F * D * G / 4.0 * max(NoL, 0.001) * max(NoV, 0.001) * PC.Ks;
+        vec3 spec = (F * D * G) / (4.0 * max(NoL, 0.001) * max(NoV, 0.001));
 
-        vec3 rhod = BaseColor * PC.Kd;
-        rhod *= vec3(1.0) - F;
+        vec3 ks = F;
+
+        //vec3 rhod = //BaseColor * PC.Kd;
+        vec3 rhod = vec3(1.0) - ks;
 
         rhod *= (1.0 - Metallic);
 
-        vec3 diff = rhod / PI;
+        //vec3 diff = rhod / PI;
+        //
+        //vec3 BRDF = diff + spec;
 
-        vec3 BRDF = diff + spec;
-
-        //Radiance += BRDF * Irradiance * PC.LightColor * attenuation;
-        Radiance += BRDF * Irradiance * PC.LightColor;
-        Radiance *= PC.Tint;
+        // add to outgoing radiance
+        float NdotL = max(dot(Normal, LightVector), 0.0);
+        BRDF = (rhod * BaseColor / PI + spec) * Radiance * PC.RadiantFlux * NdotL;
     }
     else
     {
-        Radiance = BaseColor * PC.Tint;
+        BRDF = BaseColor * PC.Tint;
     }
 
-    OutColor = vec4(Radiance, PC.Opacity);
+    vec3 ambient = PC.Ka * BaseColor; // * ao;
+    vec3 color = ambient + BRDF;
+
+    // Gamma Correction
+    color = color / (color + vec3(1.0));
+    color = pow(color, vec3(1.0 / 2.2));
+
+    OutColor = vec4(color, PC.Opacity);
 
 }

@@ -16,13 +16,13 @@ public:
 		m_Camera = std::static_pointer_cast<Magnefu::SceneCamera>(Magnefu::Application::Get().GetWindow().GetSceneCamera());
 		m_GraphicsContext = Magnefu::Application::Get().GetWindow().GetGraphicsContext();
 
-		m_PushConstants.LightEnabled = 0;
+		m_PushConstants.LightEnabled = 1;
 		m_PushConstants.LightColor = Maths::vec3(1.0f);
-		m_PushConstants.LightPos = { 25.f, 65.f, 10.f };
+		m_PushConstants.LightPos = { 235.f, 65.f, 20.f };
 		m_PushConstants.CameraPos = m_Camera->GetData().Position;
 		m_PushConstants.Tint = Maths::vec3(1.0f);
 		m_PushConstants.Opacity = 1.f;
-		m_PushConstants.RadiantFlux = 0.5f;
+		m_PushConstants.RadiantFlux = 25.f;
 	}
 
 	void OnAttach() override
