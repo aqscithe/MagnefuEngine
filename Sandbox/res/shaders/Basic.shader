@@ -190,6 +190,9 @@ void main()
         // add to outgoing radiance
         float NdotL = max(dot(Normal, LightVector), 0.0);
         BRDF = (rhod * BaseColor / PI + spec) * Radiance * PC.RadiantFlux * NdotL;
+
+        // radiant flux seems to act more like a brightness setting
+        // it is really the attenuation that controls how far the light actually travels in the scene
     }
     else
     {

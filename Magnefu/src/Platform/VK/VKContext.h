@@ -19,19 +19,6 @@ namespace Magnefu
 		Compute
 	};
 
-	/*enum TextureType
-	{
-		NONE = -1,
-		DIFFUSE,
-		METAL,
-		ROUGHNESS,
-		BUMP,
-		NORMAL,
-		DISPLACEMENT,
-		AO,
-		EMISSIVE
-	};*/
-
 	struct ShaderSource
 	{
 		String Text;

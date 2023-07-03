@@ -47,27 +47,35 @@ namespace Magnefu
 	static const std::string METAL_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Metalness.png";
 	static const std::string ROUGHNESS_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Roughness.png";
 	static const std::string NORMAL_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Normal.png";
+	static const std::string AO_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_AO.png";
+
 
 	/*static const std::string MODEL_PATH = "res/meshes/Bronze_shield.obj";
 	static const std::string BASE_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_BaseColor.png";
 	static const std::string METAL_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_Metallic.png";
 	static const std::string ROUGHNESS_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_Roughness.png";
-	static const std::string NORMAL_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_Normal.png";*/
+	static const std::string NORMAL_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_Normal.png";
+	static const std::string AO_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_AO.png";*/
+
 
 	/*static const std::string MODEL_PATH = "res/meshes/Victorian_Painting.obj";
 	static const std::string BASE_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_BaseColor_Utility-sRGB-Texture.png";
 	static const std::string METAL_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_Metallic_Utility-Raw.png";
 	static const std::string ROUGHNESS_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_Roughness_Utility-Raw.png";
-	static const std::string NORMAL_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_Normal_Utility-Raw.png";*/
+	static const std::string NORMAL_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_Normal_Utility-Raw.png";
+	static const std::string AO_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_AO_1_Utility-Raw.png";*/
+	//static const std::string AO_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_AO_2_Utility-Raw.png";
+
 
 	static const std::string SHADER_PATH = "res/shaders/Basic.shader";
 	static const std::string PARTICLE_SHADER_PATH = "res/shaders/Particles.shader";
 
-	static const std::array<std::string, 4> TEXTURE_PATHS{ 
+	static const std::array<std::string, 4> TEXTURE_PATHS { 
 		BASE_TEXTURE_PATH, 
 		METAL_TEXTURE_PATH, 
 		ROUGHNESS_TEXTURE_PATH, 
-		NORMAL_TEXTURE_PATH
+		NORMAL_TEXTURE_PATH,
+		//AO_TEXTURE_PATH
 	};
 
 
@@ -1211,10 +1219,14 @@ namespace Magnefu
 	void VKContext::CreateTextures()
 	{
 		m_Textures.resize(TEXTURE_PATHS.size());
+		//for (size_t i = 0; i < m_Textures.size(); i++)
+		//{
+		//	m_Textures[i].Type = static_cast<TextureType>(i);
+		//}
 		m_Textures[0].Type = TextureType::DIFFUSE;
 		m_Textures[1].Type = TextureType::METAL;
 		m_Textures[2].Type = TextureType::ROUGHNESS;
-		m_Textures[2].Type = TextureType::NORMAL;
+		m_Textures[3].Type = TextureType::NORMAL;
 
 		for (auto& texture : m_Textures)
 			CreateTextureImage(texture);
