@@ -12,8 +12,15 @@ namespace Maths
 	union vec2
 	{
 		vec2() = default;
-		vec2(float x, float y)
+		constexpr vec2(float d)
+			: x(d), y(d)
+		{}
+		constexpr vec2(float x, float y)
 			: x(x), y(y)
+		{}
+
+		constexpr vec2(float* d)
+			: x(*d), y(*(d + 1))
 		{}
 
 		static std::type_index getTypeIndex() {
@@ -51,10 +58,14 @@ namespace Maths
 			: x(x), y(y), z(z)
 		{}
 
+		constexpr vec3(float* d)
+			: x(*d), y(*(d + 1)), z(*(d + 2))
+		{}
+
 		vec3(vec2 xy, float z)
 			: x(xy.x), y(xy.y), z(z)
 		{}
-
+		
 		static std::type_index getTypeIndex() {
 			return std::type_index(typeid(vec3));
 		}
