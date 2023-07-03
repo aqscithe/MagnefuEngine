@@ -42,17 +42,23 @@ namespace Magnefu
 		return a.pos == b.pos && a.color == b.color && a.texCoord == b.texCoord;
 	}
 
-	/*static const std::string MODEL_PATH = "res/meshes/corridor.obj";
+	static const std::string MODEL_PATH = "res/meshes/corridor.obj";
 	static const std::string BASE_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_BaseColor.png";
 	static const std::string METAL_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Metalness.png";
 	static const std::string ROUGHNESS_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Roughness.png";
-	static const std::string NORMAL_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Normal.png";*/
+	static const std::string NORMAL_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Normal.png";
 
-	static const std::string MODEL_PATH = "res/meshes/Victorian_Painting.obj";
+	/*static const std::string MODEL_PATH = "res/meshes/Bronze_shield.obj";
+	static const std::string BASE_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_BaseColor.png";
+	static const std::string METAL_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_Metallic.png";
+	static const std::string ROUGHNESS_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_Roughness.png";
+	static const std::string NORMAL_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_Normal.png";*/
+
+	/*static const std::string MODEL_PATH = "res/meshes/Victorian_Painting.obj";
 	static const std::string BASE_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_BaseColor_Utility-sRGB-Texture.png";
 	static const std::string METAL_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_Metallic_Utility-Raw.png";
 	static const std::string ROUGHNESS_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_Roughness_Utility-Raw.png";
-	static const std::string NORMAL_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_Normal_Utility-Raw.png";
+	static const std::string NORMAL_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_Normal_Utility-Raw.png";*/
 
 	static const std::string SHADER_PATH = "res/shaders/Basic.shader";
 	static const std::string PARTICLE_SHADER_PATH = "res/shaders/Particles.shader";
@@ -829,7 +835,7 @@ namespace Magnefu
 
 		// Push Constants
 		VkPushConstantRange pushConstantRange = {};
-		pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT; // The shader stages that will use the push constants.
+		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT; // The shader stages that will use the push constants.
 		pushConstantRange.offset = 0;
 		pushConstantRange.size = sizeof(PushConstants);
 
@@ -2026,7 +2032,7 @@ namespace Magnefu
 
 				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &m_DescriptorSets[m_CurrentFrame], 0, nullptr);
 
-				vkCmdPushConstants(commandBuffer, m_PipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &m_PushConstants);
+				vkCmdPushConstants(commandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &m_PushConstants);
 
 				vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(m_Indices.size()), 1, 0, 0, 0);
 			}
@@ -2553,6 +2559,7 @@ namespace Magnefu
 	{
 		int requestedChannels = 0;
 
+		stbi_set_flip_vertically_on_load(0);
 		texture.Tiling = VK_IMAGE_TILING_OPTIMAL;
 		switch (texture.Type)
 		{

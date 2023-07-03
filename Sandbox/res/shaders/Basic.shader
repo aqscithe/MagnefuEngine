@@ -1,6 +1,22 @@
 #shader vertex
 #version 460 core
 
+
+layout(push_constant) uniform PushConstants
+{
+    vec3  Tint;
+    vec3  CameraPos;
+    vec3  LightPos;
+    vec3  LightColor;
+    vec3  Ka;
+    vec3  Kd;
+    vec3  Ks;
+    float Opacity;
+    float RadiantFlux;
+    float Reflectance; // fresnel reflectance for dielectrics [0.0, 1.0]
+    int   LightEnabled;
+} PC;
+
 layout(binding = 0) uniform UniformBufferObject
 {
     mat4 model;
@@ -8,6 +24,7 @@ layout(binding = 0) uniform UniformBufferObject
     mat4 proj;
 } ubo;
 
+// -- In -- //
 layout(location = 0) in vec3 InPosition;
 layout(location = 1) in vec3 InColor;
 layout(location = 2) in vec3 InNormal;
@@ -15,10 +32,15 @@ layout(location = 3) in vec3 InTangent;
 layout(location = 4) in vec3 InBitangent;
 layout(location = 5) in vec2 InTexCoord;
 
+// -- Out -- //
 layout(location = 0) out vec2 FragTexCoord;
 layout(location = 1) out vec3 FragNormal;
 layout(location = 2) out vec3 FragPos;
-layout(location = 3) out mat3 TBN;
+layout(location = 3) out vec3 TangentLightPos;
+layout(location = 4) out vec3 TangentCameraPos;
+layout(location = 5) out vec3 TangentFragPos;
+
+
 
 void main()
 {
@@ -31,7 +53,11 @@ void main()
     vec3 T = normalize(vec3(ubo.model * vec4(InTangent, 0.0)));
     vec3 B = normalize(vec3(ubo.model * vec4(InBitangent, 0.0)));
     vec3 N = normalize(vec3(ubo.model * vec4(InNormal, 0.0)));
-    mat3 TBN = mat3(T, B, N);
+    mat3 TBN = transpose(mat3(T, B, N));
+    TangentLightPos = TBN * PC.LightPos;
+    TangentCameraPos = TBN * PC.CameraPos;
+    TangentFragPos = TBN * vec3(ubo.model * vec4(InPosition, 1.0));
+
 }
 
 
@@ -64,7 +90,9 @@ layout(binding = 4) uniform sampler2D NormalTexSampler;
 layout(location = 0) in vec2 FragTexCoord;
 layout(location = 1) in vec3 FragNormal;
 layout(location = 2) in vec3 FragPos;  // World Position
-layout(location = 3) in mat3 TBN;
+layout(location = 3) in vec3 TangentLightPos;
+layout(location = 4) in vec3 TangentCameraPos;
+layout(location = 5) in vec3 TangentFragPos;
 
 layout(location = 0) out vec4 OutColor;
 
@@ -103,16 +131,17 @@ void main()
     {
 
         vec3 Normal = texture(NormalTexSampler, FragTexCoord).rgb;
-        Normal = Normal * 2.0 - 1.0;
-        Normal = normalize(TBN * Normal);
 
 
         // AMBIENT PORTION          
         Radiance = BaseColor * PC.Ka;
 
         // Simulating a point light
-        vec3 LightVector = normalize(PC.LightPos - FragPos);
-        vec3 ViewVector = normalize(PC.CameraPos - FragPos);
+        //vec3 LightVector = normalize(PC.LightPos - FragPos);
+        //vec3 ViewVector = normalize(PC.CameraPos - FragPos);
+
+        vec3 LightVector = normalize(TangentLightPos - TangentFragPos);
+        vec3 ViewVector = normalize(TangentCameraPos - TangentFragPos);
         float Irradiance = PC.RadiantFlux;
 
         // Getting Attenuation
@@ -128,7 +157,7 @@ void main()
 
         // https://youtu.be/teTroOAGZjM
         // section referring to BSDF lighting
-        F0 = mix(BaseColor, F0, Metallic);  // a and b may need to be flipped
+        F0 = mix(F0, BaseColor, Metallic);  // a and b may need to be flipped
         float VoH = clamp(dot(ViewVector, HalfwayVector), 0.0, 1.0);
         vec3 F = FresnelSchlick(F0, VoH);
 
