@@ -16,7 +16,7 @@ namespace Magnefu
 		alignas(16) Maths::vec3 Ks = Maths::vec3(1.0f);
 		float                   Opacity;
 		float                   RadiantFlux;
-		float                   Reflectance = 0.5; // fresnel reflectance for dielectrics [0.0, 1.0]
+		float                   Reflectance = 0.1f; // fresnel reflectance for dielectrics [0.0, 1.0]
 		int                     LightEnabled;
 	};
 

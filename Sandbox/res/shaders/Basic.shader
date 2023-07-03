@@ -86,6 +86,7 @@ layout(binding = 1) uniform sampler2D BaseTexSampler;
 layout(binding = 2) uniform sampler2D MetalTexSampler;
 layout(binding = 3) uniform sampler2D RoughnessTexSampler;
 layout(binding = 4) uniform sampler2D NormalTexSampler;
+layout(binding = 5) uniform sampler2D AOTexSampler;
 
 layout(location = 0) in vec2 FragTexCoord;
 layout(location = 1) in vec3 FragNormal;
@@ -127,6 +128,8 @@ void main()
 {
     vec3 BRDF;
     vec3 BaseColor = vec3(texture(BaseTexSampler, FragTexCoord));
+    float AO = texture(AOTexSampler, FragTexCoord).r;
+
     if (PC.LightEnabled == 1)
     {
 
@@ -199,8 +202,9 @@ void main()
         BRDF = BaseColor * PC.Tint;
     }
 
-    vec3 ambient = PC.Ka * BaseColor; // * ao;
+    vec3 ambient = PC.Ka * BaseColor;// *AO;
     vec3 color = ambient + BRDF;
+    color *= AO;
 
     // Gamma Correction
     color = color / (color + vec3(1.0));

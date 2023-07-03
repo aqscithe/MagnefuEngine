@@ -70,12 +70,12 @@ namespace Magnefu
 	static const std::string SHADER_PATH = "res/shaders/Basic.shader";
 	static const std::string PARTICLE_SHADER_PATH = "res/shaders/Particles.shader";
 
-	static const std::array<std::string, 4> TEXTURE_PATHS { 
+	static const std::array<std::string, 5> TEXTURE_PATHS { 
 		BASE_TEXTURE_PATH, 
 		METAL_TEXTURE_PATH, 
 		ROUGHNESS_TEXTURE_PATH, 
 		NORMAL_TEXTURE_PATH,
-		//AO_TEXTURE_PATH
+		AO_TEXTURE_PATH
 	};
 
 
@@ -656,12 +656,20 @@ namespace Magnefu
 		normalSamplerLayoutBinding.pImmutableSamplers = nullptr;
 		normalSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-		std::array<VkDescriptorSetLayoutBinding, 5> bindings = { 
+		VkDescriptorSetLayoutBinding ambientOcclusionSamplerLayoutBinding{};
+		ambientOcclusionSamplerLayoutBinding.binding = 5;
+		ambientOcclusionSamplerLayoutBinding.descriptorCount = 1;
+		ambientOcclusionSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		ambientOcclusionSamplerLayoutBinding.pImmutableSamplers = nullptr;
+		ambientOcclusionSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+		std::array<VkDescriptorSetLayoutBinding, 6> bindings = { 
 			uboLayoutBinding, 
 			baseSamplerLayoutBinding, 
 			metalSamplerLayoutBinding, 
 			roughnessSamplerLayoutBinding,
-			normalSamplerLayoutBinding
+			normalSamplerLayoutBinding,
+			ambientOcclusionSamplerLayoutBinding
 		};
 
 		VkDescriptorSetLayoutCreateInfo layoutInfo{};
@@ -1227,6 +1235,7 @@ namespace Magnefu
 		m_Textures[1].Type = TextureType::METAL;
 		m_Textures[2].Type = TextureType::ROUGHNESS;
 		m_Textures[3].Type = TextureType::NORMAL;
+		m_Textures[4].Type = TextureType::AO;
 
 		for (auto& texture : m_Textures)
 			CreateTextureImage(texture);
@@ -1554,6 +1563,7 @@ namespace Magnefu
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
 		{
+			// UBO
 			VkDescriptorBufferInfo bufferInfo{};
 			bufferInfo.buffer = m_UniformBuffers[i];
 			bufferInfo.offset = 0;
@@ -1580,8 +1590,13 @@ namespace Magnefu
 			imageInfo[3].imageView = m_Textures[3].ImageView;
 			imageInfo[3].sampler = m_TextureSampler;
 
+			// Ambient Occlusion
+			imageInfo[4].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo[4].imageView = m_Textures[4].ImageView;
+			imageInfo[4].sampler = m_TextureSampler;
 
-			std::array<VkWriteDescriptorSet, 5> descriptorWrites{};
+
+			std::array<VkWriteDescriptorSet, 6> descriptorWrites{};
 
 			// UBO
 			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -1602,7 +1617,7 @@ namespace Magnefu
 			descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			descriptorWrites[1].descriptorCount = 1;
 			descriptorWrites[1].pBufferInfo = nullptr;
-			descriptorWrites[1].pImageInfo = &imageInfo[0]; // Optional
+			descriptorWrites[1].pImageInfo = &imageInfo[0]; 
 			descriptorWrites[1].pTexelBufferView = nullptr; // Optional
 
 			// Metal Texture
@@ -1613,7 +1628,7 @@ namespace Magnefu
 			descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			descriptorWrites[2].descriptorCount = 1;
 			descriptorWrites[2].pBufferInfo = nullptr;
-			descriptorWrites[2].pImageInfo = &imageInfo[1]; // Optional
+			descriptorWrites[2].pImageInfo = &imageInfo[1]; 
 			descriptorWrites[2].pTexelBufferView = nullptr; // Optional
 
 			// Roughness Texture
@@ -1624,7 +1639,7 @@ namespace Magnefu
 			descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			descriptorWrites[3].descriptorCount = 1;
 			descriptorWrites[3].pBufferInfo = nullptr;
-			descriptorWrites[3].pImageInfo = &imageInfo[2]; // Optional
+			descriptorWrites[3].pImageInfo = &imageInfo[2]; 
 			descriptorWrites[3].pTexelBufferView = nullptr; // Optional
 
 			// Normal Texture
@@ -1635,8 +1650,19 @@ namespace Magnefu
 			descriptorWrites[4].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			descriptorWrites[4].descriptorCount = 1;
 			descriptorWrites[4].pBufferInfo = nullptr;
-			descriptorWrites[4].pImageInfo = &imageInfo[3]; // Optional
+			descriptorWrites[4].pImageInfo = &imageInfo[3]; 
 			descriptorWrites[4].pTexelBufferView = nullptr; // Optional
+
+			// Ambient Occlusion Texture
+			descriptorWrites[5].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[5].dstSet = m_DescriptorSets[i];
+			descriptorWrites[5].dstBinding = 5;
+			descriptorWrites[5].dstArrayElement = 0;
+			descriptorWrites[5].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descriptorWrites[5].descriptorCount = 1;
+			descriptorWrites[5].pBufferInfo = nullptr;
+			descriptorWrites[5].pImageInfo = &imageInfo[4]; 
+			descriptorWrites[5].pTexelBufferView = nullptr; // Optional
 
 			vkUpdateDescriptorSets(m_VkDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 		}
@@ -2600,6 +2626,13 @@ namespace Magnefu
 			{
 				texture.Format = VK_FORMAT_R8G8B8A8_UNORM;
 				requestedChannels = STBI_rgb_alpha;
+				break;
+			}
+
+			case TextureType::AO:
+			{
+				texture.Format = VK_FORMAT_R8_UNORM;
+				requestedChannels = STBI_grey;
 				break;
 			}
 
