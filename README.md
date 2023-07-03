@@ -59,6 +59,13 @@ MSAAx8
 Using compute shader to calculate particle movement.
 >![Particles-ComputeShader.gif](./SCREENS/Particles-ComputeShader.gif)
 
+- Now Including AO, Roughness, Metallic and Normal Textures w/ BRDF Lighting (Just 1 point light for now)
+> ![Corridor-ARM-and-Normal-Map.png](./SCREENS/Corridor-ARM-and-Normal-Map.png)
+
+> ![Bronze_shield-ARM.png](./SCREENS/Bronze_shield-ARM.png)
+
+> ![Victorian_Painting-ARM.png](./SCREENS/Victorian_Painting-ARM.png)
+
 
 ### Resource Management
 
@@ -91,3 +98,5 @@ From here on out, I'll post weekly updates on the engine. This includes new feat
 - 12 June 2023 -> 18 June 2023 | Compute shaders baby! I've used compute shaders to do the movement calculations for particles on the screen. This also required a better understanding of Vulkan's VkSemaphore and VkFence synchronization primitives. This marks the tutorial completion. To celebrate finishing the tutorial, I have removed OpenGL completely and I'm starting to implement imgui. Slightly more complicated than doing so with OpenGL but hopefully the github [example](https://github.com/ocornut/imgui/tree/master/examples/example_glfw_vulkan) will be helpful.
 
 - 19 June 2023 -> 25 June 2023 | Early notes: Nvidia Nsight Graphics is amazing! The frame debugger helped me debug some frustrating issues(constant flickering of imgui widgets) I had implementing dear imgui. The ability to know the order of events every frame and to be able to step through frames much like we can use break points to step through code is priceless. So ImGui is now working as expected.
+
+- 26 June 2023 -> 02 July 2023 | I have introduced all of the basic material textures: roughness, metallic, normal and ambient occlusion. Getting the right calculations for the normals was a little tricky but between this [article](https://learnopengl.com/Advanced-Lighting/Normal-Mapping) and some help from GPT, I was able to succeed. There is also the addition of a point light to show off the additional textures. The fragment shader is using the basic BRDF lighting algorithm(to great effect I might add). I'll have a screenshot included in the readme to showcase the new visuals. Next week will likely be less exciting visually. Going to focus on code abstraction in the engine, with my sights set dead on setting up a materials system. I also have a lot of excess code in the shader that needs to be cleaned up.
