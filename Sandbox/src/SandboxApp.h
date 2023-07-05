@@ -24,7 +24,7 @@ public:
 		m_PushConstants.Tint = Maths::vec3(1.0f);
 		m_PushConstants.Opacity = 1.f;
 		m_PushConstants.Reflectance = 0.1f;
-		m_PushConstants.RadiantFlux = 25.f;
+		m_PushConstants.RadiantFlux = 10.f;
 		m_PushConstants.MaxLightDist = 200.f;
 	}
 
@@ -65,7 +65,7 @@ public:
 				ImGui::SliderInt("Light Enabled", &m_PushConstants.LightEnabled, 0, 1);
 				ImGui::SliderFloat3("Light Position", m_PushConstants.LightPos.e, -500.f, 500.f);
 				ImGui::ColorEdit3("Light Color", m_PushConstants.LightColor.e);
-				ImGui::SliderFloat("Max Light Propagation Distance", &m_PushConstants.MaxLightDist, 0.f, 1000.f, "%.2f");
+				ImGui::SliderFloat("Max Light Distance", &m_PushConstants.MaxLightDist, 0.f, 1000.f, "%.2f");
 				ImGui::SliderFloat("Radiant Flux", &m_PushConstants.RadiantFlux, 0.f, 100.f, "%.2f");
 				ImGui::SliderFloat("Reflectance", &m_PushConstants.Reflectance, 0.f, 5.f, "%.2f");
 				ImGui::Separator();

@@ -137,17 +137,35 @@ void main()
         // --- Getting Attenuation --- //
 
         float distance = length(LightPosMinusFragPos);
+        float lightIntensity = PC.RadiantFlux;
 
-        // Consider a smoothstep function for smoother transition between area of light and darkness
-        if (distance > PC.MaxLightDist)
+        // Basic Approach
+        /*if (distance > PC.MaxLightDist)
         {
             OutColor = vec4(vec3(0.0), PC.Opacity);
             return;
+        }*/
+
+        // Smoothstep Function Approach
+        float smoothRadius = PC.MaxLightDist * 0.8;
+       
+        if (distance > smoothRadius)
+        {
+            float t = (distance - smoothRadius) / (PC.MaxLightDist - smoothRadius);
+            if (t == 1.0)
+            {
+                OutColor = vec4(vec3(0.0), PC.Opacity);
+                return;
+            }
+            t = clamp(t, 0.0, 1.0);
+            t = t * t * (3.0 - 2.0 * t); // Smoothstep function
+
+            lightIntensity *= 1.0 - t; // Interpolate light intensity towards 0
         }
         //float attenuation = 1.0 / distance
         float attenuation = 1.0 / (distance * distance);
         //float attenuation = 1.0 / (constant + linear * distance + quadratic * distance * distance);
-        vec3 Radiance = PC.LightColor * attenuation;
+        vec3 Radiance = PC.LightColor * lightIntensity * attenuation;
 
 
         // ---Microfacet BRDF--- //
@@ -184,7 +202,7 @@ void main()
 
         // add to outgoing radiance
         float NdotL = max(NormDotLight, 0.0);
-        BRDF = (Kd * BaseColor / PI + spec) * Radiance * PC.RadiantFlux * NdotL; 
+        BRDF = (Kd * BaseColor / PI + spec) * Radiance * NdotL; 
 
     }
     else
