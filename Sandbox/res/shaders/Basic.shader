@@ -9,11 +9,10 @@ layout(push_constant) uniform PushConstants
     vec3  LightPos;
     vec3  LightColor;
     vec3  Ka;
-    vec3  Kd;
-    vec3  Ks;
+    float MaxLightDist;
     float Opacity;
     float RadiantFlux;
-    float Reflectance; // fresnel reflectance for dielectrics [0.0, 1.0]
+    float Reflectance;
     int   LightEnabled;
 } PC;
 
@@ -71,8 +70,7 @@ layout(push_constant) uniform PushConstants
     vec3  LightPos;
     vec3  LightColor;
     vec3  Ka;
-    vec3  Kd;
-    vec3  Ks;
+    float MaxLightDist;
     float Opacity;
     float RadiantFlux;
     float Reflectance; // fresnel reflectance for dielectrics [0.0, 1.0]
@@ -80,13 +78,13 @@ layout(push_constant) uniform PushConstants
 } PC;
 
 
-layout(binding = 1) uniform sampler2D BaseTexSampler;
-layout(binding = 2) uniform sampler2D MetalTexSampler;
-layout(binding = 3) uniform sampler2D RoughnessTexSampler;
-layout(binding = 4) uniform sampler2D NormalTexSampler;
-layout(binding = 5) uniform sampler2D AOTexSampler;
+layout(binding = 1) uniform sampler2D DiffuseSampler;
+layout(binding = 2) uniform sampler2D MetalSampler;
+layout(binding = 3) uniform sampler2D RoughnessSampler;
+layout(binding = 4) uniform sampler2D NormalSampler;
+layout(binding = 5) uniform sampler2D AOSampler;
 
-layout(location = 0) in vec2 FragTexCoord;
+layout(location = 0) in vec2 TexCoord;
 layout(location = 1) in vec3 TangentLightPos;
 layout(location = 2) in vec3 TangentCameraPos;
 layout(location = 3) in vec3 TangentFragPos;
@@ -121,30 +119,41 @@ float G_Smith(float roughness, float NoL, float NoV)
 void main()
 {
     vec3 BRDF;
-    vec3 BaseColor = vec3(texture(BaseTexSampler, FragTexCoord));
-    float AO = texture(AOTexSampler, FragTexCoord).r;
+    vec3 BaseColor = vec3(texture(DiffuseSampler, TexCoord));
+    float AO = texture(AOSampler, TexCoord).r;
 
     if (PC.LightEnabled == 1)
     {
         // Sample Normal Map
-        vec3 Normal = texture(NormalTexSampler, FragTexCoord).rgb;
+        vec3 Normal = texture(NormalSampler, TexCoord).rgb;
 
 
         // Simulating a point light
-        vec3 LightVector = normalize(TangentLightPos - TangentFragPos);
+        vec3 LightPosMinusFragPos = TangentLightPos - TangentFragPos;
+        vec3 LightVector = normalize(LightPosMinusFragPos);
         vec3 ViewVector = normalize(TangentCameraPos - TangentFragPos);
 
 
-        // Getting Attenuation
-        float distance = length(TangentLightPos - TangentFragPos);
+        // --- Getting Attenuation --- //
+
+        float distance = length(LightPosMinusFragPos);
+
+        // Consider a smoothstep function for smoother transition between area of light and darkness
+        if (distance > PC.MaxLightDist)
+        {
+            OutColor = vec4(vec3(0.0), PC.Opacity);
+            return;
+        }
+        //float attenuation = 1.0 / distance
         float attenuation = 1.0 / (distance * distance);
+        //float attenuation = 1.0 / (constant + linear * distance + quadratic * distance * distance);
         vec3 Radiance = PC.LightColor * attenuation;
 
 
         // ---Microfacet BRDF--- //
 
         // Fresnel Reflectance
-        float Metallic = float(texture(MetalTexSampler, FragTexCoord));
+        float Metallic = float(texture(MetalSampler, TexCoord));
         vec3 HalfwayVector = normalize(LightVector + ViewVector);
         vec3 F0 = vec3(0.16 * (PC.Reflectance * PC.Reflectance));
 
@@ -156,31 +165,26 @@ void main()
 
 
         // Normal Distribution Function
-        float Roughness = float(texture(RoughnessTexSampler, FragTexCoord));
+        float Roughness = float(texture(RoughnessSampler, TexCoord));
         float D = D_GGX(Roughness, clamp(dot(Normal, HalfwayVector), 0.0, 1.0));
 
         // Geometry Term
-        float NoL = clamp(dot(Normal, LightVector), 0.0, 1.0);
+        float NormDotLight = dot(Normal, LightVector);
+        float NoL = clamp(NormDotLight, 0.0, 1.0);
         float NoV = clamp(dot(Normal, ViewVector), 0.0, 1.0);
         float G = G_Smith(Roughness, NoL, NoV);
 
         vec3 spec = (F * D * G) / (4.0 * max(NoL, 0.001) * max(NoV, 0.001));
 
-        vec3 ks = F;
+        vec3 Ks = F;
 
-        vec3 rhod = vec3(1.0) - ks;
+        vec3 Kd = vec3(1.0) - Ks;
 
-        rhod *= (1.0 - Metallic);
+        Kd *= (1.0 - Metallic);
 
         // add to outgoing radiance
-        float NdotL = max(dot(Normal, LightVector), 0.0);
-        BRDF = (rhod * BaseColor / PI + spec) * Radiance * PC.RadiantFlux * NdotL; 
-
-        // radiant flux seems to act more like a brightness setting
-        // it is really the attenuation that controls how far the light actually travels in the scene
-        // 
-        // shouldn't i use radiant flux at the end if it operates like a brightness setting?
-        // essentially it should be adjustable regardless of whether light is enabled
+        float NdotL = max(NormDotLight, 0.0);
+        BRDF = (Kd * BaseColor / PI + spec) * Radiance * PC.RadiantFlux * NdotL; 
 
     }
     else

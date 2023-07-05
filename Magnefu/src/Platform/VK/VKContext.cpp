@@ -1875,6 +1875,8 @@ namespace Magnefu
 			m_SupportedFeatures = deviceFeatures;
 			m_Properties = deviceProperties;
 
+			MF_CORE_DEBUG("Max Push Constant Size: {}", m_Properties.limits.maxPushConstantsSize);
+
 
 			//MF_CORE_DEBUG("Renderer Info: ");
 			//MF_CORE_DEBUG("\tVersion: {}", m_RendererInfo.Version);
