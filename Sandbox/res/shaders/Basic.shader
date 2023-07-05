@@ -118,7 +118,7 @@ void main()
 {
     vec3 BRDF;
     vec3 BaseColor = vec3(texture(DiffuseSampler, TexCoord));
-    vec4 ARM = texture(ARMSampler, TexCoord);
+    vec3 ARM = texture(ARMSampler, TexCoord).rgb;
 
     float AO = ARM.r;
     float Roughness = ARM.g;
