@@ -79,10 +79,8 @@ layout(push_constant) uniform PushConstants
 
 
 layout(binding = 1) uniform sampler2D DiffuseSampler;
-layout(binding = 2) uniform sampler2D MetalSampler;
-layout(binding = 3) uniform sampler2D RoughnessSampler;
-layout(binding = 4) uniform sampler2D NormalSampler;
-layout(binding = 5) uniform sampler2D AOSampler;
+layout(binding = 2) uniform sampler2D ARMSampler;
+layout(binding = 3) uniform sampler2D NormalSampler;
 
 layout(location = 0) in vec2 TexCoord;
 layout(location = 1) in vec3 TangentLightPos;
@@ -120,7 +118,11 @@ void main()
 {
     vec3 BRDF;
     vec3 BaseColor = vec3(texture(DiffuseSampler, TexCoord));
-    float AO = texture(AOSampler, TexCoord).r;
+    vec4 ARM = texture(ARMSampler, TexCoord);
+
+    float AO = ARM.r;
+    float Roughness = ARM.g;
+    float Metallic = ARM.b;
 
     if (PC.LightEnabled == 1)
     {
@@ -171,7 +173,7 @@ void main()
         // ---Microfacet BRDF--- //
 
         // Fresnel Reflectance
-        float Metallic = float(texture(MetalSampler, TexCoord));
+        //float Metallic = float(texture(MetalSampler, TexCoord));
         vec3 HalfwayVector = normalize(LightVector + ViewVector);
         vec3 F0 = vec3(0.16 * (PC.Reflectance * PC.Reflectance));
 
@@ -183,7 +185,7 @@ void main()
 
 
         // Normal Distribution Function
-        float Roughness = float(texture(RoughnessSampler, TexCoord));
+        //float Roughness = float(texture(RoughnessSampler, TexCoord));
         float D = D_GGX(Roughness, clamp(dot(Normal, HalfwayVector), 0.0, 1.0));
 
         // Geometry Term
@@ -194,9 +196,7 @@ void main()
 
         vec3 spec = (F * D * G) / (4.0 * max(NoL, 0.001) * max(NoV, 0.001));
 
-        vec3 Ks = F;
-
-        vec3 Kd = vec3(1.0) - Ks;
+        vec3 Kd = vec3(1.0) - F;
 
         Kd *= (1.0 - Metallic);
 
