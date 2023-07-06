@@ -168,11 +168,11 @@ namespace Magnefu
 		VkImageTiling  Tiling;
 	};
 
-	class VKContext : public GraphicsContext
+	class VulkanContext : public GraphicsContext
 	{
 	public:
-		VKContext(GLFWwindow* windowHandle);
-		~VKContext();
+		VulkanContext(GLFWwindow* windowHandle);
+		~VulkanContext();
 
 		// -- Inherited -- //
 		void Init() override;

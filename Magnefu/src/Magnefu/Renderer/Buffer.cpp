@@ -1,44 +1,29 @@
 #include "mfpch.h"
-#include "Renderer.h"
+#include "Buffer.h"
+#include "Platform/Vulkan/VulkanBuffer.h"
 
 namespace Magnefu
 {
-	Ref<VertexBuffer> VertexBuffer::Create(uint32_t size)
+	Buffer::Buffer(const BufferDesc& desc)
 	{
-		switch (Renderer::GetAPI())
-		{
-		case RendererAPI::API::NONE:
-			MF_CORE_ASSERT(false, "RendererAPI::API::NONE VertexBuffer not supported");
-			return nullptr;
-		}
-
-		MF_CORE_ASSERT(false, "Unknown Renderer API - VertexBuffer");
-		return nullptr;
+	
 	}
 
-	Ref<VertexBuffer> VertexBuffer::Create(uint32_t size, float* data)
+	Buffer* BufferFactory::CreateBuffer(const BufferDesc& desc)
 	{
-		switch (Renderer::GetAPI())
-		{
-		case RendererAPI::API::NONE:
-			MF_CORE_ASSERT(false, "RendererAPI::API::NONE VertexBuffer not supported");
-			return nullptr;
-		}
+        switch (Renderer::GetAPI())
+        {
+            case RendererAPI::API::VULKAN:
+            {
+                return new VulkanBuffer(desc);
+            }
 
-		MF_CORE_ASSERT(false, "Unknown Renderer API - VertexBuffer");
-		return nullptr;
-	}
-
-	Ref<IndexBuffer> IndexBuffer::Create(uint32_t count, uint32_t* data)
-	{
-		switch (Renderer::GetAPI())
-		{
-		case RendererAPI::API::NONE:
-			MF_CORE_ASSERT(false, "RendererAPI::API::NONE IndexBuffer not supported");
-			return nullptr;
-		}
-
-		MF_CORE_ASSERT(false, "Unknown Renderer API - IndexBuffer");
-		return nullptr;
+            default:
+            {
+                MF_CORE_ASSERT(false, "RendererAPI::API::NONE Buffer not supported");
+                return nullptr;
+            }
+        }
+        
 	}
 }

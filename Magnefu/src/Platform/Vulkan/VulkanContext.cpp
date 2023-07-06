@@ -1,7 +1,7 @@
 #include "mfpch.h"
 #include <iterator>
 
-#include "VKContext.h"
+#include "VulkanContext.h"
 #include "Magnefu/Application.h"
 #include "Magnefu/Core/Maths/Quaternion.h"
 
@@ -110,13 +110,13 @@ namespace Magnefu
 		return VK_FALSE;
 	}
 
-	VKContext::VKContext(GLFWwindow* windowHandle) :
+	VulkanContext::VulkanContext(GLFWwindow* windowHandle) :
 		m_WindowHandle(windowHandle), m_VkInstance(VkInstance()), m_VkPhysicalDevice(VK_NULL_HANDLE)
 	{
 		MF_CORE_ASSERT(m_WindowHandle, "Window Handle is null!");
 	}
 
-	VKContext::~VKContext()
+	VulkanContext::~VulkanContext()
 	{
 		CleanupSwapChain();
 
@@ -187,7 +187,7 @@ namespace Magnefu
 		
 	}
 
-	void VKContext::Init()
+	void VulkanContext::Init()
 	{
 		MF_PROFILE_FUNCTION();
 
@@ -229,25 +229,25 @@ namespace Magnefu
 
 	}
 
-	void VKContext::DrawFrame()
+	void VulkanContext::DrawFrame()
 	{
 		//PerformComputeOps();
 		PerformGraphicsOps();
 		PresentImage();
 	}
 
-	void VKContext::OnImGuiRender()
+	void VulkanContext::OnImGuiRender()
 	{
 		
 	}
 
-	void VKContext::OnFinish()
+	void VulkanContext::OnFinish()
 	{
 		vkDeviceWaitIdle(m_VkDevice);
 
 	}
 
-	std::any VKContext::GetContextInfo(const std::string& name)
+	std::any VulkanContext::GetContextInfo(const std::string& name)
 	{
 		if (name == "Instance") return m_VkInstance;
 		else if (name == "PhysicalDevice") return m_VkPhysicalDevice;
@@ -272,7 +272,7 @@ namespace Magnefu
 		else if (name == "ImGuiSignalSemaphores") return &m_ImGuiRenderFinishedSemaphores[m_CurrentFrame];
 	}
 
-	void VKContext::CreateVkInstance()
+	void VulkanContext::CreateVkInstance()
 	{
 		bool allLayersAvailable = true;
 		SetupValidationLayers(allLayersAvailable);
@@ -314,7 +314,7 @@ namespace Magnefu
 			MF_CORE_ASSERT(false, "Failed to create Vulkan VkInstance");
 	}
 
-	void VKContext::SetupValidationLayers(bool& allLayersAvailable)
+	void VulkanContext::SetupValidationLayers(bool& allLayersAvailable)
 	{
 #ifdef MF_DEBUG
 		// Print extensions
@@ -361,7 +361,7 @@ namespace Magnefu
 		}
 	}
 
-	void VKContext::SetupDebugMessenger()
+	void VulkanContext::SetupDebugMessenger()
 	{
 		if (m_EnableValidationLayers)
 		{
@@ -374,7 +374,7 @@ namespace Magnefu
 		}
 	}
 
-	void VKContext::CreateWindowSurface()
+	void VulkanContext::CreateWindowSurface()
 	{
 		if (glfwVulkanSupported() == GLFW_FALSE)
 			MF_CORE_DEBUG("GLFW - Vulkan not Supported!!");
@@ -383,7 +383,7 @@ namespace Magnefu
 			MF_CORE_ASSERT(false, "Failed to create a window surface!");
 	}
 
-	void VKContext::SelectPhysicalDevice()
+	void VulkanContext::SelectPhysicalDevice()
 	{
 		uint32_t deviceCount = 0;
 		vkEnumeratePhysicalDevices(m_VkInstance, &deviceCount, nullptr);
@@ -406,7 +406,7 @@ namespace Magnefu
 		MF_CORE_ASSERT(m_VkPhysicalDevice, "Failed to find a suitable GPU!");
 	}
 
-	void VKContext::CreateLogicalDevice()
+	void VulkanContext::CreateLogicalDevice()
 	{
 		// Specifying queues to be created
 
@@ -473,7 +473,7 @@ namespace Magnefu
 
 	}
 
-	void VKContext::CreateSwapChain()
+	void VulkanContext::CreateSwapChain()
 	{
 		// -- Creating the swap chain (infrastructure for the frame buffer) -- // TODO: Move to VKFrameBuffer class
 
@@ -538,7 +538,7 @@ namespace Magnefu
 		//Application::Get().GetWindow().GetSceneCamera()->SetAspectRatio((float)m_SwapChainExtent.width / (float)m_SwapChainExtent.height);
 	}
 
-	void VKContext::CreateImageViews()
+	void VulkanContext::CreateImageViews()
 	{
 		m_SwapChainImageViews.resize(m_SwapChainImages.size());
 
@@ -547,7 +547,7 @@ namespace Magnefu
 		}
 	}
 
-	void VKContext::CreateRenderPass()
+	void VulkanContext::CreateRenderPass()
 	{
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = m_SwapChainImageFormat;
@@ -622,7 +622,7 @@ namespace Magnefu
 			MF_CORE_ASSERT(false, "failed to create render pass!");
 	}
 
-	void VKContext::CreateDescriptorSetLayout()
+	void VulkanContext::CreateDescriptorSetLayout()
 	{
 		VkDescriptorSetLayoutBinding uboLayoutBinding{};
 		uboLayoutBinding.binding = 0;
@@ -691,7 +691,7 @@ namespace Magnefu
 		
 	}
 
-	void VKContext::CreateComputeDescriptorSetLayout()
+	void VulkanContext::CreateComputeDescriptorSetLayout()
 	{
 		std::array<VkDescriptorSetLayoutBinding, 3> layoutBindings{};
 		layoutBindings[0].binding = 0;
@@ -722,7 +722,7 @@ namespace Magnefu
 		}
 	}
 
-	void VKContext::CreateGraphicsPipeline()
+	void VulkanContext::CreateGraphicsPipeline()
 	{
 		// Shader Modules
 		ShaderList shaderList = ParseShader(SHADER_PATH);
@@ -905,7 +905,7 @@ namespace Magnefu
 		vkDestroyShaderModule(m_VkDevice, fragShaderModule, nullptr);
 	}
 
-	void VKContext::CreateParticleGraphicsPipeline()
+	void VulkanContext::CreateParticleGraphicsPipeline()
 	{
 		m_ParticleShaderList = ParseShader(PARTICLE_SHADER_PATH);
 		VkShaderModule vertShaderModule = CreateShaderModule(m_ParticleShaderList.Vertex);
@@ -1045,7 +1045,7 @@ namespace Magnefu
 		vkDestroyShaderModule(m_VkDevice, vertShaderModule, nullptr);
 	}
 
-	void VKContext::CreateShaderStorageBuffers()
+	void VulkanContext::CreateShaderStorageBuffers()
 	{
 		m_ShaderStorageBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 		m_ShaderStorageBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
@@ -1128,7 +1128,7 @@ namespace Magnefu
 
 	}
 
-	void VKContext::CreateComputePipeline()
+	void VulkanContext::CreateComputePipeline()
 	{
 		VkShaderModule computeShaderModule = CreateShaderModule(m_ParticleShaderList.Compute);
 
@@ -1159,7 +1159,7 @@ namespace Magnefu
 
 	}
 
-	void VKContext::CreateFrameBuffers()
+	void VulkanContext::CreateFrameBuffers()
 	{
 		m_SwapChainFramebuffers.resize(m_SwapChainImageViews.size());
 
@@ -1181,7 +1181,7 @@ namespace Magnefu
 		}
 	}
 
-	void VKContext::CreateCommandPool()
+	void VulkanContext::CreateCommandPool()
 	{
 		VkCommandPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -1192,7 +1192,7 @@ namespace Magnefu
 			MF_CORE_ASSERT(false, "failed to create command pool!");
 	}
 
-	void VKContext::CreateColorResources()
+	void VulkanContext::CreateColorResources()
 	{
 		VkFormat colorFormat = m_SwapChainImageFormat;
 
@@ -1212,7 +1212,7 @@ namespace Magnefu
 		m_ColorImageView = CreateImageView(m_ColorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 	}
 
-	void VKContext::CreateDepthResources()
+	void VulkanContext::CreateDepthResources()
 	{
 		VkFormat depthFormat = FindDepthFormat();
 
@@ -1233,7 +1233,7 @@ namespace Magnefu
 		m_DepthImageView = CreateImageView(m_DepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 	}
 
-	void VKContext::CreateTextures()
+	void VulkanContext::CreateTextures()
 	{
 		m_Textures.resize(TEXTURE_PATHS.size());
 		//for (size_t i = 0; i < m_Textures.size(); i++)
@@ -1251,7 +1251,7 @@ namespace Magnefu
 			CreateTextureImageView(texture);
 	}
 
-	void VKContext::CreateTextureSampler()
+	void VulkanContext::CreateTextureSampler()
 	{
 		VkSamplerCreateInfo samplerInfo{};
 		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -1285,7 +1285,7 @@ namespace Magnefu
 			MF_CORE_ASSERT(false, "failed to create texture sampler!");
 	}
 
-	void VKContext::LoadModel()
+	void VulkanContext::LoadModel()
 	{
 		tinyobj::attrib_t attrib;
 		std::vector<tinyobj::shape_t> shapes;
@@ -1386,7 +1386,7 @@ namespace Magnefu
 		
 	}
 
-	void VKContext::CreateVertexBuffer()
+	void VulkanContext::CreateVertexBuffer()
 	{
 		// TODO:
 		// The previous chapter already mentioned that you should allocate multiple resources like 
@@ -1431,7 +1431,7 @@ namespace Magnefu
 		vkFreeMemory(m_VkDevice, stagingBufferMemory, nullptr);
 	}
 
-	void VKContext::CreateIndexBuffer()
+	void VulkanContext::CreateIndexBuffer()
 	{
 		VkDeviceSize bufferSize = sizeof(m_Indices[0]) * m_Indices.size();
 
@@ -1464,7 +1464,7 @@ namespace Magnefu
 		vkFreeMemory(m_VkDevice, stagingBufferMemory, nullptr);
 	}
 
-	void VKContext::CreateUniformBuffers()
+	void VulkanContext::CreateUniformBuffers()
 	{
 		VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
@@ -1485,7 +1485,7 @@ namespace Magnefu
 		}
 	}
 
-	void VKContext::CreateComputeUniformBuffers()
+	void VulkanContext::CreateComputeUniformBuffers()
 	{
 		VkDeviceSize bufferSize = sizeof(ParticleUniformBufferObject);
 
@@ -1508,7 +1508,7 @@ namespace Magnefu
 
 	
 
-	void VKContext::CreateDescriptorPool()
+	void VulkanContext::CreateDescriptorPool()
 	{
 		VkDescriptorPoolSize uboPoolSize{};
 		uboPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -1531,7 +1531,7 @@ namespace Magnefu
 			MF_CORE_ASSERT(false, "failed to create descriptor pool!");
 	}
 
-	void VKContext::CreateComputeDescriptorPool()
+	void VulkanContext::CreateComputeDescriptorPool()
 	{
 		std::array<VkDescriptorPoolSize, 2> poolSizes{};
 
@@ -1551,7 +1551,7 @@ namespace Magnefu
 			MF_CORE_ASSERT(false, "failed to create COMPUTE descriptor pool!");
 	}
 
-	void VKContext::CreateDescriptorSets()
+	void VulkanContext::CreateDescriptorSets()
 	{
 		std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_DescriptorSetLayout);
 
@@ -1691,7 +1691,7 @@ namespace Magnefu
 		
 	}
 
-	void VKContext::CreateComputeDescriptorSets()
+	void VulkanContext::CreateComputeDescriptorSets()
 	{
 		std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_ComputeDescriptorSetLayout);
 		VkDescriptorSetAllocateInfo allocInfo{};
@@ -1754,7 +1754,7 @@ namespace Magnefu
 		}
 	}
 
-	void VKContext::CreateCommandBuffers()
+	void VulkanContext::CreateCommandBuffers()
 	{
 		m_CommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -1780,7 +1780,7 @@ namespace Magnefu
 		
 	}
 
-	void VKContext::CreateComputeCommandBuffers()
+	void VulkanContext::CreateComputeCommandBuffers()
 	{
 		m_ComputeCommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -1795,7 +1795,7 @@ namespace Magnefu
 		
 	}
 
-	void VKContext::CreateSyncObjects()
+	void VulkanContext::CreateSyncObjects()
 	{
 		
 		m_ComputeFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -1843,7 +1843,7 @@ namespace Magnefu
 		
 	}
 
-	std::vector<const char*> VKContext::GetRequiredExtensions()
+	std::vector<const char*> VulkanContext::GetRequiredExtensions()
 	{
 		uint32_t glfwExtensionCount = 0;
 		const char** glfwExtensions;
@@ -1858,7 +1858,7 @@ namespace Magnefu
 		return extensions;
 	}
 
-	void VKContext::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
+	void VulkanContext::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
 	{
 		createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -1868,7 +1868,7 @@ namespace Magnefu
 		createInfo.pUserData = nullptr; // Optional
 	}
 
-	bool VKContext::IsDeviceSuitable(VkPhysicalDevice device)
+	bool VulkanContext::IsDeviceSuitable(VkPhysicalDevice device)
 	{
 		// TODO: allow user to choose their graphics card from list of
 		// vulkan-supported options.
@@ -1911,7 +1911,7 @@ namespace Magnefu
 		
 	}
 
-	bool VKContext::CheckDeviceExtensionSupport(VkPhysicalDevice device)
+	bool VulkanContext::CheckDeviceExtensionSupport(VkPhysicalDevice device)
 	{
 		uint32_t extensionCount;
 		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
@@ -1928,7 +1928,7 @@ namespace Magnefu
 		return requiredExtensions.empty();
 	}
 
-	QueueFamilyIndices VKContext::FindQueueFamilies(VkPhysicalDevice device)
+	QueueFamilyIndices VulkanContext::FindQueueFamilies(VkPhysicalDevice device)
 	{
 		QueueFamilyIndices indices;
 
@@ -1968,7 +1968,7 @@ namespace Magnefu
 		return indices;
 	}
 
-	SwapChainSupportDetails VKContext::QuerySwapChainSupport(VkPhysicalDevice device)
+	SwapChainSupportDetails VulkanContext::QuerySwapChainSupport(VkPhysicalDevice device)
 	{
 		SwapChainSupportDetails details;
 
@@ -1997,7 +1997,7 @@ namespace Magnefu
 		return details;
 	}
 
-	VkSurfaceFormatKHR VKContext::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+	VkSurfaceFormatKHR VulkanContext::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 	{
 		for (const auto& availableFormat : availableFormats) {
 			if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
@@ -2008,7 +2008,7 @@ namespace Magnefu
 		return availableFormats[0];
 	}
 
-	VkPresentModeKHR VKContext::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
+	VkPresentModeKHR VulkanContext::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
 	{
 		for (const auto& availablePresentMode : availablePresentModes) {
 			if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
@@ -2019,7 +2019,7 @@ namespace Magnefu
 		return VK_PRESENT_MODE_FIFO_KHR;
 	}
 
-	VkExtent2D VKContext::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
+	VkExtent2D VulkanContext::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
 	{
 		if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) 
 		{
@@ -2042,7 +2042,7 @@ namespace Magnefu
 		}
 	}
 
-	void VKContext::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+	void VulkanContext::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 	{
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -2134,7 +2134,7 @@ namespace Magnefu
 	// It is possible to create a new swap chain while drawing commands on an image from the old swap chain are still 
 	// in - flight.You need to pass the previous swap chain to the oldSwapChain field in the VkSwapchainCreateInfoKHR 
 	// struct and destroy the old swap chain as soon as you've finished using it.
-	void VKContext::RecreateSwapChain()
+	void VulkanContext::RecreateSwapChain()
 	{
 		m_SwapChainRebuild = true; // for ImGui
 
@@ -2161,7 +2161,7 @@ namespace Magnefu
 
 	}
 
-	void VKContext::CleanupSwapChain()
+	void VulkanContext::CleanupSwapChain()
 	{
 		vkDestroyImageView(m_VkDevice, m_ColorImageView, nullptr);
 		vkDestroyImage(m_VkDevice, m_ColorImage, nullptr);
@@ -2180,7 +2180,7 @@ namespace Magnefu
 		vkDestroySwapchainKHR(m_VkDevice, m_SwapChain, nullptr);
 	}
 
-	uint32_t VKContext::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+	uint32_t VulkanContext::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 	{
 		VkPhysicalDeviceMemoryProperties memProperties;
 		vkGetPhysicalDeviceMemoryProperties(m_VkPhysicalDevice, &memProperties);
@@ -2196,7 +2196,7 @@ namespace Magnefu
 		return 0;
 	}
 
-	void VKContext::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+	void VulkanContext::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
 	{
 
 		VkBufferCreateInfo bufferInfo{};
@@ -2236,7 +2236,7 @@ namespace Magnefu
 		vkBindBufferMemory(m_VkDevice, buffer, bufferMemory, 0);
 	}
 
-	void VKContext::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+	void VulkanContext::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 	{
 		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 		
@@ -2249,7 +2249,7 @@ namespace Magnefu
 		EndSingleTimeCommands(commandBuffer);
 	}
 
-	void VKContext::UpdateUniformBuffer()
+	void VulkanContext::UpdateUniformBuffer()
 	{
 		/*static auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -2270,7 +2270,7 @@ namespace Magnefu
 		memcpy(m_UniformBuffersMapped[m_CurrentFrame], &ubo, sizeof(ubo));
 	}
 
-	void VKContext::UpdateComputeUniformBuffer()
+	void VulkanContext::UpdateComputeUniformBuffer()
 	{
 		//Application& app = Application::Get();
 		ParticleUniformBufferObject ubo{};
@@ -2279,7 +2279,7 @@ namespace Magnefu
 		memcpy(m_ComputeUniformBuffersMapped[m_CurrentFrame], &ubo, sizeof(ubo));
 	}
 
-	void VKContext::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
+	void VulkanContext::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
 	{
 		VkPhysicalDeviceImageFormatInfo2 imageFormatInfo = {};
 		imageFormatInfo.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2;
@@ -2327,7 +2327,7 @@ namespace Magnefu
 		vkBindImageMemory(m_VkDevice, image, imageMemory, 0);
 	}
 
-	VkCommandBuffer VKContext::BeginSingleTimeCommands()
+	VkCommandBuffer VulkanContext::BeginSingleTimeCommands()
 	{
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -2347,7 +2347,7 @@ namespace Magnefu
 		return commandBuffer;
 	}
 
-	void VKContext::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
+	void VulkanContext::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
 	{
 		vkEndCommandBuffer(commandBuffer);
 
@@ -2379,7 +2379,7 @@ namespace Magnefu
 	// recorded so far. It's best to do this after the texture mapping works to check if the texture resources are 
 	// still set up correctly.
 
-	void VKContext::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels)
+	void VulkanContext::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels)
 	{
 		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
@@ -2434,7 +2434,7 @@ namespace Magnefu
 		EndSingleTimeCommands(commandBuffer);
 	}
 
-	void VKContext::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
+	void VulkanContext::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
 	{
 		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
@@ -2467,7 +2467,7 @@ namespace Magnefu
 		EndSingleTimeCommands(commandBuffer);
 	}
 
-	VkImageView VKContext::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
+	VkImageView VulkanContext::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
 	{
 		VkImageViewCreateInfo viewInfo{};
 		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -2493,7 +2493,7 @@ namespace Magnefu
 		return imageView;
 	}
 
-	VkFormat VKContext::FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
+	VkFormat VulkanContext::FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
 	{
 		for (VkFormat format : candidates) 
 		{
@@ -2509,7 +2509,7 @@ namespace Magnefu
 		MF_CORE_ASSERT(false, "Failed to find supported format");
 	}
 
-	VkFormat VKContext::FindDepthFormat()
+	VkFormat VulkanContext::FindDepthFormat()
 	{
 		return FindSupportedFormat(
 			{ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
@@ -2518,12 +2518,12 @@ namespace Magnefu
 		);
 	}
 
-	bool VKContext::HasStencilComponent(VkFormat format)
+	bool VulkanContext::HasStencilComponent(VkFormat format)
 	{
 		return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 	}
 
-	void VKContext::GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels)
+	void VulkanContext::GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels)
 	{
 		// Check if image format supports linear blitting(linear filtering)
 		VkFormatProperties formatProperties;
@@ -2617,7 +2617,7 @@ namespace Magnefu
 	}
 
 
-	void VKContext::CreateTextureImage(TextureInfo& texture)
+	void VulkanContext::CreateTextureImage(TextureInfo& texture)
 	{
 		int requestedChannels = 0;
 
@@ -2719,12 +2719,12 @@ namespace Magnefu
 		vkFreeMemory(m_VkDevice, stagingBufferMemory, nullptr);
 	}
 
-	void VKContext::CreateTextureImageView(TextureInfo& texture)
+	void VulkanContext::CreateTextureImageView(TextureInfo& texture)
 	{
 		texture.ImageView = CreateImageView(texture.Image, texture.Format, VK_IMAGE_ASPECT_COLOR_BIT, texture.MipLevels);
 	}
 
-	VkSampleCountFlagBits VKContext::GetMaxUsableSampleCount()
+	VkSampleCountFlagBits VulkanContext::GetMaxUsableSampleCount()
 	{
 		VkSampleCountFlags counts = m_Properties.limits.framebufferColorSampleCounts & m_Properties.limits.framebufferDepthSampleCounts;
 
@@ -2738,7 +2738,7 @@ namespace Magnefu
 		return VK_SAMPLE_COUNT_1_BIT;
 	}
 
-	void VKContext::RecordComputeCommandBuffer(VkCommandBuffer commandBuffer)
+	void VulkanContext::RecordComputeCommandBuffer(VkCommandBuffer commandBuffer)
 	{
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -2758,7 +2758,7 @@ namespace Magnefu
 		
 	}
 
-	void VKContext::PerformComputeOps()
+	void VulkanContext::PerformComputeOps()
 	{
 		// COMPUTE SUBMISSION //
 
@@ -2783,7 +2783,7 @@ namespace Magnefu
 			MF_CORE_ASSERT(false, "failed to submit compute command buffer!");
 	}
 
-	void VKContext::PerformGraphicsOps()
+	void VulkanContext::PerformGraphicsOps()
 	{
 		// GRAPHICS SUBMISSION //
 
@@ -2841,7 +2841,7 @@ namespace Magnefu
 
 	}
 
-	void VKContext::PresentImage()
+	void VulkanContext::PresentImage()
 	{
 		VkSemaphore signalSemaphores[] = { m_ImGuiRenderFinishedSemaphores[m_CurrentFrame] };
 		//VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphores[m_CurrentFrame]};
@@ -2875,7 +2875,7 @@ namespace Magnefu
 		m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}
 
-	VkShaderModule VKContext::CreateShaderModule(const ShaderSource& source)
+	VkShaderModule VulkanContext::CreateShaderModule(const ShaderSource& source)
 	{
 		//String rawText = ReadFile(source.Text);
 
@@ -2936,7 +2936,7 @@ namespace Magnefu
 	}
 
 
-	ShaderList VKContext::ParseShader(const String& filepath)
+	ShaderList VulkanContext::ParseShader(const String& filepath)
 	{
 		std::ifstream stream(filepath);
 

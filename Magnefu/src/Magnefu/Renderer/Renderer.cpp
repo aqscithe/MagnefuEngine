@@ -524,11 +524,11 @@ namespace Magnefu
     {
     }
 
-    void Renderer::Submit(const Ref<VertexArray>& va, const Ref<Material>& material)
-    {
-        //material->Bind();
-        //RenderCommand::DrawIndexed(va);
-    }
+    //void Renderer::Submit(const Ref<VertexArray>& va, const Ref<Material>& material)
+    //{
+    //    //material->Bind();
+    //    //RenderCommand::DrawIndexed(va);
+    //}
 
     //void Renderer::DrawPlane(const PrimitiveData& data)
     //{

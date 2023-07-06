@@ -2,7 +2,7 @@
 #include "ImGuiLayer.h"
 
 #include "Magnefu/Application.h"
-#include "Platform/VK/VKContext.h"
+#include "Platform/Vulkan/VulkanContext.h"
 
 
 #include "imgui.h"
@@ -89,7 +89,7 @@ static void CleanupVulkanWindow()
 	ImGui_ImplVulkanH_DestroyWindow(s_Instance, s_Device, &s_MainWindowData, s_Allocator);
 }
 
-static void SetupImGuiVulkanPrimitives(ImGui_ImplVulkanH_Window* wd, Magnefu::VKContext* context)
+static void SetupImGuiVulkanPrimitives(ImGui_ImplVulkanH_Window* wd, Magnefu::VulkanContext* context)
 {
 	wd->ImageCount = s_MinImageCount;
 	wd->SurfaceFormat = std::any_cast<VkSurfaceFormatKHR>(context->GetContextInfo("SurfaceFormat"));
@@ -102,7 +102,7 @@ static void SetupImGuiVulkanPrimitives(ImGui_ImplVulkanH_Window* wd, Magnefu::VK
 	wd->FrameIndex = std::any_cast<uint32_t>(context->GetContextInfo("CurrentFrame"));
 }
 
-static void SetupImGuiVulkanFrames(ImGui_ImplVulkanH_Window* wd, Magnefu::VKContext* context)
+static void SetupImGuiVulkanFrames(ImGui_ImplVulkanH_Window* wd, Magnefu::VulkanContext* context)
 {
 	wd->Frames = nullptr;
 	IM_ASSERT(wd->Frames == nullptr);
@@ -116,7 +116,7 @@ static void SetupImGuiVulkanFrames(ImGui_ImplVulkanH_Window* wd, Magnefu::VKCont
 
 	for (uint32_t i = 0; i < wd->ImageCount; i++)
 	{
-		wd->Frames[i].Backbuffer = swapChainImages[i];  // this is m_SwapChainImages.data() in vkcontext.cpp so do a get contextinfo for swapchainimages
+		wd->Frames[i].Backbuffer = swapChainImages[i];  // this is m_SwapChainImages.data() in VulkanContext.cpp so do a get contextinfo for swapchainimages
 		wd->Frames[i].CommandPool = commandPool;
 	}
 }
@@ -274,7 +274,7 @@ namespace Magnefu
 
 		Application& app = Application::Get();
 		GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
-		VKContext* context = static_cast<VKContext*>(app.GetWindow().GetGraphicsContext());
+		VulkanContext* context = static_cast<VulkanContext*>(app.GetWindow().GetGraphicsContext());
 
 		s_Instance = std::any_cast<VkInstance>(context->GetContextInfo("Instance"));
 		s_Device = std::any_cast<VkDevice>(context->GetContextInfo("Device"));
@@ -424,7 +424,7 @@ namespace Magnefu
 	void ImGuiLayer::RecreateImageResources()
 	{
 		Application& app = Application::Get();
-		VKContext* context = static_cast<VKContext*>(app.GetWindow().GetGraphicsContext());
+		VulkanContext* context = static_cast<VulkanContext*>(app.GetWindow().GetGraphicsContext());
 
 		GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
 		s_MinImageCount = std::any_cast<uint32_t>(context->GetContextInfo("ImageCount"));
@@ -445,7 +445,7 @@ namespace Magnefu
 	void ImGuiLayer::RecordAndSubmitCommandBuffer(uint32_t imageIndex)
 	{
 		Application& app = Application::Get();
-		VKContext* context = static_cast<VKContext*>(app.GetWindow().GetGraphicsContext());
+		VulkanContext* context = static_cast<VulkanContext*>(app.GetWindow().GetGraphicsContext());
 
 		ImDrawData* draw_data = ImGui::GetDrawData();
 		const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);

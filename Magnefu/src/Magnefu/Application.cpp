@@ -30,7 +30,8 @@ namespace Magnefu
         m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);
 
-        m_ResourceCache = Scope<ResourceCache>(ResourceCache::Create());
+        m_ResourceManager = Scope<ResourceManager>(ResourceManager::Create());
+        //m_ResourceCache = Scope<ResourceCache>(ResourceCache::Create());
 
         {
             MF_PROFILE_SCOPE("Renderer Init");

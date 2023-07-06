@@ -294,9 +294,6 @@
     <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\RenderPipeline.h">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\Renderer.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
@@ -330,16 +327,7 @@
     <ClInclude Include="src\Magnefu\Window.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
-    <ClInclude Include="src\Platform\VK\VKContext.h">
-      <Filter>src\Platform\VK</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Platform\VK\VKFrameBuffer.h">
-      <Filter>src\Platform\VK</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Platform\VK\VKGraphicsPipeline.h">
-      <Filter>src\Platform\VK</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Platform\VK\VKShader.h">
+    <ClInclude Include="src\Platform\Vulkan\VulkanContext.h">
       <Filter>src\Platform\VK</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsInput.h">
@@ -1278,6 +1266,10 @@
     <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_xlib_xrandr.h">
       <Filter>vendor\vulkan\include\vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\ResourceManagement\ResourceManager.h" />
+    <ClInclude Include="src\Magnefu\ResourceManagement\Pool.h" />
+    <ClInclude Include="src\Magnefu\ResourceManagement\Span.h" />
+    <ClInclude Include="src\Platform\Vulkan\VulkanBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application.cpp">
@@ -1349,9 +1341,6 @@
     <ClCompile Include="src\Magnefu\Renderer\RenderCommand.cpp">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\RenderPipeline.cpp">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="src\Magnefu\Renderer\Renderer.cpp">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClCompile>
@@ -1373,16 +1362,7 @@
     <ClCompile Include="src\Magnefu\ResourceManagement\ResourceCache.cpp">
       <Filter>src\Magnefu\ResourceManagement</Filter>
     </ClCompile>
-    <ClCompile Include="src\Platform\VK\VKContext.cpp">
-      <Filter>src\Platform\VK</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Platform\VK\VKFrameBuffer.cpp">
-      <Filter>src\Platform\VK</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Platform\VK\VKGraphicsPipeline.cpp">
-      <Filter>src\Platform\VK</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Platform\VK\VKShader.cpp">
+    <ClCompile Include="src\Platform\Vulkan\VulkanContext.cpp">
       <Filter>src\Platform\VK</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
@@ -1421,5 +1401,8 @@
     <ClCompile Include="vendor\vulkan\include\glm\detail\glm.cpp">
       <Filter>vendor\vulkan\include\glm\detail</Filter>
     </ClCompile>
+    <ClCompile Include="src\Magnefu\ResourceManagement\ResourceManager.cpp" />
+    <ClCompile Include="src\Magnefu\ResourceManagement\Pool.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\VulkanBuffer.cpp" />
   </ItemGroup>
 </Project>

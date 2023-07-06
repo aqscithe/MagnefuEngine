@@ -7,6 +7,7 @@
 #include "Magnefu/Core/Events/ApplicationEvent.h"
 #include "Magnefu/Core/Events/MouseEvent.h"
 #include "Magnefu/Core/Events/KeyEvent.h"
+#include "Magnefu/ResourceManagement/ResourceManager.h"
 #include "Magnefu/ResourceManagement/ResourceCache.h"
 #include "Magnefu/Core/MemoryAllocation/StackAllocator.h"
 #include "Magnefu/Core/MemoryAllocation/LinkedListAlloc.h"
@@ -36,6 +37,7 @@ namespace Magnefu
 		inline ResourceCache& GetResourceCache() { return *m_ResourceCache; }
 		inline TimeStep& GetTimeStep() { return m_TimeStep; }
 		inline ImGuiLayer* GetImGuiLayer() { return m_ImGuiLayer; }
+		inline ResourceManager& GetResourceManager() { return *m_ResourceManager; }
 
 		inline static Application& Get() { return *s_Instance; }
 
@@ -51,6 +53,7 @@ namespace Magnefu
 		ImGuiLayer* m_ImGuiLayer;
 		Scope<ResourceCache> m_ResourceCache;
 		Scope<Window> m_Window;
+		Scope<ResourceManager> m_ResourceManager;
 
 		bool m_Running;
 		bool m_Minimized;

@@ -1,7 +1,7 @@
 #include "mfpch.h"
 #include "GraphicsContext.h"
 #include "Magnefu/Renderer/Renderer.h"
-#include "Platform/VK/VKContext.h"
+#include "Platform/Vulkan/VulkanContext.h"
 
 #include "GLFW/glfw3.h"
 
@@ -13,7 +13,7 @@ namespace Magnefu
 		{
 			case RendererAPI::API::VULKAN:
 			{
-				return new VKContext(static_cast<GLFWwindow*>(windowHandle));
+				return new VulkanContext(static_cast<GLFWwindow*>(windowHandle));
 			}
 
 			case RendererAPI::API::NONE:

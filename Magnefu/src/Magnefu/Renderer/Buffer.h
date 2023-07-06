@@ -2,133 +2,57 @@
 
 #include "Magnefu/Core/Assertions.h"
 #include "Magnefu/Core/Log.h"
+#include "Magnefu/ResourceManagement/Span.h"
+#include "Renderer.h"
+
 
 namespace Magnefu
 {
-	enum class ShaderDataType
+	enum BufferUsage
 	{
-		None = 0, Float, Float2, Float3, Float4, Mat3, Mat4, Int, Int2, Int3, Int4, Bool 
+		USAGE_NONE = 0,
+		USAGE_TRANSFER_SRC = 0x00000001,
+        USAGE_TRANSFER_DST = 0x00000002,
+        USAGE_UNIFORM_TEXEL = 0x00000004,
+        USAGE_STORAGE_TEXEL = 0x00000008,
+        USAGE_UNIFORM = 0x00000010,
+        USAGE_STORAGE = 0x00000020,
+        USAGE_INDEX = 0x00000040,
+        USAGE_VERTEX = 0x00000080,
+        USAGE_INDIRECT = 0x00000100,
+        USAGE_SHADER_DEVICE_ADDRESS = 0x00020000,
+        USAGE_VIDEO_DECODE_SRC_KHR = 0x00002000,
+        USAGE_VIDEO_DECODE_DST_KHR = 0x00004000,
+        USAGE_TRANSFORM_FEEDBACK_BUFFER_EXT = 0x00000800,
+        USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_EXT = 0x00001000,
+        USAGE_CONDITIONAL_RENDERING_EXT = 0x00000200,
+        USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_KHR = 0x00080000,
+        USAGE_ACCELERATION_STRUCTURE_STORAGE_KHR = 0x00100000,
+        USAGE_SHADER_BINDING_TABLE_KHR = 0x00000400,
 	};
 
-	static uint32_t ShaderDataTypeSize(ShaderDataType type)
+	struct BufferDesc
 	{
-		switch (type)
-		{
-		case ShaderDataType::Float:      return sizeof(float);
-		case ShaderDataType::Float2:     return sizeof(float) * 2;
-		case ShaderDataType::Float3:     return sizeof(float) * 3;
-		case ShaderDataType::Float4:     return sizeof(float) * 4;
-		case ShaderDataType::Mat3:       return sizeof(float) * 9;
-		case ShaderDataType::Mat4:       return sizeof(float) * 16;
-		case ShaderDataType::Int:		 return sizeof(int);
-		case ShaderDataType::Int2:       return sizeof(int) * 2;
-		case ShaderDataType::Int3:       return sizeof(int) * 3;
-		case ShaderDataType::Int4:       return sizeof(int) * 4;
-		case ShaderDataType::Bool:		 return sizeof(bool);
-
-		}
-
-		MF_CORE_ASSERT(false, "Unknown shader data type");
-		return 0;
-	}
-
-	struct BufferElement
-	{
-		std::string Name;
-		uint32_t Size;
-		uint32_t Offset;
-		ShaderDataType Type;
-		bool Normalized;
-
-		BufferElement(ShaderDataType type, const std::string& name, bool normalized = false) :
-			Name(name), Type(type), Size(ShaderDataTypeSize(type)), Offset(0), Normalized(normalized) {}
-
-		uint32_t GetComponentCount() const
-		{
-			switch (Type)
-			{
-			case ShaderDataType::Float:   return 1;
-			case ShaderDataType::Float2:  return 2;
-			case ShaderDataType::Float3:  return 3;
-			case ShaderDataType::Float4:  return 4;
-			case ShaderDataType::Mat3:    return 3; // 3* float3
-			case ShaderDataType::Mat4:    return 4; // 4* float4
-			case ShaderDataType::Int:     return 1;
-			case ShaderDataType::Int2:    return 2;
-			case ShaderDataType::Int3:    return 3;
-			case ShaderDataType::Int4:    return 4;
-			case ShaderDataType::Bool:    return 1;
-			}
-
-			MF_CORE_ASSERT(false, "Unknown ShaderDataType!");
-			return 0;
-		}
-
+		const char*         DebugName = nullptr;
+		uint64_t            ByteSize = 0;
+        BufferUsage         Usage = BufferUsage::USAGE_NONE;
+        Span<const uint8_t> InitData;
 	};
 
-	class BufferLayout
-	{
-	public:
-		BufferLayout() = default;
+    class Buffer
+    {
+    public:
+        Buffer(const BufferDesc& desc);
+        virtual ~Buffer() = default;
+    };
 
-		BufferLayout(const std::initializer_list<BufferElement>& elements) :
-			m_Elements(elements)
-		{
-			CalculateOffsetsAndStride();
-		}
 
-		inline const uint32_t GetStride() const { return m_Stride; }
-		inline const std::vector<BufferElement>& GetElements() const { return m_Elements; }
+    class BufferFactory
+    {
+    public:
+        static Buffer* CreateBuffer(const BufferDesc& desc);
 
-		std::vector<BufferElement>::iterator begin() { return m_Elements.begin(); }
-		std::vector<BufferElement>::iterator end() { return m_Elements.end(); }
-		std::vector<BufferElement>::const_iterator begin() const { return m_Elements.begin(); }
-		std::vector<BufferElement>::const_iterator end() const { return m_Elements.end(); }
-		
+    };
 
-	private:
-		void CalculateOffsetsAndStride()
-		{
-			m_Stride = 0;
-			for (auto& element : m_Elements)
-			{
-				element.Offset = m_Stride;
-				m_Stride += element.Size;
-			}
-		}
-	private:
-		std::vector<BufferElement> m_Elements;
-		uint32_t m_Stride;
-
-	};
-
-	class VertexBuffer
-	{
-	public:
-		virtual ~VertexBuffer() = default;
-
-		virtual void Bind() const = 0;
-		virtual void Unbind() const = 0;
-
-		virtual void SetLayout(const BufferLayout&) = 0;
-		virtual const BufferLayout& GetLayout() const = 0;
-
-		static Ref<VertexBuffer> Create(uint32_t size);
-		static Ref<VertexBuffer> Create(uint32_t size, float* data);
-	};
-
-	
-
-	class IndexBuffer
-	{
-	public:
-		virtual ~IndexBuffer() = default;
-
-		virtual void Bind() const = 0;
-		virtual void Unbind() const = 0;
-
-		virtual uint32_t GetCount() const = 0;
-
-		static Ref<IndexBuffer> Create(uint32_t count, uint32_t* data);
-	};
+    
 }
