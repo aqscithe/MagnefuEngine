@@ -1270,6 +1270,7 @@
     <ClInclude Include="src\Magnefu\ResourceManagement\Pool.h" />
     <ClInclude Include="src\Magnefu\ResourceManagement\Span.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanBuffer.h" />
+    <ClInclude Include="src\Magnefu\Renderer\RenderConstants.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application.cpp">

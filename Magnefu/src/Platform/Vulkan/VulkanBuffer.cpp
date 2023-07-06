@@ -33,7 +33,7 @@ namespace Magnefu
 	uint32_t VulkanBuffer::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 	{
 		VkPhysicalDeviceMemoryProperties memProperties;
-		vkGetPhysicalDeviceMemoryProperties(m_VkPhysicalDevice, &memProperties);
+		vkGetPhysicalDeviceMemoryProperties(VulkanContext::Get().GetPhysicalDevice(), &memProperties);
 
 		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
 			if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
@@ -48,6 +48,8 @@ namespace Magnefu
 
 	void VulkanBuffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
 	{
+		VkDevice device = VulkanContext::Get().GetDevice();
+
 		VkBufferCreateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		bufferInfo.size = size;
@@ -55,11 +57,11 @@ namespace Magnefu
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		//bufferInfo.flags = 
 
-		if (vkCreateBuffer(m_VkDevice, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
+		if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to create vertex buffer!");
 
 		VkMemoryRequirements memRequirements;
-		vkGetBufferMemoryRequirements(m_VkDevice, buffer, &memRequirements);
+		vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
 
 		VkMemoryAllocateInfo memAllocInfo{};
 		memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -79,10 +81,10 @@ namespace Magnefu
 		// library provided by the GPUOpen initiative.However, for this tutorial it's okay to use a 
 		// separate allocation for every resource, because we won't come close to hitting any of 
 		// these limits for now.
-		if (vkAllocateMemory(m_VkDevice, &memAllocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
+		if (vkAllocateMemory(device, &memAllocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to allocate vertex buffer memory!");
 
-		vkBindBufferMemory(m_VkDevice, buffer, bufferMemory, 0);
+		vkBindBufferMemory(device, buffer, bufferMemory, 0);
 	}
 
 	void VulkanBuffer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
@@ -100,14 +102,16 @@ namespace Magnefu
 
 	VkCommandBuffer VulkanBuffer::BeginSingleTimeCommands()
 	{
+		VulkanContext context = VulkanContext::Get();
+
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandPool = m_CommandPool;
+		allocInfo.commandPool = context.GetCommandPool();
 		allocInfo.commandBufferCount = 1;
 
 		VkCommandBuffer commandBuffer;
-		vkAllocateCommandBuffers(m_VkDevice, &allocInfo, &commandBuffer);
+		vkAllocateCommandBuffers(context.GetDevice(), &allocInfo, &commandBuffer);
 
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -120,6 +124,8 @@ namespace Magnefu
 
 	void VulkanBuffer::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
 	{
+		VulkanContext context = VulkanContext::Get();
+
 		vkEndCommandBuffer(commandBuffer);
 
 		VkSubmitInfo submitInfo{};
@@ -127,16 +133,16 @@ namespace Magnefu
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &commandBuffer;
 
-		vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+		vkQueueSubmit(context.GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
 
 		//A fence would allow you to schedule multiple transfers simultaneously
 		// and wait for all of them complete, instead of executing one at a time.
 		// That may give the driver more opportunities to optimize.
 		// 
 		//vkWaitForFences()
-		vkQueueWaitIdle(m_GraphicsQueue);
+		vkQueueWaitIdle(context.GetGraphicsQueue());
 
-		vkFreeCommandBuffers(m_VkDevice, m_CommandPool, 1, &commandBuffer);
+		vkFreeCommandBuffers(context.GetDevice(), context.GetCommandPool(), 1, &commandBuffer);
 	}
 
 
@@ -157,7 +163,7 @@ namespace Magnefu
 				m_BuffersMemory[i]
 			);
 
-			vkMapMemory(m_VkDevice, m_BuffersMemory[i], 0, bufferSize, 0, &m_BuffersMapped[i]);
+			vkMapMemory(VulkanContext::Get().GetDevice(), m_BuffersMemory[i], 0, bufferSize, 0, &m_BuffersMapped[i]);
 		}
 	}
 

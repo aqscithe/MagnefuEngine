@@ -168,6 +168,8 @@ namespace Magnefu
 		VulkanContext(GLFWwindow* windowHandle);
 		~VulkanContext();
 
+		inline static VulkanContext& Get() { return *s_Instance; }
+
 		// -- Inherited -- //
 		void Init() override;
 		void DrawFrame() override;
@@ -181,9 +183,13 @@ namespace Magnefu
 		// -- Getter Methods -- //
 		inline const VkDevice& GetDevice() const { return m_VkDevice; }
 		inline const VkPhysicalDevice& GetPhysicalDevice() const { return m_VkPhysicalDevice; }
+		inline const VkCommandPool& GetCommandPool() const { return m_CommandPool; }
+		inline const VkQueue& GetGraphicsQueue() const { return m_GraphicsQueue; }
 
 
 	private:
+
+		
 
 		// -- Initialization -- //
 		void CreateVkInstance();
@@ -291,6 +297,8 @@ namespace Magnefu
 		void CleanupSwapChain();
 
 	private:
+
+		static VulkanContext* s_Instance;
 
 #ifdef MF_DEBUG
 		const bool                   m_EnableValidationLayers = true;

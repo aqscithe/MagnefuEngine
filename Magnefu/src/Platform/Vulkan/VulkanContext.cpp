@@ -105,10 +105,16 @@ namespace Magnefu
 		return VK_FALSE;
 	}
 
+	VulkanContext* VulkanContext::s_Instance = nullptr;
+
 	VulkanContext::VulkanContext(GLFWwindow* windowHandle) :
 		m_WindowHandle(windowHandle), m_VkInstance(VkInstance()), m_VkPhysicalDevice(VK_NULL_HANDLE)
 	{
 		MF_CORE_ASSERT(m_WindowHandle, "Window Handle is null!");
+
+		MF_CORE_ASSERT(!s_Instance, "VulkanContext instance already exists.");
+
+		s_Instance = this;
 	}
 
 	VulkanContext::~VulkanContext()

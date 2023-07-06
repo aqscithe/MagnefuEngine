@@ -24,6 +24,7 @@ namespace Magnefu
 
 		std::vector<VkBuffer>        m_Buffers;
 		std::vector<VkDeviceMemory>  m_BuffersMemory;
+		
 	};
 
 
