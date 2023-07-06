@@ -8,6 +8,7 @@
 
 namespace Magnefu
 {
+
 	enum BufferUsage
 	{
 		USAGE_NONE = 0,
@@ -31,6 +32,17 @@ namespace Magnefu
         USAGE_SHADER_BINDING_TABLE_KHR = 0x00000400,
 	};
 
+
+
+    struct UniformBufferObject
+    {
+        alignas(16) Maths::mat4 model;
+        alignas(16) Maths::mat4 view;
+        alignas(16) Maths::mat4 proj;
+    };
+
+
+
 	struct BufferDesc
 	{
 		const char*         DebugName = nullptr;
@@ -38,6 +50,8 @@ namespace Magnefu
         BufferUsage         Usage = BufferUsage::USAGE_NONE;
         Span<const uint8_t> InitData;
 	};
+
+    
 
     class Buffer
     {

@@ -4,6 +4,8 @@
 #include "Magnefu/Renderer/Texture.h"
 #include "vulkan/vulkan.h"
 
+#include "VulkanBuffer.h"
+
 
 struct GLFWwindow;
 
@@ -113,14 +115,6 @@ namespace Magnefu
 
 	};
 
-
-	struct UniformBufferObject 
-	{
-		alignas(16) Maths::mat4 model;
-		alignas(16) Maths::mat4 view;
-		alignas(16) Maths::mat4 proj;
-	};
-
 	struct ParticleUniformBufferObject 
 	{
 		float deltaTime = 1.0f;
@@ -183,6 +177,11 @@ namespace Magnefu
 		void SetFramebufferResized(bool framebufferResized) override { m_FramebufferResized = framebufferResized; }
 		const RendererInfo& GetRendererInfo() const override { return m_RendererInfo; }
 		void SetPushConstants(PushConstants& pushConstants) override { m_PushConstants = pushConstants; }
+
+		// -- Getter Methods -- //
+		inline const VkDevice& GetDevice() const { return m_VkDevice; }
+		inline const VkPhysicalDevice& GetPhysicalDevice() const { return m_VkPhysicalDevice; }
+
 
 	private:
 
@@ -359,6 +358,8 @@ namespace Magnefu
 		VkDeviceMemory               m_VertexBufferMemory;
 		VkBuffer                     m_IndexBuffer;
 		VkDeviceMemory               m_IndexBufferMemory;
+
+
 		std::vector<VkBuffer>        m_UniformBuffers;
 		std::vector<VkDeviceMemory>  m_UniformBuffersMemory;
 		std::vector<void*>           m_UniformBuffersMapped;

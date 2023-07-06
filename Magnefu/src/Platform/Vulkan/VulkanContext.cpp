@@ -4,6 +4,7 @@
 #include "VulkanContext.h"
 #include "Magnefu/Application.h"
 #include "Magnefu/Core/Maths/Quaternion.h"
+#include "Magnefu/Renderer/RenderConstants.h"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -21,12 +22,6 @@
 
 namespace Magnefu
 {
-
-	static const int MAX_FRAMES_IN_FLIGHT = 2;
-	static const int PARTICLE_COUNT = 8192;
-	static const float HEIGHT = 1080;
-	static const float WIDTH = 1920;
-
 
 	static const std::vector<const char*> validationLayers = {
 			"VK_LAYER_KHRONOS_validation"

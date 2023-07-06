@@ -15,6 +15,9 @@ namespace Magnefu
         {
             case RendererAPI::API::VULKAN:
             {
+                if (desc.Usage == BufferUsage::USAGE_UNIFORM)
+                    return new VulkanUniformBuffer(desc);
+
                 return new VulkanBuffer(desc);
             }
 
