@@ -11,12 +11,11 @@ namespace Magnefu
 		alignas(16) Maths::vec3 CameraPos;
 		alignas(16) Maths::vec3 LightPos;
 		alignas(16) Maths::vec3 LightColor;
-		alignas(16) Maths::vec3 Ka = Maths::vec3(0.0f);
-		alignas(16) Maths::vec3 Kd = Maths::vec3(1.0f);
-		alignas(16) Maths::vec3 Ks = Maths::vec3(1.0f);
+		alignas(16) Maths::vec3 Ka;
+		float                   MaxLightDist;
 		float                   Opacity;
 		float                   RadiantFlux;
-		float                   Reflectance = 0.1f; // fresnel reflectance for dielectrics [0.0, 1.0]
+		float                   Reflectance; // fresnel reflectance for dielectrics [0.0, 1.0]
 		int                     LightEnabled;
 	};
 
