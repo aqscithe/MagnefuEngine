@@ -10,10 +10,11 @@ namespace Magnefu
 	{
 		NONE = -1,
 		DIFFUSE,
-		METAL,
-		ROUGHNESS,
+		ARM,
+		//METAL,
+		//ROUGHNESS,
+		//AO,
 		NORMAL,
-		AO,
 		EMISSIVE,
 		DISPLACEMENT
 	};
