@@ -185,7 +185,7 @@ namespace Magnefu
 
 	void VulkanUniformBuffer::UpdateUniformBuffer()
 	{
-		VulkanContext context = VulkanContext::Get();
+		VulkanContext& context = VulkanContext::Get();
 		VkExtent2D swapChainExtent = context.GetSwapChainExtent();
 
 		/*static auto startTime = std::chrono::high_resolution_clock::now();

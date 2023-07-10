@@ -1566,7 +1566,7 @@ namespace Magnefu
 	void VulkanContext::CreateDescriptorSets()
 	{
 		Handle<Buffer> uniformHandle = Application::Get().GetUniforms();
-		VulkanUniformBuffer uniformBuffer = static_cast<VulkanUniformBuffer&>(Application::Get().GetResourceManager().GetBuffer(uniformHandle));
+		VulkanUniformBuffer& uniformBuffer = static_cast<VulkanUniformBuffer&>(Application::Get().GetResourceManager().GetBuffer(uniformHandle));
 		
 
 		std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_DescriptorSetLayout);
@@ -2754,7 +2754,7 @@ namespace Magnefu
 	void VulkanContext::PerformGraphicsOps()
 	{
 		Handle<Buffer> uniformHandle = Application::Get().GetUniforms();
-		VulkanUniformBuffer uniformBuffer = static_cast<VulkanUniformBuffer&>(Application::Get().GetResourceManager().GetBuffer(uniformHandle));
+		VulkanUniformBuffer& uniformBuffer = static_cast<VulkanUniformBuffer&>(Application::Get().GetResourceManager().GetBuffer(uniformHandle));
 
 		// GRAPHICS SUBMISSION //
 
