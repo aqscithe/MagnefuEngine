@@ -37,13 +37,18 @@ namespace Magnefu
 		inline ResourceCache& GetResourceCache() { return *m_ResourceCache; }
 		inline TimeStep& GetTimeStep() { return m_TimeStep; }
 		inline ImGuiLayer* GetImGuiLayer() { return m_ImGuiLayer; }
-		inline ResourceManager& GetResourceManager() { return *m_ResourceManager; }
+		inline ResourceManager& GetResourceManager() { return *m_RM; }
+		inline Handle<Buffer>& GetUniforms() { return m_Uniforms; }
 
 		inline static Application& Get() { return *s_Instance; }
 
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
+
+	public:
+
+		Handle<Buffer> m_Uniforms;
 
 	private:
 		static Application* s_Instance;
@@ -53,7 +58,7 @@ namespace Magnefu
 		ImGuiLayer* m_ImGuiLayer;
 		Scope<ResourceCache> m_ResourceCache;
 		Scope<Window> m_Window;
-		Scope<ResourceManager> m_ResourceManager;
+		Scope<ResourceManager> m_RM;
 
 		bool m_Running;
 		bool m_Minimized;

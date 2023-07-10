@@ -5,6 +5,7 @@
 #include "Magnefu/Application.h"
 #include "Magnefu/Core/Maths/Quaternion.h"
 #include "Magnefu/Renderer/RenderConstants.h"
+#include "Magnefu/ResourceManagement/ResourceManager.h"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -146,11 +147,11 @@ namespace Magnefu
 			vkFreeMemory(m_VkDevice, m_Textures[i].Buffer, nullptr);
 		}
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
+		/*for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
 		{
 			vkDestroyBuffer(m_VkDevice, m_UniformBuffers[i], nullptr);
 			vkFreeMemory(   m_VkDevice, m_UniformBuffersMemory[i], nullptr);
-		}
+		}*/
 
 		vkDestroyDescriptorPool(m_VkDevice, m_DescriptorPool, nullptr);
 		vkDestroyDescriptorSetLayout(m_VkDevice, m_DescriptorSetLayout, nullptr);
@@ -200,6 +201,10 @@ namespace Magnefu
 		CreateWindowSurface();
 		SelectPhysicalDevice();
 		CreateLogicalDevice();
+		
+
+		// -- Everything above will remain in Init() -- //
+
 		CreateSwapChain();
 		CreateImageViews();
 		CreateRenderPass();
@@ -218,7 +223,13 @@ namespace Magnefu
 		LoadModel();
 		CreateVertexBuffer();
 		CreateIndexBuffer();
-		CreateUniformBuffers();
+
+	}
+
+	void VulkanContext::TempSecondaryInit()
+	{
+		
+		//CreateUniformBuffers();
 		CreateComputeUniformBuffers();
 		CreateDescriptorPool();
 		CreateComputeDescriptorPool();
@@ -1465,7 +1476,7 @@ namespace Magnefu
 		vkFreeMemory(m_VkDevice, stagingBufferMemory, nullptr);
 	}
 
-	void VulkanContext::CreateUniformBuffers()
+	/*void VulkanContext::CreateUniformBuffers()
 	{
 		VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
@@ -1484,7 +1495,7 @@ namespace Magnefu
 
 			vkMapMemory(m_VkDevice, m_UniformBuffersMemory[i], 0, bufferSize, 0, &m_UniformBuffersMapped[i]);
 		}
-	}
+	}*/
 
 	void VulkanContext::CreateComputeUniformBuffers()
 	{
@@ -1554,6 +1565,10 @@ namespace Magnefu
 
 	void VulkanContext::CreateDescriptorSets()
 	{
+		Handle<Buffer> uniformHandle = Application::Get().GetUniforms();
+		VulkanUniformBuffer uniformBuffer = static_cast<VulkanUniformBuffer&>(Application::Get().GetResourceManager().GetBuffer(uniformHandle));
+		
+
 		std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_DescriptorSetLayout);
 
 		VkDescriptorSetAllocateInfo allocInfo{};
@@ -1573,7 +1588,7 @@ namespace Magnefu
 		{
 			// UBO
 			VkDescriptorBufferInfo bufferInfo{};
-			bufferInfo.buffer = m_UniformBuffers[i];
+			bufferInfo.buffer = uniformBuffer.GetBuffers()[i];   //m_UniformBuffers[i];
 			bufferInfo.offset = 0;
 			bufferInfo.range = sizeof(UniformBufferObject);
 			
@@ -1591,21 +1606,6 @@ namespace Magnefu
 			imageInfo[2].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			imageInfo[2].imageView = m_Textures[2].ImageView;
 			imageInfo[2].sampler = m_TextureSampler;
-
-			//// Metal
-			//imageInfo[1].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			//imageInfo[1].imageView = m_Textures[1].ImageView;
-			//imageInfo[1].sampler = m_TextureSampler;
-
-			//// Roughness
-			//imageInfo[2].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			//imageInfo[2].imageView = m_Textures[2].ImageView;
-			//imageInfo[2].sampler = m_TextureSampler;
-
-			//// Ambient Occlusion
-			//imageInfo[4].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			//imageInfo[4].imageView = m_Textures[4].ImageView;
-			//imageInfo[4].sampler = m_TextureSampler;
 
 
 			std::array<VkWriteDescriptorSet, 4> descriptorWrites{};
@@ -1653,39 +1653,6 @@ namespace Magnefu
 			descriptorWrites[3].pBufferInfo = nullptr;
 			descriptorWrites[3].pImageInfo = &imageInfo[2];
 			descriptorWrites[3].pTexelBufferView = nullptr; // Optional
-
-			//// Metal Texture
-			//descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			//descriptorWrites[2].dstSet = m_DescriptorSets[i];
-			//descriptorWrites[2].dstBinding = 2;
-			//descriptorWrites[2].dstArrayElement = 0;
-			//descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			//descriptorWrites[2].descriptorCount = 1;
-			//descriptorWrites[2].pBufferInfo = nullptr;
-			//descriptorWrites[2].pImageInfo = &imageInfo[1];
-			//descriptorWrites[2].pTexelBufferView = nullptr; // Optional
-
-			//// Roughness Texture
-			//descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			//descriptorWrites[3].dstSet = m_DescriptorSets[i];
-			//descriptorWrites[3].dstBinding = 3;
-			//descriptorWrites[3].dstArrayElement = 0;
-			//descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			//descriptorWrites[3].descriptorCount = 1;
-			//descriptorWrites[3].pBufferInfo = nullptr;
-			//descriptorWrites[3].pImageInfo = &imageInfo[2];
-			//descriptorWrites[3].pTexelBufferView = nullptr; // Optional
-
-			//// Ambient Occlusion Texture
-			//descriptorWrites[5].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			//descriptorWrites[5].dstSet = m_DescriptorSets[i];
-			//descriptorWrites[5].dstBinding = 5;
-			//descriptorWrites[5].dstArrayElement = 0;
-			//descriptorWrites[5].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			//descriptorWrites[5].descriptorCount = 1;
-			//descriptorWrites[5].pBufferInfo = nullptr;
-			//descriptorWrites[5].pImageInfo = &imageInfo[4]; 
-			//descriptorWrites[5].pTexelBufferView = nullptr; // Optional
 
 			vkUpdateDescriptorSets(m_VkDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 		}
@@ -2250,26 +2217,26 @@ namespace Magnefu
 		EndSingleTimeCommands(commandBuffer);
 	}
 
-	void VulkanContext::UpdateUniformBuffer()
-	{
-		/*static auto startTime = std::chrono::high_resolution_clock::now();
+	//void VulkanContext::UpdateUniformBuffer()
+	//{
+	//	/*static auto startTime = std::chrono::high_resolution_clock::now();
 
-		auto currentTime = std::chrono::high_resolution_clock::now();
-		float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();*/
+	//	auto currentTime = std::chrono::high_resolution_clock::now();
+	//	float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();*/
 
-		auto& camera = Application::Get().GetWindow().GetSceneCamera();
-		camera->SetAspectRatio((float)m_SwapChainExtent.width / (float)m_SwapChainExtent.height);
-		
-		UniformBufferObject ubo{};
-		//ubo.model = Maths::Quaternion::CalculateRotationMatrix(time * 45.f, Maths::vec3(0.0f, 1.0f, 0.0f));
-		ubo.model = Maths::Quaternion::CalculateRotationMatrix(0.f, Maths::vec3(0.0f, 1.0f, 0.0f));
-		ubo.view = camera->CalculateView();
-		ubo.proj = camera->CalculateProjection();
+	//	auto& camera = Application::Get().GetWindow().GetSceneCamera();
+	//	camera->SetAspectRatio((float)m_SwapChainExtent.width / (float)m_SwapChainExtent.height);
+	//	
+	//	UniformBufferObject ubo{};
+	//	//ubo.model = Maths::Quaternion::CalculateRotationMatrix(time * 45.f, Maths::vec3(0.0f, 1.0f, 0.0f));
+	//	ubo.model = Maths::Quaternion::CalculateRotationMatrix(0.f, Maths::vec3(0.0f, 1.0f, 0.0f));
+	//	ubo.view = camera->CalculateView();
+	//	ubo.proj = camera->CalculateProjection();
 
-		ubo.proj.c[1].e[1] *= -1;
+	//	ubo.proj.c[1].e[1] *= -1;
 
-		memcpy(m_UniformBuffersMapped[m_CurrentFrame], &ubo, sizeof(ubo));
-	}
+	//	memcpy(m_UniformBuffersMapped[m_CurrentFrame], &ubo, sizeof(ubo));
+	//}
 
 	void VulkanContext::UpdateComputeUniformBuffer()
 	{
@@ -2786,6 +2753,9 @@ namespace Magnefu
 
 	void VulkanContext::PerformGraphicsOps()
 	{
+		Handle<Buffer> uniformHandle = Application::Get().GetUniforms();
+		VulkanUniformBuffer uniformBuffer = static_cast<VulkanUniformBuffer&>(Application::Get().GetResourceManager().GetBuffer(uniformHandle));
+
 		// GRAPHICS SUBMISSION //
 
 		// Wait for previous frame
@@ -2808,7 +2778,7 @@ namespace Magnefu
 		vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
 		RecordCommandBuffer(m_CommandBuffers[m_CurrentFrame], m_ImageIndex);
 
-		UpdateUniformBuffer();
+		uniformBuffer.UpdateUniformBuffer();
 
 		//VkSemaphore waitSemaphores[] = { m_ComputeFinishedSemaphores[m_CurrentFrame], m_ImageAvailableSemaphores[m_CurrentFrame] };
 		VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphores[m_CurrentFrame] };

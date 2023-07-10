@@ -23,6 +23,7 @@ namespace Magnefu
 
 		Handle<Buffer> CreateBuffer(const BufferDesc&);
 
+		Buffer& GetBuffer(Handle<Buffer>& handle);
 
 		void DestroyBuffer(Handle<Buffer> handle);
 		//void destroyShader(Handle<Shader> handle);

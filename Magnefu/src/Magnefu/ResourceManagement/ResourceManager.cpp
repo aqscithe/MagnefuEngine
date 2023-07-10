@@ -13,6 +13,11 @@ namespace Magnefu
 		return m_BufferPool.Create(desc);
 	}
 
+	Buffer& ResourceManager::GetBuffer(Handle<Buffer>& handle)
+	{
+		return m_BufferPool.Get(handle);
+	}
+
 	void ResourceManager::DestroyBuffer(Handle<Buffer> handle)
 	{
 		m_BufferPool.Destroy(handle);

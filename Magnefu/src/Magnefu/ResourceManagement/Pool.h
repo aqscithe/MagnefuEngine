@@ -53,7 +53,7 @@ namespace Magnefu
         T& Get(Handle<T> handle)
         {
             MF_CORE_ASSERT(handle.Index < m_Resources.size() && handle.Generation == m_Generations[handle.Index], "Invalid Handle");
-            return m_Resources[handle.Index];
+            return *m_Resources[handle.Index];
         }
 
         void Destroy(Handle<T> handle)

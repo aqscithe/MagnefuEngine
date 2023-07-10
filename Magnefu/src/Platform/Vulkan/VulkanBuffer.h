@@ -10,8 +10,10 @@ namespace Magnefu
 	{
 	public:
 		VulkanBuffer(const BufferDesc& desc);
-
 		~VulkanBuffer();
+
+
+		std::vector<VkBuffer>& GetBuffers() { return m_Buffers; }
 
 	protected:
 		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
@@ -33,6 +35,8 @@ namespace Magnefu
 	public:
 		VulkanUniformBuffer(const BufferDesc& desc);
 		~VulkanUniformBuffer();
+
+		void UpdateUniformBuffer();
 
 	private:
 		std::vector<void*>           m_BuffersMapped;

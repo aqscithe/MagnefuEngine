@@ -172,6 +172,7 @@ namespace Magnefu
 
 		// -- Inherited -- //
 		void Init() override;
+		void TempSecondaryInit() override;
 		void DrawFrame() override;
 		void OnImGuiRender() override;
 		void OnFinish() override; // main loop completed
@@ -185,6 +186,8 @@ namespace Magnefu
 		inline const VkPhysicalDevice& GetPhysicalDevice() const { return m_VkPhysicalDevice; }
 		inline const VkCommandPool& GetCommandPool() const { return m_CommandPool; }
 		inline const VkQueue& GetGraphicsQueue() const { return m_GraphicsQueue; }
+		inline const VkExtent2D& GetSwapChainExtent() const { return m_SwapChainExtent; }
+		inline const uint32_t GetCurrentFrame() const { return m_CurrentFrame; }
 
 
 	private:
@@ -216,7 +219,7 @@ namespace Magnefu
 		void LoadModel();
 		void CreateVertexBuffer();
 		void CreateIndexBuffer();
-		void CreateUniformBuffers();
+		//void CreateUniformBuffers();
 		void CreateComputeUniformBuffers();
 		void CreateDescriptorPool();
 		void CreateComputeDescriptorPool();
@@ -264,7 +267,7 @@ namespace Magnefu
 
 
 		// Uniforms
-		void UpdateUniformBuffer();
+		//void UpdateUniformBuffer();
 		void UpdateComputeUniformBuffer();
 
 
@@ -368,9 +371,9 @@ namespace Magnefu
 		VkDeviceMemory               m_IndexBufferMemory;
 
 
-		std::vector<VkBuffer>        m_UniformBuffers;
-		std::vector<VkDeviceMemory>  m_UniformBuffersMemory;
-		std::vector<void*>           m_UniformBuffersMapped;
+		//std::vector<VkBuffer>        m_UniformBuffers;
+		//std::vector<VkDeviceMemory>  m_UniformBuffersMemory;
+		//std::vector<void*>           m_UniformBuffersMapped;
 		VkDescriptorPool             m_DescriptorPool;
 		std::vector<VkDescriptorSet> m_DescriptorSets;
 

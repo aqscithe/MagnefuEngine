@@ -2,6 +2,9 @@
 #include "VulkanBuffer.h"
 #include "VulkanContext.h"
 #include "Magnefu/Renderer/RenderConstants.h"
+#include "Magnefu/Application.h"
+#include "Magnefu/Core/Maths/Quaternion.h"
+
 
 namespace Magnefu
 {
@@ -27,7 +30,13 @@ namespace Magnefu
 
 	VulkanBuffer::~VulkanBuffer()
 	{
+		VkDevice device = VulkanContext::Get().GetDevice();
 
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			vkDestroyBuffer(device, m_Buffers[i], nullptr);
+			vkFreeMemory(device, m_BuffersMemory[i], nullptr);
+		}
 	}
 
 	uint32_t VulkanBuffer::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
@@ -146,6 +155,8 @@ namespace Magnefu
 	}
 
 
+	// -- Uniform Buffer -- //
+
 	VulkanUniformBuffer::VulkanUniformBuffer(const BufferDesc& desc) : VulkanBuffer(desc)
 	{
 		VkDeviceSize bufferSize = sizeof(UniformBufferObject);
@@ -170,6 +181,30 @@ namespace Magnefu
 	VulkanUniformBuffer::~VulkanUniformBuffer()
 	{
 
+	}
+
+	void VulkanUniformBuffer::UpdateUniformBuffer()
+	{
+		VulkanContext context = VulkanContext::Get();
+		VkExtent2D swapChainExtent = context.GetSwapChainExtent();
+
+		/*static auto startTime = std::chrono::high_resolution_clock::now();
+
+		auto currentTime = std::chrono::high_resolution_clock::now();
+		float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();*/
+
+		auto& camera = Application::Get().GetWindow().GetSceneCamera();
+		camera->SetAspectRatio((float)swapChainExtent.width / (float)swapChainExtent.height);
+
+		UniformBufferObject ubo{};
+		//ubo.model = Maths::Quaternion::CalculateRotationMatrix(time * 45.f, Maths::vec3(0.0f,		1.0f, 0.0f));
+		ubo.model = Maths::Quaternion::CalculateRotationMatrix(0.f, Maths::vec3(0.0f, 1.0f, 0.0f));
+		ubo.view = camera->CalculateView();
+		ubo.proj = camera->CalculateProjection();
+
+		ubo.proj.c[1].e[1] *= -1;
+
+		memcpy(m_BuffersMapped[context.GetCurrentFrame()], &ubo, sizeof(ubo));
 	}
 }
 

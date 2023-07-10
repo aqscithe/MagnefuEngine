@@ -24,19 +24,32 @@ namespace Magnefu
             MF_PROFILE_SCOPE("Window Creation");
             m_Window = Scope<Window>(Window::Create());
             m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
+
         }
         m_Minimized = false;
+
+        GraphicsContext* GraphicsContext = m_Window->GetGraphicsContext();
+
+        m_RM = Scope<ResourceManager>(ResourceManager::Create());
+
+        m_Uniforms = m_RM->CreateBuffer({
+                "Uniforms",
+                sizeof(UniformBufferObject),
+                BufferUsage::USAGE_UNIFORM,
+                {0}
+            });
+
+        GraphicsContext->TempSecondaryInit();
 
         m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);
 
-        m_ResourceManager = Scope<ResourceManager>(ResourceManager::Create());
-        //m_ResourceCache = Scope<ResourceCache>(ResourceCache::Create());
+        
 
-        {
+        /*{
             MF_PROFILE_SCOPE("Renderer Init");
             Renderer::Init();
-        }
+        }*/
 	}
 
 	Application::~Application()
@@ -102,6 +115,7 @@ namespace Magnefu
 
         // Maybe Do a unique pointer(Scope) as there should only be one
         GraphicsContext* GraphicsContext = m_Window->GetGraphicsContext();
+
 
         // TODO: Create setting to switch between locked and unlocked frame rate
         m_TimeStep.Init();
