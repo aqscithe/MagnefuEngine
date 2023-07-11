@@ -7,10 +7,17 @@ namespace Magnefu
     class Span
     {
     public:
+        Span()
+            : m_Data(nullptr), m_Size(0) {}
+
         Span(const std::initializer_list<T>&& initList)
             : m_Data(initList.begin()), m_Size(initList.size()) {}
 
-        // Other constructors and member functions...
+        Span(const T* data, std::size_t size)
+            : m_Data(data), m_Size(size) {}
+
+        std::size_t GetSize() { return m_Size; }
+        const T* GetData() { return m_Data; }
 
     private:
         const T* m_Data;

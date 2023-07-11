@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Magnefu/Renderer/Buffer.h"
-#include "vulkan/vulkan.h"
+#include "VulkanCommon.h"
 
 
 namespace Magnefu
@@ -13,7 +13,10 @@ namespace Magnefu
 		~VulkanBuffer();
 
 
-		std::vector<VkBuffer>& GetBuffers() { return m_Buffers; }
+	private:
+		void CreateVertexBuffer(BufferDesc& desc);
+		void CreateIndexBuffer(BufferDesc& desc);
+
 
 	protected:
 		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
@@ -22,10 +25,11 @@ namespace Magnefu
 		VkCommandBuffer BeginSingleTimeCommands();
 		void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 
-	protected:
 
-		std::vector<VkBuffer>        m_Buffers;
-		std::vector<VkDeviceMemory>  m_BuffersMemory;
+	private:
+		VkBuffer        m_Buffer;
+		VkDeviceMemory  m_BufferMemory;
+		
 		
 	};
 
@@ -38,7 +42,11 @@ namespace Magnefu
 
 		void UpdateUniformBuffer();
 
+		std::vector<VkBuffer>& GetBuffers() { return m_Buffers; }
+		
 	private:
+		std::vector<VkBuffer>        m_Buffers;
+		std::vector<VkDeviceMemory>  m_BuffersMemory;
 		std::vector<void*>           m_BuffersMapped;
 	};
 }

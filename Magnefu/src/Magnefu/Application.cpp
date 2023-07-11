@@ -32,12 +32,26 @@ namespace Magnefu
 
         m_RM = Scope<ResourceManager>(ResourceManager::Create());
 
-        m_Uniforms = m_RM->CreateBuffer({
-                "Uniforms",
-                sizeof(UniformBufferObject),
-                BufferUsage::USAGE_UNIFORM,
-                {0}
-            });
+        m_VertexBuffer = m_RM->CreateBuffer({
+            "VertexBuffer",
+            static_cast<uint64_t>(m_Vertices.GetSize()),
+            BufferUsage::USAGE_VERTEX,
+            m_Vertices
+        });
+
+        m_IndexBuffer = m_RM->CreateBuffer({
+            "IndexBuffer",
+            static_cast<uint64_t>(m_Indices.GetSize()),
+            BufferUsage::USAGE_INDEX,
+            m_Indices
+        });
+
+        m_Uniforms = m_RM->CreateBuffer({   
+            "Uniforms",
+            sizeof(UniformBufferObject),
+            BufferUsage::USAGE_UNIFORM,
+            {0}
+        });
 
         GraphicsContext->TempSecondaryInit();
 

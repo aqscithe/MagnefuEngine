@@ -2,7 +2,6 @@
 
 #include "Magnefu/Core/Assertions.h"
 #include "Magnefu/Core/Log.h"
-#include "Magnefu/ResourceManagement/Span.h"
 #include "Renderer.h"
 
 

@@ -221,14 +221,14 @@ namespace Magnefu
 		CreateTextures();
 		CreateTextureSampler();
 		LoadModel();
-		CreateVertexBuffer();
-		CreateIndexBuffer();
+		
 
 	}
 
 	void VulkanContext::TempSecondaryInit()
 	{
-		
+		//CreateVertexBuffer();
+		//CreateIndexBuffer();
 		//CreateUniformBuffers();
 		CreateComputeUniformBuffers();
 		CreateDescriptorPool();
@@ -1312,6 +1312,9 @@ namespace Magnefu
 
 		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
 
+		std::vector<Vertex>    vertices;
+		std::vector<uint32_t>  indices;
+
 		// Note that this code(tangents and bitangents) does not handle mirrored UV sand other special cases, 
 		// and it does not normalize the vectors, which you may want to do depending on how you use them.
 
@@ -1388,13 +1391,20 @@ namespace Magnefu
 
 				if (uniqueVertices.count(vertex) == 0)
 				{
-					uniqueVertices[vertex] = static_cast<uint32_t>(m_Vertices.size());
-					m_Vertices.push_back(vertex);
+					uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
+					vertices.push_back(vertex);
 				}
 
-				m_Indices.push_back(uniqueVertices[vertex]);
+				indices.push_back(uniqueVertices[vertex]);
 			}
 		}
+
+		Span<const uint8_t> vertexDataSpan(reinterpret_cast<const uint8_t*>(vertices.data()), vertices.size() * sizeof(Vertex));
+		Span<const uint8_t> indexDataSpan(reinterpret_cast<const uint8_t*>(indices.data()), indices.size() * sizeof(uint32_t));
+
+		Application::Get().SetVertices(std::move(vertexDataSpan));
+		Application::Get().SetIndices(std::move(indexDataSpan));
+		
 		
 	}
 

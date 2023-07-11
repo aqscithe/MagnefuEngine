@@ -42,13 +42,20 @@ namespace Magnefu
 
 		inline static Application& Get() { return *s_Instance; }
 
+		inline void SetVertices(Span<const uint8_t>&& vertices) { m_Vertices = std::move(vertices); }
+		inline void SetIndices(Span<const uint8_t>&& indices) { m_Indices = std::move(indices); }
+
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
 
 	public:
 
-		Handle<Buffer> m_Uniforms;
+		Handle<Buffer>        m_Uniforms;
+		Handle<Buffer>        m_VertexBuffer;
+		Handle<Buffer>        m_IndexBuffer;
+		Span<const uint8_t>   m_Vertices;
+		Span<const uint8_t>   m_Indices;
 
 	private:
 		static Application* s_Instance;

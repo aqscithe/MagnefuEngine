@@ -14,11 +14,13 @@ namespace Magnefu
 		{
 			case USAGE_VERTEX:
 			{
+				CreateVertexBuffer(desc);
 				break;
 			}
 
 			case USAGE_INDEX:
 			{
+				CreateIndexBuffer(desc);
 				break;
 			}
 
@@ -31,12 +33,60 @@ namespace Magnefu
 	VulkanBuffer::~VulkanBuffer()
 	{
 		VkDevice device = VulkanContext::Get().GetDevice();
+		vkDestroyBuffer(device, m_Buffer, nullptr);
+		vkFreeMemory(device, m_BufferMemory, nullptr);
+	}
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-		{
-			vkDestroyBuffer(device, m_Buffers[i], nullptr);
-			vkFreeMemory(device, m_BuffersMemory[i], nullptr);
-		}
+	void VulkanBuffer::CreateVertexBuffer(const BufferDesc& desc)
+	{
+		VkDevice device = VulkanContext::Get().GetDevice();
+
+		// TODO:
+		// The previous chapter already mentioned that you should allocate multiple resources like 
+		// buffers from a single memory allocation, but in fact you should go a step further. Driver 
+		// developers recommend that you also store multiple buffers, like the vertex and index 
+		// buffer, into a single VkBuffer and use offsets in commands like vkCmdBindVertexBuffers. 
+		// The advantage is that your data is more cache friendly in that case, because it's closer 
+		// together. It is even possible to reuse the same chunk of memory for multiple resources 
+		// if they are not used during the same render operations, provided that their data is 
+		// refreshed, of course. This is known as aliasing and some Vulkan functions have explicit 
+		 // flags to specify that you want to do this.
+
+		VkDeviceSize bufferSize = desc.ByteSize;
+
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingBufferMemory;
+
+		CreateBuffer(
+			bufferSize,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			stagingBuffer,
+			stagingBufferMemory
+		);
+
+		void* data;
+		vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+		memcpy(data, desc.InitData.GetData(), (size_t)bufferSize);
+		vkUnmapMemory(device, stagingBufferMemory);
+
+		CreateBuffer(
+			bufferSize,
+			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+			m_VertexBuffer,
+			m_VertexBufferMemory
+		);
+
+		CopyBuffer(stagingBuffer, m_VertexBuffer, bufferSize);
+
+		vkDestroyBuffer(m_VkDevice, stagingBuffer, nullptr);
+		vkFreeMemory(m_VkDevice, stagingBufferMemory, nullptr);
+	}
+
+	void VulkanBuffer::CreateIndexBuffer(const BufferDesc& desc)
+	{
+
 	}
 
 	uint32_t VulkanBuffer::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
@@ -180,7 +230,13 @@ namespace Magnefu
 
 	VulkanUniformBuffer::~VulkanUniformBuffer()
 	{
+		VkDevice device = VulkanContext::Get().GetDevice();
 
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			vkDestroyBuffer(device, m_Buffers[i], nullptr);
+			vkFreeMemory(device, m_BuffersMemory[i], nullptr);
+		}
 	}
 
 	void VulkanUniformBuffer::UpdateUniformBuffer()
