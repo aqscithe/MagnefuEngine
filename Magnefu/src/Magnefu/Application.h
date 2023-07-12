@@ -38,12 +38,17 @@ namespace Magnefu
 		inline TimeStep& GetTimeStep() { return m_TimeStep; }
 		inline ImGuiLayer* GetImGuiLayer() { return m_ImGuiLayer; }
 		inline ResourceManager& GetResourceManager() { return *m_RM; }
-		inline Handle<Buffer>& GetUniforms() { return m_Uniforms; }
+		inline Handle<Buffer>& GetUniformBufferHandle() { return m_Uniforms; }
+		inline Handle<Buffer>& GetVertexBufferHandle() { return m_VertexBuffer; }
+		inline Handle<Buffer>& GetIndexBufferHandle() { return m_VertexBuffer; }
+		inline uint32_t GetIndexCount() { return static_cast<uint32_t>(m_Indices.GetSize()) / sizeof(uint32_t); }
 
 		inline static Application& Get() { return *s_Instance; }
 
 		inline void SetVertices(Span<const uint8_t>&& vertices) { m_Vertices = std::move(vertices); }
 		inline void SetIndices(Span<const uint8_t>&& indices) { m_Indices = std::move(indices); }
+
+		inline Span<const uint8_t> GetVertices() { return m_Vertices; }
 
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);

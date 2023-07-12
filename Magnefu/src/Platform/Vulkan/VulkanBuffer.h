@@ -12,11 +12,14 @@ namespace Magnefu
 		VulkanBuffer(const BufferDesc& desc);
 		~VulkanBuffer();
 
+		VkBuffer& GetBuffer() { return m_Buffer; }
+
 
 	private:
-		void CreateVertexBuffer(BufferDesc& desc);
-		void CreateIndexBuffer(BufferDesc& desc);
+		void CreateVertexBuffer(const BufferDesc& desc);
+		void CreateIndexBuffer(const BufferDesc& desc);
 
+		
 
 	protected:
 		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);

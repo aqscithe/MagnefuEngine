@@ -27,7 +27,7 @@ namespace Magnefu
 
 		virtual void UploadUniforms(const std::unordered_map<String, Uniform>& uniforms) = 0;
 
-		virtual std::vector<std::pair<String, String>>& GetUniforms() = 0;
+		virtual std::vector<std::pair<String, String>>& GetUniformHandle() = 0;
 
 		virtual void OnImGuiRender() = 0;
 		virtual void Recompile() = 0;

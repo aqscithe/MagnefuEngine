@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Magnefu/Renderer/GraphicsContext.h"
-#include "Magnefu/Renderer/Texture.h"
 
 #include "VulkanCommon.h"
 
@@ -154,8 +153,8 @@ namespace Magnefu
 		void CreateTextures();
 		void CreateTextureSampler();
 		void LoadModel();
-		void CreateVertexBuffer();
-		void CreateIndexBuffer();
+		//void CreateVertexBuffer();
+		//void CreateIndexBuffer();
 		//void CreateUniformBuffers();
 		void CreateComputeUniformBuffers();
 		void CreateDescriptorPool();
@@ -226,7 +225,7 @@ namespace Magnefu
 
 		// Part of Render Loop
 		void RecordComputeCommandBuffer(VkCommandBuffer commandBuffer);
-		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, VulkanBuffer& vertexBuffer, VulkanBuffer& indexBuffer, uint32_t indexCount);
 		void RecreateSwapChain();
 		void PerformComputeOps();
 		void PerformGraphicsOps();
@@ -302,10 +301,10 @@ namespace Magnefu
 		// -- Shader Buffers (Uniforms, Indices, Vertices) -- //
 		//std::vector<Vertex>          m_Vertices;
 		//std::vector<uint32_t>        m_Indices;
-		VkBuffer                     m_VertexBuffer;
+		/*VkBuffer                     m_VertexBuffer;
 		VkDeviceMemory               m_VertexBufferMemory;
 		VkBuffer                     m_IndexBuffer;
-		VkDeviceMemory               m_IndexBufferMemory;
+		VkDeviceMemory               m_IndexBufferMemory;*/
 
 
 		//std::vector<VkBuffer>        m_UniformBuffers;

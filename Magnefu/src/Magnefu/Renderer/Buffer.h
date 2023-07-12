@@ -57,6 +57,8 @@ namespace Magnefu
     public:
         Buffer(const BufferDesc& desc);
         virtual ~Buffer() = default;
+
+
     };
 
 

@@ -1,5 +1,8 @@
 #pragma once
+
+#include "Magnefu/Renderer/Texture.h"
 #include "vulkan/vulkan.h"
+
 
 
 namespace Magnefu

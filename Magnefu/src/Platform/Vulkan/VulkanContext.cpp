@@ -156,11 +156,11 @@ namespace Magnefu
 		vkDestroyDescriptorPool(m_VkDevice, m_DescriptorPool, nullptr);
 		vkDestroyDescriptorSetLayout(m_VkDevice, m_DescriptorSetLayout, nullptr);
 
-		vkDestroyBuffer(m_VkDevice, m_IndexBuffer, nullptr);
+		/*vkDestroyBuffer(m_VkDevice, m_IndexBuffer, nullptr);
 		vkFreeMemory(m_VkDevice,    m_IndexBufferMemory, nullptr);
 
 		vkDestroyBuffer(m_VkDevice, m_VertexBuffer, nullptr);
-		vkFreeMemory(m_VkDevice, m_VertexBufferMemory, nullptr);
+		vkFreeMemory(m_VkDevice, m_VertexBufferMemory, nullptr);*/
 
 		vkDestroyPipeline(m_VkDevice, m_GraphicsPipeline, nullptr);
 		vkDestroyPipelineLayout(m_VkDevice, m_PipelineLayout, nullptr);
@@ -1399,92 +1399,125 @@ namespace Magnefu
 			}
 		}
 
-		Span<const uint8_t> vertexDataSpan(reinterpret_cast<const uint8_t*>(vertices.data()), vertices.size() * sizeof(Vertex));
+		size_t bufferSize = vertices.size() * sizeof(Vertex); // Buffer size
+		constexpr size_t alignment = 32; // Alignment requirement
+
+		// Allocate extra memory to accommodate alignment
+		std::unique_ptr<char[]> original(new char[bufferSize + alignment]);
+		void* ptr = original.get();
+		size_t space = bufferSize + alignment;
+
+		void* alignedPtr = std::align(alignment, bufferSize, ptr, space);
+		
+		if (alignedPtr != nullptr)
+		{
+			auto uintptr = reinterpret_cast<uintptr_t>(alignedPtr);
+			MF_CORE_ASSERT(uintptr % 32 == 0, "data not properly aligned");
+
+			// Copy the vertex data to the aligned memory
+			std::memcpy(alignedPtr, vertices.data(), bufferSize);
+
+			// Create the Span from the aligned memory
+			Span<const uint8_t> vertexDataSpan(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
+
+			// Now you can set InitData in BufferDesc with vertexDataSpan
+			// Note: Make sure original is not destroyed until you're done with vertexDataSpan
+			Application::Get().SetVertices(std::move(vertexDataSpan));
+		}
+		else
+		{
+			MF_CORE_ASSERT(false, "Failed to properly align data.");
+		}
+
+		
+		
+
+		/*Span<const uint8_t> vertexDataSpan(reinterpret_cast<const uint8_t*>(vertices.data()), vertices.size() * sizeof(Vertex));
 		Span<const uint8_t> indexDataSpan(reinterpret_cast<const uint8_t*>(indices.data()), indices.size() * sizeof(uint32_t));
 
 		Application::Get().SetVertices(std::move(vertexDataSpan));
-		Application::Get().SetIndices(std::move(indexDataSpan));
+		Application::Get().SetIndices(std::move(indexDataSpan));*/
 		
 		
 	}
 
-	void VulkanContext::CreateVertexBuffer()
-	{
-		// TODO:
-		// The previous chapter already mentioned that you should allocate multiple resources like 
-		// buffers from a single memory allocation, but in fact you should go a step further. Driver 
-		// developers recommend that you also store multiple buffers, like the vertex and index 
-		// buffer, into a single VkBuffer and use offsets in commands like vkCmdBindVertexBuffers. 
-		// The advantage is that your data is more cache friendly in that case, because it's closer 
-		// together. It is even possible to reuse the same chunk of memory for multiple resources 
-		// if they are not used during the same render operations, provided that their data is 
-		// refreshed, of course. This is known as aliasing and some Vulkan functions have explicit 
-		 // flags to specify that you want to do this.
-		
-		VkDeviceSize bufferSize = static_cast<uint64_t>(sizeof(m_Vertices[0]) * m_Vertices.size());
+	//void VulkanContext::CreateVertexBuffer()
+	//{
+	//	// TODO:
+	//	// The previous chapter already mentioned that you should allocate multiple resources like 
+	//	// buffers from a single memory allocation, but in fact you should go a step further. Driver 
+	//	// developers recommend that you also store multiple buffers, like the vertex and index 
+	//	// buffer, into a single VkBuffer and use offsets in commands like vkCmdBindVertexBuffers. 
+	//	// The advantage is that your data is more cache friendly in that case, because it's closer 
+	//	// together. It is even possible to reuse the same chunk of memory for multiple resources 
+	//	// if they are not used during the same render operations, provided that their data is 
+	//	// refreshed, of course. This is known as aliasing and some Vulkan functions have explicit 
+	//	 // flags to specify that you want to do this.
+	//	
+	//	VkDeviceSize bufferSize = static_cast<uint64_t>(sizeof(m_Vertices[0]) * m_Vertices.size());
 
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
+	//	VkBuffer stagingBuffer;
+	//	VkDeviceMemory stagingBufferMemory;
 
-		CreateBuffer(
-			bufferSize, 
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-			stagingBuffer, 
-			stagingBufferMemory
-		);
+	//	CreateBuffer(
+	//		bufferSize, 
+	//		VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
+	//		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+	//		stagingBuffer, 
+	//		stagingBufferMemory
+	//	);
 
-		void* data;
-		vkMapMemory(m_VkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-		memcpy(data, m_Vertices.data(), (size_t)bufferSize);
-		vkUnmapMemory(m_VkDevice, stagingBufferMemory);
+	//	void* data;
+	//	vkMapMemory(m_VkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+	//	memcpy(data, m_Vertices.data(), (size_t)bufferSize);
+	//	vkUnmapMemory(m_VkDevice, stagingBufferMemory);
 
-		CreateBuffer(
-			bufferSize,
-			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			m_VertexBuffer,
-			m_VertexBufferMemory
-		);
+	//	CreateBuffer(
+	//		bufferSize,
+	//		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+	//		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+	//		m_VertexBuffer,
+	//		m_VertexBufferMemory
+	//	);
 
-		CopyBuffer(stagingBuffer, m_VertexBuffer, bufferSize);
+	//	CopyBuffer(stagingBuffer, m_VertexBuffer, bufferSize);
 
-		vkDestroyBuffer(m_VkDevice, stagingBuffer, nullptr);
-		vkFreeMemory(m_VkDevice, stagingBufferMemory, nullptr);
-	}
+	//	vkDestroyBuffer(m_VkDevice, stagingBuffer, nullptr);
+	//	vkFreeMemory(m_VkDevice, stagingBufferMemory, nullptr);
+	//}
 
-	void VulkanContext::CreateIndexBuffer()
-	{
-		VkDeviceSize bufferSize = sizeof(m_Indices[0]) * m_Indices.size();
+	//void VulkanContext::CreateIndexBuffer()
+	//{
+	//	VkDeviceSize bufferSize = sizeof(m_Indices[0]) * m_Indices.size();
 
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
-		CreateBuffer(
-			bufferSize, 
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-			stagingBuffer, 
-			stagingBufferMemory
-		);
+	//	VkBuffer stagingBuffer;
+	//	VkDeviceMemory stagingBufferMemory;
+	//	CreateBuffer(
+	//		bufferSize, 
+	//		VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
+	//		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+	//		stagingBuffer, 
+	//		stagingBufferMemory
+	//	);
 
-		void* data;
-		vkMapMemory(m_VkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-		memcpy(data, m_Indices.data(), (size_t)bufferSize);
-		vkUnmapMemory(m_VkDevice, stagingBufferMemory);
+	//	void* data;
+	//	vkMapMemory(m_VkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+	//	memcpy(data, m_Indices.data(), (size_t)bufferSize);
+	//	vkUnmapMemory(m_VkDevice, stagingBufferMemory);
 
-		CreateBuffer(
-			bufferSize, 
-			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
-			m_IndexBuffer, 
-			m_IndexBufferMemory
-		);
+	//	CreateBuffer(
+	//		bufferSize, 
+	//		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 
+	//		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
+	//		m_IndexBuffer, 
+	//		m_IndexBufferMemory
+	//	);
 
-		CopyBuffer(stagingBuffer, m_IndexBuffer, bufferSize);
+	//	CopyBuffer(stagingBuffer, m_IndexBuffer, bufferSize);
 
-		vkDestroyBuffer(m_VkDevice, stagingBuffer, nullptr);
-		vkFreeMemory(m_VkDevice, stagingBufferMemory, nullptr);
-	}
+	//	vkDestroyBuffer(m_VkDevice, stagingBuffer, nullptr);
+	//	vkFreeMemory(m_VkDevice, stagingBufferMemory, nullptr);
+	//}
 
 	/*void VulkanContext::CreateUniformBuffers()
 	{
@@ -1575,7 +1608,7 @@ namespace Magnefu
 
 	void VulkanContext::CreateDescriptorSets()
 	{
-		Handle<Buffer> uniformHandle = Application::Get().GetUniforms();
+		Handle<Buffer>& uniformHandle = Application::Get().GetUniformBufferHandle();
 		VulkanUniformBuffer& uniformBuffer = static_cast<VulkanUniformBuffer&>(Application::Get().GetResourceManager().GetBuffer(uniformHandle));
 		
 
@@ -2020,7 +2053,7 @@ namespace Magnefu
 		}
 	}
 
-	void VulkanContext::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+	void VulkanContext::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, VulkanBuffer& vertexBuffer, VulkanBuffer& indexBuffer, uint32_t indexCount)
 	{
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -2064,17 +2097,17 @@ namespace Magnefu
 				scissor.extent = m_SwapChainExtent;
 				vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-				VkBuffer vertexBuffers[] = { m_VertexBuffer };
+				VkBuffer vertexBuffers[] = { vertexBuffer.GetBuffer()};
 				VkDeviceSize offsets[] = { 0 };
 				vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-				vkCmdBindIndexBuffer(commandBuffer, m_IndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+				vkCmdBindIndexBuffer(commandBuffer, indexBuffer.GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &m_DescriptorSets[m_CurrentFrame], 0, nullptr);
 
 				vkCmdPushConstants(commandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &m_PushConstants);
 
-				vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(m_Indices.size()), 1, 0, 0, 0);
+				vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
 			}
 
 			// PARTICLE PIPELINE
@@ -2763,8 +2796,13 @@ namespace Magnefu
 
 	void VulkanContext::PerformGraphicsOps()
 	{
-		Handle<Buffer> uniformHandle = Application::Get().GetUniforms();
-		VulkanUniformBuffer& uniformBuffer = static_cast<VulkanUniformBuffer&>(Application::Get().GetResourceManager().GetBuffer(uniformHandle));
+		Application& app = Application::Get();
+		ResourceManager& rm = Application::Get().GetResourceManager();
+		
+		VulkanUniformBuffer& uniformBuffer = static_cast<VulkanUniformBuffer&>(rm.GetBuffer(app.GetUniformBufferHandle()));
+		VulkanBuffer& vertexBuffer = static_cast<VulkanBuffer&>(rm.GetBuffer(app.GetVertexBufferHandle()));
+		VulkanBuffer& indexBuffer = static_cast<VulkanBuffer&>(rm.GetBuffer(app.GetIndexBufferHandle()));
+		uint32_t indexCount = app.GetIndexCount();
 
 		// GRAPHICS SUBMISSION //
 
@@ -2786,7 +2824,7 @@ namespace Magnefu
 
 		// Reset and Record Command Buffer - Game Objects
 		vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
-		RecordCommandBuffer(m_CommandBuffers[m_CurrentFrame], m_ImageIndex);
+		RecordCommandBuffer(m_CommandBuffers[m_CurrentFrame], m_ImageIndex, vertexBuffer, indexBuffer, indexCount);
 
 		uniformBuffer.UpdateUniformBuffer();
 

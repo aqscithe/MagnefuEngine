@@ -65,6 +65,7 @@ namespace Magnefu
 			stagingBufferMemory
 		);
 
+
 		void* data;
 		vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
 		memcpy(data, desc.InitData.GetData(), (size_t)bufferSize);
@@ -74,19 +75,49 @@ namespace Magnefu
 			bufferSize,
 			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			m_VertexBuffer,
-			m_VertexBufferMemory
+			m_Buffer,
+			m_BufferMemory
 		);
 
-		CopyBuffer(stagingBuffer, m_VertexBuffer, bufferSize);
+		CopyBuffer(stagingBuffer, m_Buffer, bufferSize);
 
-		vkDestroyBuffer(m_VkDevice, stagingBuffer, nullptr);
-		vkFreeMemory(m_VkDevice, stagingBufferMemory, nullptr);
+		vkDestroyBuffer(device, stagingBuffer, nullptr);
+		vkFreeMemory(device, stagingBufferMemory, nullptr);
 	}
 
 	void VulkanBuffer::CreateIndexBuffer(const BufferDesc& desc)
 	{
+		VkDevice device = VulkanContext::Get().GetDevice();
 
+		VkDeviceSize bufferSize = desc.ByteSize;
+
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingBufferMemory;
+		CreateBuffer(
+			bufferSize,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			stagingBuffer,
+			stagingBufferMemory
+		);
+
+		void* data;
+		vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+		memcpy(data, desc.InitData.GetData(), (size_t)bufferSize);
+		vkUnmapMemory(device, stagingBufferMemory);
+
+		CreateBuffer(
+			bufferSize,
+			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+			m_Buffer,
+			m_BufferMemory
+		);
+
+		CopyBuffer(stagingBuffer, m_Buffer, bufferSize);
+
+		vkDestroyBuffer(device, stagingBuffer, nullptr);
+		vkFreeMemory(device, stagingBufferMemory, nullptr);
 	}
 
 	uint32_t VulkanBuffer::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)

@@ -14,10 +14,15 @@ namespace Magnefu
             : m_Data(initList.begin()), m_Size(initList.size()) {}
 
         Span(const T* data, std::size_t size)
-            : m_Data(data), m_Size(size) {}
+            : m_Data(data), m_Size(size) 
+        {
+            //MF_CORE_ASSERT(reinterpret_cast<uintptr_t>(m_Data) % 32 == 0, "data not 32-byte aligned");
+        }
 
         std::size_t GetSize() { return m_Size; }
-        const T* GetData() { return m_Data; }
+        const T* GetData() const { return m_Data; }
+
+        void CheckAlign() { /*MF_CORE_ASSERT(reinterpret_cast<uintptr_t>(m_Data) % 32 == 0, "data not 32-byte aligned");*/ }
 
     private:
         const T* m_Data;
