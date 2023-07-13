@@ -68,7 +68,7 @@ namespace Magnefu
 	class Texture
 	{
 	public:
-		Texture(TextureDesc& desc);
+		Texture(const TextureDesc& desc);
 		virtual ~Texture() = default;
 	};
 
@@ -76,7 +76,7 @@ namespace Magnefu
 	class TextureFactory
 	{
 	public:
-		static Texture* CreateTexture(TextureDesc& desc);
+		static Texture* CreateTexture(const TextureDesc& desc);
 	};
 
 }

@@ -22,8 +22,11 @@ namespace Magnefu
 		NORMAL_TEXTURE_PATH,
 	};
 
+	Ref<VkSampler> VulkanTexture::s_TextureSampler = CreateRef<VkSampler>();
+	bool VulkanTexture::s_SamplerCreated = false;
 
-	VulkanTexture::VulkanTexture(TextureDesc& desc) : Texture(desc)
+
+	VulkanTexture::VulkanTexture(const TextureDesc& desc) : Texture(desc)
 	{
 		switch (desc.Type)
 		{
@@ -40,49 +43,31 @@ namespace Magnefu
 		CreateTextureImage(desc);
 		CreateTextureImageView(desc);
 
-		// if Texture sampler has not yet been created(will be a shared pointer across textures)
-		CreateTextureSampler();
+		if (!s_SamplerCreated)
+		{
+			CreateTextureSampler();
+			s_SamplerCreated = true;
+		}
 	}
 
 	VulkanTexture::~VulkanTexture()
 	{
-		vkDestroySampler(m_VkDevice, m_TextureSampler, nullptr);
+		VkDevice device = VulkanContext::Get().GetDevice();
 
-		for (size_t i = 0; i < m_Textures.size(); i++)
+		if (s_SamplerCreated)
 		{
-			vkDestroyImageView(m_VkDevice, m_Textures[i].ImageView, nullptr);
-			vkDestroyImage(m_VkDevice, m_Textures[i].Image, nullptr);
-			vkFreeMemory(m_VkDevice, m_Textures[i].Buffer, nullptr);
+			vkDestroySampler(device, *s_TextureSampler.get(), nullptr);
+			s_SamplerCreated = false;
 		}
+		vkDestroyImageView(device, m_ImageView, nullptr);
+		vkDestroyImage(device, m_Image, nullptr);
+		vkFreeMemory(device, m_BufferMemory, nullptr);
+		
 
 	}
 
-	void VulkanTexture::CreateTextureImage(TextureDesc& desc)
+	void VulkanTexture::CreateTextureImage(const TextureDesc& desc)
 	{
-		//int requestedChannels = 0;
-		//
-		//switch (desc.RequestedChannels)
-		//{
-		//	case TextureChannels::CHANNELS_RGB_ALPHA:
-		//	{
-		//		requestedChannels = STBI_rgb_alpha;
-		//		break;
-		//	}
-
-		//	// TODO: Update arm and normal to just use rgb in both format and requested channels 
-		//	case TextureChannels::CHANNELS_GREY:
-		//	{
-		//		requestedChannels = STBI_grey;
-		//		break;
-		//	}
-
-		//	default:
-		//	{
-		//		MF_CORE_ASSERT(false, "Unknown or unsupported texture channel count");
-		//		break;
-		//	}
-		//
-		//}
 
 		VkDevice device = VulkanContext::Get().GetDevice();
 		
@@ -145,7 +130,7 @@ namespace Magnefu
 		vkFreeMemory(device, stagingBufferMemory, nullptr);
 	}
 
-	void VulkanTexture::CreateTextureImageView(TextureDesc& desc)
+	void VulkanTexture::CreateTextureImageView(const TextureDesc& desc)
 	{
 		m_ImageView = CreateImageView(m_Image, static_cast<VkFormat>(desc.Format), VK_IMAGE_ASPECT_COLOR_BIT, m_MipLevels);
 	}
@@ -182,7 +167,7 @@ namespace Magnefu
 		samplerInfo.maxLod = static_cast<float>(m_MipLevels); // all pbr textures of the same mesh should have the same dimensions and thus equal miplevels
 		samplerInfo.mipLodBias = 0.0f; // Optional
 
-		if (vkCreateSampler(context.GetDevice(), &samplerInfo, nullptr, m_TextureSampler.get()) != VK_SUCCESS)
+		if (vkCreateSampler(context.GetDevice(), &samplerInfo, nullptr, s_TextureSampler.get()) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to create texture sampler!");
 	}
 

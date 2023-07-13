@@ -2,6 +2,7 @@
 #include <iterator>
 
 #include "VulkanContext.h"
+#include "VulkanTexture.h"
 #include "Magnefu/Application.h"
 #include "Magnefu/Core/Maths/Quaternion.h"
 #include "Magnefu/Renderer/RenderConstants.h"
@@ -121,29 +122,9 @@ namespace Magnefu
 		vkDestroyDescriptorSetLayout(m_VkDevice, m_ComputeDescriptorSetLayout, nullptr);
 
 
-		/*vkDestroySampler(m_VkDevice, m_TextureSampler, nullptr);
-
-		for (size_t i = 0; i < m_Textures.size(); i++)
-		{
-			vkDestroyImageView(m_VkDevice, m_Textures[i].ImageView, nullptr);
-			vkDestroyImage(m_VkDevice, m_Textures[i].Image, nullptr);
-			vkFreeMemory(m_VkDevice, m_Textures[i].Buffer, nullptr);
-		}*/
-
-		/*for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
-		{
-			vkDestroyBuffer(m_VkDevice, m_UniformBuffers[i], nullptr);
-			vkFreeMemory(   m_VkDevice, m_UniformBuffersMemory[i], nullptr);
-		}*/
-
 		vkDestroyDescriptorPool(m_VkDevice, m_DescriptorPool, nullptr);
 		vkDestroyDescriptorSetLayout(m_VkDevice, m_DescriptorSetLayout, nullptr);
 
-		/*vkDestroyBuffer(m_VkDevice, m_IndexBuffer, nullptr);
-		vkFreeMemory(m_VkDevice,    m_IndexBufferMemory, nullptr);
-
-		vkDestroyBuffer(m_VkDevice, m_VertexBuffer, nullptr);
-		vkFreeMemory(m_VkDevice, m_VertexBufferMemory, nullptr);*/
 
 		vkDestroyPipeline(m_VkDevice, m_GraphicsPipeline, nullptr);
 		vkDestroyPipelineLayout(m_VkDevice, m_PipelineLayout, nullptr);
@@ -1230,57 +1211,57 @@ namespace Magnefu
 		m_DepthImageView = CreateImageView(m_DepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 	}
 
-	void VulkanContext::CreateTextures()
-	{
-		m_Textures.resize(TEXTURE_PATHS.size());
-		//for (size_t i = 0; i < m_Textures.size(); i++)
-		//{
-		//	m_Textures[i].Type = static_cast<TextureType>(i);
-		//}
-		m_Textures[0].Type = TextureType::DIFFUSE;
-		m_Textures[1].Type = TextureType::ARM;
-		m_Textures[2].Type = TextureType::NORMAL;
+	//void VulkanContext::CreateTextures()
+	//{
+	//	m_Textures.resize(TEXTURE_PATHS.size());
+	//	//for (size_t i = 0; i < m_Textures.size(); i++)
+	//	//{
+	//	//	m_Textures[i].Type = static_cast<TextureType>(i);
+	//	//}
+	//	m_Textures[0].Type = TextureType::DIFFUSE;
+	//	m_Textures[1].Type = TextureType::ARM;
+	//	m_Textures[2].Type = TextureType::NORMAL;
 
-		for (auto& texture : m_Textures)
-			CreateTextureImage(texture);
+	//	for (auto& texture : m_Textures)
+	//		CreateTextureImage(texture);
 
-		for (auto& texture : m_Textures)
-			CreateTextureImageView(texture);
-	}
+	//	for (auto& texture : m_Textures)
+	//		CreateTextureImageView(texture);
+	//}
 
-	void VulkanContext::CreateTextureSampler()
-	{
-		VkSamplerCreateInfo samplerInfo{};
-		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-		samplerInfo.magFilter = VK_FILTER_LINEAR;
-		samplerInfo.minFilter = VK_FILTER_LINEAR;
-		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	//void VulkanContext::CreateTextureSampler()
+	//{
+	//	VkSamplerCreateInfo samplerInfo{};
+	//	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	//	samplerInfo.magFilter = VK_FILTER_LINEAR;
+	//	samplerInfo.minFilter = VK_FILTER_LINEAR;
+	//	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	//	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	//	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 
-		if (m_SupportedFeatures.samplerAnisotropy)
-		{
-			samplerInfo.anisotropyEnable = VK_TRUE;
-			samplerInfo.maxAnisotropy = m_Properties.limits.maxSamplerAnisotropy;
-		}
-		else
-		{
-			samplerInfo.anisotropyEnable = VK_FALSE;
-			samplerInfo.maxAnisotropy = 1.0f;
-		}
-		
-		samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-		samplerInfo.unnormalizedCoordinates = VK_FALSE;
-		samplerInfo.compareEnable = VK_FALSE;
-		samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-		samplerInfo.minLod = 0.0f; // Optional
-		samplerInfo.maxLod = static_cast<float>(m_Textures[0].MipLevels); // all pbr textures of the same mesh should have the same dimensions and thus equal miplevels
-		samplerInfo.mipLodBias = 0.0f; // Optional
+	//	if (m_SupportedFeatures.samplerAnisotropy)
+	//	{
+	//		samplerInfo.anisotropyEnable = VK_TRUE;
+	//		samplerInfo.maxAnisotropy = m_Properties.limits.maxSamplerAnisotropy;
+	//	}
+	//	else
+	//	{
+	//		samplerInfo.anisotropyEnable = VK_FALSE;
+	//		samplerInfo.maxAnisotropy = 1.0f;
+	//	}
+	//	
+	//	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+	//	samplerInfo.unnormalizedCoordinates = VK_FALSE;
+	//	samplerInfo.compareEnable = VK_FALSE;
+	//	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+	//	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	//	samplerInfo.minLod = 0.0f; // Optional
+	//	samplerInfo.maxLod = static_cast<float>(m_Textures[0].MipLevels); // all pbr textures of the same mesh should have the same dimensions and thus equal miplevels
+	//	samplerInfo.mipLodBias = 0.0f; // Optional
 
-		if (vkCreateSampler(m_VkDevice, &samplerInfo, nullptr, &m_TextureSampler) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "failed to create texture sampler!");
-	}
+	//	if (vkCreateSampler(m_VkDevice, &samplerInfo, nullptr, &m_TextureSampler) != VK_SUCCESS)
+	//		MF_CORE_ASSERT(false, "failed to create texture sampler!");
+	//}
 
 	void VulkanContext::LoadModel()
 	{
@@ -1592,9 +1573,10 @@ namespace Magnefu
 
 	void VulkanContext::CreateDescriptorSets()
 	{
-		Handle<Buffer>& uniformHandle = Application::Get().GetUniformBufferHandle();
-		VulkanUniformBuffer& uniformBuffer = static_cast<VulkanUniformBuffer&>(Application::Get().GetResourceManager().GetBuffer(uniformHandle));
-		
+		Application& app = Application::Get();
+		ResourceManager& rm = app.GetResourceManager();
+		VulkanUniformBuffer& uniformBuffer = static_cast<VulkanUniformBuffer&>(rm.GetBuffer(app.GetUniformBufferHandle()));
+		std::array<Handle<Texture>, 3>& textureHandles = app.GetTextureHandles();
 
 		std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_DescriptorSetLayout);
 
@@ -1609,7 +1591,12 @@ namespace Magnefu
 			MF_CORE_ASSERT(false, "failed to allocate descriptor sets!");
 
 		std::vector<VkDescriptorImageInfo> imageInfo{};
-		imageInfo.resize(m_Textures.size());
+		imageInfo.resize(app.GetTextureCount());
+
+		MF_CORE_ASSERT(imageInfo.size() == textureHandles.size(), "Descriptor set texture image info count doesn't match texture handle count.");
+
+		VkSampler& sampler = VulkanTexture::GetSampler();
+		
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
 		{
@@ -1621,18 +1608,18 @@ namespace Magnefu
 			
 			// Diffuse
 			imageInfo[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imageInfo[0].imageView = m_Textures[0].ImageView;
-			imageInfo[0].sampler =   m_TextureSampler;
+			imageInfo[0].imageView = static_cast<VulkanTexture&>(rm.GetTexture(textureHandles[0])).GetImageView();
+			imageInfo[0].sampler = sampler;
 
 			// ARM
 			imageInfo[1].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imageInfo[1].imageView = m_Textures[1].ImageView;
-			imageInfo[1].sampler = m_TextureSampler;
+			imageInfo[1].imageView = static_cast<VulkanTexture&>(rm.GetTexture(textureHandles[1])).GetImageView();
+			imageInfo[1].sampler = sampler;
 
 			// Normal
 			imageInfo[2].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imageInfo[2].imageView = m_Textures[2].ImageView;
-			imageInfo[2].sampler = m_TextureSampler;
+			imageInfo[2].imageView = static_cast<VulkanTexture&>(rm.GetTexture(textureHandles[2])).GetImageView();
+			imageInfo[2].sampler = sampler;
 
 
 			std::array<VkWriteDescriptorSet, 4> descriptorWrites{};
@@ -2707,10 +2694,10 @@ namespace Magnefu
 	//	vkFreeMemory(m_VkDevice, stagingBufferMemory, nullptr);
 	//}
 
-	void VulkanContext::CreateTextureImageView(TextureInfo& texture)
-	{
+	//void VulkanContext::CreateTextureImageView(TextureInfo& texture)
+	/*{
 		texture.ImageView = CreateImageView(texture.Image, texture.Format, VK_IMAGE_ASPECT_COLOR_BIT, texture.MipLevels);
-	}
+	}*/
 
 	VkSampleCountFlagBits VulkanContext::GetMaxUsableSampleCount()
 	{

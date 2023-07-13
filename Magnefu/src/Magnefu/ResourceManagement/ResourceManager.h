@@ -22,19 +22,21 @@ namespace Magnefu
 		static ResourceManager* Create();
 
 
+		Handle<Texture> CreateTexture(const TextureDesc&);
 		Handle<Buffer> CreateBuffer(const BufferDesc&);
 
+		Texture& GetTexture(Handle<Texture>& handle);
 		Buffer& GetBuffer(Handle<Buffer>& handle);
 
+		void DestroyTexture(Handle<Texture> handle);
 		void DestroyBuffer(Handle<Buffer> handle);
 		//void destroyShader(Handle<Shader> handle);
-		//void destroyTexture(Handle<Texture> handle);
 		//void destroyBindGroup(Handle<BindGroup> handle);
 
 	private:
+		Pool<Texture> m_TexturePool;
 		Pool<Buffer> m_BufferPool;
 		//Pool<Shader> shaderPool;
-		//Pool<Texture> texturePool;
 		//Pool<BindGroup> bindGroupPool;
 	};
 }

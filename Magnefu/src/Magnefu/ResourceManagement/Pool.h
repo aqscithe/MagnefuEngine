@@ -19,9 +19,36 @@ namespace Magnefu
     class Pool
     {
     public:
-        Handle<Texture> Create()
+        Handle<Texture> Create(const TextureDesc& desc)
         {
+            // Check if there are any free indices
+            if (m_FreeList.empty())
+            {
+                // Resize the resource and generation vectors
+                m_Resources.resize(m_Resources.size() + 1);
+                m_Generations.resize(m_Generations.size() + 1, 0);
 
+                // Construct a new object in the resource vector
+                m_Resources.back() = TextureFactory::CreateTexture(desc);
+
+                // Return a handle to the new object
+                return Handle<Texture>{ static_cast<uint32_t>(m_Resources.size() - 1), static_cast<uint32_t>(m_Generations.back()) };
+            }
+            else
+            {
+                // Reuse an index from the free list
+                int index = m_FreeList.back();
+                m_FreeList.pop_back();
+
+                // Construct a new object in the resource vector
+                m_Resources[index] = TextureFactory::CreateTexture(desc);
+
+                // Increase the generation counter for this index
+                m_Generations[index]++;
+
+                // Return a handle to the new object
+                return Handle<Texture>{ static_cast<uint32_t>(index), static_cast<uint32_t>(m_Generations[index]) };
+            }
         }
 
         Handle<Buffer> Create(const BufferDesc& desc)

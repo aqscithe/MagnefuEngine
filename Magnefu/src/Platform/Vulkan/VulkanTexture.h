@@ -8,12 +8,16 @@ namespace Magnefu
 	class VulkanTexture : public Texture
 	{
 	public:
-		VulkanTexture(TextureDesc& desc);
+		VulkanTexture(const TextureDesc& desc);
 		~VulkanTexture();
 
+		inline const VkImageView& GetImageView() const { return m_ImageView; }
+
+		static inline VkSampler& GetSampler() { return *s_TextureSampler.get(); }
+
 	private:
-		void CreateTextureImage(TextureDesc& desc);
-		void CreateTextureImageView(TextureDesc& desc);
+		void CreateTextureImage(const TextureDesc& desc);
+		void CreateTextureImageView(const TextureDesc& desc);
 		void CreateTextureSampler();
 
 		// Image Manipulation
@@ -33,11 +37,12 @@ namespace Magnefu
 		
 
 	public:
-		TextureType      m_Type;
-		uint32_t         m_MipLevels;
-		VkImage          m_Image;
-		VkImageView      m_ImageView;
-		VkDeviceMemory   m_BufferMemory;
-		Ref<VkSampler>   m_TextureSampler;
+		TextureType        m_Type;
+		uint32_t           m_MipLevels;
+		VkImage            m_Image;
+		VkImageView        m_ImageView;
+		VkDeviceMemory     m_BufferMemory;
+		static Ref<VkSampler>  s_TextureSampler;
+		static bool s_SamplerCreated;
 	};
 }

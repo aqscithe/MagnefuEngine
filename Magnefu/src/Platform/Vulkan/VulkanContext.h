@@ -152,8 +152,8 @@ namespace Magnefu
 		void CreateComputePipeline();
 		void CreateColorResources();
 		void CreateDepthResources();
-		void CreateTextures();
-		void CreateTextureSampler();
+		//void CreateTextures();
+		//void CreateTextureSampler();
 		void LoadModel();
 		//void CreateVertexBuffer();
 		//void CreateIndexBuffer();
@@ -192,8 +192,8 @@ namespace Magnefu
 		VkShaderModule CreateShaderModule(const ShaderSource& source);
 
 		// Texture Creation
-		void CreateTextureImage(TextureInfo& texture);
-		void CreateTextureImageView(TextureInfo& texture);
+		//void CreateTextureImage(TextureInfo& texture);
+		//void CreateTextureImageView(TextureInfo& texture);
 
 		
 		// Buffers

@@ -37,7 +37,12 @@ namespace Magnefu
 		inline ResourceCache& GetResourceCache() { return *m_ResourceCache; }
 		inline TimeStep& GetTimeStep() { return m_TimeStep; }
 		inline ImGuiLayer* GetImGuiLayer() { return m_ImGuiLayer; }
+
 		inline ResourceManager& GetResourceManager() { return *m_RM; }
+
+		inline std::array<Handle<Texture>, 3>& GetTextureHandles() { return m_Textures; }
+		inline size_t GetTextureCount() { return m_Textures.size(); }
+
 		inline Handle<Buffer>& GetUniformBufferHandle() { return m_Uniforms; }
 		inline Handle<Buffer>& GetVertexBufferHandle() { return m_VertexBuffer; }
 		inline Handle<Buffer>& GetIndexBufferHandle() { return m_IndexBuffer; }

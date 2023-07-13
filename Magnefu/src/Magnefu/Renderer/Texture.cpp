@@ -7,18 +7,18 @@ namespace Magnefu
 {
 	
 
-	Texture::Texture(TextureDesc& desc)
+	Texture::Texture(const TextureDesc& desc)
 	{
 		
 	}
 
-	Texture* TextureFactory::CreateTexture(TextureDesc& desc)
+	Texture* TextureFactory::CreateTexture(const TextureDesc& desc)
 	{
 		switch (Renderer::GetAPI())
 		{
 			case RendererAPI::API::VULKAN:
 			{
-				return VulkanTexture(desc);
+				return new VulkanTexture(desc);
 			}
 
 			default:
