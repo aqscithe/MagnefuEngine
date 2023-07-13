@@ -121,14 +121,14 @@ namespace Magnefu
 		vkDestroyDescriptorSetLayout(m_VkDevice, m_ComputeDescriptorSetLayout, nullptr);
 
 
-		vkDestroySampler(m_VkDevice, m_TextureSampler, nullptr);
+		/*vkDestroySampler(m_VkDevice, m_TextureSampler, nullptr);
 
 		for (size_t i = 0; i < m_Textures.size(); i++)
 		{
 			vkDestroyImageView(m_VkDevice, m_Textures[i].ImageView, nullptr);
 			vkDestroyImage(m_VkDevice, m_Textures[i].Image, nullptr);
 			vkFreeMemory(m_VkDevice, m_Textures[i].Buffer, nullptr);
-		}
+		}*/
 
 		/*for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
 		{

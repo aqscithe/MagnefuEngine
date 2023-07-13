@@ -123,7 +123,9 @@ namespace Magnefu
 		inline const VkQueue& GetGraphicsQueue() const { return m_GraphicsQueue; }
 		inline const VkExtent2D& GetSwapChainExtent() const { return m_SwapChainExtent; }
 		inline const uint32_t GetCurrentFrame() const { return m_CurrentFrame; }
-		//inline uint32_t GetVerticesSize() const { return m_Vertices.size(); }
+		inline const VkPhysicalDeviceProperties GetDeviceProperties() const { return m_Properties; }
+		inline const VkPhysicalDeviceFeatures GetSupportedFeatures() const { return m_SupportedFeatures; }
+			//inline uintVkPhysicalDeviceFeatures  32_t GetVerticesSize() const { return m_Vertices.size(); }
 
 
 	private:
