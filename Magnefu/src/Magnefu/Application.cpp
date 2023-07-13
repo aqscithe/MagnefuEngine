@@ -34,16 +34,16 @@ namespace Magnefu
 
         m_VertexBuffer = m_RM->CreateBuffer({
             "VertexBuffer",
-            static_cast<uint64_t>(m_Vertices.GetSize()),
+            static_cast<uint64_t>(m_Vertices.data.size()),
             BufferUsage::USAGE_VERTEX,
-            m_Vertices
+            m_Vertices.span
         });
 
         m_IndexBuffer = m_RM->CreateBuffer({
             "IndexBuffer",
-            static_cast<uint64_t>(m_Indices.GetSize()),
+            static_cast<uint64_t>(m_Indices.data.size()),
             BufferUsage::USAGE_INDEX,
-            m_Indices
+            m_Indices.span
         });
 
         m_Uniforms = m_RM->CreateBuffer({   

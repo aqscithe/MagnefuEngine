@@ -230,6 +230,8 @@ namespace Magnefu
 		//CreateVertexBuffer();
 		//CreateIndexBuffer();
 		//CreateUniformBuffers();
+
+
 		CreateComputeUniformBuffers();
 		CreateDescriptorPool();
 		CreateComputeDescriptorPool();
@@ -1419,12 +1421,14 @@ namespace Magnefu
 				std::memcpy(alignedPtr, vertices.data(), bufferSize);
 
 				// Create the Span from the aligned memory
-				Span<const uint8_t> vertexDataSpan(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
+				//Span<const uint8_t> vertexDataSpan(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
+				DataBlock vertexBlock(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
 
 				// Now you can set InitData in BufferDesc with vertexDataSpan
 				// Note: Make sure original is not destroyed until you're done with vertexDataSpan
-				app.SetVertices(std::move(vertexDataSpan));
-				app.SetVertexData(std::move(vertexData));
+				//app.SetVertices(std::move(vertexDataSpan));
+				//app.SetVertexData(std::move(vertexData));
+				app.SetVertices(std::move(vertexBlock));
 			}
 			else
 			{
@@ -1432,9 +1436,8 @@ namespace Magnefu
 			}
 		}
 
-		Span<const uint8_t> indexDataSpan(reinterpret_cast<const uint8_t*>(indices.data()), indices.size() * sizeof(uint32_t));
-		app.SetIndices(std::move(indexDataSpan));
-		app.SetIndexData(std::move(indices));
+		DataBlock indexBlock(reinterpret_cast<const uint8_t*>(indices.data()), indices.size() * sizeof(uint32_t));
+		app.SetIndices(std::move(indexBlock));
 		
 		
 	}

@@ -299,17 +299,7 @@ namespace Magnefu
 
 		
 		// -- Shader Buffers (Uniforms, Indices, Vertices) -- //
-		//std::vector<Vertex>          m_Vertices;
-		//std::vector<uint32_t>        m_Indices;
-		/*VkBuffer                     m_VertexBuffer;
-		VkDeviceMemory               m_VertexBufferMemory;
-		VkBuffer                     m_IndexBuffer;
-		VkDeviceMemory               m_IndexBufferMemory;*/
 
-
-		//std::vector<VkBuffer>        m_UniformBuffers;
-		//std::vector<VkDeviceMemory>  m_UniformBuffersMemory;
-		//std::vector<void*>           m_UniformBuffersMapped;
 		VkDescriptorPool             m_DescriptorPool;
 		std::vector<VkDescriptorSet> m_DescriptorSets;
 

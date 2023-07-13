@@ -24,4 +24,28 @@ namespace Magnefu
         const T* m_Data;
         std::size_t m_Size;
     };
+
+
+    struct DataBlock 
+    {
+        DataBlock()
+            : span(Span<const uint8_t>()), data() {}
+
+        DataBlock(const void* ptr, std::size_t byteSize)
+        {
+            // Allocate the vector and copy the data
+            data.resize(byteSize);
+            std::memcpy(data.data(), ptr, byteSize);
+
+            // Initialize the span to cover the vector
+            span = Span<const uint8_t>(data.data(), byteSize);
+        }
+
+
+        std::vector<uint8_t> data;
+        Span<const uint8_t> span;
+
+        
+    };
+
 }
