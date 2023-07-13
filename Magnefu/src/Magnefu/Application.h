@@ -57,6 +57,8 @@ namespace Magnefu
 
 	public:
 
+		std::array<Handle<Texture>, 3> m_Textures;
+
 		Handle<Buffer>        m_Uniforms;
 		Handle<Buffer>        m_VertexBuffer;
 		Handle<Buffer>        m_IndexBuffer;

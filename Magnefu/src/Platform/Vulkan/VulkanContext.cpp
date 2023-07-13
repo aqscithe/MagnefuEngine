@@ -10,9 +10,6 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image/stb_image.h"
-
 #include "shaderc/shaderc.hpp"
 
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -39,12 +36,7 @@ namespace Magnefu
 	}
 
 	static const std::string MODEL_PATH = "res/meshes/corridor.obj";
-	static const std::string BASE_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_BaseColor.png";
-	static const std::string METAL_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Metalness.png";
-	static const std::string ROUGHNESS_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Roughness.png";
-	static const std::string NORMAL_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Normal.png";
-	static const std::string AO_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_AO.png";
-	static const std::string ARM_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_ARM.png";
+	
 
 
 	/*static const std::string MODEL_PATH = "res/meshes/Bronze_shield.obj";
@@ -67,15 +59,6 @@ namespace Magnefu
 
 	static const std::string SHADER_PATH = "res/shaders/Basic.shader";
 	static const std::string PARTICLE_SHADER_PATH = "res/shaders/Particles.shader";
-
-	static const std::array<std::string, 3> TEXTURE_PATHS { 
-		BASE_TEXTURE_PATH, 
-		ARM_TEXTURE_PATH,
-		//METAL_TEXTURE_PATH, 
-		//ROUGHNESS_TEXTURE_PATH, 
-		NORMAL_TEXTURE_PATH,
-		//AO_TEXTURE_PATH
-	};
 
 
 	static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
@@ -218,8 +201,8 @@ namespace Magnefu
 		CreateColorResources();
 		CreateDepthResources();
 		CreateFrameBuffers();
-		CreateTextures();
-		CreateTextureSampler();
+		//CreateTextures();
+		//CreateTextureSampler();
 		LoadModel();
 		
 
@@ -2629,107 +2612,100 @@ namespace Magnefu
 	}
 
 
-	void VulkanContext::CreateTextureImage(TextureInfo& texture)
-	{
-		int requestedChannels = 0;
+	//void VulkanContext::CreateTextureImage(TextureInfo& texture)
+	//{
+	//	int requestedChannels = 0;
 
-		stbi_set_flip_vertically_on_load(0);
-		texture.Tiling = VK_IMAGE_TILING_OPTIMAL;
-		switch (texture.Type)
-		{
-			case TextureType::DIFFUSE:
-			{
-				texture.Format = VK_FORMAT_R8G8B8A8_SRGB;
-				requestedChannels = STBI_rgb_alpha;
-				break;
-			}
+	//	stbi_set_flip_vertically_on_load(0);
+	//	texture.Tiling = VK_IMAGE_TILING_OPTIMAL;
+	//	switch (texture.Type)
+	//	{
+	//		case TextureType::DIFFUSE:
+	//		{
+	//			texture.Format = VK_FORMAT_R8G8B8A8_SRGB;
+	//			requestedChannels = STBI_rgb_alpha;
+	//			break;
+	//		}
 
-			// TODO: Update arm and normal to just use rgb in both format and requested channels 
-			case TextureType::ARM:
-			{
-				texture.Format = VK_FORMAT_R8G8B8A8_UNORM;
-				requestedChannels = STBI_rgb_alpha;
-				break;
-			}
+	//		// TODO: Update arm and normal to just use rgb in both format and requested channels 
+	//		case TextureType::ARM:
+	//		{
+	//			texture.Format = VK_FORMAT_R8G8B8A8_UNORM;
+	//			requestedChannels = STBI_rgb_alpha;
+	//			break;
+	//		}
 
-			case TextureType::NORMAL:
-			{
-				texture.Format = VK_FORMAT_R8G8B8A8_UNORM;
-				requestedChannels = STBI_rgb_alpha;
-				break;
-			}
+	//		case TextureType::NORMAL:
+	//		{
+	//			texture.Format = VK_FORMAT_R8G8B8A8_UNORM;
+	//			requestedChannels = STBI_rgb_alpha;
+	//			break;
+	//		}
 
-			/*case TextureType::AO || TextureType::ROUGHNESS || TextureType::METAL:
-			{
-				texture.Format = VK_FORMAT_R8_UNORM;
-				requestedChannels = STBI_grey;
-				break;
-			}*/
-
-			default:
-			{
-				MF_CORE_ASSERT(false, "CreateTextureImage - Unknown or unsupported texture type");
-			}
-			break;
-		}
+	//		default:
+	//		{
+	//			MF_CORE_ASSERT(false, "CreateTextureImage - Unknown or unsupported texture type");
+	//		}
+	//		break;
+	//	}
 
 
-		int width, height, channels;
-		stbi_uc* pixels = stbi_load(
-			TEXTURE_PATHS[static_cast<uint32_t>(texture.Type)].c_str(), 
-			&width, &height, &channels, 
-			requestedChannels
-		); // channels = BPP (bits per pixel)
+	//	int width, height, channels;
+	//	stbi_uc* pixels = stbi_load(
+	//		TEXTURE_PATHS[static_cast<uint32_t>(texture.Type)].c_str(), 
+	//		&width, &height, &channels, 
+	//		requestedChannels
+	//	); // channels = BPP (bits per pixel)
 
-		if (!pixels)
-			MF_CORE_ASSERT(false, "failed to load texture image!");
+	//	if (!pixels)
+	//		MF_CORE_ASSERT(false, "failed to load texture image!");
 
-		texture.MipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
+	//	texture.MipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
 
-		MF_CORE_DEBUG("Mip Levels: {0} | Width: {1} | Height: {2} | Channels: {3} | Requested Channels: {4}", texture.MipLevels, width, height, channels, requestedChannels);
+	//	MF_CORE_DEBUG("Mip Levels: {0} | Width: {1} | Height: {2} | Channels: {3} | Requested Channels: {4}", texture.MipLevels, width, height, channels, requestedChannels);
 
-		VkDeviceSize imageSize = width * height * requestedChannels;
+	//	VkDeviceSize imageSize = width * height * requestedChannels;
 
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
+	//	VkBuffer stagingBuffer;
+	//	VkDeviceMemory stagingBufferMemory;
 
-		CreateBuffer(
-			imageSize,
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			stagingBuffer,
-			stagingBufferMemory
-		);
+	//	CreateBuffer(
+	//		imageSize,
+	//		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+	//		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+	//		stagingBuffer,
+	//		stagingBufferMemory
+	//	);
 
-		void* data;
-		vkMapMemory(m_VkDevice, stagingBufferMemory, 0, imageSize, 0, &data);
-		memcpy(data, pixels, static_cast<size_t>(imageSize));
-		vkUnmapMemory(m_VkDevice, stagingBufferMemory);
+	//	void* data;
+	//	vkMapMemory(m_VkDevice, stagingBufferMemory, 0, imageSize, 0, &data);
+	//	memcpy(data, pixels, static_cast<size_t>(imageSize));
+	//	vkUnmapMemory(m_VkDevice, stagingBufferMemory);
 
-		stbi_image_free(pixels);
+	//	stbi_image_free(pixels);
 
-		CreateImage(
-			static_cast<uint32_t>(width),
-			static_cast<uint32_t>(height),
-			texture.MipLevels,
-			VK_SAMPLE_COUNT_1_BIT,
-			texture.Format,
-			VK_IMAGE_TYPE_2D,
-			texture.Tiling,
-			VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			texture.Image,
-			texture.Buffer
-		);
+	//	CreateImage(
+	//		static_cast<uint32_t>(width),
+	//		static_cast<uint32_t>(height),
+	//		texture.MipLevels,
+	//		VK_SAMPLE_COUNT_1_BIT,
+	//		texture.Format,
+	//		VK_IMAGE_TYPE_2D,
+	//		texture.Tiling,
+	//		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+	//		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+	//		texture.Image,
+	//		texture.Buffer
+	//	);
 
-		TransitionImageLayout(texture.Image, texture.Format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, texture.MipLevels);
-		CopyBufferToImage(stagingBuffer, texture.Image, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
-		//TransitionImageLayout(m_TextureImage, texture.Format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_MipLevels);
-		GenerateMipmaps(texture.Image, texture.Format, width, height, texture.MipLevels);
+	//	TransitionImageLayout(texture.Image, texture.Format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, texture.MipLevels);
+	//	CopyBufferToImage(stagingBuffer, texture.Image, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+	//	//TransitionImageLayout(m_TextureImage, texture.Format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_MipLevels);
+	//	GenerateMipmaps(texture.Image, texture.Format, width, height, texture.MipLevels);
 
-		vkDestroyBuffer(m_VkDevice, stagingBuffer, nullptr);
-		vkFreeMemory(m_VkDevice, stagingBufferMemory, nullptr);
-	}
+	//	vkDestroyBuffer(m_VkDevice, stagingBuffer, nullptr);
+	//	vkFreeMemory(m_VkDevice, stagingBufferMemory, nullptr);
+	//}
 
 	void VulkanContext::CreateTextureImageView(TextureInfo& texture)
 	{

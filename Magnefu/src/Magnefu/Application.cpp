@@ -14,6 +14,8 @@ namespace Magnefu
 
     Application* Application::s_Instance = nullptr;
 
+    
+
 	Application::Application()
 	{
         MF_PROFILE_FUNCTION();
@@ -31,6 +33,11 @@ namespace Magnefu
         GraphicsContext* GraphicsContext = m_Window->GetGraphicsContext();
 
         m_RM = Scope<ResourceManager>(ResourceManager::Create());
+
+        for (auto& textureHandle : m_Textures)
+        {
+            textureHandle = 
+        }
 
         m_VertexBuffer = m_RM->CreateBuffer({
             "VertexBuffer",

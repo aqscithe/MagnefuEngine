@@ -1,6 +1,9 @@
 #include "mfpch.h"
 #include "Buffer.h"
 #include "Platform/Vulkan/VulkanBuffer.h"
+#include "Magnefu/Core/Assertions.h"
+#include "Magnefu/Core/Log.h"
+#include "Renderer.h"
 
 namespace Magnefu
 {

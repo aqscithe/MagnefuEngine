@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Magnefu/Renderer/Buffer.h"
+#include "Magnefu/Renderer/Texture.h"
 #include "Pool.h"
 
 

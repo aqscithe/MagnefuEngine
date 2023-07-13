@@ -1,9 +1,5 @@
 #pragma once
 
-#include "Magnefu/Core/Assertions.h"
-#include "Magnefu/Core/Log.h"
-#include "Renderer.h"
-
 
 namespace Magnefu
 {

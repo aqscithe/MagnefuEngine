@@ -220,6 +220,8 @@ namespace Magnefu
 		
 		// Mip Maps
 		void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
+
+
 		VkSampleCountFlagBits GetMaxUsableSampleCount();
 		
 
@@ -309,8 +311,6 @@ namespace Magnefu
 
 		// -- Texture Info -- //
 
-		std::vector<TextureInfo>     m_Textures;  // assumption that any texture in this vector is PBR...maybe i should change the name
-		VkSampler                    m_TextureSampler;
 
 		// -- Image Buffers -- //
 

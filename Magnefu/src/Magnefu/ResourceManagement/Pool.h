@@ -1,5 +1,6 @@
 #pragma once
 #include "Magnefu/Renderer/Buffer.h"
+#include "Magnefu/Renderer/Texture.h"
 
 
 namespace Magnefu
@@ -18,6 +19,11 @@ namespace Magnefu
     class Pool
     {
     public:
+        Handle<Texture> Create()
+        {
+
+        }
+
         Handle<Buffer> Create(const BufferDesc& desc)
         {
             // Check if there are any free indices
