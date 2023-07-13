@@ -1399,44 +1399,42 @@ namespace Magnefu
 			}
 		}
 
-		size_t bufferSize = vertices.size() * sizeof(Vertex); // Buffer size
-		constexpr size_t alignment = 32; // Alignment requirement
+		Application& app = Application::Get();
 
-		// Allocate extra memory to accommodate alignment
-		std::unique_ptr<char[]> original(new char[bufferSize + alignment]);
-		void* ptr = original.get();
-		size_t space = bufferSize + alignment;
-
-		void* alignedPtr = std::align(alignment, bufferSize, ptr, space);
-		
-		if (alignedPtr != nullptr)
 		{
-			auto uintptr = reinterpret_cast<uintptr_t>(alignedPtr);
-			MF_CORE_ASSERT(uintptr % 32 == 0, "data not properly aligned");
+			size_t bufferSize = vertices.size() * sizeof(Vertex); // Buffer size
+			constexpr size_t alignment = 32; // Alignment requirement
 
-			// Copy the vertex data to the aligned memory
-			std::memcpy(alignedPtr, vertices.data(), bufferSize);
+			// Allocate extra memory to accommodate alignment
+			Scope<char[]> vertexData(new char[bufferSize + alignment]);
+			void* ptr = vertexData.get();
+			size_t space = bufferSize + alignment;
 
-			// Create the Span from the aligned memory
-			Span<const uint8_t> vertexDataSpan(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
+			void* alignedPtr = std::align(alignment, bufferSize, ptr, space);
 
-			// Now you can set InitData in BufferDesc with vertexDataSpan
-			// Note: Make sure original is not destroyed until you're done with vertexDataSpan
-			Application::Get().SetVertices(std::move(vertexDataSpan));
+
+			if (alignedPtr != nullptr)
+			{
+				// Copy the vertex data to the aligned memory
+				std::memcpy(alignedPtr, vertices.data(), bufferSize);
+
+				// Create the Span from the aligned memory
+				Span<const uint8_t> vertexDataSpan(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
+
+				// Now you can set InitData in BufferDesc with vertexDataSpan
+				// Note: Make sure original is not destroyed until you're done with vertexDataSpan
+				app.SetVertices(std::move(vertexDataSpan));
+				app.SetVertexData(std::move(vertexData));
+			}
+			else
+			{
+				MF_CORE_ASSERT(false, "Failed to properly align data.");
+			}
 		}
-		else
-		{
-			MF_CORE_ASSERT(false, "Failed to properly align data.");
-		}
 
-		
-		
-
-		/*Span<const uint8_t> vertexDataSpan(reinterpret_cast<const uint8_t*>(vertices.data()), vertices.size() * sizeof(Vertex));
 		Span<const uint8_t> indexDataSpan(reinterpret_cast<const uint8_t*>(indices.data()), indices.size() * sizeof(uint32_t));
-
-		Application::Get().SetVertices(std::move(vertexDataSpan));
-		Application::Get().SetIndices(std::move(indexDataSpan));*/
+		app.SetIndices(std::move(indexDataSpan));
+		app.SetIndexData(std::move(indices));
 		
 		
 	}
@@ -2802,7 +2800,6 @@ namespace Magnefu
 		VulkanUniformBuffer& uniformBuffer = static_cast<VulkanUniformBuffer&>(rm.GetBuffer(app.GetUniformBufferHandle()));
 		VulkanBuffer& vertexBuffer = static_cast<VulkanBuffer&>(rm.GetBuffer(app.GetVertexBufferHandle()));
 		VulkanBuffer& indexBuffer = static_cast<VulkanBuffer&>(rm.GetBuffer(app.GetIndexBufferHandle()));
-		uint32_t indexCount = app.GetIndexCount();
 
 		// GRAPHICS SUBMISSION //
 
@@ -2824,7 +2821,7 @@ namespace Magnefu
 
 		// Reset and Record Command Buffer - Game Objects
 		vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
-		RecordCommandBuffer(m_CommandBuffers[m_CurrentFrame], m_ImageIndex, vertexBuffer, indexBuffer, indexCount);
+		RecordCommandBuffer(m_CommandBuffers[m_CurrentFrame], m_ImageIndex, vertexBuffer, indexBuffer, app.GetIndexCount());
 
 		uniformBuffer.UpdateUniformBuffer();
 

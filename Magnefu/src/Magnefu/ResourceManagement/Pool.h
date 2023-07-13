@@ -52,7 +52,12 @@ namespace Magnefu
 
         T& Get(Handle<T> handle)
         {
-            MF_CORE_ASSERT(handle.Index < m_Resources.size() && handle.Generation == m_Generations[handle.Index], "Invalid Handle");
+            uint32_t handleIndex = handle.Index;
+            uint32_t resourcesSize = static_cast<uint32_t>(m_Resources.size());
+            uint32_t handleGeneration = static_cast<uint32_t>(handle.Generation);
+            uint32_t generationOfIndex = static_cast<uint32_t>(m_Generations[handle.Index]);
+
+            MF_CORE_ASSERT((handleIndex < resourcesSize)  &&  (handleGeneration == generationOfIndex), "Invalid Handle");
             return *m_Resources[handle.Index];
         }
 

@@ -192,7 +192,7 @@ namespace Magnefu
 
 	VkCommandBuffer VulkanBuffer::BeginSingleTimeCommands()
 	{
-		VulkanContext context = VulkanContext::Get();
+		VulkanContext& context = VulkanContext::Get();
 
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -214,7 +214,7 @@ namespace Magnefu
 
 	void VulkanBuffer::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
 	{
-		VulkanContext context = VulkanContext::Get();
+		VulkanContext& context = VulkanContext::Get();
 
 		vkEndCommandBuffer(commandBuffer);
 
