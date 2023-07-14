@@ -83,6 +83,11 @@ namespace Magnefu
             }
         }
 
+        Handle<BindGroup> Create(const BindGroupDesc& desc)
+        {
+
+        }
+
         T& Get(Handle<T> handle)
         {
             uint32_t handleIndex = handle.Index;

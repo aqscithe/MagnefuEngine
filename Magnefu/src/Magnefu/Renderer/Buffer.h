@@ -46,6 +46,13 @@ namespace Magnefu
         Span<const uint8_t> InitData;
 	};
 
+    const BufferDesc DefaultUniformBufferDesc = {
+        "UniformBuffer",
+        sizeof(UniformBufferObject),
+        BufferUsage::USAGE_UNIFORM,
+        {0}
+    };
+
     
 
     class Buffer

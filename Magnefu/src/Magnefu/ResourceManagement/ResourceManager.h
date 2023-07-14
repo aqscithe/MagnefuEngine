@@ -2,6 +2,7 @@
 
 #include "Magnefu/Renderer/Buffer.h"
 #include "Magnefu/Renderer/Texture.h"
+#include "Magnefu/Renderer/BindGroup.h"
 #include "Pool.h"
 
 
@@ -24,19 +25,23 @@ namespace Magnefu
 
 		Handle<Texture> CreateTexture(const TextureDesc&);
 		Handle<Buffer> CreateBuffer(const BufferDesc&);
+		Handle<BindGroup> CreateBindGroup(const BindGroupDesc&);
 
 		Texture& GetTexture(Handle<Texture>& handle);
 		Buffer& GetBuffer(Handle<Buffer>& handle);
+		BindGroup& GetBindGroup(Handle<BindGroup>& handle);
 
 		void DestroyTexture(Handle<Texture> handle);
 		void DestroyBuffer(Handle<Buffer> handle);
+		void DestroyBindGroup(Handle<BindGroup> handle);
 		//void destroyShader(Handle<Shader> handle);
-		//void destroyBindGroup(Handle<BindGroup> handle);
+		
 
 	private:
 		Pool<Texture> m_TexturePool;
 		Pool<Buffer> m_BufferPool;
+		Pool<BindGroup> m_BindGroupPool;
 		//Pool<Shader> shaderPool;
-		//Pool<BindGroup> bindGroupPool;
+		
 	};
 }

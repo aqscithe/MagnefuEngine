@@ -176,6 +176,7 @@
     <ClInclude Include="src\Magnefu\ImGui\ImGuiLayer.h" />
     <ClInclude Include="src\Magnefu\Layer.h" />
     <ClInclude Include="src\Magnefu\LayerStack.h" />
+    <ClInclude Include="src\Magnefu\Renderer\BindGroup.h" />
     <ClInclude Include="src\Magnefu\Renderer\Buffer.h" />
     <ClInclude Include="src\Magnefu\Renderer\Camera.h" />
     <ClInclude Include="src\Magnefu\Renderer\GraphicsContext.h" />
@@ -525,6 +526,7 @@
     <ClCompile Include="src\Magnefu\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\Magnefu\Layer.cpp" />
     <ClCompile Include="src\Magnefu\LayerStack.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\BindGroup.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Buffer.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Camera.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\GraphicsContext.cpp" />

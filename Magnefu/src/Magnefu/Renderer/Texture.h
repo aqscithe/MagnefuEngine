@@ -57,13 +57,39 @@ namespace Magnefu
 	struct TextureDesc
 	{
 		const char*         DebugName = nullptr;
-		//TextureDimensions   Dimensions;
 		TextureType         Type = TextureType::NONE;
 		TextureTiling       Tiling = TextureTiling::IMAGE_TILING_NONE;
 		TextureFormat       Format = TextureFormat::FORMAT_NONE;
 		TextureChannels     RequestedChannels = TextureChannels::CHANNELS_DEFAULT;
-		Span<const uint8_t> InitData;
+		//Span<const uint8_t> InitData;
 	};
+
+
+	// -- Pre-defined Texture Descriptions -- //
+	const TextureDesc DiffuseTextureDesc = {
+		"DiffuseTexture",
+		TextureType::DIFFUSE,
+		TextureTiling::IMAGE_TILING_OPTIMAL,
+		TextureFormat::FORMAT_R8G8B8A8_SRGB,
+		TextureChannels::CHANNELS_RGB_ALPHA,
+	};
+
+	const TextureDesc ARMTextureDesc = {
+		"ARMTexture",
+		TextureType::ARM,
+		TextureTiling::IMAGE_TILING_OPTIMAL,
+		TextureFormat::FORMAT_R8G8B8A8_UNORM,
+		TextureChannels::CHANNELS_RGB_ALPHA,
+	};
+
+	const TextureDesc NormalTextureDesc = {
+		"NormalTexture",
+		TextureType::NORMAL,
+		TextureTiling::IMAGE_TILING_OPTIMAL,
+		TextureFormat::FORMAT_R8G8B8A8_UNORM,
+		TextureChannels::CHANNELS_RGB_ALPHA
+	};
+
 
 	class Texture
 	{

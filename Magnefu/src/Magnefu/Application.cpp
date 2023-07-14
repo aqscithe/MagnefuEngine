@@ -34,33 +34,9 @@ namespace Magnefu
 
         m_RM = Scope<ResourceManager>(ResourceManager::Create());
 
-        m_Textures[0] = m_RM->CreateTexture({
-            "DiffuseTexture",
-            TextureType::DIFFUSE,
-            TextureTiling::IMAGE_TILING_OPTIMAL,
-            TextureFormat::FORMAT_R8G8B8A8_SRGB,
-            TextureChannels::CHANNELS_RGB_ALPHA,
-            {0}
-        });
-
-        m_Textures[1] = m_RM->CreateTexture({
-            "ARMTexture",
-            TextureType::ARM,
-            TextureTiling::IMAGE_TILING_OPTIMAL,
-            TextureFormat::FORMAT_R8G8B8A8_UNORM,
-            TextureChannels::CHANNELS_RGB_ALPHA,
-            {0}
-        });
-
-
-        m_Textures[2] = m_RM->CreateTexture({
-            "NormalTexture",
-            TextureType::NORMAL,
-            TextureTiling::IMAGE_TILING_OPTIMAL,
-            TextureFormat::FORMAT_R8G8B8A8_UNORM,
-            TextureChannels::CHANNELS_RGB_ALPHA,
-            {0}
-        });
+        m_Textures[0] = m_RM->CreateTexture(DiffuseTextureDesc);
+        m_Textures[1] = m_RM->CreateTexture(ARMTextureDesc);
+        m_Textures[2] = m_RM->CreateTexture(NormalTextureDesc);
 
 
         m_VertexBuffer = m_RM->CreateBuffer({
@@ -77,12 +53,7 @@ namespace Magnefu
             m_Indices.span
         });
 
-        m_Uniforms = m_RM->CreateBuffer({   
-            "UniformBuffer",
-            sizeof(UniformBufferObject),
-            BufferUsage::USAGE_UNIFORM,
-            {0}
-        });
+        m_Uniforms = m_RM->CreateBuffer(DefaultUniformBufferDesc);
 
         GraphicsContext->TempSecondaryInit();
 

@@ -18,6 +18,11 @@ namespace Magnefu
 		return m_BufferPool.Create(desc);
 	}
 
+	Handle<BindGroup> ResourceManager::CreateBindGroup(const BindGroupDesc&)
+	{
+		return m_BindGroupPool.Create(desc);
+	}
+
 	Texture& ResourceManager::GetTexture(Handle<Texture>& handle)
 	{
 		return m_TexturePool.Get(handle);
@@ -28,6 +33,11 @@ namespace Magnefu
 		return m_BufferPool.Get(handle);
 	}
 
+	BindGroup& ResourceManager::GetBindGroup(Handle<BindGroup>& handle)
+	{
+		return m_BindGroupPool.Get(handle);
+	}
+
 	void ResourceManager::DestroyTexture(Handle<Texture> handle)
 	{
 		m_TexturePool.Destroy(handle);
@@ -36,6 +46,11 @@ namespace Magnefu
 	void ResourceManager::DestroyBuffer(Handle<Buffer> handle)
 	{
 		m_BufferPool.Destroy(handle);
+	}
+
+	void ResourceManager::DestroyBindGroup(Handle<BindGroup> handle)
+	{
+		m_BindGroupPool.Destroy(handle);
 	}
 
 	
