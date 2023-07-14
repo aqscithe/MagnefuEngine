@@ -120,5 +120,124 @@ namespace Magnefu
 
 			vkFreeCommandBuffers(context.GetDevice(), context.GetCommandPool(), 1, &commandBuffer);
 		}
+
+
+		// TODO(async):
+	// All of the helper functions that submit commands so far have been set up to execute synchronously by waiting 
+	// for the queue to become idle. For practical applications it is recommended to combine these operations in a 
+	// single command buffer and execute them asynchronously for higher throughput, especially the transitions and 
+	// copy in the createTextureImage function. Try to experiment with this by creating a setupCommandBuffer that 
+	// the helper functions record commands into, and add a flushSetupCommands to execute the commands that have been 
+	// recorded so far. It's best to do this after the texture mapping works to check if the texture resources are 
+	// still set up correctly.
+
+		void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
+		{
+			VkDevice device = VulkanContext::Get().GetDevice();
+
+			VkPhysicalDeviceImageFormatInfo2 imageFormatInfo = {};
+			imageFormatInfo.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2;
+			imageFormatInfo.format = format;  // replace with the format you want to query
+			imageFormatInfo.type = imageType; // or whatever image type you're interested in
+			imageFormatInfo.tiling = tiling;
+			imageFormatInfo.usage = usage;
+			imageFormatInfo.flags = 0;
+
+			VkImageFormatProperties2 imageFormatProperties = {};
+			imageFormatProperties.sType = VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2;
+
+			if (vkGetPhysicalDeviceImageFormatProperties2(VulkanContext::Get().GetPhysicalDevice(), &imageFormatInfo, &imageFormatProperties) != VK_SUCCESS)
+				MF_CORE_ASSERT(false, "Image format w/ specified properties not supported!");
+
+			VkImageCreateInfo imageInfo{};
+			imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+			imageInfo.imageType = imageType;
+			imageInfo.extent.width = width;
+			imageInfo.extent.height = height;
+			imageInfo.extent.depth = 1;
+			imageInfo.mipLevels = mipLevels;
+			imageInfo.arrayLayers = 1;
+			imageInfo.format = format;
+			imageInfo.tiling = tiling;
+			imageInfo.usage = usage;
+			imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			imageInfo.samples = numSamples;
+			imageInfo.flags = 0; // Optional
+
+			if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS)
+				MF_CORE_ASSERT(false, "Failed to create image!");
+
+			VkMemoryRequirements memRequirements;
+			vkGetImageMemoryRequirements(device, image, &memRequirements);
+
+			VkMemoryAllocateInfo allocInfo{};
+			allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+			allocInfo.allocationSize = memRequirements.size;
+			allocInfo.memoryTypeIndex = VulkanCommon::FindMemoryType(memRequirements.memoryTypeBits, properties);
+
+			if (vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
+				MF_CORE_ASSERT(false, "Failed to allocate image memory!");
+
+			vkBindImageMemory(device, image, imageMemory, 0);
+		}
+
+		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
+		{
+			VkImageViewCreateInfo viewInfo{};
+			viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			viewInfo.image = image;
+			viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D; // VK_IMAGE_VIEW_TYPE_CUBE -> for cube map
+			viewInfo.format = format;
+			viewInfo.subresourceRange.aspectMask = aspectFlags;
+			viewInfo.subresourceRange.baseMipLevel = 0;
+			viewInfo.subresourceRange.levelCount = mipLevels;
+			viewInfo.subresourceRange.baseArrayLayer = 0;
+			viewInfo.subresourceRange.layerCount = 1;
+			viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+			viewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+			viewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+			viewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+
+
+			VkImageView imageView;
+			if (vkCreateImageView(VulkanContext::Get().GetDevice(), &viewInfo, nullptr, &imageView) != VK_SUCCESS)
+				MF_CORE_ASSERT(false, "Failed to create image or texture image view!");
+
+			return imageView;
+		}
+
+		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
+		{
+			VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+
+			VkBufferImageCopy region{};
+			region.bufferOffset = 0;
+			region.bufferRowLength = 0;
+			region.bufferImageHeight = 0;
+
+			region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			region.imageSubresource.mipLevel = 0;
+			region.imageSubresource.baseArrayLayer = 0;
+			region.imageSubresource.layerCount = 1;
+
+			region.imageOffset = { 0, 0, 0 };
+			region.imageExtent = {
+				width,
+				height,
+				1
+			};
+
+			vkCmdCopyBufferToImage(
+				commandBuffer,
+				buffer,
+				image,
+				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				1,
+				&region
+			);
+
+			EndSingleTimeCommands(commandBuffer);
+		}
 	}
 }

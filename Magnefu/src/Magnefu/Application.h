@@ -8,7 +8,6 @@
 #include "Magnefu/Core/Events/MouseEvent.h"
 #include "Magnefu/Core/Events/KeyEvent.h"
 #include "Magnefu/ResourceManagement/ResourceManager.h"
-#include "Magnefu/ResourceManagement/ResourceCache.h"
 #include "Magnefu/Core/MemoryAllocation/StackAllocator.h"
 #include "Magnefu/Core/MemoryAllocation/LinkedListAlloc.h"
 
@@ -34,7 +33,6 @@ namespace Magnefu
 		void PushOverlay(Layer* overlay);
 
 		inline Window& GetWindow() { return *m_Window; }
-		inline ResourceCache& GetResourceCache() { return *m_ResourceCache; }
 		inline TimeStep& GetTimeStep() { return m_TimeStep; }
 		inline ImGuiLayer* GetImGuiLayer() { return m_ImGuiLayer; }
 
@@ -76,7 +74,6 @@ namespace Magnefu
 		TimeStep m_TimeStep;
 		LayerStack m_LayerStack;
 		ImGuiLayer* m_ImGuiLayer;
-		Scope<ResourceCache> m_ResourceCache;
 		Scope<Window> m_Window;
 		Scope<ResourceManager> m_RM;
 

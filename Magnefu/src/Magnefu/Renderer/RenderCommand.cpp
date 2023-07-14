@@ -3,5 +3,5 @@
 
 namespace Magnefu
 {
-	//RendererAPI* RenderCommand::s_RendererAPI = new VKRendererAPI;
+	
 }

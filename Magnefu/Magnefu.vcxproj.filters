@@ -276,19 +276,7 @@
     <ClInclude Include="src\Magnefu\Renderer\Camera.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\Font.h">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\FrameBuffer.h">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\GraphicsContext.h">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\Light.h">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\Material.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h">
@@ -311,18 +299,6 @@
     </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\Texture.h">
       <Filter>src\Magnefu\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\Uniform.h">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\VertexArray.h">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\ResourceManagement\CacheableResource.h">
-      <Filter>src\Magnefu\ResourceManagement</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\ResourceManagement\ResourceCache.h">
-      <Filter>src\Magnefu\ResourceManagement</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Window.h">
       <Filter>src\Magnefu</Filter>
@@ -1329,16 +1305,7 @@
     <ClCompile Include="src\Magnefu\Renderer\Camera.cpp">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\FrameBuffer.cpp">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="src\Magnefu\Renderer\GraphicsContext.cpp">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\Light.cpp">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\Material.cpp">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Renderer\RenderCommand.cpp">
@@ -1358,12 +1325,6 @@
     </ClCompile>
     <ClCompile Include="src\Magnefu\Renderer\Texture.cpp">
       <Filter>src\Magnefu\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\VertexArray.cpp">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\ResourceManagement\ResourceCache.cpp">
-      <Filter>src\Magnefu\ResourceManagement</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\VulkanContext.cpp">
       <Filter>src\Platform\VK</Filter>

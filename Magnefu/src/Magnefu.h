@@ -29,7 +29,6 @@
 #include "Magnefu/Renderer/Buffer.h"
 #include "Magnefu/Renderer/Shader.h"
 #include "Magnefu/Renderer/Texture.h"
-#include "Magnefu/Renderer/Material.h"
 #include "Magnefu/Renderer/SceneCamera.h"
 #include "Magnefu/Renderer/GraphicsContext.h"
 //----------------------------------------

@@ -171,6 +171,9 @@ namespace Magnefu
 
 		CreateSwapChain();
 		CreateImageViews();
+
+
+		// The order of these function appears to be less important from this point forward
 		CreateRenderPass();
 		CreateDescriptorSetLayout();
 		CreateComputeDescriptorSetLayout();
@@ -506,7 +509,6 @@ namespace Magnefu
 		m_SwapChainImageFormat = surfaceFormat.format;
 		m_SwapChainExtent = extent;
 
-		//Application::Get().GetWindow().GetSceneCamera()->SetAspectRatio((float)m_SwapChainExtent.width / (float)m_SwapChainExtent.height);
 	}
 
 	void VulkanContext::CreateImageViews()
@@ -514,7 +516,7 @@ namespace Magnefu
 		m_SwapChainImageViews.resize(m_SwapChainImages.size());
 
 		for (size_t i = 0; i < m_SwapChainImages.size(); i++) {
-			m_SwapChainImageViews[i] = CreateImageView(m_SwapChainImages[i], m_SwapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+			m_SwapChainImageViews[i] = VulkanCommon::CreateImageView(m_SwapChainImages[i], m_SwapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 		}
 	}
 
@@ -622,28 +624,6 @@ namespace Magnefu
 		normalSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		normalSamplerLayoutBinding.pImmutableSamplers = nullptr;
 		normalSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-		/*VkDescriptorSetLayoutBinding metalSamplerLayoutBinding{};
-		metalSamplerLayoutBinding.binding = 2;
-		metalSamplerLayoutBinding.descriptorCount = 1;
-		metalSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		metalSamplerLayoutBinding.pImmutableSamplers = nullptr;
-		metalSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-		VkDescriptorSetLayoutBinding roughnessSamplerLayoutBinding{};
-		roughnessSamplerLayoutBinding.binding = 3;
-		roughnessSamplerLayoutBinding.descriptorCount = 1;
-		roughnessSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		roughnessSamplerLayoutBinding.pImmutableSamplers = nullptr;
-		roughnessSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;*/
-
-
-		/*VkDescriptorSetLayoutBinding ambientOcclusionSamplerLayoutBinding{};
-		ambientOcclusionSamplerLayoutBinding.binding = 5;
-		ambientOcclusionSamplerLayoutBinding.descriptorCount = 1;
-		ambientOcclusionSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		ambientOcclusionSamplerLayoutBinding.pImmutableSamplers = nullptr;
-		ambientOcclusionSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;*/
 
 		std::array<VkDescriptorSetLayoutBinding, 4> bindings = { 
 			uboLayoutBinding, 
@@ -1167,7 +1147,7 @@ namespace Magnefu
 	{
 		VkFormat colorFormat = m_SwapChainImageFormat;
 
-		CreateImage(
+		VulkanCommon::CreateImage(
 			m_SwapChainExtent.width, 
 			m_SwapChainExtent.height, 
 			1, m_MSAASamples, 
@@ -1180,14 +1160,14 @@ namespace Magnefu
 			m_ColorImageMemory
 		);
 
-		m_ColorImageView = CreateImageView(m_ColorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+		m_ColorImageView = VulkanCommon::CreateImageView(m_ColorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 	}
 
 	void VulkanContext::CreateDepthResources()
 	{
 		VkFormat depthFormat = FindDepthFormat();
 
-		CreateImage(
+		VulkanCommon::CreateImage(
 			m_SwapChainExtent.width, 
 			m_SwapChainExtent.height, 
 			1,
@@ -1201,7 +1181,7 @@ namespace Magnefu
 			m_DepthImageMemory
 		);
 
-		m_DepthImageView = CreateImageView(m_DepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
+		m_DepthImageView = VulkanCommon::CreateImageView(m_DepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 	}
 
 	void VulkanContext::LoadModel()
@@ -1444,7 +1424,7 @@ namespace Magnefu
 		{
 			// UBO
 			VkDescriptorBufferInfo bufferInfo{};
-			bufferInfo.buffer = uniformBuffer.GetBuffers()[i];   //m_UniformBuffers[i];
+			bufferInfo.buffer = uniformBuffer.GetBuffers()[i];
 			bufferInfo.offset = 0;
 			bufferInfo.range = sizeof(UniformBufferObject);
 			
@@ -2008,125 +1988,6 @@ namespace Magnefu
 		memcpy(m_ComputeUniformBuffersMapped[m_CurrentFrame], &ubo, sizeof(ubo));
 	}
 
-	void VulkanContext::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
-	{
-		VkPhysicalDeviceImageFormatInfo2 imageFormatInfo = {};
-		imageFormatInfo.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2;
-		imageFormatInfo.format = format;  // replace with the format you want to query
-		imageFormatInfo.type = imageType; // or whatever image type you're interested in
-		imageFormatInfo.tiling = tiling;
-		imageFormatInfo.usage = usage;
-		imageFormatInfo.flags = 0; 
-
-		VkImageFormatProperties2 imageFormatProperties = {};
-		imageFormatProperties.sType = VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2;
-
-		if (vkGetPhysicalDeviceImageFormatProperties2(m_VkPhysicalDevice, &imageFormatInfo, &imageFormatProperties) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "Image format w/ specified properties not supported!");
-
-		VkImageCreateInfo imageInfo{};
-		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageInfo.imageType = imageType;
-		imageInfo.extent.width = width;
-		imageInfo.extent.height = height;
-		imageInfo.extent.depth = 1;
-		imageInfo.mipLevels = mipLevels;
-		imageInfo.arrayLayers = 1;
-		imageInfo.format = format;
-		imageInfo.tiling = tiling;
-		imageInfo.usage = usage;
-		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		imageInfo.samples = numSamples;
-		imageInfo.flags = 0; // Optional
-
-		if (vkCreateImage(m_VkDevice, &imageInfo, nullptr, &image) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "Failed to create image!");
-
-		VkMemoryRequirements memRequirements;
-		vkGetImageMemoryRequirements(m_VkDevice, image, &memRequirements);
-
-		VkMemoryAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = VulkanCommon::FindMemoryType(memRequirements.memoryTypeBits, properties);
-
-		if (vkAllocateMemory(m_VkDevice, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "Failed to allocate image memory!");
-
-		vkBindImageMemory(m_VkDevice, image, imageMemory, 0);
-	}
-
-
-
-	// TODO(async):
-	// All of the helper functions that submit commands so far have been set up to execute synchronously by waiting 
-	// for the queue to become idle. For practical applications it is recommended to combine these operations in a 
-	// single command buffer and execute them asynchronously for higher throughput, especially the transitions and 
-	// copy in the createTextureImage function. Try to experiment with this by creating a setupCommandBuffer that 
-	// the helper functions record commands into, and add a flushSetupCommands to execute the commands that have been 
-	// recorded so far. It's best to do this after the texture mapping works to check if the texture resources are 
-	// still set up correctly.
-
-	
-
-	void VulkanContext::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
-	{
-		VkCommandBuffer commandBuffer = VulkanCommon::BeginSingleTimeCommands();
-
-		VkBufferImageCopy region{};
-		region.bufferOffset = 0;
-		region.bufferRowLength = 0;
-		region.bufferImageHeight = 0;
-
-		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		region.imageSubresource.mipLevel = 0;
-		region.imageSubresource.baseArrayLayer = 0;
-		region.imageSubresource.layerCount = 1;
-
-		region.imageOffset = { 0, 0, 0 };
-		region.imageExtent = {
-			width,
-			height,
-			1
-		};
-
-		vkCmdCopyBufferToImage(
-			commandBuffer,
-			buffer,
-			image,
-			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-			1,
-			&region
-		);
-
-		VulkanCommon::EndSingleTimeCommands(commandBuffer);
-	}
-
-	VkImageView VulkanContext::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
-	{
-		VkImageViewCreateInfo viewInfo{};
-		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		viewInfo.image = image;
-		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D; // VK_IMAGE_VIEW_TYPE_CUBE -> for cube map
-		viewInfo.format = format;
-		viewInfo.subresourceRange.aspectMask = aspectFlags;
-		viewInfo.subresourceRange.baseMipLevel = 0;
-		viewInfo.subresourceRange.levelCount = mipLevels;
-		viewInfo.subresourceRange.baseArrayLayer = 0;
-		viewInfo.subresourceRange.layerCount = 1;
-		viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-		viewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-		viewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-		viewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-
-
-		VkImageView imageView;
-		if (vkCreateImageView(m_VkDevice, &viewInfo, nullptr, &imageView) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "Failed to create image or texture image view!");
-
-		return imageView;
-	}
 
 	VkFormat VulkanContext::FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
 	{
