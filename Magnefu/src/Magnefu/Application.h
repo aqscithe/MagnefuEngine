@@ -38,10 +38,11 @@ namespace Magnefu
 
 		inline ResourceManager& GetResourceManager() { return *m_RM; }
 
-		inline std::array<Handle<Texture>, 3>& GetTextureHandles() { return m_Textures; }
-		inline size_t GetTextureCount() { return m_Textures.size(); }
+		//inline std::array<Handle<Texture>, 3>& GetTextureHandles() { return m_Textures; }
+		inline size_t GetTextureCount() { return sizeof(BindingTextureDescs) / sizeof(TextureDesc); }
+		inline Handle<BindGroup>& GetMaterialBindGroup() { return m_Material; }
 
-		inline Handle<Buffer>& GetUniformBufferHandle() { return m_Uniforms; }
+		//inline Handle<Buffer>& GetUniformBufferHandle() { return m_Uniforms; }
 		inline Handle<Buffer>& GetVertexBufferHandle() { return m_VertexBuffer; }
 		inline Handle<Buffer>& GetIndexBufferHandle() { return m_IndexBuffer; }
 		inline uint32_t GetIndexCount() { return static_cast<uint32_t>(m_Indices.data.size()) / sizeof(uint32_t); }
@@ -60,9 +61,9 @@ namespace Magnefu
 
 	public:
 
-		std::array<Handle<Texture>, 3> m_Textures;
-
-		Handle<Buffer>        m_Uniforms;
+		//std::array<Handle<Texture>, 3> m_Textures;
+		//Handle<Buffer>        m_Uniforms;
+		Handle<BindGroup>     m_Material;
 		Handle<Buffer>        m_VertexBuffer;
 		Handle<Buffer>        m_IndexBuffer;
 		DataBlock   m_Vertices;

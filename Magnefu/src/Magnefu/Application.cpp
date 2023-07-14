@@ -34,9 +34,16 @@ namespace Magnefu
 
         m_RM = Scope<ResourceManager>(ResourceManager::Create());
 
-        m_Textures[0] = m_RM->CreateTexture(DiffuseTextureDesc);
-        m_Textures[1] = m_RM->CreateTexture(ARMTextureDesc);
-        m_Textures[2] = m_RM->CreateTexture(NormalTextureDesc);
+        //m_Textures[0] = m_RM->CreateTexture(DiffuseTextureDesc);
+        //m_Textures[1] = m_RM->CreateTexture(ARMTextureDesc);
+        //m_Textures[2] = m_RM->CreateTexture(NormalTextureDesc);
+
+        m_Material = m_RM->CreateBindGroup({
+            "SciFi Corridor",
+            MaterialBindingLayout(),
+            {DiffuseTextureDesc, ARMTextureDesc, NormalTextureDesc},
+            {DefaultUniformBufferDesc}
+        });
 
 
         m_VertexBuffer = m_RM->CreateBuffer({
@@ -53,7 +60,7 @@ namespace Magnefu
             m_Indices.span
         });
 
-        m_Uniforms = m_RM->CreateBuffer(DefaultUniformBufferDesc);
+        //m_Uniforms = m_RM->CreateBuffer(DefaultUniformBufferDesc);
 
         GraphicsContext->TempSecondaryInit();
 

@@ -1250,6 +1250,7 @@
     <ClInclude Include="src\Platform\Vulkan\VulkanCommon.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanTexture.h" />
     <ClInclude Include="src\Magnefu\Renderer\BindGroup.h" />
+    <ClInclude Include="src\Platform\Vulkan\VulkanBindGroup.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application.cpp">
@@ -1372,5 +1373,6 @@
     <ClCompile Include="src\Platform\Vulkan\VulkanCommon.cpp" />
     <ClCompile Include="src\Platform\Vulkan\VulkanTexture.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\BindGroup.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\VulkanBindGroup.cpp" />
   </ItemGroup>
 </Project>

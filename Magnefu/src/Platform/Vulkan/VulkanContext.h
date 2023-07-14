@@ -143,7 +143,7 @@ namespace Magnefu
 		void CreateSwapChain();
 		void CreateImageViews();
 		void CreateRenderPass();
-		void CreateDescriptorSetLayout();
+		//void CreateDescriptorSetLayout();
 		void CreateComputeDescriptorSetLayout();
 		void CreateGraphicsPipeline();
 		void CreateParticleGraphicsPipeline();
@@ -156,9 +156,9 @@ namespace Magnefu
 		void LoadModel();
 
 		void CreateComputeUniformBuffers();
-		void CreateDescriptorPool();
+		//void CreateDescriptorPool();
 		void CreateComputeDescriptorPool();
-		void CreateDescriptorSets();
+		//void CreateDescriptorSets();
 		void CreateComputeDescriptorSets();
 		void CreateCommandBuffers();
 		void CreateComputeCommandBuffers();
@@ -258,7 +258,7 @@ namespace Magnefu
 
 		// -- Render Pass and Pipeline Primitives -- //
 		VkRenderPass                 m_RenderPass;
-		VkDescriptorSetLayout        m_DescriptorSetLayout;
+		//VkDescriptorSetLayout        m_DescriptorSetLayout;
 		ShaderList                   m_ParticleShaderList;
 		VkPipelineLayout             m_PipelineLayout;
 		VkPipeline                   m_GraphicsPipeline;
@@ -277,8 +277,8 @@ namespace Magnefu
 		
 		// -- Shader Buffers (Uniforms, Indices, Vertices) -- //
 
-		VkDescriptorPool             m_DescriptorPool;
-		std::vector<VkDescriptorSet> m_DescriptorSets;
+		//VkDescriptorPool             m_DescriptorPool;
+		//std::vector<VkDescriptorSet> m_DescriptorSets;
 
 		// -- Mip Map Info -- //
 		VkSampleCountFlagBits        m_MSAASamples = VK_SAMPLE_COUNT_1_BIT;

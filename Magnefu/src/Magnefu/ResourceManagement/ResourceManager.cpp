@@ -18,7 +18,7 @@ namespace Magnefu
 		return m_BufferPool.Create(desc);
 	}
 
-	Handle<BindGroup> ResourceManager::CreateBindGroup(const BindGroupDesc&)
+	Handle<BindGroup> ResourceManager::CreateBindGroup(const BindGroupDesc& desc)
 	{
 		return m_BindGroupPool.Create(desc);
 	}

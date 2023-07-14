@@ -1,6 +1,7 @@
 #include "mfpch.h"
 #include "BindGroup.h"
-
+#include "Renderer.h"
+#include "Platform/Vulkan/VulkanBindGroup.h"
 
 namespace Magnefu
 {
@@ -16,6 +17,19 @@ namespace Magnefu
 
     BindGroup* BindGroupFactory::CreateBindGroup(const BindGroupDesc& desc)
     {
-        return nullptr;
+        switch (Renderer::GetAPI())
+        {
+
+            case RendererAPI::API::VULKAN:
+            {
+                return new VulkanBindGroup(desc);
+            }
+
+            default:
+            {
+                MF_CORE_ASSERT(false, "BIND GROUP - Unknown Renderer API");
+                return nullptr;
+            }
+        }
     }
 }
