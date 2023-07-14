@@ -182,8 +182,6 @@ namespace Magnefu
 		CreateColorResources();
 		CreateDepthResources();
 		CreateFrameBuffers();
-		//CreateTextures();
-		//CreateTextureSampler();
 		LoadModel();
 		
 
@@ -191,11 +189,6 @@ namespace Magnefu
 
 	void VulkanContext::TempSecondaryInit()
 	{
-		//CreateVertexBuffer();
-		//CreateIndexBuffer();
-		//CreateUniformBuffers();
-
-
 		CreateComputeUniformBuffers();
 		CreateDescriptorPool();
 		CreateComputeDescriptorPool();
@@ -1049,7 +1042,7 @@ namespace Magnefu
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;
 
-		CreateBuffer(
+		VulkanCommon::CreateBuffer(
 			bufferSize,
 			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -1064,7 +1057,7 @@ namespace Magnefu
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			CreateBuffer(
+			VulkanCommon::CreateBuffer(
 				bufferSize,
 				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -1073,7 +1066,7 @@ namespace Magnefu
 			);
 
 			// Copy data from the staging buffer (host) to the shader storage buffer (GPU)
-			CopyBuffer(stagingBuffer, m_ShaderStorageBuffers[i], bufferSize);
+			VulkanCommon::CopyBuffer(stagingBuffer, m_ShaderStorageBuffers[i], bufferSize);
 		}
 
 		std::array<VkDescriptorSetLayoutBinding, 3> layoutBindings{};
@@ -1210,58 +1203,6 @@ namespace Magnefu
 
 		m_DepthImageView = CreateImageView(m_DepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 	}
-
-	//void VulkanContext::CreateTextures()
-	//{
-	//	m_Textures.resize(TEXTURE_PATHS.size());
-	//	//for (size_t i = 0; i < m_Textures.size(); i++)
-	//	//{
-	//	//	m_Textures[i].Type = static_cast<TextureType>(i);
-	//	//}
-	//	m_Textures[0].Type = TextureType::DIFFUSE;
-	//	m_Textures[1].Type = TextureType::ARM;
-	//	m_Textures[2].Type = TextureType::NORMAL;
-
-	//	for (auto& texture : m_Textures)
-	//		CreateTextureImage(texture);
-
-	//	for (auto& texture : m_Textures)
-	//		CreateTextureImageView(texture);
-	//}
-
-	//void VulkanContext::CreateTextureSampler()
-	//{
-	//	VkSamplerCreateInfo samplerInfo{};
-	//	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	//	samplerInfo.magFilter = VK_FILTER_LINEAR;
-	//	samplerInfo.minFilter = VK_FILTER_LINEAR;
-	//	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	//	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	//	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-
-	//	if (m_SupportedFeatures.samplerAnisotropy)
-	//	{
-	//		samplerInfo.anisotropyEnable = VK_TRUE;
-	//		samplerInfo.maxAnisotropy = m_Properties.limits.maxSamplerAnisotropy;
-	//	}
-	//	else
-	//	{
-	//		samplerInfo.anisotropyEnable = VK_FALSE;
-	//		samplerInfo.maxAnisotropy = 1.0f;
-	//	}
-	//	
-	//	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-	//	samplerInfo.unnormalizedCoordinates = VK_FALSE;
-	//	samplerInfo.compareEnable = VK_FALSE;
-	//	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-	//	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-	//	samplerInfo.minLod = 0.0f; // Optional
-	//	samplerInfo.maxLod = static_cast<float>(m_Textures[0].MipLevels); // all pbr textures of the same mesh should have the same dimensions and thus equal miplevels
-	//	samplerInfo.mipLodBias = 0.0f; // Optional
-
-	//	if (vkCreateSampler(m_VkDevice, &samplerInfo, nullptr, &m_TextureSampler) != VK_SUCCESS)
-	//		MF_CORE_ASSERT(false, "failed to create texture sampler!");
-	//}
 
 	void VulkanContext::LoadModel()
 	{
@@ -1406,105 +1347,6 @@ namespace Magnefu
 		
 	}
 
-	//void VulkanContext::CreateVertexBuffer()
-	//{
-	//	// TODO:
-	//	// The previous chapter already mentioned that you should allocate multiple resources like 
-	//	// buffers from a single memory allocation, but in fact you should go a step further. Driver 
-	//	// developers recommend that you also store multiple buffers, like the vertex and index 
-	//	// buffer, into a single VkBuffer and use offsets in commands like vkCmdBindVertexBuffers. 
-	//	// The advantage is that your data is more cache friendly in that case, because it's closer 
-	//	// together. It is even possible to reuse the same chunk of memory for multiple resources 
-	//	// if they are not used during the same render operations, provided that their data is 
-	//	// refreshed, of course. This is known as aliasing and some Vulkan functions have explicit 
-	//	 // flags to specify that you want to do this.
-	//	
-	//	VkDeviceSize bufferSize = static_cast<uint64_t>(sizeof(m_Vertices[0]) * m_Vertices.size());
-
-	//	VkBuffer stagingBuffer;
-	//	VkDeviceMemory stagingBufferMemory;
-
-	//	CreateBuffer(
-	//		bufferSize, 
-	//		VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
-	//		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-	//		stagingBuffer, 
-	//		stagingBufferMemory
-	//	);
-
-	//	void* data;
-	//	vkMapMemory(m_VkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-	//	memcpy(data, m_Vertices.data(), (size_t)bufferSize);
-	//	vkUnmapMemory(m_VkDevice, stagingBufferMemory);
-
-	//	CreateBuffer(
-	//		bufferSize,
-	//		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-	//		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-	//		m_VertexBuffer,
-	//		m_VertexBufferMemory
-	//	);
-
-	//	CopyBuffer(stagingBuffer, m_VertexBuffer, bufferSize);
-
-	//	vkDestroyBuffer(m_VkDevice, stagingBuffer, nullptr);
-	//	vkFreeMemory(m_VkDevice, stagingBufferMemory, nullptr);
-	//}
-
-	//void VulkanContext::CreateIndexBuffer()
-	//{
-	//	VkDeviceSize bufferSize = sizeof(m_Indices[0]) * m_Indices.size();
-
-	//	VkBuffer stagingBuffer;
-	//	VkDeviceMemory stagingBufferMemory;
-	//	CreateBuffer(
-	//		bufferSize, 
-	//		VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
-	//		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-	//		stagingBuffer, 
-	//		stagingBufferMemory
-	//	);
-
-	//	void* data;
-	//	vkMapMemory(m_VkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-	//	memcpy(data, m_Indices.data(), (size_t)bufferSize);
-	//	vkUnmapMemory(m_VkDevice, stagingBufferMemory);
-
-	//	CreateBuffer(
-	//		bufferSize, 
-	//		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 
-	//		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
-	//		m_IndexBuffer, 
-	//		m_IndexBufferMemory
-	//	);
-
-	//	CopyBuffer(stagingBuffer, m_IndexBuffer, bufferSize);
-
-	//	vkDestroyBuffer(m_VkDevice, stagingBuffer, nullptr);
-	//	vkFreeMemory(m_VkDevice, stagingBufferMemory, nullptr);
-	//}
-
-	/*void VulkanContext::CreateUniformBuffers()
-	{
-		VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-
-		m_UniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-		m_UniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-		m_UniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
-
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			CreateBuffer(
-				bufferSize, 
-				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
-				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-				m_UniformBuffers[i], 
-				m_UniformBuffersMemory[i]
-			);
-
-			vkMapMemory(m_VkDevice, m_UniformBuffersMemory[i], 0, bufferSize, 0, &m_UniformBuffersMapped[i]);
-		}
-	}*/
-
 	void VulkanContext::CreateComputeUniformBuffers()
 	{
 		VkDeviceSize bufferSize = sizeof(ParticleUniformBufferObject);
@@ -1514,7 +1356,7 @@ namespace Magnefu
 		m_ComputeUniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			CreateBuffer(
+			VulkanCommon::CreateBuffer(
 				bufferSize, 
 				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
@@ -1880,12 +1722,6 @@ namespace Magnefu
 			m_Properties = deviceProperties;
 
 			MF_CORE_DEBUG("Max Push Constant Size: {}", m_Properties.limits.maxPushConstantsSize);
-
-
-			//MF_CORE_DEBUG("Renderer Info: ");
-			//MF_CORE_DEBUG("\tVersion: {}", m_RendererInfo.Version);
-			//MF_CORE_DEBUG("\tVendor: {}", m_RendererInfo.Vendor);
-			//MF_CORE_DEBUG("\tRenderer: {}", m_RendererInfo.Renderer);
 			return true;
 		}
 
@@ -2162,95 +1998,6 @@ namespace Magnefu
 		vkDestroySwapchainKHR(m_VkDevice, m_SwapChain, nullptr);
 	}
 
-	uint32_t VulkanContext::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
-	{
-		VkPhysicalDeviceMemoryProperties memProperties;
-		vkGetPhysicalDeviceMemoryProperties(m_VkPhysicalDevice, &memProperties);
-
-		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-			if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-				return i;
-			}
-		}
-
-		MF_CORE_ASSERT(false, "failed to find suitable memory type!");
-
-		return 0;
-	}
-
-	void VulkanContext::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
-	{
-
-		VkBufferCreateInfo bufferInfo{};
-		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = size;
-		bufferInfo.usage = usage;
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		//bufferInfo.flags = 
-
-		if (vkCreateBuffer(m_VkDevice, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "failed to create vertex buffer!");
-
-		VkMemoryRequirements memRequirements;
-		vkGetBufferMemoryRequirements(m_VkDevice, buffer, &memRequirements);
-
-		VkMemoryAllocateInfo memAllocInfo{};
-		memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		memAllocInfo.allocationSize = memRequirements.size;
-		memAllocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
-
-		// TODO:
-		// It should be noted that in a real world application, you're not supposed to actually call
-		// vkAllocateMemory for every individual buffer. The maximum number of simultaneous memory 
-		// allocations is limited by the maxMemoryAllocationCount physical device limit, which may 
-		// be as low as 4096 even on high end hardware like an NVIDIA GTX 1080. The right way to 
-		// allocate memory for a large number of objects at the same time is to create a custom 
-		// allocator that splits up a single allocation among many different objects by using the 
-		// offset parameters that we've seen in many functions.
-
-		// You can either implement such an allocator yourself, or use the VulkanMemoryAllocator 
-		// library provided by the GPUOpen initiative.However, for this tutorial it's okay to use a 
-		// separate allocation for every resource, because we won't come close to hitting any of 
-		// these limits for now.
-		if (vkAllocateMemory(m_VkDevice, &memAllocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "failed to allocate vertex buffer memory!");
-
-		vkBindBufferMemory(m_VkDevice, buffer, bufferMemory, 0);
-	}
-
-	void VulkanContext::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
-	{
-		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
-		
-		VkBufferCopy copyRegion{};
-		copyRegion.srcOffset = 0; // Optional
-		copyRegion.dstOffset = 0; // Optional
-		copyRegion.size = size;
-		vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
-
-		EndSingleTimeCommands(commandBuffer);
-	}
-
-	//void VulkanContext::UpdateUniformBuffer()
-	//{
-	//	/*static auto startTime = std::chrono::high_resolution_clock::now();
-
-	//	auto currentTime = std::chrono::high_resolution_clock::now();
-	//	float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();*/
-
-	//	auto& camera = Application::Get().GetWindow().GetSceneCamera();
-	//	camera->SetAspectRatio((float)m_SwapChainExtent.width / (float)m_SwapChainExtent.height);
-	//	
-	//	UniformBufferObject ubo{};
-	//	//ubo.model = Maths::Quaternion::CalculateRotationMatrix(time * 45.f, Maths::vec3(0.0f, 1.0f, 0.0f));
-	//	ubo.model = Maths::Quaternion::CalculateRotationMatrix(0.f, Maths::vec3(0.0f, 1.0f, 0.0f));
-	//	ubo.view = camera->CalculateView();
-	//	ubo.proj = camera->CalculateProjection();
-
-	//	ubo.proj.c[1].e[1] *= -1;
-
-	//	memcpy(m_UniformBuffersMapped[m_CurrentFrame], &ubo, sizeof(ubo));
-	//}
 
 	void VulkanContext::UpdateComputeUniformBuffer()
 	{
@@ -2301,53 +2048,12 @@ namespace Magnefu
 		VkMemoryAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
+		allocInfo.memoryTypeIndex = VulkanCommon::FindMemoryType(memRequirements.memoryTypeBits, properties);
 
 		if (vkAllocateMemory(m_VkDevice, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "Failed to allocate image memory!");
 
 		vkBindImageMemory(m_VkDevice, image, imageMemory, 0);
-	}
-
-	VkCommandBuffer VulkanContext::BeginSingleTimeCommands()
-	{
-		VkCommandBufferAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandPool = m_CommandPool;
-		allocInfo.commandBufferCount = 1;
-
-		VkCommandBuffer commandBuffer;
-		vkAllocateCommandBuffers(m_VkDevice, &allocInfo, &commandBuffer);
-
-		VkCommandBufferBeginInfo beginInfo{};
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-		vkBeginCommandBuffer(commandBuffer, &beginInfo);
-
-		return commandBuffer;
-	}
-
-	void VulkanContext::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
-	{
-		vkEndCommandBuffer(commandBuffer);
-
-		VkSubmitInfo submitInfo{};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &commandBuffer;
-
-		vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-
-		//A fence would allow you to schedule multiple transfers simultaneously
-		// and wait for all of them complete, instead of executing one at a time.
-		// That may give the driver more opportunities to optimize.
-		// 
-		//vkWaitForFences()
-		vkQueueWaitIdle(m_GraphicsQueue);
-
-		vkFreeCommandBuffers(m_VkDevice, m_CommandPool, 1, &commandBuffer);
 	}
 
 
@@ -2361,64 +2067,11 @@ namespace Magnefu
 	// recorded so far. It's best to do this after the texture mapping works to check if the texture resources are 
 	// still set up correctly.
 
-	void VulkanContext::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels)
-	{
-		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
-
-		VkImageMemoryBarrier barrier{};
-		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		barrier.oldLayout = oldLayout;
-		barrier.newLayout = newLayout;
-		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.image = image;
-		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		barrier.subresourceRange.baseMipLevel = 0;
-		barrier.subresourceRange.levelCount = mipLevels;
-		barrier.subresourceRange.baseArrayLayer = 0;
-		barrier.subresourceRange.layerCount = 1;
-		barrier.srcAccessMask = 0;
-		barrier.dstAccessMask = 0;
-
-		VkPipelineStageFlags sourceStage;
-		VkPipelineStageFlags destinationStage;
-
-		if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) 
-		{
-			barrier.srcAccessMask = 0;
-			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-			destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-		}
-		else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) 
-		{
-			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-			sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-		}
-		else 
-		{
-			MF_CORE_ASSERT(false, "unsupported layout transition!");
-		}
-
-		vkCmdPipelineBarrier(
-			commandBuffer,
-			sourceStage, destinationStage,
-			0,
-			0, nullptr,
-			0, nullptr,
-			1, &barrier
-		);
-
-		EndSingleTimeCommands(commandBuffer);
-	}
+	
 
 	void VulkanContext::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
 	{
-		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+		VkCommandBuffer commandBuffer = VulkanCommon::BeginSingleTimeCommands();
 
 		VkBufferImageCopy region{};
 		region.bufferOffset = 0;
@@ -2446,7 +2099,7 @@ namespace Magnefu
 			&region
 		);
 
-		EndSingleTimeCommands(commandBuffer);
+		VulkanCommon::EndSingleTimeCommands(commandBuffer);
 	}
 
 	VkImageView VulkanContext::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
@@ -2505,199 +2158,7 @@ namespace Magnefu
 		return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 	}
 
-	void VulkanContext::GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels)
-	{
-		// Check if image format supports linear blitting(linear filtering)
-		VkFormatProperties formatProperties;
-		vkGetPhysicalDeviceFormatProperties(m_VkPhysicalDevice, imageFormat, &formatProperties);
-
-		if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)) {
-			throw std::runtime_error("texture image format does not support linear blitting!");
-		}
-
-		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
-
-		VkImageMemoryBarrier barrier{};
-		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		barrier.image = image;
-		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		barrier.subresourceRange.baseArrayLayer = 0;
-		barrier.subresourceRange.layerCount = 1;
-		barrier.subresourceRange.levelCount = 1;
-
 	
-		int32_t mipWidth = texWidth;
-		int32_t mipHeight = texHeight;
-
-		for (uint32_t i = 1; i < mipLevels; i++) 
-		{
-			barrier.subresourceRange.baseMipLevel = i - 1;
-			barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-			barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-			barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-
-			vkCmdPipelineBarrier(
-				commandBuffer,
-				VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
-				0, nullptr,
-				0, nullptr,
-				1, &barrier
-			);
-
-			VkImageBlit blit{};
-			blit.srcOffsets[0] = { 0, 0, 0 };
-			blit.srcOffsets[1] = { mipWidth, mipHeight, 1 };
-			blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			blit.srcSubresource.mipLevel = i - 1;
-			blit.srcSubresource.baseArrayLayer = 0;
-			blit.srcSubresource.layerCount = 1;
-			blit.dstOffsets[0] = { 0, 0, 0 };
-			blit.dstOffsets[1] = { mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1 };
-			blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			blit.dstSubresource.mipLevel = i;
-			blit.dstSubresource.baseArrayLayer = 0;
-			blit.dstSubresource.layerCount = 1;
-			
-			vkCmdBlitImage(commandBuffer,
-				image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-				image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-				1, &blit,
-				VK_FILTER_LINEAR);
-
-			barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-			barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-			vkCmdPipelineBarrier(commandBuffer,
-				VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
-				0, nullptr,
-				0, nullptr,
-				1, &barrier);
-
-			if (mipWidth > 1) mipWidth /= 2;
-			if (mipHeight > 1) mipHeight /= 2;
-		}
-
-		barrier.subresourceRange.baseMipLevel = mipLevels - 1;
-		barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-		vkCmdPipelineBarrier(commandBuffer,
-			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
-			0, nullptr,
-			0, nullptr,
-			1, &barrier);
-
-		EndSingleTimeCommands(commandBuffer);
-
-	}
-
-
-	//void VulkanContext::CreateTextureImage(TextureInfo& texture)
-	//{
-	//	int requestedChannels = 0;
-
-	//	stbi_set_flip_vertically_on_load(0);
-	//	texture.Tiling = VK_IMAGE_TILING_OPTIMAL;
-	//	switch (texture.Type)
-	//	{
-	//		case TextureType::DIFFUSE:
-	//		{
-	//			texture.Format = VK_FORMAT_R8G8B8A8_SRGB;
-	//			requestedChannels = STBI_rgb_alpha;
-	//			break;
-	//		}
-
-	//		// TODO: Update arm and normal to just use rgb in both format and requested channels 
-	//		case TextureType::ARM:
-	//		{
-	//			texture.Format = VK_FORMAT_R8G8B8A8_UNORM;
-	//			requestedChannels = STBI_rgb_alpha;
-	//			break;
-	//		}
-
-	//		case TextureType::NORMAL:
-	//		{
-	//			texture.Format = VK_FORMAT_R8G8B8A8_UNORM;
-	//			requestedChannels = STBI_rgb_alpha;
-	//			break;
-	//		}
-
-	//		default:
-	//		{
-	//			MF_CORE_ASSERT(false, "CreateTextureImage - Unknown or unsupported texture type");
-	//		}
-	//		break;
-	//	}
-
-
-	//	int width, height, channels;
-	//	stbi_uc* pixels = stbi_load(
-	//		TEXTURE_PATHS[static_cast<uint32_t>(texture.Type)].c_str(), 
-	//		&width, &height, &channels, 
-	//		requestedChannels
-	//	); // channels = BPP (bits per pixel)
-
-	//	if (!pixels)
-	//		MF_CORE_ASSERT(false, "failed to load texture image!");
-
-	//	texture.MipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
-
-	//	MF_CORE_DEBUG("Mip Levels: {0} | Width: {1} | Height: {2} | Channels: {3} | Requested Channels: {4}", texture.MipLevels, width, height, channels, requestedChannels);
-
-	//	VkDeviceSize imageSize = width * height * requestedChannels;
-
-	//	VkBuffer stagingBuffer;
-	//	VkDeviceMemory stagingBufferMemory;
-
-	//	CreateBuffer(
-	//		imageSize,
-	//		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-	//		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-	//		stagingBuffer,
-	//		stagingBufferMemory
-	//	);
-
-	//	void* data;
-	//	vkMapMemory(m_VkDevice, stagingBufferMemory, 0, imageSize, 0, &data);
-	//	memcpy(data, pixels, static_cast<size_t>(imageSize));
-	//	vkUnmapMemory(m_VkDevice, stagingBufferMemory);
-
-	//	stbi_image_free(pixels);
-
-	//	CreateImage(
-	//		static_cast<uint32_t>(width),
-	//		static_cast<uint32_t>(height),
-	//		texture.MipLevels,
-	//		VK_SAMPLE_COUNT_1_BIT,
-	//		texture.Format,
-	//		VK_IMAGE_TYPE_2D,
-	//		texture.Tiling,
-	//		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-	//		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-	//		texture.Image,
-	//		texture.Buffer
-	//	);
-
-	//	TransitionImageLayout(texture.Image, texture.Format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, texture.MipLevels);
-	//	CopyBufferToImage(stagingBuffer, texture.Image, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
-	//	//TransitionImageLayout(m_TextureImage, texture.Format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_MipLevels);
-	//	GenerateMipmaps(texture.Image, texture.Format, width, height, texture.MipLevels);
-
-	//	vkDestroyBuffer(m_VkDevice, stagingBuffer, nullptr);
-	//	vkFreeMemory(m_VkDevice, stagingBufferMemory, nullptr);
-	//}
-
-	//void VulkanContext::CreateTextureImageView(TextureInfo& texture)
-	/*{
-		texture.ImageView = CreateImageView(texture.Image, texture.Format, VK_IMAGE_ASPECT_COLOR_BIT, texture.MipLevels);
-	}*/
 
 	VkSampleCountFlagBits VulkanContext::GetMaxUsableSampleCount()
 	{

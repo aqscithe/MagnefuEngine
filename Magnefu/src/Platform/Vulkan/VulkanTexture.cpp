@@ -92,7 +92,7 @@ namespace Magnefu
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;
 
-		CreateBuffer(
+		VulkanCommon::CreateBuffer(
 			imageSize,
 			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -215,7 +215,7 @@ namespace Magnefu
 		VkMemoryAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
+		allocInfo.memoryTypeIndex = VulkanCommon::FindMemoryType(memRequirements.memoryTypeBits, properties);
 
 		if (vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "Failed to allocate image memory!");
@@ -431,62 +431,62 @@ namespace Magnefu
 		EndSingleTimeCommands(commandBuffer);
 	}
 
-	uint32_t VulkanTexture::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
-	{
-		VkPhysicalDeviceMemoryProperties memProperties;
-		vkGetPhysicalDeviceMemoryProperties(VulkanContext::Get().GetPhysicalDevice(), &memProperties);
+	//uint32_t VulkanTexture::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+	//{
+	//	VkPhysicalDeviceMemoryProperties memProperties;
+	//	vkGetPhysicalDeviceMemoryProperties(VulkanContext::Get().GetPhysicalDevice(), &memProperties);
 
-		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-			if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-				return i;
-			}
-		}
+	//	for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+	//		if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+	//			return i;
+	//		}
+	//	}
 
-		MF_CORE_ASSERT(false, "failed to find suitable memory type!");
+	//	MF_CORE_ASSERT(false, "failed to find suitable memory type!");
 
-		return 0;
-	}
+	//	return 0;
+	//}
 
-	void VulkanTexture::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
-	{
-		VkDevice device = VulkanContext::Get().GetDevice();
+	//void VulkanTexture::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+	//{
+	//	VkDevice device = VulkanContext::Get().GetDevice();
 
-		VkBufferCreateInfo bufferInfo{};
-		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = size;
-		bufferInfo.usage = usage;
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		//bufferInfo.flags = 
+	//	VkBufferCreateInfo bufferInfo{};
+	//	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	//	bufferInfo.size = size;
+	//	bufferInfo.usage = usage;
+	//	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	//	//bufferInfo.flags = 
 
-		if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "failed to create vertex buffer!");
+	//	if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
+	//		MF_CORE_ASSERT(false, "failed to create vertex buffer!");
 
-		VkMemoryRequirements memRequirements;
-		vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
+	//	VkMemoryRequirements memRequirements;
+	//	vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
 
-		VkMemoryAllocateInfo memAllocInfo{};
-		memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		memAllocInfo.allocationSize = memRequirements.size;
-		memAllocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
+	//	VkMemoryAllocateInfo memAllocInfo{};
+	//	memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	//	memAllocInfo.allocationSize = memRequirements.size;
+	//	memAllocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
 
-		// TODO:
-		// It should be noted that in a real world application, you're not supposed to actually call
-		// vkAllocateMemory for every individual buffer. The maximum number of simultaneous memory 
-		// allocations is limited by the maxMemoryAllocationCount physical device limit, which may 
-		// be as low as 4096 even on high end hardware like an NVIDIA GTX 1080. The right way to 
-		// allocate memory for a large number of objects at the same time is to create a custom 
-		// allocator that splits up a single allocation among many different objects by using the 
-		// offset parameters that we've seen in many functions.
+	//	// TODO:
+	//	// It should be noted that in a real world application, you're not supposed to actually call
+	//	// vkAllocateMemory for every individual buffer. The maximum number of simultaneous memory 
+	//	// allocations is limited by the maxMemoryAllocationCount physical device limit, which may 
+	//	// be as low as 4096 even on high end hardware like an NVIDIA GTX 1080. The right way to 
+	//	// allocate memory for a large number of objects at the same time is to create a custom 
+	//	// allocator that splits up a single allocation among many different objects by using the 
+	//	// offset parameters that we've seen in many functions.
 
-		// You can either implement such an allocator yourself, or use the VulkanMemoryAllocator 
-		// library provided by the GPUOpen initiative.However, for this tutorial it's okay to use a 
-		// separate allocation for every resource, because we won't come close to hitting any of 
-		// these limits for now.
-		if (vkAllocateMemory(device, &memAllocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "failed to allocate vertex buffer memory!");
+	//	// You can either implement such an allocator yourself, or use the VulkanMemoryAllocator 
+	//	// library provided by the GPUOpen initiative.However, for this tutorial it's okay to use a 
+	//	// separate allocation for every resource, because we won't come close to hitting any of 
+	//	// these limits for now.
+	//	if (vkAllocateMemory(device, &memAllocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
+	//		MF_CORE_ASSERT(false, "failed to allocate vertex buffer memory!");
 
-		vkBindBufferMemory(device, buffer, bufferMemory, 0);
-	}
+	//	vkBindBufferMemory(device, buffer, bufferMemory, 0);
+	//}
 
 	VkCommandBuffer VulkanTexture::BeginSingleTimeCommands()
 	{

@@ -64,15 +64,15 @@ namespace Magnefu
 
 	};
 
-
-	struct TextureInfo
+	namespace VulkanCommon
 	{
-		TextureType    Type;
-		uint32_t       MipLevels;
-		VkImage        Image;
-		VkImageView    ImageView;
-		VkDeviceMemory Buffer;
-		VkFormat       Format;
-		VkImageTiling  Tiling;
-	};
+		
+
+	
+		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+		void     CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+		VkCommandBuffer BeginSingleTimeCommands();
+		void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
+	}
 }
