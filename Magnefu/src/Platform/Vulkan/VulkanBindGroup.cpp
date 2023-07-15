@@ -13,6 +13,8 @@ namespace Magnefu
 		CreateDescriptorSetLayout(desc.Layout);
 		CreateBindingBuffers(desc.Buffers);
 		CreateBindingTextures(desc.Textures);
+		CreateDescriptorPool(desc.Layout);
+		CreateDescriptorSets();
 	}
 
 	VulkanBindGroup::~VulkanBindGroup()

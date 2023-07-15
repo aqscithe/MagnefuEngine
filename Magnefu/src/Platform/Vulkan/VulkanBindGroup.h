@@ -15,7 +15,9 @@ namespace Magnefu
 		VulkanBindGroup(const BindGroupDesc&);
 		~VulkanBindGroup();
 
-		Handle<Buffer>& GetUniformsHandle() { return m_Uniforms; }
+		inline Handle<Buffer>& GetUniformsHandle() { return m_Uniforms; }
+		inline VkDescriptorSet& GetFrameDescriptorSet(uint32_t currentFrame) { return m_DescriptorSets[currentFrame]; }
+		inline VkDescriptorSetLayout& GetDescriptorSetLayout() { return m_DescriptorSetLayout; }
 
 	private:
 		void CreateDescriptorSetLayout(const MaterialBindingLayout&);
