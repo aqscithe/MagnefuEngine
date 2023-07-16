@@ -125,7 +125,6 @@ namespace Magnefu
 		inline const uint32_t GetCurrentFrame() const { return m_CurrentFrame; }
 		inline const VkPhysicalDeviceProperties GetDeviceProperties() const { return m_Properties; }
 		inline const VkPhysicalDeviceFeatures GetSupportedFeatures() const { return m_SupportedFeatures; }
-			//inline uintVkPhysicalDeviceFeatures  32_t GetVerticesSize() const { return m_Vertices.size(); }
 
 
 	private:
@@ -143,7 +142,6 @@ namespace Magnefu
 		void CreateSwapChain();
 		void CreateImageViews();
 		void CreateRenderPass();
-		//void CreateDescriptorSetLayout();
 		void CreateComputeDescriptorSetLayout();
 		void CreateGraphicsPipeline();
 		void CreateParticleGraphicsPipeline();
@@ -156,9 +154,7 @@ namespace Magnefu
 		void LoadModel();
 
 		void CreateComputeUniformBuffers();
-		//void CreateDescriptorPool();
 		void CreateComputeDescriptorPool();
-		//void CreateDescriptorSets();
 		void CreateComputeDescriptorSets();
 		void CreateCommandBuffers();
 		void CreateComputeCommandBuffers();
@@ -258,7 +254,6 @@ namespace Magnefu
 
 		// -- Render Pass and Pipeline Primitives -- //
 		VkRenderPass                 m_RenderPass;
-		//VkDescriptorSetLayout        m_DescriptorSetLayout;
 		ShaderList                   m_ParticleShaderList;
 		VkPipelineLayout             m_PipelineLayout;
 		VkPipeline                   m_GraphicsPipeline;
@@ -274,17 +269,9 @@ namespace Magnefu
 		std::vector<VkSemaphore>     m_RenderFinishedSemaphores;
 		std::vector<VkFence>         m_InFlightFences;
 
-		
-		// -- Shader Buffers (Uniforms, Indices, Vertices) -- //
-
-		//VkDescriptorPool             m_DescriptorPool;
-		//std::vector<VkDescriptorSet> m_DescriptorSets;
 
 		// -- Mip Map Info -- //
 		VkSampleCountFlagBits        m_MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-
-
-		// -- Texture Info -- //
 
 
 		// -- Image Buffers -- //

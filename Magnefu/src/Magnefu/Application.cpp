@@ -30,13 +30,7 @@ namespace Magnefu
         }
         m_Minimized = false;
 
-        GraphicsContext* GraphicsContext = m_Window->GetGraphicsContext();
-
         m_RM = Scope<ResourceManager>(ResourceManager::Create());
-
-        //m_Textures[0] = m_RM->CreateTexture(DiffuseTextureDesc);
-        //m_Textures[1] = m_RM->CreateTexture(ARMTextureDesc);
-        //m_Textures[2] = m_RM->CreateTexture(NormalTextureDesc);
 
         m_Material = m_RM->CreateBindGroup({
             "SciFi Corridor",
@@ -60,9 +54,7 @@ namespace Magnefu
             m_Indices.span
         });
 
-        //m_Uniforms = m_RM->CreateBuffer(DefaultUniformBufferDesc);
-
-        GraphicsContext->TempSecondaryInit();
+        m_Window->GetGraphicsContext()->TempSecondaryInit();
 
         m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);
