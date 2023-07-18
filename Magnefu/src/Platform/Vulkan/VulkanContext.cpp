@@ -1682,7 +1682,7 @@ namespace Magnefu
 		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 		renderPassInfo.pClearValues = clearValues.data();
 
-		std::array<VkDescriptorSet&, 2> descriptorSets = {
+		std::array<VkDescriptorSet, 2> descriptorSets = {
 			renderPassDescSet,
 			matDescSet
 		};

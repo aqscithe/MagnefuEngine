@@ -198,7 +198,7 @@ namespace Magnefu
 
 		// Part of Render Loop
 		void RecordComputeCommandBuffer(VkCommandBuffer commandBuffer);
-		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, VulkanBuffer& vertexBuffer, VulkanBuffer& indexBuffer, uint32_t indexCount, VkDescriptorSet& descriptorSet);
+		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, VulkanBuffer& vertexBuffer, VulkanBuffer& indexBuffer, uint32_t indexCount, VkDescriptorSet& renderPassDescSet, VkDescriptorSet& matDescSet);
 		void RecreateSwapChain();
 		void PerformComputeOps();
 		void PerformGraphicsOps();

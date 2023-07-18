@@ -19,7 +19,6 @@ public:
 		m_LightData.LightEnabled = 1;
 		m_LightData.LightColor = Maths::vec3(1.0f);
 		m_LightData.LightPos = { 235.f, 65.f, 20.f };
-		m_LightData.Ka = Maths::vec3(0.0f);
 		m_LightData.RadiantFlux = 10.f;
 		m_LightData.MaxLightDist = 200.f;
 

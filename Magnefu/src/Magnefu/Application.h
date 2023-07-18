@@ -11,6 +11,7 @@
 #include "Magnefu/Core/MemoryAllocation/StackAllocator.h"
 #include "Magnefu/Core/MemoryAllocation/LinkedListAlloc.h"
 #include "Magnefu/Renderer/Light.h"
+#include "Magnefu/Renderer/Material.h"
 #include "Magnefu/Core/TimeStep.h"
 
 

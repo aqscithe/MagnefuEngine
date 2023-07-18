@@ -180,6 +180,8 @@
     <ClInclude Include="src\Magnefu\Renderer\Buffer.h" />
     <ClInclude Include="src\Magnefu\Renderer\Camera.h" />
     <ClInclude Include="src\Magnefu\Renderer\GraphicsContext.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Light.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Material.h" />
     <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h" />
     <ClInclude Include="src\Magnefu\Renderer\RenderConstants.h" />
     <ClInclude Include="src\Magnefu\Renderer\Renderer.h" />
@@ -532,6 +534,8 @@
     <ClCompile Include="src\Magnefu\Renderer\Buffer.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Camera.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\GraphicsContext.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\Light.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\Material.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\RenderCommand.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Renderer.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\RendererAPI.cpp" />
