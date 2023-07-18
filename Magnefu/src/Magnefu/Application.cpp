@@ -14,7 +14,7 @@ namespace Magnefu
 
     Application* Application::s_Instance = nullptr;
 
-    
+    static const char* SHADER_PATH = "res/shaders/Basic.shader";
 
 	Application::Application()
 	{
@@ -32,11 +32,26 @@ namespace Magnefu
 
         m_RM = Scope<ResourceManager>(ResourceManager::Create());
 
+        m_RenderPassGlobals = m_RM->CreateBindGroup({
+            "Render Pass Globals",
+            BindingLayoutType::LAYOUT_RENDERPASS,
+            DEFAULT_RENDERPASS_BINDING_LAYOUT,
+            {},
+            RenderPassUniformBufferDesc
+        });
+
         m_Material = m_RM->CreateBindGroup({
             "SciFi Corridor",
-            MaterialBindingLayout(),
+            BindingLayoutType::LAYOUT_MATERIAL,
+            DEFAULT_MATERIAL_BINDING_LAYOUT,
             {DiffuseTextureDesc, ARMTextureDesc, NormalTextureDesc},
-            {DefaultUniformBufferDesc}
+            MaterialUniformBufferDesc
+        });
+
+        m_Shader = m_RM->CreateShader({
+            "Basic Shader",
+            SHADER_PATH,
+            {DefaultVertexShaderDesc, DefaultFragmentShaderDesc}
         });
 
 
@@ -44,6 +59,7 @@ namespace Magnefu
             "VertexBuffer",
             static_cast<uint64_t>(m_Vertices.data.size()),
             BufferUsage::USAGE_VERTEX,
+            UniformBufferType::UNIFORM_NONE,
             m_Vertices.span
         });
 
@@ -51,6 +67,7 @@ namespace Magnefu
             "IndexBuffer",
             static_cast<uint64_t>(m_Indices.data.size()),
             BufferUsage::USAGE_INDEX,
+            UniformBufferType::UNIFORM_NONE,
             m_Indices.span
         });
 

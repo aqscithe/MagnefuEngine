@@ -181,7 +181,7 @@ namespace Magnefu
 
 
 		// Place in VKShader
-		ShaderList ParseShader(const String& filepath);
+		ShaderList ParseShader(const char* filepath);
 		VkShaderModule CreateShaderModule(const ShaderSource& source);
 		
 

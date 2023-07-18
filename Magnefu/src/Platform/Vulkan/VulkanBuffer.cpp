@@ -125,7 +125,9 @@ namespace Magnefu
 
 	VulkanUniformBuffer::VulkanUniformBuffer(const BufferDesc& desc) : VulkanBuffer(desc)
 	{
-		VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+		m_UniformType = desc.UniformType;
+
+		VkDeviceSize bufferSize = desc.ByteSize;
 
 		m_Buffers.resize(MAX_FRAMES_IN_FLIGHT);
 		m_BuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
@@ -160,23 +162,61 @@ namespace Magnefu
 		VulkanContext& context = VulkanContext::Get();
 		VkExtent2D swapChainExtent = context.GetSwapChainExtent();
 
-		/*static auto startTime = std::chrono::high_resolution_clock::now();
+		switch (m_UniformType)
+		{
+			case Magnefu::UNIFORM_RENDERPASS:
+			{
+				auto& camera = Application::Get().GetWindow().GetSceneCamera();
+				camera->SetAspectRatio((float)swapChainExtent.width / (float)swapChainExtent.height);
 
-		auto currentTime = std::chrono::high_resolution_clock::now();
-		float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();*/
+				RenderPassUniformBufferObject ubo{};
+				ubo.ViewMatrix = camera->CalculateView();
+				ubo.ProjMatrix = camera->CalculateProjection();
 
-		auto& camera = Application::Get().GetWindow().GetSceneCamera();
-		camera->SetAspectRatio((float)swapChainExtent.width / (float)swapChainExtent.height);
+				ubo.ProjMatrix.c[1].e[1] *= -1; // I don't remember why I am doing this.... :(
 
-		UniformBufferObject ubo{};
-		//ubo.model = Maths::Quaternion::CalculateRotationMatrix(time * 45.f, Maths::vec3(0.0f,		1.0f, 0.0f));
-		ubo.model = Maths::Quaternion::CalculateRotationMatrix(0.f, Maths::vec3(0.0f, 1.0f, 0.0f));
-		ubo.view = camera->CalculateView();
-		ubo.proj = camera->CalculateProjection();
+				ubo.CameraPos = camera->GetData().Position;
+				ubo.LightColor =
+				ubo.Ka = 
+				ubo.MaxLightDist =
+				ubo.LightPos = 
+				ubo.LightEnabled =
+				ubo.RadiantFlux = 
 
-		ubo.proj.c[1].e[1] *= -1;
+				memcpy(m_BuffersMapped[context.GetCurrentFrame()], &ubo, sizeof(ubo));
 
-		memcpy(m_BuffersMapped[context.GetCurrentFrame()], &ubo, sizeof(ubo));
+				break;
+			}
+
+			case Magnefu::UNIFORM_MATERIAL:
+			{
+				/*static auto startTime = std::chrono::high_resolution_clock::now();
+
+				auto currentTime = std::chrono::high_resolution_clock::now();
+				float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();*/
+
+				MaterialUniformBufferObject ubo{};
+				//ubo.model = Maths::Quaternion::CalculateRotationMatrix(time * 45.f, Maths::vec3(0.0f,		1.0f, 0.0f));
+				ubo.ModelMatrix = Maths::Quaternion::CalculateRotationMatrix(0.f, Maths::vec3(0.0f, 1.0f, 0.0f));   // Model Matrix = T * R * S
+				ubo.Tint =
+				ubo.Reflectance = 
+				ubo.Opacity = 
+
+				memcpy(m_BuffersMapped[context.GetCurrentFrame()], &ubo, sizeof(ubo));
+
+				break;
+			}
+			
+			case Magnefu::UNIFORM_SHADER:
+			{
+				break;
+			}
+
+			default:
+			{
+				break;
+			}
+		}		
 	}
 }
 

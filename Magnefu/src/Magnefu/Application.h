@@ -10,7 +10,7 @@
 #include "Magnefu/ResourceManagement/ResourceManager.h"
 #include "Magnefu/Core/MemoryAllocation/StackAllocator.h"
 #include "Magnefu/Core/MemoryAllocation/LinkedListAlloc.h"
-
+#include "Magnefu/Renderer/Light.h"
 #include "Magnefu/Core/TimeStep.h"
 
 
@@ -46,11 +46,16 @@ namespace Magnefu
 		inline Handle<Buffer>& GetVertexBufferHandle() { return m_VertexBuffer; }
 		inline Handle<Buffer>& GetIndexBufferHandle() { return m_IndexBuffer; }
 		inline uint32_t GetIndexCount() { return static_cast<uint32_t>(m_Indices.data.size()) / sizeof(uint32_t); }
+		inline Light& GetLightData() { return m_LightData; }
+		inline Material& GetMaterialData() { return m_MaterialData; }
 
 		inline static Application& Get() { return *s_Instance; }
 
 		inline void SetVertices(DataBlock&& vertexBlock) { m_Vertices = std::move(vertexBlock); }
 		inline void SetIndices(DataBlock&& indexBlock) { m_Indices = std::move(indexBlock); }
+
+		inline void SetLightData(Light& lightData) { m_LightData = lightData; }
+		inline void SetMaterialData(Material& materialData) { m_MaterialData = materialData; }
 
 
 		//inline Span<const uint8_t> GetVertices() { return m_Vertices; }
@@ -61,11 +66,11 @@ namespace Magnefu
 
 	public:
 
-		//std::array<Handle<Texture>, 3> m_Textures;
-		//Handle<Buffer>        m_Uniforms;
+		Handle<BindGroup>     m_RenderPassGlobals;
 		Handle<BindGroup>     m_Material;
 		Handle<Buffer>        m_VertexBuffer;
 		Handle<Buffer>        m_IndexBuffer;
+		Handle<Shader>        m_Shader;
 		DataBlock   m_Vertices;
 		DataBlock   m_Indices;
 
@@ -80,6 +85,9 @@ namespace Magnefu
 
 		bool m_Running;
 		bool m_Minimized;
+
+		Light m_LightData;
+		Material m_MaterialData;
 	};
 
 	// to be defined in client

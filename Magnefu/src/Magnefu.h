@@ -26,6 +26,8 @@
 //----Renderer----------------------------
 #include "Magnefu/Renderer/RenderCommand.h"
 #include "Magnefu/Renderer/Renderer.h"
+#include "Magnefu/Renderer/Light.h"
+#include "Magnefu/Renderer/Material.h"
 #include "Magnefu/Renderer/Buffer.h"
 #include "Magnefu/Renderer/Shader.h"
 #include "Magnefu/Renderer/Texture.h"

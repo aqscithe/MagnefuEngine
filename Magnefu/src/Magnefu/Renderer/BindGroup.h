@@ -2,19 +2,22 @@
 
 #include "Magnefu/Renderer/Texture.h"
 #include "Magnefu/Renderer/Buffer.h"
+#include "Magnefu/Renderer/Shader.h"
 
 namespace Magnefu
 {
-	enum ShaderStage
-	{
-		SHADER_STAGE_VERTEX,
-		SHADER_STAGE_FRAGMENT
-	};
+	
 
 	enum BindingType
 	{
 		BINDING_TYPE_UNIFORM_BUFFER,
 		BINDING_TYPE_COMBINED_IMAGE_SAMPLER,
+	};
+
+	enum BindingLayoutType
+	{
+		LAYOUT_RENDERPASS,
+		LAYOUT_MATERIAL
 	};
 
 	struct Binding
@@ -26,14 +29,33 @@ namespace Magnefu
 
 	};
 
-
-	struct MaterialBindingLayout
+	struct BindingLayout
 	{
-		Binding  UBO =                   { 0, 1, BindingType::BINDING_TYPE_UNIFORM_BUFFER,         ShaderStage::SHADER_STAGE_VERTEX };
-		Binding  DiffuseTextureSampler = { 1, 1, BindingType::BINDING_TYPE_COMBINED_IMAGE_SAMPLER, ShaderStage::SHADER_STAGE_FRAGMENT };
-		Binding  ARMTextureSampler =     { 2, 1, BindingType::BINDING_TYPE_COMBINED_IMAGE_SAMPLER, ShaderStage::SHADER_STAGE_FRAGMENT };
-		Binding  NormalTextureSampler =  { 3, 1, BindingType::BINDING_TYPE_COMBINED_IMAGE_SAMPLER, ShaderStage::SHADER_STAGE_FRAGMENT };
+		std::vector<Binding> Bindings;
 	};
+
+	const BindingLayout DEFAULT_RENDERPASS_BINDING_LAYOUT = BindingLayout({
+			{0, 1, BindingType::BINDING_TYPE_UNIFORM_BUFFER, ShaderStage::SHADER_STAGE_VERTEX}, // View Matrix
+			{1, 1, BindingType::BINDING_TYPE_UNIFORM_BUFFER, ShaderStage::SHADER_STAGE_VERTEX}, // Proj Matrix
+			{2, 1, BindingType::BINDING_TYPE_UNIFORM_BUFFER, ShaderStage::SHADER_STAGE_VERTEX}, // Camera Pos
+			{3, 1, BindingType::BINDING_TYPE_UNIFORM_BUFFER, ShaderStage::SHADER_STAGE_VERTEX}, // Light Pos
+			{4, 1, BindingType::BINDING_TYPE_UNIFORM_BUFFER, ShaderStage::SHADER_STAGE_FRAGMENT}, // Light Color
+			{5, 1, BindingType::BINDING_TYPE_UNIFORM_BUFFER, ShaderStage::SHADER_STAGE_FRAGMENT}, // Ambient constant
+			{6, 1, BindingType::BINDING_TYPE_UNIFORM_BUFFER, ShaderStage::SHADER_STAGE_FRAGMENT}, // Max Light Dist
+			{7, 1, BindingType::BINDING_TYPE_UNIFORM_BUFFER, ShaderStage::SHADER_STAGE_FRAGMENT}, // Radiant Flux
+			{8, 1, BindingType::BINDING_TYPE_UNIFORM_BUFFER, ShaderStage::SHADER_STAGE_FRAGMENT}, // Light Enabled
+		});
+
+	const BindingLayout DEFAULT_MATERIAL_BINDING_LAYOUT = BindingLayout({
+			{ 0, 1, BindingType::BINDING_TYPE_UNIFORM_BUFFER,         ShaderStage::SHADER_STAGE_VERTEX },    // UBO
+			{ 1, 1, BindingType::BINDING_TYPE_COMBINED_IMAGE_SAMPLER, ShaderStage::SHADER_STAGE_FRAGMENT },  // DIFFUSE
+			{ 2, 1, BindingType::BINDING_TYPE_COMBINED_IMAGE_SAMPLER, ShaderStage::SHADER_STAGE_FRAGMENT },  // ARM
+			{ 3, 1, BindingType::BINDING_TYPE_COMBINED_IMAGE_SAMPLER, ShaderStage::SHADER_STAGE_FRAGMENT }   // NORMAL
+		});
+
+	const BindingLayout DEFAULT_SHADER_BINDING_LAYOUT = BindingLayout({
+
+		});
 
 	struct BindingTextureDescs
 	{
@@ -44,15 +66,16 @@ namespace Magnefu
 
 	struct BindingBufferDescs
 	{
-		BufferDesc Uniforms = DefaultUniformBufferDesc;
+		BufferDesc Uniforms;
 	};
 
 	struct BindGroupDesc
 	{
-		const char*           DebugName;
-		MaterialBindingLayout Layout;
-		BindingTextureDescs   Textures;
-		BindingBufferDescs    Buffers;
+		const char*         DebugName;
+		BindingLayoutType   LayoutType;
+		BindingLayout       Layout;
+		BindingTextureDescs Textures;
+		BindingBufferDescs  Buffers;
 	};
 
 	class BindGroup

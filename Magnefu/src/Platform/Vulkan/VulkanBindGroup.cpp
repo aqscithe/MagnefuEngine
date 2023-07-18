@@ -10,11 +10,33 @@ namespace Magnefu
 {
 	VulkanBindGroup::VulkanBindGroup(const BindGroupDesc& desc) : BindGroup(desc)
 	{
-		CreateDescriptorSetLayout(desc.Layout);
-		CreateBindingBuffers(desc.Buffers);
-		CreateBindingTextures(desc.Textures);
-		CreateDescriptorPool(desc.Layout);
-		CreateDescriptorSets();
+		// do a switch on bind group type to determine which functions to run
+		// render pass globals, material or shader specific bindings
+
+		switch (desc.LayoutType)
+		{
+			case BindingLayoutType::LAYOUT_RENDERPASS:
+			{
+				CreateDescriptorSetLayout(desc.Layout);
+				CreateBindingBuffers(desc.Buffers);
+				CreateDescriptorPool(desc.LayoutType);
+				CreateDescriptorSets();
+				break;
+			}
+			case BindingLayoutType::LAYOUT_MATERIAL:
+			{
+				CreateDescriptorSetLayout(desc.Layout);
+				CreateBindingBuffers(desc.Buffers);
+				CreateBindingTextures(desc.Textures);
+				CreateDescriptorPool(desc.LayoutType);
+				CreateDescriptorSets();
+				break;
+			}
+			default:
+				break;
+		}
+
+		
 	}
 
 	VulkanBindGroup::~VulkanBindGroup()
@@ -25,47 +47,27 @@ namespace Magnefu
 		vkDestroyDescriptorSetLayout(device, m_DescriptorSetLayout, nullptr);
 	}
 
-	void VulkanBindGroup::CreateDescriptorSetLayout(const MaterialBindingLayout& layout)
+	void VulkanBindGroup::CreateDescriptorSetLayout(const BindingLayout& layout)
 	{
-		VkDescriptorSetLayoutBinding uboLayoutBinding{};
-		uboLayoutBinding.binding = layout.UBO.BindingPos;
-		uboLayoutBinding.descriptorType = GetDescriptorType(layout.UBO.Type);
-		uboLayoutBinding.descriptorCount = layout.UBO.Count;
-		uboLayoutBinding.pImmutableSamplers = nullptr; // For image sampling
-		uboLayoutBinding.stageFlags = GetShaderStageFlags(layout.UBO.Stage);
+		int BindingCount = layout.Bindings.size();
+		//MF_CORE_ASSERT( BindingCount == 4, "Incorrect material binding layout size");
 
-		VkDescriptorSetLayoutBinding diffuseSamplerLayoutBinding{};
-		diffuseSamplerLayoutBinding.binding            = layout.DiffuseTextureSampler.BindingPos;
-		diffuseSamplerLayoutBinding.descriptorCount    = layout.DiffuseTextureSampler.Count;
-		diffuseSamplerLayoutBinding.descriptorType     = GetDescriptorType(layout.DiffuseTextureSampler.Type);
-		diffuseSamplerLayoutBinding.pImmutableSamplers = nullptr;
-		diffuseSamplerLayoutBinding.stageFlags         = GetShaderStageFlags(layout.DiffuseTextureSampler.Stage);
+		std::vector<VkDescriptorSetLayoutBinding> layoutBindings(layout.Bindings.size());
+		
 
-		VkDescriptorSetLayoutBinding armSamplerLayoutBinding{};
-		armSamplerLayoutBinding.binding            = layout.ARMTextureSampler.BindingPos;
-		armSamplerLayoutBinding.descriptorCount    = layout.ARMTextureSampler.Count;
-		armSamplerLayoutBinding.descriptorType     = GetDescriptorType(layout.ARMTextureSampler.Type);
-		armSamplerLayoutBinding.pImmutableSamplers = nullptr;
-		armSamplerLayoutBinding.stageFlags         = GetShaderStageFlags(layout.ARMTextureSampler.Stage);
-
-		VkDescriptorSetLayoutBinding normalSamplerLayoutBinding{};
-		normalSamplerLayoutBinding.binding            = layout.NormalTextureSampler.BindingPos;
-		normalSamplerLayoutBinding.descriptorCount = layout.NormalTextureSampler.Count;
-		normalSamplerLayoutBinding.descriptorType = GetDescriptorType(layout.NormalTextureSampler.Type);
-		normalSamplerLayoutBinding.pImmutableSamplers = nullptr;
-		normalSamplerLayoutBinding.stageFlags = GetShaderStageFlags(layout.NormalTextureSampler.Stage);
-
-		std::array<VkDescriptorSetLayoutBinding, 4> bindings = {
-			uboLayoutBinding,
-			diffuseSamplerLayoutBinding,
-			armSamplerLayoutBinding,
-			normalSamplerLayoutBinding,
-		};
+		for (size_t i = 0; i < layoutBindings.size(); i++)
+		{
+			layoutBindings[i].binding = layout.Bindings[i].BindingPos;
+			layoutBindings[i].descriptorType = GetDescriptorType(layout.Bindings[i].Type);
+			layoutBindings[i].descriptorCount = layout.Bindings[i].Count;
+			layoutBindings[i].pImmutableSamplers = nullptr; // For image sampling
+			layoutBindings[i].stageFlags = GetShaderStageFlags(layout.Bindings[i].Stage);
+		}
 
 		VkDescriptorSetLayoutCreateInfo layoutInfo{};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-		layoutInfo.pBindings = bindings.data();
+		layoutInfo.bindingCount = static_cast<uint32_t>(layoutBindings.size());
+		layoutInfo.pBindings = layoutBindings.data();
 
 		if (vkCreateDescriptorSetLayout(VulkanContext::Get().GetDevice(), &layoutInfo, nullptr, &m_DescriptorSetLayout) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to create descriptor set layout!");
@@ -84,30 +86,61 @@ namespace Magnefu
 		m_NormalTexture = rm.CreateTexture(descriptions.Normal);
 	}
 
-	void VulkanBindGroup::CreateDescriptorPool(const MaterialBindingLayout& layout)
+	void VulkanBindGroup::CreateDescriptorPool(const BindingLayoutType& type)
 	{
-		VkDescriptorPoolSize uboPoolSize{};
-		uboPoolSize.type = GetDescriptorType(layout.UBO.Type);
-		uboPoolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+		switch (type)
+		{
+			case BindingLayoutType::LAYOUT_MATERIAL:
+			{
+				VkDescriptorPoolSize uboPoolSize{};
+				uboPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				uboPoolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
-		VkDescriptorPoolSize samplerPoolSize{};
-		samplerPoolSize.type = GetDescriptorType(layout.DiffuseTextureSampler.Type);
-		samplerPoolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+				VkDescriptorPoolSize samplerPoolSize{};
+				samplerPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+				samplerPoolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
-		std::array<VkDescriptorPoolSize, 2> poolSizes{ uboPoolSize, samplerPoolSize };
+				std::array<VkDescriptorPoolSize, 2> poolSizes{ uboPoolSize, samplerPoolSize };
 
-		VkDescriptorPoolCreateInfo poolInfo{};
-		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-		poolInfo.pPoolSizes = poolSizes.data();
-		poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-		poolInfo.flags = 0; // VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT - determines if individual descriptor sets can be freed
+				VkDescriptorPoolCreateInfo poolInfo{};
+				poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+				poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+				poolInfo.pPoolSizes = poolSizes.data();
+				poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+				poolInfo.flags = 0; // VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT - determines if individual descriptor sets can be freed
 
-		if (vkCreateDescriptorPool(VulkanContext::Get().GetDevice(), &poolInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "failed to create descriptor pool!");
+				if (vkCreateDescriptorPool(VulkanContext::Get().GetDevice(), &poolInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS)
+					MF_CORE_ASSERT(false, "failed to create descriptor pool!");
+
+				break;
+			}
+
+			case BindingLayoutType::LAYOUT_RENDERPASS:
+			{
+				VkDescriptorPoolSize uboPoolSize{};
+				uboPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				uboPoolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+
+				std::array<VkDescriptorPoolSize, 1> poolSizes{ uboPoolSize };
+
+				VkDescriptorPoolCreateInfo poolInfo{};
+				poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+				poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+				poolInfo.pPoolSizes = poolSizes.data();
+				poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+				poolInfo.flags = 0; // VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT - determines if individual descriptor sets can be freed
+
+				if (vkCreateDescriptorPool(VulkanContext::Get().GetDevice(), &poolInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS)
+					MF_CORE_ASSERT(false, "failed to create descriptor pool!");
+
+			}
+		default:
+			break;
+		}
+		
 	}
 
-	void VulkanBindGroup::CreateDescriptorSets()
+	void VulkanBindGroup::CreateDescriptorSets(const BindingLayoutType& type)
 	{
 		Application& app = Application::Get();
 		ResourceManager& rm = app.GetResourceManager();

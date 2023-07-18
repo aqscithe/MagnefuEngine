@@ -42,8 +42,8 @@ namespace Magnefu
 	//static const std::string MODEL_PATH = "res/meshes/Victorian_Painting.obj";
 	
 
-	static const std::string SHADER_PATH = "res/shaders/Basic.shader";
-	static const std::string PARTICLE_SHADER_PATH = "res/shaders/Particles.shader";
+	
+	static const char* PARTICLE_SHADER_PATH = "res/shaders/Particles.shader";
 
 
 	static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
@@ -148,39 +148,38 @@ namespace Magnefu
 		CreateWindowSurface();
 		SelectPhysicalDevice();
 		CreateLogicalDevice();
-		
-
-		// -- Everything above will remain in Init() -- //
-
 		CreateSwapChain();
-		CreateImageViews();
-
 		CreateCommandPool(); 
-		
 		LoadModel();
+		CreateRenderPass();
 
 	}
 
 	void VulkanContext::TempSecondaryInit()
 	{
-		CreateRenderPass();
-		CreateComputeDescriptorSetLayout();
-		CreateGraphicsPipeline();
-		CreateParticleGraphicsPipeline();
 		
-		CreateShaderStorageBuffers(); // For Compute pipeline
-		CreateComputePipeline();
+		//CreateComputeDescriptorSetLayout();
+		CreateGraphicsPipeline();  // --> Shader class
+		//CreateParticleGraphicsPipeline();
+		
+		//CreateShaderStorageBuffers(); // For Compute pipeline
+		//CreateComputePipeline();
+
+
+		// -- FrameBuffer Class -- //
+		CreateImageViews();
 		CreateColorResources();
 		CreateDepthResources();
 		CreateFrameBuffers();
-		
+		// -- FrameBuffer Class -- //
 
-		CreateComputeUniformBuffers();
-		CreateComputeDescriptorPool();
-		CreateComputeDescriptorSets();
+
+		//CreateComputeUniformBuffers();
+		//CreateComputeDescriptorPool();
+		//CreateComputeDescriptorSets();
 
 		CreateCommandBuffers();
-		CreateComputeCommandBuffers();
+		//CreateComputeCommandBuffers();
 		CreateSyncObjects();
 
 	}
@@ -616,7 +615,7 @@ namespace Magnefu
 		VulkanBindGroup& material = static_cast<VulkanBindGroup&>(rm.GetBindGroup(app.GetMaterialBindGroup()));
 
 		// Shader Modules
-		ShaderList shaderList = ParseShader(SHADER_PATH);
+		ShaderList shaderList = ParseShader("res/shaders/Basic.shader");
 		VkShaderModule vertShaderModule = CreateShaderModule(shaderList.Vertex);
 		VkShaderModule fragShaderModule = CreateShaderModule(shaderList.Fragment);
 
@@ -763,7 +762,7 @@ namespace Magnefu
 		pipelineLayoutInfo.pushConstantRangeCount = 1; // Optional
 		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange; // Optional
 		pipelineLayoutInfo.setLayoutCount = 1;
-		pipelineLayoutInfo.pSetLayouts = &material.GetDescriptorSetLayout();
+		pipelineLayoutInfo.pSetLayouts = //&material.GetDescriptorSetLayout();
 
 		if (vkCreatePipelineLayout(m_VkDevice, &pipelineLayoutInfo, nullptr, &m_PipelineLayout) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "Failed to create pipeline layout!");
@@ -2053,8 +2052,9 @@ namespace Magnefu
 		return shaderModule;
 	}
 
-
-	ShaderList VulkanContext::ParseShader(const String& filepath)
+	// Move parsing to the application.
+	// then pass shaderlist to the createshader function
+	ShaderList VulkanContext::ParseShader(const char* filepath)
 	{
 		std::ifstream stream(filepath);
 

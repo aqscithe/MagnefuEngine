@@ -27,15 +27,48 @@ namespace Magnefu
         USAGE_SHADER_BINDING_TABLE_KHR = 0x00000400,
 	};
 
-
-
-    struct UniformBufferObject
+    enum UniformBufferType
     {
-        alignas(16) Maths::mat4 model;
-        alignas(16) Maths::mat4 view;
-        alignas(16) Maths::mat4 proj;
+        UNIFORM_NONE,
+        UNIFORM_RENDERPASS,
+        UNIFORM_MATERIAL,
+        UNIFORM_SHADER
     };
 
+    struct RenderPassUniformBufferObject
+    {
+        // Camera Info
+        alignas(16) Maths::mat4 ViewMatrix;
+        alignas(16) Maths::mat4 ProjMatrix;
+        alignas(16) Maths::vec3 CameraPos;
+
+        // Light Info
+        // When I have multiple lights, they will be
+        // represented as an array of light data
+        alignas(16) Maths::vec3 LightPos;
+        alignas(16) Maths::vec3 LightColor;
+        float                   MaxLightDist;
+        float                   RadiantFlux;
+
+        // Once I have light array, cull lights cpu side that
+        // are disabled. That way only enabled lights are sent
+        // to the gpu.
+        int                     LightEnabled;
+    };
+
+
+    struct MaterialUniformBufferObject
+    {
+        alignas(16) Maths::mat4 ModelMatrix;
+        alignas(16) Maths::vec3 Tint;
+        float                   Reflectance; // fresnel reflectance for dielectrics [0.0, 1.0]
+        float                   Opacity;
+    };
+
+    struct ShaderUniformBufferObject
+    {
+
+    };
 
 
 	struct BufferDesc
@@ -43,13 +76,23 @@ namespace Magnefu
 		const char*         DebugName = nullptr;
 		uint64_t            ByteSize = 0;
         BufferUsage         Usage = BufferUsage::USAGE_NONE;
+        UniformBufferType   UniformType = UniformBufferType::UNIFORM_NONE;
         Span<const uint8_t> InitData;
 	};
 
-    const BufferDesc DefaultUniformBufferDesc = {
-        "UniformBuffer",
-        sizeof(UniformBufferObject),
+    const BufferDesc RenderPassUniformBufferDesc = {
+        "Renderpass Uniform Buffer",
+        sizeof(RenderPassUniformBufferObject),
         BufferUsage::USAGE_UNIFORM,
+        UniformBufferType::UNIFORM_RENDERPASS,
+        {0}
+    };
+
+    const BufferDesc MaterialUniformBufferDesc = {
+        "Material Uniform Buffer",
+        sizeof(MaterialUniformBufferObject),
+        BufferUsage::USAGE_UNIFORM,
+        UniformBufferType::UNIFORM_MATERIAL,
         {0}
     };
 

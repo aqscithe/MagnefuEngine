@@ -16,7 +16,7 @@ namespace Magnefu
         Span(const T* data, std::size_t size)
             : m_Data(data), m_Size(size) {}
 
-        std::size_t GetSize() { return m_Size; }
+        const std::size_t GetSize() const { return m_Size; }
         const T* GetData() const { return m_Data; }
 
 

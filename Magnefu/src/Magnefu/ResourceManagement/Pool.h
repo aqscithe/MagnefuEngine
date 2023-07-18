@@ -2,6 +2,7 @@
 #include "Magnefu/Renderer/Buffer.h"
 #include "Magnefu/Renderer/Texture.h"
 #include "Magnefu/Renderer/BindGroup.h"
+#include "Magnefu/Renderer/Shader.h"
 
 
 namespace Magnefu
@@ -9,8 +10,6 @@ namespace Magnefu
     template <typename T>
     struct Handle
     {
-        bool IsValid() const;
-
         uint32_t Index;  // Index into the resources vector in the Pool
         uint32_t Generation;  // Generation counter for the resource
     };
@@ -113,6 +112,38 @@ namespace Magnefu
 
                 // Return a handle to the new object
                 return Handle<BindGroup>{ static_cast<uint32_t>(index), static_cast<uint32_t>(m_Generations[index]) };
+            }
+        }
+
+        Handle<Shader> Create(const ShaderDesc& desc)
+        {
+            // Check if there are any free indices
+            if (m_FreeList.empty())
+            {
+                // Resize the resource and generation vectors
+                m_Resources.resize(m_Resources.size() + 1);
+                m_Generations.resize(m_Generations.size() + 1, 0);
+
+                // Construct a new object in the resource vector
+                m_Resources.back() = ShaderFactory::CreateShader(desc);
+
+                // Return a handle to the new object
+                return Handle<Shader>{ static_cast<uint32_t>(m_Resources.size() - 1), static_cast<uint32_t>(m_Generations.back()) };
+            }
+            else
+            {
+                // Reuse an index from the free list
+                int index = m_FreeList.back();
+                m_FreeList.pop_back();
+
+                // Construct a new object in the resource vector
+                m_Resources[index] = ShaderFactory::CreateShader(desc);
+
+                // Increase the generation counter for this index
+                m_Generations[index]++;
+
+                // Return a handle to the new object
+                return Handle<Shader>{ static_cast<uint32_t>(index), static_cast<uint32_t>(m_Generations[index]) };
             }
         }
 

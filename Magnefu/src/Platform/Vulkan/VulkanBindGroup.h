@@ -20,10 +20,10 @@ namespace Magnefu
 		inline VkDescriptorSetLayout& GetDescriptorSetLayout() { return m_DescriptorSetLayout; }
 
 	private:
-		void CreateDescriptorSetLayout(const MaterialBindingLayout&);
+		void CreateDescriptorSetLayout(const BindingLayout&);
 		void CreateBindingBuffers(const BindingBufferDescs&);
 		void CreateBindingTextures(const BindingTextureDescs&);
-		void CreateDescriptorPool(const MaterialBindingLayout& layout);
+		void CreateDescriptorPool(const BindingLayoutType&);
 		void CreateDescriptorSets();
 
 		VkDescriptorType GetDescriptorType(const BindingType&);

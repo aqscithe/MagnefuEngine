@@ -23,6 +23,11 @@ namespace Magnefu
 		return m_BindGroupPool.Create(desc);
 	}
 
+	Handle<Shader> ResourceManager::CreateShader(const ShaderDesc& desc)
+	{
+		return m_ShaderPool.Create(desc);
+	}
+
 	Texture& ResourceManager::GetTexture(Handle<Texture>& handle)
 	{
 		return m_TexturePool.Get(handle);
@@ -38,6 +43,11 @@ namespace Magnefu
 		return m_BindGroupPool.Get(handle);
 	}
 
+	Shader& ResourceManager::GetShader(Handle<Shader>& handle)
+	{
+		return m_ShaderPool.Get(handle);
+	}
+
 	void ResourceManager::DestroyTexture(Handle<Texture> handle)
 	{
 		m_TexturePool.Destroy(handle);
@@ -51,6 +61,11 @@ namespace Magnefu
 	void ResourceManager::DestroyBindGroup(Handle<BindGroup> handle)
 	{
 		m_BindGroupPool.Destroy(handle);
+	}
+
+	void ResourceManager::DestroyShader(Handle<Shader> handle)
+	{
+		m_ShaderPool.Destroy(handle);
 	}
 
 	

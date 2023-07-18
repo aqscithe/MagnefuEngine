@@ -211,9 +211,9 @@ void main()
     }
 
     // Apply Ambient Light & Occlusion
-    vec3 ambient = PC.Ka * BaseColor;
-    vec3 color = ambient + BRDF;
-    color *= AO;
+    //vec3 ambient = PC.Ka * BaseColor;
+    //vec3 color = ambient + BRDF;
+    vec3 color = BRDF * AO;
 
     // Gamma Correction
     color = color / (color + vec3(1.0));
