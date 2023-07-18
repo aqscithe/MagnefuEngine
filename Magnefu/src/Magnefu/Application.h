@@ -41,6 +41,7 @@ namespace Magnefu
 		//inline std::array<Handle<Texture>, 3>& GetTextureHandles() { return m_Textures; }
 		inline size_t GetTextureCount() { return sizeof(BindingTextureDescs) / sizeof(TextureDesc); }
 		inline Handle<BindGroup>& GetMaterialBindGroup() { return m_Material; }
+		inline Handle<BindGroup>& GetRenderPassBindGroup() { return m_RenderPassGlobals; }
 
 		//inline Handle<Buffer>& GetUniformBufferHandle() { return m_Uniforms; }
 		inline Handle<Buffer>& GetVertexBufferHandle() { return m_VertexBuffer; }

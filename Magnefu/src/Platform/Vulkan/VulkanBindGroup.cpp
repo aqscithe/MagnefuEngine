@@ -20,7 +20,7 @@ namespace Magnefu
 				CreateDescriptorSetLayout(desc.Layout);
 				CreateBindingBuffers(desc.Buffers);
 				CreateDescriptorPool(desc.LayoutType);
-				CreateDescriptorSets();
+				CreateDescriptorSets(desc.LayoutType);
 				break;
 			}
 			case BindingLayoutType::LAYOUT_MATERIAL:
@@ -29,7 +29,7 @@ namespace Magnefu
 				CreateBindingBuffers(desc.Buffers);
 				CreateBindingTextures(desc.Textures);
 				CreateDescriptorPool(desc.LayoutType);
-				CreateDescriptorSets();
+				CreateDescriptorSets(desc.LayoutType);
 				break;
 			}
 			default:
@@ -133,9 +133,12 @@ namespace Magnefu
 				if (vkCreateDescriptorPool(VulkanContext::Get().GetDevice(), &poolInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS)
 					MF_CORE_ASSERT(false, "failed to create descriptor pool!");
 
+				break;
+
 			}
-		default:
-			break;
+
+			default:
+				break;
 		}
 		
 	}
@@ -159,86 +162,126 @@ namespace Magnefu
 		if (vkAllocateDescriptorSets(device, &allocInfo, m_DescriptorSets.data()) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to allocate descriptor sets!");
 
-		std::vector<VkDescriptorImageInfo> imageInfo{};
-		imageInfo.resize(sizeof(BindingTextureDescs) / sizeof(TextureDesc));
-
-		MF_CORE_ASSERT(imageInfo.size() == 3, "Descriptor set texture image info count doesn't match texture handle count.");
-
-		VkSampler& sampler = VulkanTexture::GetSampler();
-
-
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		switch (type)
 		{
-			// UBO
-			VkDescriptorBufferInfo bufferInfo{};
-			bufferInfo.buffer = uniformBuffer.GetBuffers()[i];
-			bufferInfo.offset = 0;
-			bufferInfo.range = sizeof(UniformBufferObject);
+			case BindingLayoutType::LAYOUT_MATERIAL:
+			{
+				std::vector<VkDescriptorImageInfo> imageInfo{};
+				imageInfo.resize(sizeof(BindingTextureDescs) / sizeof(TextureDesc));
 
-			// Diffuse
-			imageInfo[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imageInfo[0].imageView = static_cast<VulkanTexture&>(rm.GetTexture(m_DiffuseTexture)).GetImageView();
-			imageInfo[0].sampler = sampler;
+				MF_CORE_ASSERT(imageInfo.size() == 3, "Descriptor set texture image info count doesn't match texture handle count.");
 
-			// ARM
-			imageInfo[1].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imageInfo[1].imageView = static_cast<VulkanTexture&>(rm.GetTexture(m_ARMTexture)).GetImageView();
-			imageInfo[1].sampler = sampler;
-
-			// Normal
-			imageInfo[2].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imageInfo[2].imageView = static_cast<VulkanTexture&>(rm.GetTexture(m_NormalTexture)).GetImageView();
-			imageInfo[2].sampler = sampler;
+				VkSampler& sampler = VulkanTexture::GetSampler();
 
 
-			std::array<VkWriteDescriptorSet, 4> descriptorWrites{};
+				for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+				{
+					// UBO
+					VkDescriptorBufferInfo bufferInfo{};
+					bufferInfo.buffer = uniformBuffer.GetBuffers()[i];
+					bufferInfo.offset = 0;
+					bufferInfo.range = sizeof(MaterialUniformBufferObject);
 
-			// UBO
-			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[0].dstSet = m_DescriptorSets[i];
-			descriptorWrites[0].dstBinding = 0;
-			descriptorWrites[0].dstArrayElement = 0;
-			descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			descriptorWrites[0].descriptorCount = 1;
-			descriptorWrites[0].pBufferInfo = &bufferInfo;
-			descriptorWrites[0].pImageInfo = nullptr; // Optional
-			descriptorWrites[0].pTexelBufferView = nullptr; // Optional
+					// Diffuse
+					imageInfo[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+					imageInfo[0].imageView = static_cast<VulkanTexture&>(rm.GetTexture(m_DiffuseTexture)).GetImageView();
+					imageInfo[0].sampler = sampler;
 
-			// Diffuse Texture
-			descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[1].dstSet = m_DescriptorSets[i];
-			descriptorWrites[1].dstBinding = 1;
-			descriptorWrites[1].dstArrayElement = 0;
-			descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			descriptorWrites[1].descriptorCount = 1;
-			descriptorWrites[1].pBufferInfo = nullptr;
-			descriptorWrites[1].pImageInfo = &imageInfo[0];
-			descriptorWrites[1].pTexelBufferView = nullptr; // Optional
+					// ARM
+					imageInfo[1].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+					imageInfo[1].imageView = static_cast<VulkanTexture&>(rm.GetTexture(m_ARMTexture)).GetImageView();
+					imageInfo[1].sampler = sampler;
 
-			// ARM Texture
-			descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[2].dstSet = m_DescriptorSets[i];
-			descriptorWrites[2].dstBinding = 2;
-			descriptorWrites[2].dstArrayElement = 0;
-			descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			descriptorWrites[2].descriptorCount = 1;
-			descriptorWrites[2].pBufferInfo = nullptr;
-			descriptorWrites[2].pImageInfo = &imageInfo[1];
-			descriptorWrites[2].pTexelBufferView = nullptr; // Optional
+					// Normal
+					imageInfo[2].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+					imageInfo[2].imageView = static_cast<VulkanTexture&>(rm.GetTexture(m_NormalTexture)).GetImageView();
+					imageInfo[2].sampler = sampler;
 
-			// Normal Texture
-			descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[3].dstSet = m_DescriptorSets[i];
-			descriptorWrites[3].dstBinding = 3;
-			descriptorWrites[3].dstArrayElement = 0;
-			descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			descriptorWrites[3].descriptorCount = 1;
-			descriptorWrites[3].pBufferInfo = nullptr;
-			descriptorWrites[3].pImageInfo = &imageInfo[2];
-			descriptorWrites[3].pTexelBufferView = nullptr; // Optional
 
-			vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+					std::array<VkWriteDescriptorSet, 4> descriptorWrites{};
+
+					// UBO
+					descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descriptorWrites[0].dstSet = m_DescriptorSets[i];
+					descriptorWrites[0].dstBinding = 0;
+					descriptorWrites[0].dstArrayElement = 0;
+					descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+					descriptorWrites[0].descriptorCount = 1;
+					descriptorWrites[0].pBufferInfo = &bufferInfo;
+					descriptorWrites[0].pImageInfo = nullptr; // Optional
+					descriptorWrites[0].pTexelBufferView = nullptr; // Optional
+
+					// Diffuse Texture
+					descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descriptorWrites[1].dstSet = m_DescriptorSets[i];
+					descriptorWrites[1].dstBinding = 1;
+					descriptorWrites[1].dstArrayElement = 0;
+					descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+					descriptorWrites[1].descriptorCount = 1;
+					descriptorWrites[1].pBufferInfo = nullptr;
+					descriptorWrites[1].pImageInfo = &imageInfo[0];
+					descriptorWrites[1].pTexelBufferView = nullptr; // Optional
+
+					// ARM Texture
+					descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descriptorWrites[2].dstSet = m_DescriptorSets[i];
+					descriptorWrites[2].dstBinding = 2;
+					descriptorWrites[2].dstArrayElement = 0;
+					descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+					descriptorWrites[2].descriptorCount = 1;
+					descriptorWrites[2].pBufferInfo = nullptr;
+					descriptorWrites[2].pImageInfo = &imageInfo[1];
+					descriptorWrites[2].pTexelBufferView = nullptr; // Optional
+
+					// Normal Texture
+					descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descriptorWrites[3].dstSet = m_DescriptorSets[i];
+					descriptorWrites[3].dstBinding = 3;
+					descriptorWrites[3].dstArrayElement = 0;
+					descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+					descriptorWrites[3].descriptorCount = 1;
+					descriptorWrites[3].pBufferInfo = nullptr;
+					descriptorWrites[3].pImageInfo = &imageInfo[2];
+					descriptorWrites[3].pTexelBufferView = nullptr; // Optional
+
+					vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+
+				}
+				break;
+			}
+
+			case BindingLayoutType::LAYOUT_RENDERPASS:
+			{
+				for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+				{
+					// UBO
+					VkDescriptorBufferInfo bufferInfo{};
+					bufferInfo.buffer = uniformBuffer.GetBuffers()[i];
+					bufferInfo.offset = 0;
+					bufferInfo.range = sizeof(RenderPassUniformBufferObject); 
+
+					std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
+
+					// UBO
+					descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descriptorWrites[0].dstSet = m_DescriptorSets[i];
+					descriptorWrites[0].dstBinding = 0;
+					descriptorWrites[0].dstArrayElement = 0;
+					descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+					descriptorWrites[0].descriptorCount = 1;
+					descriptorWrites[0].pBufferInfo = &bufferInfo;
+					descriptorWrites[0].pImageInfo = nullptr; // Optional
+					descriptorWrites[0].pTexelBufferView = nullptr; // Optional
+
+					vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+				}
+				break;
+			}
+
+			default:
+				break;
 		}
+
 	}
 
 	VkDescriptorType VulkanBindGroup::GetDescriptorType(const BindingType& type)

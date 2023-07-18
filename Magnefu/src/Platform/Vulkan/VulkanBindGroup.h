@@ -24,7 +24,7 @@ namespace Magnefu
 		void CreateBindingBuffers(const BindingBufferDescs&);
 		void CreateBindingTextures(const BindingTextureDescs&);
 		void CreateDescriptorPool(const BindingLayoutType&);
-		void CreateDescriptorSets();
+		void CreateDescriptorSets(const BindingLayoutType& type);
 
 		VkDescriptorType GetDescriptorType(const BindingType&);
 		VkShaderStageFlags GetShaderStageFlags(const ShaderStage&);

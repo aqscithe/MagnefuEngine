@@ -4,6 +4,8 @@
 #include "Magnefu/Renderer/RenderConstants.h"
 #include "Magnefu/Application.h"
 #include "Magnefu/Core/Maths/Quaternion.h"
+#include "Magnefu/Renderer/Light.h"
+#include "Magnefu/Renderer/Material.h"
 
 
 namespace Magnefu
@@ -162,12 +164,16 @@ namespace Magnefu
 		VulkanContext& context = VulkanContext::Get();
 		VkExtent2D swapChainExtent = context.GetSwapChainExtent();
 
+		Application& app = Application::Get();
+
 		switch (m_UniformType)
 		{
 			case Magnefu::UNIFORM_RENDERPASS:
 			{
-				auto& camera = Application::Get().GetWindow().GetSceneCamera();
+				auto& camera = app.GetWindow().GetSceneCamera();
 				camera->SetAspectRatio((float)swapChainExtent.width / (float)swapChainExtent.height);
+				
+				Light& light = app.GetLightData();
 
 				RenderPassUniformBufferObject ubo{};
 				ubo.ViewMatrix = camera->CalculateView();
@@ -176,12 +182,11 @@ namespace Magnefu
 				ubo.ProjMatrix.c[1].e[1] *= -1; // I don't remember why I am doing this.... :(
 
 				ubo.CameraPos = camera->GetData().Position;
-				ubo.LightColor =
-				ubo.Ka = 
-				ubo.MaxLightDist =
-				ubo.LightPos = 
-				ubo.LightEnabled =
-				ubo.RadiantFlux = 
+				ubo.LightColor = light.LightColor;
+				ubo.MaxLightDist = light.MaxLightDist;
+				ubo.LightPos = light.LightPos;
+				ubo.LightEnabled = light.LightEnabled;
+				ubo.RadiantFlux = light.RadiantFlux;
 
 				memcpy(m_BuffersMapped[context.GetCurrentFrame()], &ubo, sizeof(ubo));
 
@@ -190,6 +195,8 @@ namespace Magnefu
 
 			case Magnefu::UNIFORM_MATERIAL:
 			{
+				Material& mat = app.GetMaterialData();
+
 				/*static auto startTime = std::chrono::high_resolution_clock::now();
 
 				auto currentTime = std::chrono::high_resolution_clock::now();
@@ -198,9 +205,9 @@ namespace Magnefu
 				MaterialUniformBufferObject ubo{};
 				//ubo.model = Maths::Quaternion::CalculateRotationMatrix(time * 45.f, Maths::vec3(0.0f,		1.0f, 0.0f));
 				ubo.ModelMatrix = Maths::Quaternion::CalculateRotationMatrix(0.f, Maths::vec3(0.0f, 1.0f, 0.0f));   // Model Matrix = T * R * S
-				ubo.Tint =
-				ubo.Reflectance = 
-				ubo.Opacity = 
+				ubo.Tint = mat.Tint;
+				ubo.Reflectance = mat.Reflectance;
+				ubo.Opacity = mat.Opacity;
 
 				memcpy(m_BuffersMapped[context.GetCurrentFrame()], &ubo, sizeof(ubo));
 
