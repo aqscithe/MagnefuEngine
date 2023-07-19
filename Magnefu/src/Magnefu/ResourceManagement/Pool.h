@@ -3,18 +3,11 @@
 #include "Magnefu/Renderer/Texture.h"
 #include "Magnefu/Renderer/BindGroup.h"
 #include "Magnefu/Renderer/Shader.h"
+#include "Magnefu/ResourceManagement/Handle.h"
 
 
 namespace Magnefu
 {
-    template <typename T>
-    struct Handle
-    {
-        uint32_t Index;  // Index into the resources vector in the Pool
-        uint32_t Generation;  // Generation counter for the resource
-    };
-
-
     template <typename T, typename...Args>
     class Pool
     {
@@ -82,6 +75,7 @@ namespace Magnefu
                 return Handle<Buffer>{ static_cast<uint32_t>(index), static_cast<uint32_t>(m_Generations[index]) };
             }
         }
+
 
         Handle<BindGroup> Create(const BindGroupDesc& desc)
         {

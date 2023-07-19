@@ -190,6 +190,7 @@
     <ClInclude Include="src\Magnefu\Renderer\SceneCamera.h" />
     <ClInclude Include="src\Magnefu\Renderer\Shader.h" />
     <ClInclude Include="src\Magnefu\Renderer\Texture.h" />
+    <ClInclude Include="src\Magnefu\ResourceManagement\Handle.h" />
     <ClInclude Include="src\Magnefu\ResourceManagement\Pool.h" />
     <ClInclude Include="src\Magnefu\ResourceManagement\ResourceManager.h" />
     <ClInclude Include="src\Magnefu\Core\Span.h" />

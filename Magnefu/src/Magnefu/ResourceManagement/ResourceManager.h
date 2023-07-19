@@ -1,9 +1,5 @@
 #pragma once
 
-#include "Magnefu/Renderer/Buffer.h"
-#include "Magnefu/Renderer/Texture.h"
-#include "Magnefu/Renderer/BindGroup.h"
-#include "Magnefu/Renderer/Shader.h"
 #include "Pool.h"
 
 

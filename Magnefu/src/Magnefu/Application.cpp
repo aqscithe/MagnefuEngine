@@ -33,42 +33,85 @@ namespace Magnefu
         m_RM = Scope<ResourceManager>(ResourceManager::Create());
 
         m_RenderPassGlobals = m_RM->CreateBindGroup({
-            "Render Pass Globals",
-            BindingLayoutType::LAYOUT_RENDERPASS,
-            DEFAULT_RENDERPASS_BINDING_LAYOUT,
-            {},
-            RenderPassUniformBufferDesc
+            .DebugName  = "Render Pass Globals",
+            .LayoutType = BindingLayoutType::LAYOUT_RENDERPASS,
+            .Layout     = DEFAULT_RENDERPASS_BINDING_LAYOUT,
+            .Textures   = {},
+            .Buffers    = RenderPassUniformBufferDesc
         });
 
         m_Material = m_RM->CreateBindGroup({
-            "SciFi Corridor",
-            BindingLayoutType::LAYOUT_MATERIAL,
-            DEFAULT_MATERIAL_BINDING_LAYOUT,
-            {DiffuseTextureDesc, ARMTextureDesc, NormalTextureDesc},
-            MaterialUniformBufferDesc
+            .DebugName  = "SciFi Corridor",
+            .LayoutType = BindingLayoutType::LAYOUT_MATERIAL,
+            .Layout     = DEFAULT_MATERIAL_BINDING_LAYOUT,
+            .Textures   = {
+                .Diffuse = DiffuseTextureDesc, 
+                .ARM     = ARMTextureDesc, 
+                .Normal  = NormalTextureDesc
+            },
+            .Buffers    = MaterialUniformBufferDesc
         });
 
         m_Shader = m_RM->CreateShader({
-            "Basic Shader",
-            SHADER_PATH,
-            {DefaultVertexShaderDesc, DefaultFragmentShaderDesc}
+            .DebugName = "Basic Shader",
+            .Path      = SHADER_PATH,
+            .StageDescriptions = {
+                .VS = DefaultVertexShaderDesc,
+                .FS = DefaultFragmentShaderDesc
+            },
+            .BindGroups = {
+                m_RenderPassGlobals,
+                m_Material
+            },
+            .GraphicsPipeline = {
+                .DynamicStates = {
+                    DynamicState::DYNAMIC_STATE_VIEWPORT,
+                    DynamicState::DYNAMIC_STATE_SCISSOR
+                },
+                .ViewportInfo = {
+                    .ViewportCount = 1, 
+                    .ScissorCount  = 1
+                },
+                .RasterizerInfo = {
+                    .PolygonMode = PolygonMode::POLYGON_MODE_FILL,
+                    .CullMode    = CullMode::CULL_MODE_BACK
+                },
+                .MSAAInfo = {
+                    .SampleCount         = MSAASampleCountFlag::SAMPLE_COUNT_8_BIT,
+                    .EnableSampleShading = false,
+                    .MinSampleShading    = 1.0f
+                },
+                .DepthAndStencilInfo = {
+                    .CompareOp             = DepthCompareOp::COMPARE_OP_LESS,
+                    .DepthTestEnable       = true,
+                    .DepthWriteEnable      = true,
+                    .DepthBoundsTestEnable = false,
+                    .StencilTestEnable     = false
+                },
+                .PushConstantInfo = {
+                    .Enabled = false,
+                    .Stages = ShaderStage::SHADER_STAGE_VERTEX_AND_FRAGMENT,
+                    .Offset = 0,
+                    .Size = 0
+                }
+            }
         });
 
 
         m_VertexBuffer = m_RM->CreateBuffer({
-            "VertexBuffer",
-            static_cast<uint64_t>(m_Vertices.data.size()),
-            BufferUsage::USAGE_VERTEX,
-            UniformBufferType::UNIFORM_NONE,
-            m_Vertices.span
+            .DebugName   = "VertexBuffer",
+            .ByteSize    = static_cast<uint64_t>(m_Vertices.data.size()),
+            .Usage       = BufferUsage::USAGE_VERTEX,
+            .UniformType = UniformBufferType::UNIFORM_NONE,
+            .InitData    = m_Vertices.span
         });
 
         m_IndexBuffer = m_RM->CreateBuffer({
-            "IndexBuffer",
-            static_cast<uint64_t>(m_Indices.data.size()),
-            BufferUsage::USAGE_INDEX,
-            UniformBufferType::UNIFORM_NONE,
-            m_Indices.span
+            .DebugName   = "IndexBuffer",
+            .ByteSize    = static_cast<uint64_t>(m_Indices.data.size()),
+            .Usage       = BufferUsage::USAGE_INDEX,
+            .UniformType = UniformBufferType::UNIFORM_NONE,
+            .InitData    = m_Indices.span
         });
 
         m_Window->GetGraphicsContext()->TempSecondaryInit();

@@ -1,10 +1,11 @@
 #pragma once
 
-#include "Magnefu/ResourceManagement/Pool.h"
-
+#include "Magnefu/ResourceManagement/Handle.h"
 
 namespace Magnefu
 {
+	class BindGroup;
+
 	enum ShaderStage
 	{
 		SHADER_STAGE_VERTEX,
@@ -24,7 +25,7 @@ namespace Magnefu
 	struct ViewportInfo
 	{
 		uint32_t ViewportCount;
-		uint32_t Scissorcount;
+		uint32_t ScissorCount;
 	};
 
 
@@ -78,12 +79,12 @@ namespace Magnefu
 		COMPARE_OP_GREATER_OR_EQUAL = 6,
 		COMPARE_OP_ALWAYS = 7,
 	};
-	
+
 	struct DepthAndStencilInfo
 	{
+		DepthCompareOp CompareOp;
 		bool DepthTestEnable;
 		bool DepthWriteEnable;
-		DepthCompareOp CompareOp;
 		bool DepthBoundsTestEnable;
 		bool StencilTestEnable;
 
@@ -99,14 +100,13 @@ namespace Magnefu
 
 	struct GraphicsPipelineState
 	{
-		std::vector<DynamicState> DynamicStates;
+		DynamicState DynamicStates[2];
 		ViewportInfo ViewportInfo;
 		RasterizerInfo RasterizerInfo;
 		MSAAInfo MSAAInfo;
 		DepthAndStencilInfo DepthAndStencilInfo;
 		PushConstantInfo PushConstantInfo;
 	};
-
 
 	struct ShaderStageDesc
 	{
@@ -130,16 +130,14 @@ namespace Magnefu
 		ShaderStageDesc FS;
 	};
 
-
 	struct ShaderDesc
 	{
-		const char*      DebugName;
-		const char*      Path;
-		ShaderStageDescs StageDescriptions;
-		Handle<BindGroup> BindGroups[2];
+		const char*           DebugName;
+		const char*           Path;
+		ShaderStageDescs      StageDescriptions;
+		Handle<BindGroup>     BindGroups[2];
 		GraphicsPipelineState GraphicsPipeline;
 	};
-
 
 	class Shader
 	{
