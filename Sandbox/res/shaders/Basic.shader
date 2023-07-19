@@ -245,7 +245,11 @@ void main()
 
     
 
-    
+    // TODO: 
+    /*
+    Lightenabled will be used strictly cpu side to determine if light needs to be culled or not.(once i am using an array of lights)
+
+    */
 
     
 

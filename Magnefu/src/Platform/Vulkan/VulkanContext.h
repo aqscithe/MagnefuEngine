@@ -222,6 +222,8 @@ namespace Magnefu
 		// -- Device Properties and Features -- //
 		VkPhysicalDeviceProperties   m_Properties{};
 		VkPhysicalDeviceFeatures     m_SupportedFeatures;
+		VkPhysicalDeviceFeatures     m_EnabledFeatures;
+		
 
 		// -- Device Primitives -- //
 		RendererInfo                 m_RendererInfo;

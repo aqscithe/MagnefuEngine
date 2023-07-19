@@ -407,6 +407,8 @@ namespace Magnefu
 		logicalDevCreateInfo.enabledExtensionCount = deviceExtensions.size();
 		logicalDevCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
+		m_EnabledFeatures = deviceFeatures;
+
 		if (m_EnableValidationLayers)
 		{
 			logicalDevCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
