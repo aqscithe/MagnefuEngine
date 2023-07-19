@@ -41,9 +41,8 @@ public:
 	void OnUpdate(float deltaTime) override
 	{
 		m_Camera->ProcessInput(deltaTime);
-		m_GraphicsContext->SetPushConstants(m_PushConstants);
+		//m_GraphicsContext->SetPushConstants(m_PushConstants);
 
-		
 		Magnefu::Application& app = Magnefu::Application::Get();
 		app.SetLightData(m_LightData);
 		app.SetMaterialData(m_MaterialData);
@@ -96,7 +95,7 @@ public:
 private:
 	Magnefu::Ref<Magnefu::SceneCamera> m_Camera;
 	Magnefu::GraphicsContext* m_GraphicsContext;
-	Magnefu::PushConstants m_PushConstants;
+	//Magnefu::PushConstants m_PushConstants;
 	Magnefu::Light         m_LightData;
 	Magnefu::Material      m_MaterialData;
 };

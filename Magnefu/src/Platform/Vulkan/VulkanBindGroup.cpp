@@ -318,6 +318,12 @@ namespace Magnefu
 			{
 				return VK_SHADER_STAGE_FRAGMENT_BIT;
 			}
+
+			case ShaderStage::SHADER_STAGE_VERTEX_AND_FRAGMENT:
+			{
+				return VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+			}
+
 			default:
 			{
 				MF_CORE_ASSERT(false, "Unknown Shader Stage Flag");

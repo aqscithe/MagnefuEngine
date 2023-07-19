@@ -747,12 +747,12 @@ namespace Magnefu
 		colorBlending.blendConstants[3] = 0.0f; // Optional
 
 		// Push Constants
-		VkPushConstantRange pushConstantRange = {};
-		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT; // The shader stages that will use the push constants.
-		pushConstantRange.offset = 0;
-		pushConstantRange.size = sizeof(PushConstants);
+		//VkPushConstantRange pushConstantRange = {};
+		//pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT; // The shader stages that will use the push constants.
+		//pushConstantRange.offset = 0;
+		//pushConstantRange.size = sizeof(PushConstants);
 
-		MF_CORE_DEBUG("Size of Push Constants: {}", sizeof(PushConstants));
+		//MF_CORE_DEBUG("Size of Push Constants: {}", sizeof(PushConstants));
 
 		VulkanBindGroup& material = static_cast<VulkanBindGroup&>(rm.GetBindGroup(app.GetMaterialBindGroup()));
 		VulkanBindGroup& renderpassGlobals = static_cast<VulkanBindGroup&>(rm.GetBindGroup(app.GetRenderPassBindGroup()));
@@ -765,8 +765,8 @@ namespace Magnefu
 		// Pipeline Layout
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;	
-		pipelineLayoutInfo.pushConstantRangeCount = 1; // Optional
-		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange; // Optional
+		//pipelineLayoutInfo.pushConstantRangeCount = 1; // Optional
+		//pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange; // Optional
 		pipelineLayoutInfo.setLayoutCount = layouts.size();
 		pipelineLayoutInfo.pSetLayouts = layouts.data();
 
@@ -1715,7 +1715,7 @@ namespace Magnefu
 
 				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
 
-				vkCmdPushConstants(commandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &m_PushConstants);
+				//vkCmdPushConstants(commandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &m_PushConstants);
 
 				vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
 			}
