@@ -43,8 +43,8 @@ namespace Magnefu
 		inline size_t GetTextureCount() { return sizeof(BindingTextureDescs) / sizeof(TextureDesc); }
 		inline Handle<BindGroup>& GetMaterialBindGroup() { return m_Material; }
 		inline Handle<BindGroup>& GetRenderPassBindGroup() { return m_RenderPassGlobals; }
+		inline Handle<Shader>& GetGraphicsPipelineShaderHandle() { return m_GraphicsPipelineShader; }
 
-		//inline Handle<Buffer>& GetUniformBufferHandle() { return m_Uniforms; }
 		inline Handle<Buffer>& GetVertexBufferHandle() { return m_VertexBuffer; }
 		inline Handle<Buffer>& GetIndexBufferHandle() { return m_IndexBuffer; }
 		inline uint32_t GetIndexCount() { return static_cast<uint32_t>(m_Indices.data.size()) / sizeof(uint32_t); }
@@ -72,7 +72,7 @@ namespace Magnefu
 		Handle<BindGroup>     m_Material;
 		Handle<Buffer>        m_VertexBuffer;
 		Handle<Buffer>        m_IndexBuffer;
-		Handle<Shader>        m_Shader;
+		Handle<Shader>        m_GraphicsPipelineShader;
 		DataBlock   m_Vertices;
 		DataBlock   m_Indices;
 

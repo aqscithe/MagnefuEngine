@@ -194,6 +194,7 @@
     <ClInclude Include="src\Magnefu\ResourceManagement\Pool.h" />
     <ClInclude Include="src\Magnefu\ResourceManagement\ResourceManager.h" />
     <ClInclude Include="src\Magnefu\Core\Span.h" />
+    <ClInclude Include="src\Magnefu\ResourceManagement\ResourcePaths.h" />
     <ClInclude Include="src\Magnefu\Window.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanBindGroup.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanBuffer.h" />

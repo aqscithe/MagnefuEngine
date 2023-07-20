@@ -10,6 +10,9 @@ namespace Magnefu
 		VulkanShader(const ShaderDesc&);
 		~VulkanShader();
 
+		inline const VkPipelineLayout& GetPipelineLayout() { return m_PipelineLayout; }
+		inline const VkPipeline& GetPipeline() { return m_Pipeline; }
+
 	private: 
 		void CreateGraphicsPipeline(const ShaderDesc&);
 		//void CreateComputePipeline(const ShaderDesc&);
@@ -17,6 +20,7 @@ namespace Magnefu
 		ShaderList ParseShader(const char*);
 		VkShaderModule CreateShaderModule(const ShaderSource&);
 
+		VkDynamicState TranslateDynamicState(const DynamicState&);
 		VkPolygonMode TranslatePolygonMode(const PolygonMode&);
 		VkCullModeFlags TranslateCullMode(const CullMode&);
 		VkCompareOp TranslateDepthCompareOp(const DepthCompareOp&);

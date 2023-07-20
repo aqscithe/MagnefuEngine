@@ -291,24 +291,5 @@ namespace Magnefu
 
 			}
 		}
-		VkDynamicState GetDynamicState(const DynamicState& state)
-		{
-			switch (state)
-			{
-				case DynamicState::DYNAMIC_STATE_VIEWPORT:
-				{
-					return VK_DYNAMIC_STATE_VIEWPORT;
-				}
-				case DynamicState::DYNAMIC_STATE_SCISSOR:
-				{
-					return VK_DYNAMIC_STATE_SCISSOR;
-				}
-				default:
-				{
-					MF_CORE_ASSERT(false, "Unknown Dynamic State");
-					break;
-				}
-			}
-		}
 	}
 }

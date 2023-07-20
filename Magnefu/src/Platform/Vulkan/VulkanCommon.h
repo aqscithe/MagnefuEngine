@@ -82,6 +82,5 @@ namespace Magnefu
 
 		VkShaderStageFlags GetShaderStageFlags(const ShaderStage&);
 		VkShaderStageFlagBits GetShaderStageFlagBits(const ShaderStage& stage);
-		VkDynamicState GetDynamicState(const DynamicState&);
 	}
 }

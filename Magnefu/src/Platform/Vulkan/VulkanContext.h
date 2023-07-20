@@ -124,11 +124,11 @@ namespace Magnefu
 		void CreateRenderPass();
 		void CreateComputeDescriptorSetLayout();
 		//void CreateGraphicsPipeline();
-		void CreateParticleGraphicsPipeline();
+		//void CreateParticleGraphicsPipeline();
 		void CreateFrameBuffers();
 		void CreateCommandPool();
 		void CreateShaderStorageBuffers();
-		void CreateComputePipeline();
+		//void CreateComputePipeline();
 		void CreateColorResources();
 		void CreateDepthResources();
 		void LoadModel();
@@ -178,7 +178,7 @@ namespace Magnefu
 
 		// Part of Render Loop
 		void RecordComputeCommandBuffer(VkCommandBuffer commandBuffer);
-		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, VulkanBuffer& vertexBuffer, VulkanBuffer& indexBuffer, uint32_t indexCount, VkDescriptorSet& renderPassDescSet, VkDescriptorSet& matDescSet);
+		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, VulkanBuffer& vertexBuffer, VulkanBuffer& indexBuffer, uint32_t indexCount, VkDescriptorSet& renderPassDescSet, VkDescriptorSet& matDescSet, VkPipeline pipeline, VkPipelineLayout layout);
 		void RecreateSwapChain();
 		void PerformComputeOps();
 		void PerformGraphicsOps();
@@ -236,9 +236,9 @@ namespace Magnefu
 
 		// -- Render Pass and Pipeline Primitives -- //
 		VkRenderPass                 m_RenderPass;
-		ShaderList                   m_ParticleShaderList;
-		VkPipelineLayout             m_PipelineLayout;
-		VkPipeline                   m_GraphicsPipeline;
+		//ShaderList                   m_ParticleShaderList;
+		//VkPipelineLayout             m_PipelineLayout;
+		//VkPipeline                   m_GraphicsPipeline;
 		std::vector<VkFramebuffer>   m_SwapChainFramebuffers;
 		VkCommandPool                m_CommandPool;
 		std::vector<VkCommandBuffer> m_CommandBuffers;

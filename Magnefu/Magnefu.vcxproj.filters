@@ -1255,6 +1255,7 @@
     <ClInclude Include="src\Magnefu\Renderer\Light.h" />
     <ClInclude Include="src\Magnefu\Renderer\Material.h" />
     <ClInclude Include="src\Magnefu\ResourceManagement\Handle.h" />
+    <ClInclude Include="src\Magnefu\ResourceManagement\ResourcePaths.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application.cpp">

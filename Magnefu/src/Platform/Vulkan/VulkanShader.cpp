@@ -20,8 +20,9 @@ namespace Magnefu
 
 	VulkanShader::~VulkanShader()
 	{
-		vkDestroyPipeline(m_VkDevice, m_GraphicsPipeline, nullptr);
-		vkDestroyPipelineLayout(m_VkDevice, m_PipelineLayout, nullptr);
+		VkDevice device = VulkanContext::Get().GetDevice();
+		vkDestroyPipeline(device, m_Pipeline, nullptr);
+		vkDestroyPipelineLayout(device, m_PipelineLayout, nullptr);
 	}
 
 	void VulkanShader::CreateGraphicsPipeline(const ShaderDesc& desc)
@@ -88,8 +89,8 @@ namespace Magnefu
 
 		// Dynamic State
 		std::vector<VkDynamicState> dynamicStates = {
-			VulkanCommon::GetDynamicState(desc.GraphicsPipeline.DynamicStates[0]), // TODO: change the way these are intialized, i shouldn't have to add a line here everytime there
-			VulkanCommon::GetDynamicState(desc.GraphicsPipeline.DynamicStates[1]), // is a new dynamic state
+			TranslateDynamicState(desc.GraphicsPipeline.DynamicStates[0]), // TODO: change the way these are intialized, i shouldn't have to add a line here everytime 
+			TranslateDynamicState(desc.GraphicsPipeline.DynamicStates[1]), // is a new dynamic state
 		};
 
 		VkPipelineDynamicStateCreateInfo dynamicState{};
@@ -316,6 +317,26 @@ namespace Magnefu
 	
 
 		return shaderModule;
+	}
+
+	VkDynamicState VulkanShader::TranslateDynamicState(const DynamicState& state)
+	{
+		switch (state)
+		{
+		case DynamicState::DYNAMIC_STATE_VIEWPORT:
+		{
+			return VK_DYNAMIC_STATE_VIEWPORT;
+		}
+		case DynamicState::DYNAMIC_STATE_SCISSOR:
+		{
+			return VK_DYNAMIC_STATE_SCISSOR;
+		}
+		default:
+		{
+			MF_CORE_ASSERT(false, "Unknown Dynamic State");
+			break;
+		}
+		}
 	}
 
 	VkPolygonMode VulkanShader::TranslatePolygonMode(const PolygonMode& mode)

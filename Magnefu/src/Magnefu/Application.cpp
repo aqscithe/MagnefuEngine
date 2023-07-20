@@ -51,7 +51,7 @@ namespace Magnefu
             .Buffers    = MaterialUniformBufferDesc
         });
 
-        m_Shader = m_RM->CreateShader({
+        m_GraphicsPipelineShader = m_RM->CreateShader({
             .DebugName = "Basic Shader",
             .Path      = SHADER_PATH,
             .StageDescriptions = {
