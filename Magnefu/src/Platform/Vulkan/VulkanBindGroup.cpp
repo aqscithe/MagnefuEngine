@@ -61,7 +61,7 @@ namespace Magnefu
 			layoutBindings[i].descriptorType = GetDescriptorType(layout.Bindings[i].Type);
 			layoutBindings[i].descriptorCount = layout.Bindings[i].Count;
 			layoutBindings[i].pImmutableSamplers = nullptr; // For image sampling
-			layoutBindings[i].stageFlags = GetShaderStageFlags(layout.Bindings[i].Stage);
+			layoutBindings[i].stageFlags = VulkanCommon::GetShaderStageFlags(layout.Bindings[i].Stage);
 		}
 
 		VkDescriptorSetLayoutCreateInfo layoutInfo{};
@@ -302,34 +302,6 @@ namespace Magnefu
 				break;
 			}
 				
-		}
-	}
-
-	VkShaderStageFlags VulkanBindGroup::GetShaderStageFlags(const ShaderStage& stage)
-	{
-		switch (stage)
-		{
-			case ShaderStage::SHADER_STAGE_VERTEX:
-			{
-				return VK_SHADER_STAGE_VERTEX_BIT;
-			}
-
-			case ShaderStage::SHADER_STAGE_FRAGMENT:
-			{
-				return VK_SHADER_STAGE_FRAGMENT_BIT;
-			}
-
-			case ShaderStage::SHADER_STAGE_VERTEX_AND_FRAGMENT:
-			{
-				return VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-			}
-
-			default:
-			{
-				MF_CORE_ASSERT(false, "Unknown Shader Stage Flag");
-				break;
-			}
-			
 		}
 	}
 }

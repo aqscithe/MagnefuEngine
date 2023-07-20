@@ -2,7 +2,7 @@
 
 #include "Application.h"
 #include "Renderer/GraphicsContext.h"
-
+#include "Magnefu/ResourceManagement/ResourcePaths.h"
 
 //TEMP
 #include "imgui/imgui.h"
@@ -14,7 +14,6 @@ namespace Magnefu
 
     Application* Application::s_Instance = nullptr;
 
-    static const char* SHADER_PATH = "res/shaders/Basic.shader";
 
 	Application::Application()
 	{
@@ -74,10 +73,12 @@ namespace Magnefu
                 },
                 .RasterizerInfo = {
                     .PolygonMode = PolygonMode::POLYGON_MODE_FILL,
-                    .CullMode    = CullMode::CULL_MODE_BACK
+                    .LineWidth   = 1.f,
+                    .CullMode    = CullMode::CULL_MODE_BACK,
+                    
                 },
                 .MSAAInfo = {
-                    .SampleCount         = MSAASampleCountFlag::SAMPLE_COUNT_8_BIT,
+                    //.SampleCount         = MSAASampleCountFlag::SAMPLE_COUNT_8_BIT, // Should be a parameter for when I create the graphics context as that is when this value is found
                     .EnableSampleShading = false,
                     .MinSampleShading    = 1.0f
                 },
@@ -92,7 +93,7 @@ namespace Magnefu
                     .Enabled = false,
                     .Stages = ShaderStage::SHADER_STAGE_VERTEX_AND_FRAGMENT,
                     .Offset = 0,
-                    .Size = 0
+                    .ByteSize = 0
                 }
             }
         });

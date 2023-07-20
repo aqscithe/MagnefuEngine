@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Magnefu/Renderer/BindGroup.h"
-#include "Platform/Vulkan/VulkanCommon.h"
+#include "VulkanCommon.h"
 #include "Magnefu/ResourceManagement/ResourceManager.h"
 
 
@@ -27,7 +27,7 @@ namespace Magnefu
 		void CreateDescriptorSets(const BindingLayoutType& type);
 
 		VkDescriptorType GetDescriptorType(const BindingType&);
-		VkShaderStageFlags GetShaderStageFlags(const ShaderStage&);
+		
 
 	private:
 		VkDescriptorSetLayout        m_DescriptorSetLayout;

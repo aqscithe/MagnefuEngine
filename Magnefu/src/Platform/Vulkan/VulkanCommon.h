@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Magnefu/Renderer/Texture.h"
+
 #include "vulkan/vulkan.h"
 
 
@@ -64,6 +64,8 @@ namespace Magnefu
 
 	};
 
+	enum ShaderStage;
+
 	namespace VulkanCommon
 	{
 		// Buffers
@@ -77,5 +79,9 @@ namespace Magnefu
 		void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
 		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+
+		VkShaderStageFlags GetShaderStageFlags(const ShaderStage&);
+		VkShaderStageFlagBits GetShaderStageFlagBits(const ShaderStage& stage);
+		VkDynamicState GetDynamicState(const DynamicState&);
 	}
 }

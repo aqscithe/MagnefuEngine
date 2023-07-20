@@ -1,6 +1,7 @@
 #include "mfpch.h"
 #include "VulkanCommon.h"
 #include "VulkanContext.h"
+#include "Magnefu/Renderer/Shader.h"
 
 namespace Magnefu
 {
@@ -238,6 +239,76 @@ namespace Magnefu
 			);
 
 			EndSingleTimeCommands(commandBuffer);
+		}
+
+		VkShaderStageFlags GetShaderStageFlags(const ShaderStage& stage)
+		{
+			switch (stage)
+			{
+			case ShaderStage::SHADER_STAGE_VERTEX:
+			{
+				return VK_SHADER_STAGE_VERTEX_BIT;
+			}
+
+			case ShaderStage::SHADER_STAGE_FRAGMENT:
+			{
+				return VK_SHADER_STAGE_FRAGMENT_BIT;
+			}
+
+			case ShaderStage::SHADER_STAGE_VERTEX_AND_FRAGMENT:
+			{
+				return VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+			}
+
+			default:
+			{
+				MF_CORE_ASSERT(false, "Unknown Shader Stage Flag");
+				break;
+			}
+
+			}
+		}
+
+		VkShaderStageFlagBits GetShaderStageFlagBits(const ShaderStage& stage)
+		{
+			switch (stage)
+			{
+				case ShaderStage::SHADER_STAGE_VERTEX:
+				{
+					return VK_SHADER_STAGE_VERTEX_BIT;
+				}
+
+				case ShaderStage::SHADER_STAGE_FRAGMENT:
+				{
+					return VK_SHADER_STAGE_FRAGMENT_BIT;
+				}
+
+				default:
+				{
+					MF_CORE_ASSERT(false, "Unknown Shader Stage Flag");
+					break;
+				}
+
+			}
+		}
+		VkDynamicState GetDynamicState(const DynamicState& state)
+		{
+			switch (state)
+			{
+				case DynamicState::DYNAMIC_STATE_VIEWPORT:
+				{
+					return VK_DYNAMIC_STATE_VIEWPORT;
+				}
+				case DynamicState::DYNAMIC_STATE_SCISSOR:
+				{
+					return VK_DYNAMIC_STATE_SCISSOR;
+				}
+				default:
+				{
+					MF_CORE_ASSERT(false, "Unknown Dynamic State");
+					break;
+				}
+			}
 		}
 	}
 }

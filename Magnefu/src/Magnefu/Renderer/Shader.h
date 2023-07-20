@@ -47,6 +47,7 @@ namespace Magnefu
 	struct RasterizerInfo
 	{
 		PolygonMode PolygonMode;  // If LINE or POINT, will need to check enabled features for fillModeNonSolid ( enabled features determined when physical device is created)
+		float LineWidth = 1.f;
 		CullMode CullMode;
 	};
 
@@ -63,7 +64,7 @@ namespace Magnefu
 
 	struct MSAAInfo
 	{
-		MSAASampleCountFlag SampleCount;
+		//MSAASampleCountFlag SampleCount;
 		bool EnableSampleShading;
 		float MinSampleShading;
 	};
@@ -95,7 +96,7 @@ namespace Magnefu
 		bool Enabled;
 		ShaderStage Stages;
 		uint32_t Offset;
-		uint32_t Size;
+		uint32_t ByteSize;
 	};
 
 	struct GraphicsPipelineState
@@ -106,6 +107,29 @@ namespace Magnefu
 		MSAAInfo MSAAInfo;
 		DepthAndStencilInfo DepthAndStencilInfo;
 		PushConstantInfo PushConstantInfo;
+	};
+
+	
+	enum class ShaderType
+	{
+		None = -1,
+		Vertex,
+		Fragment,
+		Compute
+	};
+
+	using String = std::string;
+	struct ShaderSource
+	{
+		String Text;
+		ShaderType Type;
+	};
+
+	struct ShaderList
+	{
+		ShaderSource Vertex;
+		ShaderSource Fragment;
+		ShaderSource Compute;
 	};
 
 	struct ShaderStageDesc

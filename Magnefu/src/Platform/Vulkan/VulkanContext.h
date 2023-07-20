@@ -11,29 +11,6 @@ struct GLFWwindow;
 
 namespace Magnefu
 {
-	using String = std::string;
-
-	enum class ShaderType
-	{
-		None = -1,
-		Vertex,
-		Fragment,
-		Compute
-	};
-
-	struct ShaderSource
-	{
-		String Text;
-		ShaderType Type;
-	};
-
-	struct ShaderList
-	{
-		ShaderSource Vertex;
-		ShaderSource Fragment;
-		ShaderSource Compute;
-	};
-
 	struct QueueFamilyIndices 
 	{
 		std::optional<uint32_t> GraphicsFamily;
@@ -125,6 +102,9 @@ namespace Magnefu
 		inline const uint32_t GetCurrentFrame() const { return m_CurrentFrame; }
 		inline const VkPhysicalDeviceProperties GetDeviceProperties() const { return m_Properties; }
 		inline const VkPhysicalDeviceFeatures GetSupportedFeatures() const { return m_SupportedFeatures; }
+		inline const VkPhysicalDeviceFeatures GetEnabledFeatures() const { return m_EnabledFeatures; }
+		inline const VkSampleCountFlagBits GetMSAASamples() const { return m_MSAASamples; }
+		inline const VkRenderPass& GetRenderPass() const { return m_RenderPass; }
 
 
 	private:
@@ -143,7 +123,7 @@ namespace Magnefu
 		void CreateImageViews();
 		void CreateRenderPass();
 		void CreateComputeDescriptorSetLayout();
-		void CreateGraphicsPipeline();
+		//void CreateGraphicsPipeline();
 		void CreateParticleGraphicsPipeline();
 		void CreateFrameBuffers();
 		void CreateCommandPool();
@@ -181,8 +161,8 @@ namespace Magnefu
 
 
 		// Place in VKShader
-		ShaderList ParseShader(const char* filepath);
-		VkShaderModule CreateShaderModule(const ShaderSource& source);
+		//ShaderList ParseShader(const char* filepath);
+		//VkShaderModule CreateShaderModule(const ShaderSource& source);
 		
 
 		// Uniforms
