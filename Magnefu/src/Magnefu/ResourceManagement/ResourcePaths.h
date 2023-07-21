@@ -1,30 +1,38 @@
 #pragma once
-
-#include <string>
+#include <array>
 
 namespace Magnefu
 {
+	// -- MODELS -- //
+	static std::array<const char*, 3> MODEL_PATHS = {
+		"res/meshes/corridor.obj",
+		"res/meshes/Bronze_shield.obj",
+		"res/meshes/Victorian_Painting.obj"
+	};
+
 	// -- TEXTURES -- //
-	static const std::string BASE_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_BaseColor.png";
-	static const std::string METAL_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Metalness.png";
-	static const std::string ROUGHNESS_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Roughness.png";
-	static const std::string NORMAL_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_Normal.png";
-	static const std::string AO_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_AO.png";
-	static const std::string ARM_TEXTURE_PATH = "res/textures/scificorridor/scene_1001_ARM.png";
 
-	/*static const std::string BASE_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_BaseColor.png";
-	static const std::string METAL_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_Metallic.png";
-	static const std::string ROUGHNESS_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_Roughness.png";
-	static const std::string NORMAL_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_Normal.png";
-	static const std::string AO_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_AO.png";
-	static const std::string ARM_TEXTURE_PATH = "res/textures/Bronze_shield/Bronze_shield_ARM.png"; */
+	struct TexturePaths
+	{
+		const char* Paths[3];
+	};
 
-	/*static const std::string BASE_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_BaseColor_Utility-sRGB-Texture.png";
-	static const std::string METAL_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_Metallic_Utility-Raw.png";
-	static const std::string ROUGHNESS_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_Roughness_Utility-Raw.png";
-	static const std::string NORMAL_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_Normal_Utility-Raw.png";
-	static const std::string AO_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_AO_1_Utility-Raw.png";
-	static const std::string ARM_TEXTURE_PATH = "res/textures/Victorian_Painting/VictorianPaintings_ARM_Utility-sRGB-Texture.png"; */
+
+	static std::array<TexturePaths, 3> TEXTURE_PATHS = {
+		
+		"res/textures/scificorridor/scene_1001_BaseColor.png",
+		"res/textures/scificorridor/scene_1001_ARM.png",
+		"res/textures/scificorridor/scene_1001_AO.png"
+			
+		"res/textures/Bronze_shield/Bronze_shield_BaseColor.png",
+		"res/textures/Bronze_shield/Bronze_shield_ARM.png",
+		"res/textures/Bronze_shield/Bronze_shield_AO.png"
+			
+		"res/textures/Victorian_Painting/VictorianPaintings_BaseColor_Utility-sRGB-Texture.png",
+		"res/textures/Victorian_Painting/VictorianPaintings_ARM_Utility-sRGB-Texture.png",
+		"res/textures/Victorian_Painting/VictorianPaintings_AO_1_Utility-Raw.png"
+			
+	};
 
 	// -- SHADERS -- //
 	static const char* SHADER_PATH = "res/shaders/Basic.shader";

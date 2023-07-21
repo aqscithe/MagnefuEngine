@@ -57,6 +57,7 @@ namespace Magnefu
 	struct TextureDesc
 	{
 		const char*         DebugName = nullptr;
+		uint32_t            Index;
 		TextureType         Type = TextureType::NONE;
 		TextureTiling       Tiling = TextureTiling::IMAGE_TILING_NONE;
 		TextureFormat       Format = TextureFormat::FORMAT_NONE;
@@ -68,6 +69,7 @@ namespace Magnefu
 	// -- Pre-defined Texture Descriptions -- //
 	const TextureDesc DiffuseTextureDesc = {
 		"DiffuseTexture",
+		0,
 		TextureType::DIFFUSE,
 		TextureTiling::IMAGE_TILING_OPTIMAL,
 		TextureFormat::FORMAT_R8G8B8A8_SRGB,
@@ -76,6 +78,7 @@ namespace Magnefu
 
 	const TextureDesc ARMTextureDesc = {
 		"ARMTexture",
+		0,
 		TextureType::ARM,
 		TextureTiling::IMAGE_TILING_OPTIMAL,
 		TextureFormat::FORMAT_R8G8B8A8_UNORM,
@@ -84,6 +87,7 @@ namespace Magnefu
 
 	const TextureDesc NormalTextureDesc = {
 		"NormalTexture",
+		0,
 		TextureType::NORMAL,
 		TextureTiling::IMAGE_TILING_OPTIMAL,
 		TextureFormat::FORMAT_R8G8B8A8_UNORM,

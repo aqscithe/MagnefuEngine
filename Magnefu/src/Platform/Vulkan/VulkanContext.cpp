@@ -39,15 +39,6 @@ namespace Magnefu
 		return a.pos == b.pos && a.color == b.color && a.texCoord == b.texCoord;
 	}
 
-	static const std::string MODEL_PATH = "res/meshes/corridor.obj";
-	//static const std::string MODEL_PATH = "res/meshes/Bronze_shield.obj";
-	//static const std::string MODEL_PATH = "res/meshes/Victorian_Painting.obj";
-	
-
-	
-	
-
-
 	static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
 	{
 		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
@@ -146,7 +137,7 @@ namespace Magnefu
 		CreateLogicalDevice();
 		CreateSwapChain();
 		CreateCommandPool(); 
-		LoadModel();
+		LoadModels();
 		CreateRenderPass();
 
 	}
@@ -934,147 +925,149 @@ namespace Magnefu
 		m_DepthImageView = VulkanCommon::CreateImageView(m_DepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 	}
 
-	void VulkanContext::LoadModel()
+	void VulkanContext::LoadModels()
 	{
-		tinyobj::attrib_t attrib;
-		std::vector<tinyobj::shape_t> shapes;
-		std::vector<tinyobj::material_t> materials;
-		std::string warn, err;
+		Application& app = Application::Get();
+		app.ResizeSceneObjects(MODEL_PATHS.size());
 
-		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_PATH.c_str()))
+		for (size_t i = 0; i < MODEL_PATHS.size(); i++)
 		{
-			MF_CORE_WARN(warn);
-			MF_CORE_ERROR(err);
-		}
+			tinyobj::attrib_t attrib;
+			std::vector<tinyobj::shape_t> shapes;
+			std::vector<tinyobj::material_t> materials;
+			std::string warn, err;
 
-		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
-
-		std::vector<Vertex>    vertices;
-		std::vector<uint32_t>  indices;
-
-		// Note that this code(tangents and bitangents) does not handle mirrored UV sand other special cases, 
-		// and it does not normalize the vectors, which you may want to do depending on how you use them.
-
-		std::vector<std::vector<Maths::vec3>> tempTangents(attrib.vertices.size() / 3);
-		std::vector<std::vector<Maths::vec3>> tempBitangents(attrib.vertices.size() / 3);
-
-			
-		for (const auto& shape : shapes) 
-		{
-			for (size_t i = 0; i < shape.mesh.indices.size(); i += 3)
+			if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_PATHS[i]))
 			{
-				tinyobj::index_t idx1 = shape.mesh.indices[i];
-				tinyobj::index_t idx2 = shape.mesh.indices[i + 1];
-				tinyobj::index_t idx3 = shape.mesh.indices[i + 2];
-
-				// Grab the three vertices of the current face
-				Maths::vec3 pos1 = Maths::vec3(&attrib.vertices[3 * idx1.vertex_index]);
-				Maths::vec3 pos2 = Maths::vec3(&attrib.vertices[3 * idx2.vertex_index]);
-				Maths::vec3 pos3 = Maths::vec3(&attrib.vertices[3 * idx3.vertex_index]);
-
-				// Same for the texture coordinates
-				Maths::vec2 uv1 = Maths::vec2(&attrib.texcoords[2 * idx1.texcoord_index]);
-				Maths::vec2 uv2 = Maths::vec2(&attrib.texcoords[2 * idx2.texcoord_index]);
-				Maths::vec2 uv3 = Maths::vec2(&attrib.texcoords[2 * idx3.texcoord_index]);
-
-				// Edges of the triangle in position and texture space
-				Maths::vec3 deltaPos1 = pos2 - pos1;
-				Maths::vec3 deltaPos2 = pos3 - pos1;
-				Maths::vec2 deltaUV1 = uv2 - uv1;
-				Maths::vec2 deltaUV2 = uv3 - uv1;
-
-				// This will give us a direction vector pointing in the direction of positive s for this triangle.
-				// It calculates how much each vertex position needs to be adjusted in space to match how it was proportionally stretched when the texture was mapped.
-				float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
-				Maths::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
-				Maths::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
-
-				// Store the tangents and bitangents in the temporary vectors
-				tempTangents[idx1.vertex_index].push_back(tangent);
-				tempBitangents[idx1.vertex_index].push_back(bitangent);
-				tempTangents[idx2.vertex_index].push_back(tangent);
-				tempBitangents[idx2.vertex_index].push_back(bitangent);
-				tempTangents[idx3.vertex_index].push_back(tangent);
-				tempBitangents[idx3.vertex_index].push_back(bitangent);
+				MF_CORE_WARN(warn);
+				MF_CORE_ERROR(err);
 			}
 
-			for (const auto& index : shape.mesh.indices) 
+			std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+
+			std::vector<Vertex>    vertices;
+			std::vector<uint32_t>  indices;
+
+			// Note that this code(tangents and bitangents) does not handle mirrored UV sand other special cases, 
+			// and it does not normalize the vectors, which you may want to do depending on how you use them.
+
+			std::vector<std::vector<Maths::vec3>> tempTangents(attrib.vertices.size() / 3);
+			std::vector<std::vector<Maths::vec3>> tempBitangents(attrib.vertices.size() / 3);
+
+
+			for (const auto& shape : shapes)
 			{
-
-				Vertex vertex{};
-
-				vertex.pos = {
-					attrib.vertices[3 * index.vertex_index + 0],
-					attrib.vertices[3 * index.vertex_index + 1],
-					attrib.vertices[3 * index.vertex_index + 2]
-				};
-
-				vertex.texCoord = {
-					attrib.texcoords[2 * index.texcoord_index + 0],
-					1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
-				};
-
-				vertex.color = { 1.0f, 1.0f, 1.0f };
-
-				vertex.normal = {
-					attrib.normals[3 * index.normal_index + 0],
-					attrib.normals[3 * index.normal_index + 1],
-					attrib.normals[3 * index.normal_index + 2]
-				};
-
-				vertex.tangent = Maths::normalize(std::accumulate(tempTangents[index.vertex_index].begin(), tempTangents[index.vertex_index].end(), Maths::vec3(0.0f)));
-				vertex.bitangent = Maths::normalize(std::accumulate(tempBitangents[index.vertex_index].begin(), tempBitangents[index.vertex_index].end(), Maths::vec3(0.0f)));
-
-
-				if (uniqueVertices.count(vertex) == 0)
+				for (size_t i = 0; i < shape.mesh.indices.size(); i += 3)
 				{
-					uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
-					vertices.push_back(vertex);
+					tinyobj::index_t idx1 = shape.mesh.indices[i];
+					tinyobj::index_t idx2 = shape.mesh.indices[i + 1];
+					tinyobj::index_t idx3 = shape.mesh.indices[i + 2];
+
+					// Grab the three vertices of the current face
+					Maths::vec3 pos1 = Maths::vec3(&attrib.vertices[3 * idx1.vertex_index]);
+					Maths::vec3 pos2 = Maths::vec3(&attrib.vertices[3 * idx2.vertex_index]);
+					Maths::vec3 pos3 = Maths::vec3(&attrib.vertices[3 * idx3.vertex_index]);
+
+					// Same for the texture coordinates
+					Maths::vec2 uv1 = Maths::vec2(&attrib.texcoords[2 * idx1.texcoord_index]);
+					Maths::vec2 uv2 = Maths::vec2(&attrib.texcoords[2 * idx2.texcoord_index]);
+					Maths::vec2 uv3 = Maths::vec2(&attrib.texcoords[2 * idx3.texcoord_index]);
+
+					// Edges of the triangle in position and texture space
+					Maths::vec3 deltaPos1 = pos2 - pos1;
+					Maths::vec3 deltaPos2 = pos3 - pos1;
+					Maths::vec2 deltaUV1 = uv2 - uv1;
+					Maths::vec2 deltaUV2 = uv3 - uv1;
+
+					// This will give us a direction vector pointing in the direction of positive s for this triangle.
+					// It calculates how much each vertex position needs to be adjusted in space to match how it was proportionally stretched when the texture was mapped.
+					float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+					Maths::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
+					Maths::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
+
+					// Store the tangents and bitangents in the temporary vectors
+					tempTangents[idx1.vertex_index].push_back(tangent);
+					tempBitangents[idx1.vertex_index].push_back(bitangent);
+					tempTangents[idx2.vertex_index].push_back(tangent);
+					tempBitangents[idx2.vertex_index].push_back(bitangent);
+					tempTangents[idx3.vertex_index].push_back(tangent);
+					tempBitangents[idx3.vertex_index].push_back(bitangent);
 				}
 
-				indices.push_back(uniqueVertices[vertex]);
+				for (const auto& index : shape.mesh.indices)
+				{
+
+					Vertex vertex{};
+
+					vertex.pos = {
+						attrib.vertices[3 * index.vertex_index + 0],
+						attrib.vertices[3 * index.vertex_index + 1],
+						attrib.vertices[3 * index.vertex_index + 2]
+					};
+
+					vertex.texCoord = {
+						attrib.texcoords[2 * index.texcoord_index + 0],
+						1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
+					};
+
+					vertex.color = { 1.0f, 1.0f, 1.0f };
+
+					vertex.normal = {
+						attrib.normals[3 * index.normal_index + 0],
+						attrib.normals[3 * index.normal_index + 1],
+						attrib.normals[3 * index.normal_index + 2]
+					};
+
+					vertex.tangent = Maths::normalize(std::accumulate(tempTangents[index.vertex_index].begin(), tempTangents[index.vertex_index].end(), Maths::vec3(0.0f)));
+					vertex.bitangent = Maths::normalize(std::accumulate(tempBitangents[index.vertex_index].begin(), tempBitangents[index.vertex_index].end(), Maths::vec3(0.0f)));
+
+
+					if (uniqueVertices.count(vertex) == 0)
+					{
+						uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
+						vertices.push_back(vertex);
+					}
+
+					indices.push_back(uniqueVertices[vertex]);
+				}
 			}
-		}
 
-		Application& app = Application::Get();
-
-		{
-			size_t bufferSize = vertices.size() * sizeof(Vertex); // Buffer size
-			constexpr size_t alignment = 32; // Alignment requirement
-
-			// Allocate extra memory to accommodate alignment
-			Scope<char[]> vertexData(new char[bufferSize + alignment]);
-			void* ptr = vertexData.get();
-			size_t space = bufferSize + alignment;
-
-			void* alignedPtr = std::align(alignment, bufferSize, ptr, space);
-
-
-			if (alignedPtr != nullptr)
 			{
-				// Copy the vertex data to the aligned memory
-				std::memcpy(alignedPtr, vertices.data(), bufferSize);
+				size_t bufferSize = vertices.size() * sizeof(Vertex); // Buffer size
+				constexpr size_t alignment = 32; // Alignment requirement
 
-				// Create the Span from the aligned memory
-				//Span<const uint8_t> vertexDataSpan(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
-				DataBlock vertexBlock(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
+				// Allocate extra memory to accommodate alignment
+				Scope<char[]> vertexData(new char[bufferSize + alignment]);
+				void* ptr = vertexData.get();
+				size_t space = bufferSize + alignment;
 
-				// Now you can set InitData in BufferDesc with vertexDataSpan
-				// Note: Make sure original is not destroyed until you're done with vertexDataSpan
-				//app.SetVertices(std::move(vertexDataSpan));
-				//app.SetVertexData(std::move(vertexData));
-				app.SetVertices(std::move(vertexBlock));
+				void* alignedPtr = std::align(alignment, bufferSize, ptr, space);
+
+
+				if (alignedPtr != nullptr)
+				{
+					// Copy the vertex data to the aligned memory
+					std::memcpy(alignedPtr, vertices.data(), bufferSize);
+
+					// Create the Span from the aligned memory
+					//Span<const uint8_t> vertexDataSpan(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
+					DataBlock vertexBlock(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
+
+					// Now you can set InitData in BufferDesc with vertexDataSpan
+					// Note: Make sure original is not destroyed until you're done with vertexDataSpan
+					//app.SetVertices(std::move(vertexDataSpan));
+					//app.SetVertexData(std::move(vertexData));
+					app.SetVertexBlock(std::move(vertexBlock), i);
+				}
+				else
+				{
+					MF_CORE_ASSERT(false, "Failed to properly align data.");
+				}
 			}
-			else
-			{
-				MF_CORE_ASSERT(false, "Failed to properly align data.");
-			}
+
+			DataBlock indexBlock(reinterpret_cast<const uint8_t*>(indices.data()), indices.size() * sizeof(uint32_t));
+			app.SetIndexBlock(std::move(indexBlock), i);
 		}
-
-		DataBlock indexBlock(reinterpret_cast<const uint8_t*>(indices.data()), indices.size() * sizeof(uint32_t));
-		app.SetIndices(std::move(indexBlock));
-		
-		
 	}
 
 	void VulkanContext::CreateComputeUniformBuffers()
@@ -1463,8 +1456,21 @@ namespace Magnefu
 		}
 	}
 
-	void VulkanContext::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, VulkanBuffer& vertexBuffer, VulkanBuffer& indexBuffer, uint32_t indexCount, VkDescriptorSet& renderPassDescSet, VkDescriptorSet& matDescSet, VkPipeline pipeline, VkPipelineLayout pipelineLayout)
+	void VulkanContext::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 	{
+		Application& app = Application::Get();
+		ResourceManager& rm = Application::Get().GetResourceManager();
+
+		VulkanBindGroup& renderpassGlobals = static_cast<VulkanBindGroup&>(rm.GetBindGroup(app.GetRenderPassBindGroup()));
+		VulkanBindGroup& material = static_cast<VulkanBindGroup&>(rm.GetBindGroup(app.GetMaterialBindGroup()));
+		VulkanUniformBuffer& renderpassUniformBuffer = static_cast<VulkanUniformBuffer&>(rm.GetBuffer(renderpassGlobals.GetUniformsHandle()));
+		VulkanUniformBuffer& materialUniformBuffer = static_cast<VulkanUniformBuffer&>(rm.GetBuffer(material.GetUniformsHandle()));
+		VulkanBuffer& vertexBuffer = static_cast<VulkanBuffer&>(rm.GetBuffer(app.GetVertexBufferHandle()));
+		VulkanBuffer& indexBuffer = static_cast<VulkanBuffer&>(rm.GetBuffer(app.GetIndexBufferHandle()));
+		VulkanShader& shader = static_cast<VulkanShader&>(rm.GetShader(app.GetGraphicsPipelineShaderHandle()));
+
+
+
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.flags = 0; // Optional
@@ -1488,42 +1494,56 @@ namespace Magnefu
 		renderPassInfo.pClearValues = clearValues.data();
 
 		std::array<VkDescriptorSet, 2> descriptorSets = {
-			renderPassDescSet,
-			matDescSet
+			renderpassGlobals.GetFrameDescriptorSet(m_CurrentFrame),
+			material.GetFrameDescriptorSet(m_CurrentFrame)
 		};
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-			// MODEL PIPELINE
-			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-			
+		auto& sceneObjects = app.GetSceneObjects();
+		VulkanShader& shader = static_cast<VulkanShader&>(rm.GetShader(sceneObjects[0].GetGraphicsPipelineShaderHandle()));
+
+		// MODEL PIPELINE
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader.GetPipeline());
+
+		VkViewport viewport{};
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = static_cast<float>(m_SwapChainExtent.width);
+		viewport.height = static_cast<float>(m_SwapChainExtent.height);
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+		VkRect2D scissor{};
+		scissor.offset = { 0, 0 };
+		scissor.extent = m_SwapChainExtent;
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+		for (auto& sceneObject : sceneObjects)
+		{
+			VulkanShader& objShader = static_cast<VulkanShader&>(rm.GetShader(sceneObject.GetGraphicsPipelineShaderHandle()));
+			if (objShader.GetPipeline() != shader.GetPipeline())
 			{
-				VkViewport viewport{};
-				viewport.x = 0.0f;
-				viewport.y = 0.0f;
-				viewport.width = static_cast<float>(m_SwapChainExtent.width);
-				viewport.height = static_cast<float>(m_SwapChainExtent.height);
-				viewport.minDepth = 0.0f;
-				viewport.maxDepth = 1.0f;
-				vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-				VkRect2D scissor{};
-				scissor.offset = { 0, 0 };
-				scissor.extent = m_SwapChainExtent;
-				vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-				VkBuffer vertexBuffers[] = { vertexBuffer.GetBuffer()};
-				VkDeviceSize offsets[] = { 0 };
-				vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-
-				vkCmdBindIndexBuffer(commandBuffer, indexBuffer.GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
-
-				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
-
-				//vkCmdPushConstants(commandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &m_PushConstants);
-
-				vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
+				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, objShader.GetPipeline());
+				shader = objShader;
 			}
+			
+
+			VkBuffer vertexBuffers[] = { vertexBuffer.GetBuffer() };
+			VkDeviceSize offsets[] = { 0 };
+			vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+			vkCmdBindIndexBuffer(commandBuffer, indexBuffer.GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader.GetPipelineLayout(), 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
+
+			//vkCmdPushConstants(commandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &m_PushConstants);
+
+			vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
+			
+		}
+			
 
 			// PARTICLE PIPELINE
 			/*vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_ParticleGraphicsPipeline);
@@ -1553,6 +1573,11 @@ namespace Magnefu
 
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to record command buffer!");
+
+		// -- Update Uniform Buffers -- //
+
+		renderpassUniformBuffer.UpdateUniformBuffer();
+		materialUniformBuffer.UpdateUniformBuffer();
 	}
 
 
@@ -1710,17 +1735,6 @@ namespace Magnefu
 
 	void VulkanContext::PerformGraphicsOps()
 	{
-		Application& app = Application::Get();
-		ResourceManager& rm = Application::Get().GetResourceManager();
-		
-		VulkanBindGroup& renderpassGlobals = static_cast<VulkanBindGroup&>(rm.GetBindGroup(app.GetRenderPassBindGroup()));
-		VulkanBindGroup& material = static_cast<VulkanBindGroup&>(rm.GetBindGroup(app.GetMaterialBindGroup()));
-		VulkanUniformBuffer& renderpassUniformBuffer = static_cast<VulkanUniformBuffer&>(rm.GetBuffer(renderpassGlobals.GetUniformsHandle()));
-		VulkanUniformBuffer& materialUniformBuffer = static_cast<VulkanUniformBuffer&>(rm.GetBuffer(material.GetUniformsHandle()));
-		VulkanBuffer& vertexBuffer = static_cast<VulkanBuffer&>(rm.GetBuffer(app.GetVertexBufferHandle()));
-		VulkanBuffer& indexBuffer = static_cast<VulkanBuffer&>(rm.GetBuffer(app.GetIndexBufferHandle()));
-		VulkanShader& shader = static_cast<VulkanShader&>(rm.GetShader(app.GetGraphicsPipelineShaderHandle()));
-
 		// GRAPHICS SUBMISSION //
 
 		// Wait for previous frame
@@ -1741,10 +1755,8 @@ namespace Magnefu
 
 		// Reset and Record Command Buffer - Game Objects
 		vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);                                                   
-		RecordCommandBuffer(m_CommandBuffers[m_CurrentFrame], m_ImageIndex, vertexBuffer, indexBuffer, app.GetIndexCount(), renderpassGlobals.GetFrameDescriptorSet(m_CurrentFrame), material.GetFrameDescriptorSet(m_CurrentFrame), shader.GetPipeline(), shader.GetPipelineLayout());
+		RecordCommandBuffer(m_CommandBuffers[m_CurrentFrame], m_ImageIndex);
 
-		renderpassUniformBuffer.UpdateUniformBuffer();
-		materialUniformBuffer.UpdateUniformBuffer();
 
 		//VkSemaphore waitSemaphores[] = { m_ComputeFinishedSemaphores[m_CurrentFrame], m_ImageAvailableSemaphores[m_CurrentFrame] };
 		VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphores[m_CurrentFrame] };
@@ -1811,107 +1823,4 @@ namespace Magnefu
 
 		m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}
-
-	//VkShaderModule VulkanContext::CreateShaderModule(const ShaderSource& source)
-	//{
-	//	//String rawText = ReadFile(source.Text);
-
-	//	// Compile shader to spv binary
-	//	// Create an instance of the compiler
-	//	shaderc::Compiler compiler;
-	//	shaderc::CompileOptions options;
-
-	//	// Compile the shader code
-	//	shaderc::SpvCompilationResult result;
-	//	
-	//	switch (source.Type)
-	//	{
-	//		case Magnefu::ShaderType::Vertex:
-	//		{
-	//			result = compiler.CompileGlslToSpv(source.Text, shaderc_vertex_shader, "vertex.glsl", options);
-	//			break;
-	//		}
-	//		case Magnefu::ShaderType::Fragment:
-	//		{
-	//			result = compiler.CompileGlslToSpv(source.Text, shaderc_fragment_shader, "fragment.glsl", options);
-	//			break;
-	//		}
-	//		case Magnefu::ShaderType::Compute:
-	//		{
-	//			result = compiler.CompileGlslToSpv(source.Text, shaderc_compute_shader, "compute.glsl", options);
-	//			break;
-	//		}
-	//		default:
-	//		{
-	//			MF_CORE_ASSERT(false, "Unknown shader type: {}", static_cast<int>(source.Type));
-	//			break;
-	//		}
-	//	}
-	//	
-
-	//	if (result.GetCompilationStatus() != shaderc_compilation_status_success) 
-	//	{
-	//		// Compilation failed, handle the error
-	//		MF_CORE_ASSERT(false, "Error: Compilation failed: {} ", result.GetErrorMessage());
-	//	}
-
-	//	// The result object is an iterable object providing a begin() and end() iterator for the SPIR-V binary.
-	//	std::vector<uint32_t> spirv_binary(result.cbegin(), result.cend());
-
-	//	VkShaderModuleCreateInfo createInfo{};
-	//	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-	//	createInfo.codeSize = spirv_binary.size() * sizeof(uint32_t);
-	//	createInfo.pCode = spirv_binary.data();
-
-	//	VkShaderModule shaderModule;
-	//	if (vkCreateShaderModule(m_VkDevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) 
-	//	{
-	//		MF_CORE_ASSERT(false, "Failed to create a shader module");
-	//	}
-
-	//	return shaderModule;
-	//}
-
-	//// Move parsing to the application.
-	//// then pass shaderlist to the createshader function
-	//ShaderList VulkanContext::ParseShader(const char* filepath)
-	//{
-	//	std::ifstream stream(filepath);
-
-	//	if (!stream.good())
-	//		MF_CORE_ASSERT(false, "Failed to load shader contents");
-
-	//	String line;
-	//	
-	//	std::stringstream ss[3];
-	//	ShaderType type = ShaderType::None;
-	//	while (std::getline(stream, line))
-	//	{
-	//		if (line.find("#shader") != String::npos)
-	//		{
-	//			if (line.find("vertex") != String::npos)
-	//			{
-	//				type = ShaderType::Vertex;
-	//			}
-	//			else if (line.find("fragment") != String::npos)
-	//			{
-	//				type = ShaderType::Fragment;
-	//			}
-	//			else if (line.find("compute") != String::npos)
-	//			{
-	//				type = ShaderType::Compute;
-	//			}
-	//		}
-	//		else
-	//		{
-	//			ss[(int)type] << line << '\n';
-	//		}
-	//	}
-
-	//	return {
-	//		{ ss[0].str(), ShaderType::Vertex },
-	//		{ ss[1].str(), ShaderType::Fragment },
-	//		{ ss[2].str(), ShaderType::Compute }
-	//	};
-	//}
 }

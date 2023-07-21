@@ -64,6 +64,7 @@ namespace Magnefu
 	struct BindGroupDesc
 	{
 		const char*         DebugName;
+		uint32_t            Index;
 		BindingLayoutType   LayoutType;
 		BindingLayout       Layout;
 		BindingTextureDescs Textures;

@@ -31,6 +31,7 @@ namespace Magnefu
 
         m_RM = Scope<ResourceManager>(ResourceManager::Create());
 
+        // -- Global RenderPass -- //
         m_RenderPassGlobals = m_RM->CreateBindGroup({
             .DebugName  = "Render Pass Globals",
             .LayoutType = BindingLayoutType::LAYOUT_RENDERPASS,
@@ -39,81 +40,18 @@ namespace Magnefu
             .Buffers    = RenderPassUniformBufferDesc
         });
 
-        m_Material = m_RM->CreateBindGroup({
-            .DebugName  = "SciFi Corridor",
-            .LayoutType = BindingLayoutType::LAYOUT_MATERIAL,
-            .Layout     = DEFAULT_MATERIAL_BINDING_LAYOUT,
-            .Textures   = {
-                .Diffuse = DiffuseTextureDesc, 
-                .ARM     = ARMTextureDesc, 
-                .Normal  = NormalTextureDesc
-            },
-            .Buffers    = MaterialUniformBufferDesc
-        });
+        // load models in vulkan context will initialize the array of SceneObjects here in application
+        // essentially, the number of model paths will determine the number of scene objects
+        // Then, I will loop through the array here, creating the material bind groups, shaders, buffers, etc.
+        // NOTE: If all the objects will use the same descriptor set layout and renderpass, then they will all use the same shader. At least,
+        // in this implementation. I'll need a way to check if the shader I need has already been created.
 
-        m_GraphicsPipelineShader = m_RM->CreateShader({
-            .DebugName = "Basic Shader",
-            .Path      = SHADER_PATH,
-            .StageDescriptions = {
-                .VS = DefaultVertexShaderDesc,
-                .FS = DefaultFragmentShaderDesc
-            },
-            .BindGroups = {
-                m_RenderPassGlobals,
-                m_Material
-            },
-            .GraphicsPipeline = {
-                .DynamicStates = {
-                    DynamicState::DYNAMIC_STATE_VIEWPORT,
-                    DynamicState::DYNAMIC_STATE_SCISSOR
-                },
-                .ViewportInfo = {
-                    .ViewportCount = 1, 
-                    .ScissorCount  = 1
-                },
-                .RasterizerInfo = {
-                    .PolygonMode = PolygonMode::POLYGON_MODE_FILL,
-                    .LineWidth   = 1.f,
-                    .CullMode    = CullMode::CULL_MODE_BACK,
-                    
-                },
-                .MSAAInfo = {
-                    //.SampleCount         = MSAASampleCountFlag::SAMPLE_COUNT_8_BIT, // Should be a parameter for when I create the graphics context as that is when this value is found
-                    .EnableSampleShading = false,
-                    .MinSampleShading    = 1.0f
-                },
-                .DepthAndStencilInfo = {
-                    .CompareOp             = DepthCompareOp::COMPARE_OP_LESS,
-                    .DepthTestEnable       = true,
-                    .DepthWriteEnable      = true,
-                    .DepthBoundsTestEnable = false,
-                    .StencilTestEnable     = false
-                },
-                .PushConstantInfo = {
-                    .Enabled = false,
-                    .Stages = ShaderStage::SHADER_STAGE_VERTEX_AND_FRAGMENT,
-                    .Offset = 0,
-                    .ByteSize = 0
-                }
-            }
-        });
+        // -- Scene Objects -- //
 
-
-        m_VertexBuffer = m_RM->CreateBuffer({
-            .DebugName   = "VertexBuffer",
-            .ByteSize    = static_cast<uint64_t>(m_Vertices.data.size()),
-            .Usage       = BufferUsage::USAGE_VERTEX,
-            .UniformType = UniformBufferType::UNIFORM_NONE,
-            .InitData    = m_Vertices.span
-        });
-
-        m_IndexBuffer = m_RM->CreateBuffer({
-            .DebugName   = "IndexBuffer",
-            .ByteSize    = static_cast<uint64_t>(m_Indices.data.size()),
-            .Usage       = BufferUsage::USAGE_INDEX,
-            .UniformType = UniformBufferType::UNIFORM_NONE,
-            .InitData    = m_Indices.span
-        });
+        for (size_t i = 0; i < m_SceneObjects.size(); i++)
+        {
+            m_SceneObjects[i].Init(i);
+        }
 
         m_Window->GetGraphicsContext()->TempSecondaryInit();
 

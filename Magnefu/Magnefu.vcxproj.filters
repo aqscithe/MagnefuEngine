@@ -1256,6 +1256,7 @@
     <ClInclude Include="src\Magnefu\Renderer\Material.h" />
     <ClInclude Include="src\Magnefu\ResourceManagement\Handle.h" />
     <ClInclude Include="src\Magnefu\ResourceManagement\ResourcePaths.h" />
+    <ClInclude Include="src\Magnefu\Renderer\SceneObject.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application.cpp">
@@ -1382,5 +1383,6 @@
     <ClCompile Include="src\Platform\Vulkan\VulkanShader.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Light.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Material.cpp" />
+    <ClCompile Include="src\Magnefu\Renderer\SceneObject.cpp" />
   </ItemGroup>
 </Project>

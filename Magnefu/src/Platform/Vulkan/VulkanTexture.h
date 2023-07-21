@@ -24,9 +24,7 @@ namespace Magnefu
 		void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 
 
-		
-
-	public:
+	private:
 		TextureType        m_Type;
 		uint32_t           m_MipLevels;
 		VkImage            m_Image;

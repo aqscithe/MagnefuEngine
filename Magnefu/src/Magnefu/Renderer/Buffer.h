@@ -65,6 +65,7 @@ namespace Magnefu
         float                   Opacity;
     };
 
+
     struct ShaderUniformBufferObject
     {
 

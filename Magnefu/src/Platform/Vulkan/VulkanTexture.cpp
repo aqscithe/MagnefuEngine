@@ -9,12 +9,12 @@
 
 namespace Magnefu
 {
-	static const std::array<std::string, 3> TEXTURE_PATHS
+	/*static const std::array<const char*, 3> TEXTURE_PATHS
 	{
 		BASE_TEXTURE_PATH,
 		ARM_TEXTURE_PATH,
 		NORMAL_TEXTURE_PATH,
-	};
+	};*/
 
 	Ref<VkSampler> VulkanTexture::s_TextureSampler = CreateRef<VkSampler>();
 	bool VulkanTexture::s_SamplerCreated = false;
@@ -68,8 +68,9 @@ namespace Magnefu
 		int width, height, channels;
 		stbi_set_flip_vertically_on_load(0);
 
+		
 		stbi_uc* pixels = stbi_load(
-			TEXTURE_PATHS[static_cast<uint32_t>(desc.Type)].c_str(),
+			TEXTURE_PATHS[desc.Index].Paths[static_cast<uint32_t>(desc.Type)],
 			&width, &height, &channels,
 			desc.RequestedChannels
 		);
