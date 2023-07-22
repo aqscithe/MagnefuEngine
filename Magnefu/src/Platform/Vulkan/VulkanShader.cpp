@@ -173,7 +173,7 @@ namespace Magnefu
 		}
 
 
-		VulkanBindGroup& material = static_cast<VulkanBindGroup&>(rm.GetBindGroup(app.GetMaterialBindGroup()));
+		VulkanBindGroup& material = static_cast<VulkanBindGroup&>(rm.GetBindGroup(desc.BindGroups[1]));
 		VulkanBindGroup& renderpassGlobals = static_cast<VulkanBindGroup&>(rm.GetBindGroup(app.GetRenderPassBindGroup()));
 
 		std::vector<VkDescriptorSetLayout> layouts = {

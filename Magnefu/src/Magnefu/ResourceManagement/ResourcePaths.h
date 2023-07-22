@@ -22,15 +22,15 @@ namespace Magnefu
 		
 		"res/textures/scificorridor/scene_1001_BaseColor.png",
 		"res/textures/scificorridor/scene_1001_ARM.png",
-		"res/textures/scificorridor/scene_1001_AO.png"
+		"res/textures/scificorridor/scene_1001_Normal.png",
 			
 		"res/textures/Bronze_shield/Bronze_shield_BaseColor.png",
 		"res/textures/Bronze_shield/Bronze_shield_ARM.png",
-		"res/textures/Bronze_shield/Bronze_shield_AO.png"
+		"res/textures/Bronze_shield/Bronze_shield_Normal.png",
 			
 		"res/textures/Victorian_Painting/VictorianPaintings_BaseColor_Utility-sRGB-Texture.png",
 		"res/textures/Victorian_Painting/VictorianPaintings_ARM_Utility-sRGB-Texture.png",
-		"res/textures/Victorian_Painting/VictorianPaintings_AO_1_Utility-Raw.png"
+		"res/textures/Victorian_Painting/VictorianPaintings_Normal_Utility-Raw.png"
 			
 	};
 

@@ -24,10 +24,10 @@ namespace Magnefu
 		Handle<BindGroup> CreateBindGroup(const BindGroupDesc&);
 		Handle<Shader>    CreateShader(const ShaderDesc&);
 
-		Texture&   GetTexture(Handle<Texture>& handle);
-		Buffer&    GetBuffer(Handle<Buffer>& handle);
-		BindGroup& GetBindGroup(Handle<BindGroup>& handle);
-		Shader&    GetShader(Handle<Shader>& handle);
+		Texture&   GetTexture(const Handle<Texture>& handle);
+		Buffer&    GetBuffer(const Handle<Buffer>& handle);
+		BindGroup& GetBindGroup(const Handle<BindGroup>& handle);
+		Shader&    GetShader(const Handle<Shader>& handle);
 
 		void DestroyTexture(Handle<Texture> handle);
 		void DestroyBuffer(Handle<Buffer> handle);

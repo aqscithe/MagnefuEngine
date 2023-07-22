@@ -28,22 +28,22 @@ namespace Magnefu
 		return m_ShaderPool.Create(desc);
 	}
 
-	Texture& ResourceManager::GetTexture(Handle<Texture>& handle)
+	Texture& ResourceManager::GetTexture(const Handle<Texture>& handle)
 	{
 		return m_TexturePool.Get(handle);
 	}
 
-	Buffer& ResourceManager::GetBuffer(Handle<Buffer>& handle)
+	Buffer& ResourceManager::GetBuffer(const Handle<Buffer>& handle)
 	{
 		return m_BufferPool.Get(handle);
 	}
 
-	BindGroup& ResourceManager::GetBindGroup(Handle<BindGroup>& handle)
+	BindGroup& ResourceManager::GetBindGroup(const Handle<BindGroup>& handle)
 	{
 		return m_BindGroupPool.Get(handle);
 	}
 
-	Shader& ResourceManager::GetShader(Handle<Shader>& handle)
+	Shader& ResourceManager::GetShader(const Handle<Shader>& handle)
 	{
 		return m_ShaderPool.Get(handle);
 	}

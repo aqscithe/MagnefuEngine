@@ -69,7 +69,7 @@ namespace Magnefu
 
 		inline static Application& Get() { return *s_Instance; }
 
-		inline void SetVertexBlock(DataBlock&& vertexBlock, size_t objPos) { m_SceneObjects[objPos].SetVertexBlock(std::move(vertexBlock)); }
+		void SetVertexBlock(DataBlock&& vertexBlock, size_t objPos); 
 		inline void SetIndexBlock(DataBlock&& indexBlock, size_t objPos) { m_SceneObjects[objPos].SetIndexBlock(std::move(indexBlock)); }
 
 		inline void SetLightData(Light& lightData) { m_LightData = lightData; }
@@ -103,6 +103,7 @@ namespace Magnefu
 
 		Light m_LightData;
 		Material m_MaterialData;
+
 	};
 
 	// to be defined in client

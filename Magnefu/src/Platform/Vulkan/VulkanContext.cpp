@@ -1462,13 +1462,7 @@ namespace Magnefu
 		ResourceManager& rm = Application::Get().GetResourceManager();
 
 		VulkanBindGroup& renderpassGlobals = static_cast<VulkanBindGroup&>(rm.GetBindGroup(app.GetRenderPassBindGroup()));
-		VulkanBindGroup& material = static_cast<VulkanBindGroup&>(rm.GetBindGroup(app.GetMaterialBindGroup()));
 		VulkanUniformBuffer& renderpassUniformBuffer = static_cast<VulkanUniformBuffer&>(rm.GetBuffer(renderpassGlobals.GetUniformsHandle()));
-		VulkanUniformBuffer& materialUniformBuffer = static_cast<VulkanUniformBuffer&>(rm.GetBuffer(material.GetUniformsHandle()));
-		VulkanBuffer& vertexBuffer = static_cast<VulkanBuffer&>(rm.GetBuffer(app.GetVertexBufferHandle()));
-		VulkanBuffer& indexBuffer = static_cast<VulkanBuffer&>(rm.GetBuffer(app.GetIndexBufferHandle()));
-		VulkanShader& shader = static_cast<VulkanShader&>(rm.GetShader(app.GetGraphicsPipelineShaderHandle()));
-
 
 
 		VkCommandBufferBeginInfo beginInfo{};
@@ -1492,12 +1486,7 @@ namespace Magnefu
 		clearValues[1].depthStencil = { 1.0f, 0 };
 		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 		renderPassInfo.pClearValues = clearValues.data();
-
-		std::array<VkDescriptorSet, 2> descriptorSets = {
-			renderpassGlobals.GetFrameDescriptorSet(m_CurrentFrame),
-			material.GetFrameDescriptorSet(m_CurrentFrame)
-		};
-
+		
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 		auto& sceneObjects = app.GetSceneObjects();
@@ -1528,7 +1517,16 @@ namespace Magnefu
 				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, objShader.GetPipeline());
 				shader = objShader;
 			}
+
+			VulkanBindGroup& material = static_cast<VulkanBindGroup&>(rm.GetBindGroup(sceneObject.GetMaterialBindGroup()));
+
+			std::array<VkDescriptorSet, 2> descriptorSets = {
+				renderpassGlobals.GetFrameDescriptorSet(m_CurrentFrame),
+				material.GetFrameDescriptorSet(m_CurrentFrame)
+			};
 			
+			VulkanBuffer& vertexBuffer = static_cast<VulkanBuffer&>(rm.GetBuffer(sceneObject.GetVertexBufferHandle()));
+			VulkanBuffer& indexBuffer = static_cast<VulkanBuffer&>(rm.GetBuffer(sceneObject.GetIndexBufferHandle()));
 
 			VkBuffer vertexBuffers[] = { vertexBuffer.GetBuffer() };
 			VkDeviceSize offsets[] = { 0 };
@@ -1536,11 +1534,12 @@ namespace Magnefu
 
 			vkCmdBindIndexBuffer(commandBuffer, indexBuffer.GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
+
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader.GetPipelineLayout(), 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
 
 			//vkCmdPushConstants(commandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &m_PushConstants);
 
-			vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
+			vkCmdDrawIndexed(commandBuffer, sceneObject.GetIndexCount(), 1, 0, 0, 0);
 			
 		}
 			
@@ -1577,7 +1576,14 @@ namespace Magnefu
 		// -- Update Uniform Buffers -- //
 
 		renderpassUniformBuffer.UpdateUniformBuffer();
-		materialUniformBuffer.UpdateUniformBuffer();
+
+		for (auto& sceneObject : sceneObjects)
+		{
+			VulkanBindGroup& material = static_cast<VulkanBindGroup&>(rm.GetBindGroup(sceneObject.GetMaterialBindGroup()));
+			VulkanUniformBuffer& materialUniformBuffer = static_cast<VulkanUniformBuffer&>(rm.GetBuffer(material.GetUniformsHandle()));
+			materialUniformBuffer.UpdateUniformBuffer();
+		}
+		
 	}
 
 

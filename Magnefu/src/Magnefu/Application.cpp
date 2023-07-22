@@ -49,27 +49,27 @@ namespace Magnefu
         // -- Scene Objects -- //
 
         for (size_t i = 0; i < m_SceneObjects.size(); i++)
-        {
             m_SceneObjects[i].Init(i);
-        }
 
         m_Window->GetGraphicsContext()->TempSecondaryInit();
 
         m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);
-
-        
-
-        /*{
-            MF_PROFILE_SCOPE("Renderer Init");
-            Renderer::Init();
-        }*/
 	}
 
 	Application::~Application()
 	{
         
 	}
+
+    void Application::SetVertexBlock(DataBlock&& vertexBlock, size_t objPos)
+    {
+        //DataBlock&& tempBlock = std::move(vertexBlock);
+
+        m_SceneObjects[objPos].SetVertexBlock(std::move(vertexBlock));
+        //m_SceneObjects[objPos].m_Vertices = std::move(vertexBlock);
+        //m_Vertices = std::move(vertexBlock);
+    }
 
     bool Application::OnWindowClose(WindowCloseEvent& e)
     {
