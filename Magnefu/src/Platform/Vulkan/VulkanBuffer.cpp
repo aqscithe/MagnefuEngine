@@ -202,7 +202,7 @@ namespace Magnefu
 
 				MaterialUniformBufferObject ubo{};
 				//ubo.model = Maths::Quaternion::CalculateRotationMatrix(time * 45.f, Maths::vec3(0.0f,		1.0f, 0.0f));
-				ubo.ModelMatrix = Maths::translate(mat.Translation) * Maths::Quaternion::CalculateRotationMatrix(0.f, Maths::vec3(0.0f, 0.0f, 0.0f)) * Maths::scale(mat.Scale);   // Model Matrix = T * R * S
+				ubo.ModelMatrix = Maths::translate(mat.Translation) * Maths::Quaternion::CalculateRotationMatrix(mat.AngleOfRot, mat.Rotation) * Maths::scale(mat.Scale);   // Model Matrix = T * R * S
 				ubo.Tint = mat.Tint;
 				ubo.Reflectance = mat.Reflectance;
 				ubo.Opacity = mat.Opacity;

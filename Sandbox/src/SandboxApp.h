@@ -71,7 +71,10 @@ public:
 					ImGui::SliderFloat3(label, material.Translation.e, -500.f, 500.f);
 
 					snprintf(label, sizeof(label), "Object %d Rot", i);
-					ImGui::SliderFloat3(label, material.Rotation.e, -360.f, 360.f);
+					ImGui::SliderFloat3(label, material.Rotation.e, 0.f, 1.f);
+
+					snprintf(label, sizeof(label), "Object %d Angle", i);
+					ImGui::SliderFloat(label, &material.AngleOfRot, -360.f, 360.f);
 
 					snprintf(label, sizeof(label), "Object %d Scale", i);
 					ImGui::SliderFloat3(label, material.Scale.e, 0.f, 1.f);
