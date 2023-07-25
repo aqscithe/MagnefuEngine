@@ -159,7 +159,7 @@ namespace Magnefu
 		}
 	}
 
-	void VulkanUniformBuffer::UpdateUniformBuffer()
+	void VulkanUniformBuffer::UpdateUniformBuffer(const Material& mat)
 	{
 		VulkanContext& context = VulkanContext::Get();
 		VkExtent2D swapChainExtent = context.GetSwapChainExtent();
@@ -195,8 +195,6 @@ namespace Magnefu
 
 			case Magnefu::UNIFORM_MATERIAL:
 			{
-				Material& mat = app.GetMaterialData();
-
 				/*static auto startTime = std::chrono::high_resolution_clock::now();
 
 				auto currentTime = std::chrono::high_resolution_clock::now();
@@ -204,7 +202,7 @@ namespace Magnefu
 
 				MaterialUniformBufferObject ubo{};
 				//ubo.model = Maths::Quaternion::CalculateRotationMatrix(time * 45.f, Maths::vec3(0.0f,		1.0f, 0.0f));
-				ubo.ModelMatrix = Maths::Quaternion::CalculateRotationMatrix(0.f, Maths::vec3(0.0f, 1.0f, 0.0f));   // Model Matrix = T * R * S
+				ubo.ModelMatrix = Maths::translate(mat.Translation) * Maths::Quaternion::CalculateRotationMatrix(0.f, Maths::vec3(0.0f, 0.0f, 0.0f)) * Maths::scale(mat.Scale);   // Model Matrix = T * R * S
 				ubo.Tint = mat.Tint;
 				ubo.Reflectance = mat.Reflectance;
 				ubo.Opacity = mat.Opacity;

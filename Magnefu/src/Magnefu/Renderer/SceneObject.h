@@ -2,6 +2,7 @@
 #include "Magnefu/ResourceManagement/Handle.h"
 #include "Magnefu/Core/Span.h"
 #include "Magnefu/Renderer/BindGroup.h"
+#include "Magnefu/Renderer/Material.h"
 
 
 
@@ -21,8 +22,12 @@ namespace Magnefu
 		inline Handle<Buffer>& GetIndexBufferHandle() { return m_IndexBuffer; }
 		inline uint32_t GetIndexCount() { return m_IndexCount; }
 
+		inline Material& GetMaterialData() { return m_MaterialData; }
+
 		inline void SetVertexBlock(DataBlock&& vertexBlock) { m_Vertices = std::move(vertexBlock); }
 		inline void SetIndexBlock(DataBlock&& indexBlock) { m_Indices = std::move(indexBlock); m_IndexCount = static_cast<uint32_t>(m_Indices.data.size()) / sizeof(uint32_t); }
+
+		inline void SetMaterialData(Material& materialData) { m_MaterialData = materialData; }
 
 		//void UpdateUniformBuffer();
 		DataBlock         m_Vertices;
@@ -36,7 +41,7 @@ namespace Magnefu
 		DataBlock         m_Indices;
 		uint32_t          m_IndexCount;
 
+		Material m_MaterialData;
 
-		//BindGroupDesc     m_MaterialDesc;
 	};
 }

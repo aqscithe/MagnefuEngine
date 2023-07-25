@@ -11,10 +11,11 @@ class GameLayer : public Magnefu::Layer
 {
 public:
 	GameLayer() :
-		Layer("3D Primitives")
+		Layer("3D Primitives"), m_SceneObjects(Magnefu::Application::Get().GetSceneObjects()), m_Camera(std::static_pointer_cast<Magnefu::SceneCamera>(Magnefu::Application::Get().GetWindow().GetSceneCamera()))
 	{
-		m_Camera = std::static_pointer_cast<Magnefu::SceneCamera>(Magnefu::Application::Get().GetWindow().GetSceneCamera());
+		//m_Camera = std::static_pointer_cast<Magnefu::SceneCamera>(Magnefu::Application::Get().GetWindow().GetSceneCamera());
 		m_GraphicsContext = Magnefu::Application::Get().GetWindow().GetGraphicsContext();
+		//m_SceneObjects = Magnefu::Application::Get().GetSceneObjects();
 
 		m_LightData.LightEnabled = 1;
 		m_LightData.LightColor = Maths::vec3(1.0f);
@@ -45,7 +46,7 @@ public:
 
 		Magnefu::Application& app = Magnefu::Application::Get();
 		app.SetLightData(m_LightData);
-		app.SetMaterialData(m_MaterialData);
+		//app.SetMaterialData(m_MaterialData);
 	}
 
 	void OnRender() override
@@ -59,13 +60,42 @@ public:
 		ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
 		if (ImGui::BeginTabBar("Scene", tab_bar_flags))
 		{
+			if (ImGui::BeginTabItem("Objects"))
+			{
+				for (int i = 0;i < m_SceneObjects.size(); i++)
+				{
+					auto& material = m_SceneObjects[i].GetMaterialData();
+
+					char label[32];
+					snprintf(label, sizeof(label), "Object %d Pos", i);
+					ImGui::SliderFloat3(label, material.Translation.e, -500.f, 500.f);
+
+					snprintf(label, sizeof(label), "Object %d Rot", i);
+					ImGui::SliderFloat3(label, material.Rotation.e, -360.f, 360.f);
+
+					snprintf(label, sizeof(label), "Object %d Scale", i);
+					ImGui::SliderFloat3(label, material.Scale.e, 0.f, 1.f);
+
+					snprintf(label, sizeof(label), "Object %d Tint", i);
+					ImGui::SliderFloat3(label, material.Tint.e, 0.f, 1.f);
+
+					snprintf(label, sizeof(label), "Object %d Opacity", i);
+					ImGui::SliderFloat(label, &material.Opacity, 0.f, 1.f);
+
+					snprintf(label, sizeof(label), "Object %d Reflectance", i);
+					ImGui::SliderFloat(label, &material.Reflectance, 0.f, 5.f, "%.2f");
+
+					ImGui::Separator();
+				}
+				ImGui::EndTabItem();
+			}
 			if (ImGui::BeginTabItem("Push Constants"))
 			{
-				ImGui::Text("MATERIAL");
-				ImGui::Separator();
-				ImGui::ColorEdit3("Tint", m_MaterialData.Tint.e);
-				ImGui::SliderFloat("Opacity", &m_MaterialData.Opacity, 0.0f, 1.0f, "%.2f");
-				ImGui::SliderFloat("Reflectance", &m_MaterialData.Reflectance, 0.f, 5.f, "%.2f");
+				//ImGui::Text("MATERIAL");
+				//ImGui::Separator();
+				//ImGui::ColorEdit3("Tint", m_MaterialData.Tint.e);
+				//ImGui::SliderFloat("Opacity", &m_MaterialData.Opacity, 0.0f, 1.0f, "%.2f");
+				//ImGui::SliderFloat("Reflectance", &m_MaterialData.Reflectance, 0.f, 5.f, "%.2f");
 
 				ImGui::Text("LIGHT DATA");
 				ImGui::Separator();
@@ -96,6 +126,7 @@ private:
 	Magnefu::Ref<Magnefu::SceneCamera> m_Camera;
 	Magnefu::GraphicsContext* m_GraphicsContext;
 	//Magnefu::PushConstants m_PushConstants;
+	std::vector<Magnefu::SceneObject>& m_SceneObjects;
 	Magnefu::Light         m_LightData;
 	Magnefu::Material      m_MaterialData;
 };

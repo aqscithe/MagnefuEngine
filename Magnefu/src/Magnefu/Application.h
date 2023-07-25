@@ -65,7 +65,7 @@ namespace Magnefu
 		//inline Handle<Buffer>& GetIndexBufferHandle() { return m_IndexBuffer; }
 		//inline uint32_t GetIndexCount() { return static_cast<uint32_t>(m_Indices.data.size()) / sizeof(uint32_t); }
 		inline Light& GetLightData() { return m_LightData; }
-		inline Material& GetMaterialData() { return m_MaterialData; }
+		
 
 		inline static Application& Get() { return *s_Instance; }
 
@@ -73,7 +73,7 @@ namespace Magnefu
 		inline void SetIndexBlock(DataBlock&& indexBlock, size_t objPos) { m_SceneObjects[objPos].SetIndexBlock(std::move(indexBlock)); }
 
 		inline void SetLightData(Light& lightData) { m_LightData = lightData; }
-		inline void SetMaterialData(Material& materialData) { m_MaterialData = materialData; }
+		
 
 		inline void ResizeSceneObjects(const size_t size) { m_SceneObjects.resize(size); }
 		inline std::vector<SceneObject>& GetSceneObjects() { return m_SceneObjects; }
@@ -102,7 +102,7 @@ namespace Magnefu
 		std::vector<SceneObject> m_SceneObjects;
 
 		Light m_LightData;
-		Material m_MaterialData;
+		
 
 	};
 

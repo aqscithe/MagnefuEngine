@@ -2,6 +2,7 @@
 
 #include "Magnefu/Renderer/Buffer.h"
 #include "VulkanCommon.h"
+#include "Magnefu/Renderer/Material.h"
 
 
 namespace Magnefu
@@ -38,7 +39,7 @@ namespace Magnefu
 		VulkanUniformBuffer(const BufferDesc& desc);
 		~VulkanUniformBuffer();
 
-		void UpdateUniformBuffer();
+		void UpdateUniformBuffer(const Material& mat);
 
 		std::vector<VkBuffer>& GetBuffers() { return m_Buffers; }
 		

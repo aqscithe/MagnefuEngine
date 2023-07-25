@@ -40,12 +40,6 @@ namespace Magnefu
             .Buffers    = RenderPassUniformBufferDesc
         });
 
-        // load models in vulkan context will initialize the array of SceneObjects here in application
-        // essentially, the number of model paths will determine the number of scene objects
-        // Then, I will loop through the array here, creating the material bind groups, shaders, buffers, etc.
-        // NOTE: If all the objects will use the same descriptor set layout and renderpass, then they will all use the same shader. At least,
-        // in this implementation. I'll need a way to check if the shader I need has already been created.
-
         // -- Scene Objects -- //
 
         for (size_t i = 0; i < m_SceneObjects.size(); i++)

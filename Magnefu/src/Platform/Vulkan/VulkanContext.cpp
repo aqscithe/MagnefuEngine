@@ -1575,13 +1575,13 @@ namespace Magnefu
 
 		// -- Update Uniform Buffers -- //
 
-		renderpassUniformBuffer.UpdateUniformBuffer();
+		renderpassUniformBuffer.UpdateUniformBuffer({});
 
 		for (auto& sceneObject : sceneObjects)
 		{
 			VulkanBindGroup& material = static_cast<VulkanBindGroup&>(rm.GetBindGroup(sceneObject.GetMaterialBindGroup()));
 			VulkanUniformBuffer& materialUniformBuffer = static_cast<VulkanUniformBuffer&>(rm.GetBuffer(material.GetUniformsHandle()));
-			materialUniformBuffer.UpdateUniformBuffer();
+			materialUniformBuffer.UpdateUniformBuffer(sceneObject.GetMaterialData());
 		}
 		
 	}
