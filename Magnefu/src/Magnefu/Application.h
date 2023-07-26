@@ -58,13 +58,9 @@ namespace Magnefu
 		inline ResourceManager& GetResourceManager() { return *m_RM; }
 
 		inline size_t GetTextureCount() { return sizeof(BindingTextureDescs) / sizeof(TextureDesc); }
-		//inline Handle<BindGroup>& GetMaterialBindGroup() { return m_Material; }
 		inline Handle<BindGroup>& GetRenderPassBindGroup() { return m_RenderPassGlobals; }
-		//inline Handle<Shader>& GetGraphicsPipelineShaderHandle() { return m_GraphicsPipelineShader; }
-		//inline Handle<Buffer>& GetVertexBufferHandle() { return m_VertexBuffer; }
-		//inline Handle<Buffer>& GetIndexBufferHandle() { return m_IndexBuffer; }
-		//inline uint32_t GetIndexCount() { return static_cast<uint32_t>(m_Indices.data.size()) / sizeof(uint32_t); }
-		inline Light& GetLightData() { return m_LightData; }
+		//inline std::array<Light, 1>& GetLightData() { return m_Lights; }
+		inline Light& GetLightData() { return m_Light; }
 		
 
 		inline static Application& Get() { return *s_Instance; }
@@ -72,14 +68,12 @@ namespace Magnefu
 		void SetVertexBlock(DataBlock&& vertexBlock, size_t objPos); 
 		inline void SetIndexBlock(DataBlock&& indexBlock, size_t objPos) { m_SceneObjects[objPos].SetIndexBlock(std::move(indexBlock)); }
 
-		inline void SetLightData(Light& lightData) { m_LightData = lightData; }
+		//inline void SetLightData(Light& lightData) { m_LightData = lightData; }
 		
 
 		inline void ResizeSceneObjects(const size_t size) { m_SceneObjects.resize(size); }
 		inline std::vector<SceneObject>& GetSceneObjects() { return m_SceneObjects; }
 
-
-		//inline Span<const uint8_t> GetVertices() { return m_Vertices; }
 
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
@@ -101,7 +95,8 @@ namespace Magnefu
 		Handle<BindGroup>        m_RenderPassGlobals;
 		std::vector<SceneObject> m_SceneObjects;
 
-		Light m_LightData;
+		//std::array<Light, 1> m_Lights;
+		Light m_Light;
 		
 
 	};

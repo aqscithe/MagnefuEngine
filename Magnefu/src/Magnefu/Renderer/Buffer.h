@@ -54,6 +54,7 @@ namespace Magnefu
         // are disabled. That way only enabled lights are sent
         // to the gpu.
         int                     LightEnabled;
+         int                     LightCount;
     };
 
 

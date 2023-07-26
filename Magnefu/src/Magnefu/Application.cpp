@@ -45,6 +45,21 @@ namespace Magnefu
         for (size_t i = 0; i < m_SceneObjects.size(); i++)
             m_SceneObjects[i].Init(i);
 
+        /*for (auto& light : m_Lights)
+        {
+            light.LightColor = Maths::vec3(1.0f);
+            light.LightEnabled = 1;
+            light.LightPos = { 235.f, 65.f, 20.f };
+            light.RadiantFlux = 10.f;
+            light.MaxLightDist = 200.f;
+        }*/
+
+        m_Light.LightColor = Maths::vec3(1.0f);
+        m_Light.LightEnabled = 1;
+        m_Light.LightPos = { 235.f, 65.f, 20.f };
+        m_Light.RadiantFlux = 10.f;
+        m_Light.MaxLightDist = 200.f;
+
         m_Window->GetGraphicsContext()->TempSecondaryInit();
 
         m_ImGuiLayer = new ImGuiLayer();

@@ -11,22 +11,21 @@ class GameLayer : public Magnefu::Layer
 {
 public:
 	GameLayer() :
-		Layer("3D Primitives"), m_SceneObjects(Magnefu::Application::Get().GetSceneObjects()), m_Camera(std::static_pointer_cast<Magnefu::SceneCamera>(Magnefu::Application::Get().GetWindow().GetSceneCamera()))
+		Layer("3D Primitives"), 
+		m_SceneObjects(Magnefu::Application::Get().GetSceneObjects()), 
+		m_Camera(std::static_pointer_cast<Magnefu::SceneCamera>(Magnefu::Application::Get().GetWindow().GetSceneCamera())),
+		//m_Lights(Magnefu::Application::Get().GetLightData())
+		m_Light(Magnefu::Application::Get().GetLightData())
 	{
-		//m_Camera = std::static_pointer_cast<Magnefu::SceneCamera>(Magnefu::Application::Get().GetWindow().GetSceneCamera());
 		m_GraphicsContext = Magnefu::Application::Get().GetWindow().GetGraphicsContext();
-		//m_SceneObjects = Magnefu::Application::Get().GetSceneObjects();
 
-		m_LightData.LightEnabled = 1;
+		/*m_LightData.LightEnabled = 1;
 		m_LightData.LightColor = Maths::vec3(1.0f);
 		m_LightData.LightPos = { 235.f, 65.f, 20.f };
 		m_LightData.RadiantFlux = 10.f;
-		m_LightData.MaxLightDist = 200.f;
+		m_LightData.MaxLightDist = 200.f;*/
 
 
-		m_MaterialData.Tint = Maths::vec3(1.0f);
-		m_MaterialData.Opacity = 1.f;
-		m_MaterialData.Reflectance = 0.1f;
 	}
 
 	void OnAttach() override
@@ -45,8 +44,7 @@ public:
 		//m_GraphicsContext->SetPushConstants(m_PushConstants);
 
 		Magnefu::Application& app = Magnefu::Application::Get();
-		app.SetLightData(m_LightData);
-		//app.SetMaterialData(m_MaterialData);
+		//app.SetLightData(m_LightData);
 	}
 
 	void OnRender() override
@@ -92,26 +90,53 @@ public:
 				}
 				ImGui::EndTabItem();
 			}
+
 			if (ImGui::BeginTabItem("Push Constants"))
 			{
-				//ImGui::Text("MATERIAL");
-				//ImGui::Separator();
-				//ImGui::ColorEdit3("Tint", m_MaterialData.Tint.e);
-				//ImGui::SliderFloat("Opacity", &m_MaterialData.Opacity, 0.0f, 1.0f, "%.2f");
-				//ImGui::SliderFloat("Reflectance", &m_MaterialData.Reflectance, 0.f, 5.f, "%.2f");
-
-				ImGui::Text("LIGHT DATA");
-				ImGui::Separator();
-				ImGui::SliderInt("Light Enabled", &m_LightData.LightEnabled, 0, 1);
-				ImGui::SliderFloat3("Light Position", m_LightData.LightPos.e, -500.f, 500.f);
-				ImGui::ColorEdit3("Light Color", m_LightData.LightColor.e);
-				ImGui::SliderFloat("Max Light Distance", &m_LightData.MaxLightDist, 0.f, 1000.f, "%.2f");
-				ImGui::SliderFloat("Radiant Flux", &m_LightData.RadiantFlux, 0.f, 100.f, "%.2f");
-
 				ImGui::Text("CAMERA");
 				ImGui::Separator();
 				ImGui::LabelText("Camera Position", "%.2f, %.2f, %.2f", m_Camera->GetData().Position.x, m_Camera->GetData().Position.y, m_Camera->GetData().Position.z);
 
+				ImGui::Text("LIGHT DATA");
+				ImGui::Separator();
+
+				//for (int i = 0; i < m_Lights.size(); i++)
+				//{
+				//	char label[32];
+				//	snprintf(label, sizeof(label), "Light %d Enabled", i);
+				//	ImGui::SliderInt(label, &m_Lights[i].LightEnabled, 0, 1);
+
+				//	snprintf(label, sizeof(label), "Light %d Position", i);
+				//	ImGui::SliderFloat3(label, m_Lights[i].LightPos.e, -500.f, 500.f);
+
+				//	snprintf(label, sizeof(label), "Light %d Color", i);
+				//	ImGui::ColorEdit3(label, m_Lights[i].LightColor.e);
+
+				//	snprintf(label, sizeof(label), "Max Light Distance %d", i);
+				//	ImGui::SliderFloat(label, &m_Lights[i].MaxLightDist, 0.f, 1000.f, "%.2f");
+
+				//	snprintf(label, sizeof(label), "Light %d Radiant Flux", i);
+				//	ImGui::SliderFloat(label, &m_Lights[i].RadiantFlux, 0.f, 100.f, "%.2f");
+
+				//	ImGui::Separator();
+				//}
+
+				char label[32];
+				snprintf(label, sizeof(label), "Light Enabled");
+				ImGui::SliderInt(label, &m_Light.LightEnabled, 0, 1);
+
+				snprintf(label, sizeof(label), "Light Position");
+				ImGui::SliderFloat3(label, m_Light.LightPos.e, -500.f, 500.f);
+
+				snprintf(label, sizeof(label), "Light Color");
+				ImGui::ColorEdit3(label, m_Light.LightColor.e);
+
+				snprintf(label, sizeof(label), "Max Light Distance");
+				ImGui::SliderFloat(label, &m_Light.MaxLightDist, 0.f, 1000.f, "%.2f");
+
+				snprintf(label, sizeof(label), "Light Radiant Flux");
+				ImGui::SliderFloat(label, &m_Light.RadiantFlux, 0.f, 100.f, "%.2f");
+				
 
 				ImGui::EndTabItem();
 			}
@@ -130,8 +155,8 @@ private:
 	Magnefu::GraphicsContext* m_GraphicsContext;
 	//Magnefu::PushConstants m_PushConstants;
 	std::vector<Magnefu::SceneObject>& m_SceneObjects;
-	Magnefu::Light         m_LightData;
-	Magnefu::Material      m_MaterialData;
+	//std::array<Magnefu::Light, 3>&     m_Lights;
+	Magnefu::Light&     m_Light;
 };
 
 
