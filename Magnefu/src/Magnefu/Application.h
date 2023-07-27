@@ -59,8 +59,8 @@ namespace Magnefu
 
 		inline size_t GetTextureCount() { return sizeof(BindingTextureDescs) / sizeof(TextureDesc); }
 		inline Handle<BindGroup>& GetRenderPassBindGroup() { return m_RenderPassGlobals; }
-		//inline std::array<Light, 1>& GetLightData() { return m_Lights; }
-		inline Light& GetLightData() { return m_Light; }
+		inline std::array<Light, 3>& GetLightData() { return m_Lights; }
+		//inline Light& GetLightData() { return m_Light; }
 		
 
 		inline static Application& Get() { return *s_Instance; }
@@ -95,8 +95,8 @@ namespace Magnefu
 		Handle<BindGroup>        m_RenderPassGlobals;
 		std::vector<SceneObject> m_SceneObjects;
 
-		//std::array<Light, 1> m_Lights;
-		Light m_Light;
+		std::array<Light, 3> m_Lights;
+		//Light m_Light;
 		
 
 	};

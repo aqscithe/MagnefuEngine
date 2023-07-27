@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Magnefu/Renderer/Light.h"
 
 namespace Magnefu
 {
@@ -35,32 +35,51 @@ namespace Magnefu
         UNIFORM_SHADER
     };
 
-    struct RenderPassUniformBufferObject
+
+    //struct alignas(16) RenderPassUniformBufferObject
+    //{
+    //    // Camera Info
+    //    Maths::mat4 ViewMatrix;
+    //    Maths::mat4 ProjMatrix;
+    //    alignas(16) Maths::vec3 CameraPos;
+
+    //    // Light Info
+    //    alignas(16) Maths::vec3 LightPos;
+    //    alignas(16) Maths::vec3 LightColor;
+    //    float                   MaxLightDist;
+    //    float                   RadiantFlux;
+    //    int                     LightEnabled;
+    //    int                     LightCount;
+    //};
+
+    struct alignas(16) RenderPassUniformBufferObject
     {
         // Camera Info
-        alignas(16) Maths::mat4 ViewMatrix;
-        alignas(16) Maths::mat4 ProjMatrix;
-        alignas(16) Maths::vec3 CameraPos;
+        Maths::mat4 ViewMatrix;
+        Maths::mat4 ProjMatrix;
+        Maths::vec3 CameraPos;
+        float padding1;
 
         // Light Info
-        // When I have multiple lights, they will be
-        // represented as an array of light data
-        alignas(16) Maths::vec3 LightPos;
-        alignas(16) Maths::vec3 LightColor;
-        float                   MaxLightDist;
-        float                   RadiantFlux;
-
-        // Once I have light array, cull lights cpu side that
-        // are disabled. That way only enabled lights are sent
-        // to the gpu.
-        int                     LightEnabled;
-         int                     LightCount;
+        Light Lights[3];
+        int   LightCount;
     };
+
+    /*struct alignas(16) LightUniformBufferObject
+    {
+        Maths::vec3 LightPos;
+        Maths::vec3 LightColor;
+        float MaxLightDist;
+        float RadiantFlux;
+        int LightCount;
+        int LightEnabled;
+    };*/
+
 
 
     struct MaterialUniformBufferObject
     {
-        alignas(16) Maths::mat4 ModelMatrix;
+        Maths::mat4 ModelMatrix;
         alignas(16) Maths::vec3 Tint;
         float                   Reflectance; // fresnel reflectance for dielectrics [0.0, 1.0]
         float                   Opacity;

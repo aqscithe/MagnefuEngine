@@ -173,8 +173,8 @@ namespace Magnefu
 				auto& camera = app.GetWindow().GetSceneCamera();
 				camera->SetAspectRatio((float)swapChainExtent.width / (float)swapChainExtent.height);
 				
-				//auto& lights = app.GetLightData();
-				auto& light = app.GetLightData();
+				auto& lights = app.GetLightData();
+				//auto& light = app.GetLightData();
 
 				RenderPassUniformBufferObject ubo{};
 				ubo.ViewMatrix = camera->CalculateView();
@@ -183,25 +183,21 @@ namespace Magnefu
 				ubo.ProjMatrix.c[1].e[1] *= -1; // I don't remember why I am doing this.... :(
 
 				ubo.CameraPos = camera->GetData().Position;
-				/*for (size_t i = 0; i < lights.size(); i++)
+				for (size_t i = 0; i < lights.size(); i++)
 				{
-					ubo.LightColor[i]   = lights[i].LightColor;
-					ubo.MaxLightDist[i] = lights[i].MaxLightDist;
-					ubo.LightPos[i]     = lights[i].LightPos;
-					ubo.LightEnabled[i] = lights[i].LightEnabled;
-					ubo.RadiantFlux[i]  = lights[i].RadiantFlux;
+					ubo.Lights[i] = lights[i];
 				}
-				ubo.LightCount = lights.size();*/
+				ubo.LightCount = lights.size();
 
-				ubo.LightColor   = light.LightColor;
+				/*ubo.LightColor   = light.LightColor;
 				ubo.MaxLightDist = light.MaxLightDist;
 				ubo.LightPos     = light.LightPos;
 				ubo.LightEnabled = light.LightEnabled;
 				ubo.RadiantFlux  = light.RadiantFlux;
-				ubo.LightCount = 1;
+				ubo.LightCount = 1;*/
 				
-
-				memcpy(m_BuffersMapped[context.GetCurrentFrame()], &ubo, sizeof(ubo));
+				size_t ubo_size = sizeof(ubo);
+				memcpy(m_BuffersMapped[context.GetCurrentFrame()], &ubo, ubo_size);
 
 				break;
 			}
