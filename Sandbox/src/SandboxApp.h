@@ -111,22 +111,6 @@ public:
 
 					ImGui::Separator();
 				}
-
-				/*char label[32];
-				snprintf(label, sizeof(label), "Light Enabled");
-				ImGui::SliderInt(label, &m_Light.LightEnabled, 0, 1);
-
-				snprintf(label, sizeof(label), "Light Position");
-				ImGui::SliderFloat3(label, m_Light.LightPos.e, -500.f, 500.f);
-
-				snprintf(label, sizeof(label), "Light Color");
-				ImGui::ColorEdit3(label, m_Light.LightColor.e);
-
-				snprintf(label, sizeof(label), "Max Light Distance");
-				ImGui::SliderFloat(label, &m_Light.MaxLightDist, 0.f, 1000.f, "%.2f");
-
-				snprintf(label, sizeof(label), "Light Radiant Flux");
-				ImGui::SliderFloat(label, &m_Light.RadiantFlux, 0.f, 100.f, "%.2f");*/
 				
 
 				ImGui::EndTabItem();

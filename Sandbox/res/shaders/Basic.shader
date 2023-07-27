@@ -223,7 +223,7 @@ void main()
     {
         if (globals_ubo.Lights[i].LightEnabled == 1)
         {
-            if (i == 0)
+            /*if (i == 0)
             {
                 BRDF += vec3(1.0, 0.0, 0.0);
                 continue;
@@ -238,7 +238,7 @@ void main()
                 BRDF += vec3(0.0, 0.0, 1.0);
                 continue;
             }
-            continue;
+            continue;*/
 
             // Sample Normal Map
             vec3 Normal = texture(NormalSampler, TexCoord).rgb;
@@ -317,7 +317,6 @@ void main()
             // add to outgoing radiance
             float NdotL = max(NormDotLight, 0.0);
             BRDF += (Kd * BaseColor / PI + spec) * Radiance * NdotL;
-            break;
         }
         /*else
         {
