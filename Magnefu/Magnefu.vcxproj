@@ -165,6 +165,7 @@
     <ClInclude Include="src\Magnefu\Core\Maths\Quaternion.h" />
     <ClInclude Include="src\Magnefu\Core\Maths\Vectors.h" />
     <ClInclude Include="src\Magnefu\Core\MemoryAllocation\LinkedListAlloc.h" />
+    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\OffsetAllocator.h" />
     <ClInclude Include="src\Magnefu\Core\MemoryAllocation\PoolAllocator.h" />
     <ClInclude Include="src\Magnefu\Core\MemoryAllocation\StackAllocator.h" />
     <ClInclude Include="src\Magnefu\Core\MemoryAllocation\VectorAllocator.h" />
@@ -525,6 +526,8 @@
     <ClCompile Include="src\Magnefu\Core\Maths\Primitive3D.cpp" />
     <ClCompile Include="src\Magnefu\Core\Maths\Quaternion.cpp" />
     <ClCompile Include="src\Magnefu\Core\Maths\Vectors.cpp" />
+    <ClCompile Include="src\Magnefu\Core\MemoryAllocation\OffsetAllocator.cpp" />
+    <ClCompile Include="src\Magnefu\Core\MemoryAllocation\OffsetAllocatorTests.cpp" />
     <ClCompile Include="src\Magnefu\Core\MemoryAllocation\PoolAllocator.cpp" />
     <ClCompile Include="src\Magnefu\Core\MemoryAllocation\StackAllocator.cpp" />
     <ClCompile Include="src\Magnefu\Core\NumGen.cpp" />

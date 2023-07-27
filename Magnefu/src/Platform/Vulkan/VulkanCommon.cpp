@@ -3,6 +3,7 @@
 #include "VulkanContext.h"
 #include "Magnefu/Renderer/Shader.h"
 
+
 namespace Magnefu
 {
 	namespace VulkanCommon
@@ -35,7 +36,7 @@ namespace Magnefu
 			//bufferInfo.flags = 
 
 			if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
-				MF_CORE_ASSERT(false, "failed to create vertex buffer!");
+				MF_CORE_ASSERT(false, "failed to create buffer!");
 
 			VkMemoryRequirements memRequirements;
 			vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
@@ -59,9 +60,35 @@ namespace Magnefu
 			// separate allocation for every resource, because we won't come close to hitting any of 
 			// these limits for now.
 			if (vkAllocateMemory(device, &memAllocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
-				MF_CORE_ASSERT(false, "failed to allocate vertex buffer memory!");
+				MF_CORE_ASSERT(false, "failed to allocate buffer memory!");
 
 			vkBindBufferMemory(device, buffer, bufferMemory, 0);
+		}
+
+		void CreateBufferCustom(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory, OffsetAllocator::Allocation& bufferMemoryAllocation)
+		{
+			VkDevice device = VulkanContext::Get().GetDevice();
+
+			VkBufferCreateInfo bufferInfo{};
+			bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+			bufferInfo.size = size;
+			bufferInfo.usage = usage;
+			bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+			if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
+				MF_CORE_ASSERT(false, "failed to create vertex buffer!");
+
+			VkMemoryRequirements memRequirements;
+			vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
+
+			Scope<OffsetAllocator::Allocator>& OffsetAllocator = OffsetAllocator::Allocator::Get();
+
+			bufferMemoryAllocation = OffsetAllocator->allocate(memRequirements.size);
+
+			MF_CORE_ASSERT(bufferMemoryAllocation.offset == OffsetAllocator::Allocation::NO_SPACE, "failed to allocate custom buffer memory");
+
+
+			vkBindBufferMemory(device, buffer, bufferMemory, bufferMemoryAllocation.offset);
 		}
 
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)

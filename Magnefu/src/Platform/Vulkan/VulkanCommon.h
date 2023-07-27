@@ -2,7 +2,7 @@
 
 
 #include "vulkan/vulkan.h"
-
+#include "Magnefu/Core/MemoryAllocation/OffsetAllocator.h"
 
 
 namespace Magnefu
@@ -74,6 +74,8 @@ namespace Magnefu
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 		VkCommandBuffer BeginSingleTimeCommands();
 		void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
+
+		void     CreateBufferCustom(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory, OffsetAllocator::Allocation& bufferMemoryAllocation);
 
 		// Image Manipulation
 		void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);

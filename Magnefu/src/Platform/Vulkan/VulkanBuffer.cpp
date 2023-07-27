@@ -134,14 +134,27 @@ namespace Magnefu
 		m_Buffers.resize(MAX_FRAMES_IN_FLIGHT);
 		m_BuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
 		m_BuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+		m_Allocations.resize(MAX_FRAMES_IN_FLIGHT);
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			VulkanCommon::CreateBuffer(
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
+		{
+			/*VulkanCommon::CreateBuffer(
 				bufferSize,
 				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 				m_Buffers[i],
 				m_BuffersMemory[i]
+			);
+
+			vkMapMemory(VulkanContext::Get().GetDevice(), m_BuffersMemory[i], 0, bufferSize, 0, &m_BuffersMapped[i]);*/
+
+			VulkanCommon::CreateBufferCustom(
+				bufferSize,
+				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+				m_Buffers[i],
+				m_BuffersMemory[i],
+				m_Allocations[i]
 			);
 
 			vkMapMemory(VulkanContext::Get().GetDevice(), m_BuffersMemory[i], 0, bufferSize, 0, &m_BuffersMapped[i]);

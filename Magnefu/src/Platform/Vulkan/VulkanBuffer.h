@@ -47,7 +47,10 @@ namespace Magnefu
 		std::vector<VkBuffer>        m_Buffers;
 		std::vector<VkDeviceMemory>  m_BuffersMemory;
 		std::vector<void*>           m_BuffersMapped;
+		std::vector< OffsetAllocator::Allocation>  m_Allocations;
 
 		UniformBufferType            m_UniformType = UniformBufferType::UNIFORM_NONE;
+
+		
 	};
 }
