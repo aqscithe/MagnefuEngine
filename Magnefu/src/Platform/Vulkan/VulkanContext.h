@@ -1,37 +1,16 @@
 #pragma once
 
 #include "Magnefu/Renderer/GraphicsContext.h"
-#include "Magnefu/Renderer/Texture.h"
-#include "vulkan/vulkan.h"
+
+#include "VulkanCommon.h"
+
+#include "VulkanBuffer.h"
 
 
 struct GLFWwindow;
 
 namespace Magnefu
 {
-	using String = std::string;
-
-	enum class ShaderType
-	{
-		None = -1,
-		Vertex,
-		Fragment,
-		Compute
-	};
-
-	struct ShaderSource
-	{
-		String Text;
-		ShaderType Type;
-	};
-
-	struct ShaderList
-	{
-		ShaderSource Vertex;
-		ShaderSource Fragment;
-		ShaderSource Compute;
-	};
-
 	struct QueueFamilyIndices 
 	{
 		std::optional<uint32_t> GraphicsFamily;
@@ -56,70 +35,7 @@ namespace Magnefu
 		VkPipeline Skybox;
 	};
 
-	struct Vertex 
-	{
-		Maths::vec3 pos;
-		Maths::vec3 color;
-		Maths::vec3 normal;
-		Maths::vec3 tangent;
-		Maths::vec3 bitangent;
-		Maths::vec2 texCoord;
-
-		static VkVertexInputBindingDescription GetBindingDescription() 
-		{
-			VkVertexInputBindingDescription bindingDescription{};
-			bindingDescription.binding = 0;
-			bindingDescription.stride = sizeof(Vertex);
-			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-			return bindingDescription;
-		}
-
-		static std::array<VkVertexInputAttributeDescription, 6> GetAttributeDescriptions()
-		{
-			std::array<VkVertexInputAttributeDescription, 6> attributeDescriptions{};
-			attributeDescriptions[0].binding = 0;
-			attributeDescriptions[0].location = 0;
-			attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributeDescriptions[0].offset = offsetof(Vertex, pos);
-
-			attributeDescriptions[1].binding = 0;
-			attributeDescriptions[1].location = 1;
-			attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributeDescriptions[1].offset = offsetof(Vertex, color);
-
-			attributeDescriptions[2].binding = 0;
-			attributeDescriptions[2].location = 2;
-			attributeDescriptions[2].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributeDescriptions[2].offset = offsetof(Vertex, normal);
-
-			attributeDescriptions[3].binding = 0;
-			attributeDescriptions[3].location = 3;
-			attributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributeDescriptions[3].offset = offsetof(Vertex, tangent);
-
-			attributeDescriptions[4].binding = 0;
-			attributeDescriptions[4].location = 4;
-			attributeDescriptions[4].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributeDescriptions[4].offset = offsetof(Vertex, bitangent);
-
-			attributeDescriptions[5].binding = 0;
-			attributeDescriptions[5].location = 5;
-			attributeDescriptions[5].format = VK_FORMAT_R32G32_SFLOAT;
-			attributeDescriptions[5].offset = offsetof(Vertex, texCoord);
-
-		
-			return attributeDescriptions;
-		}
-
-	};
-
-
-	struct UniformBufferObject 
-	{
-		alignas(16) Maths::mat4 model;
-		alignas(16) Maths::mat4 view;
-		alignas(16) Maths::mat4 proj;
-	};
+	
 
 	struct ParticleUniformBufferObject 
 	{
@@ -157,25 +73,18 @@ namespace Magnefu
 		}
 	};
 
-	struct TextureInfo
-	{
-		TextureType    Type;
-		uint32_t       MipLevels;
-		VkImage        Image;
-		VkImageView    ImageView;
-		VkDeviceMemory Buffer;
-		VkFormat       Format;
-		VkImageTiling  Tiling;
-	};
-
-	class VKContext : public GraphicsContext
+	
+	class VulkanContext : public GraphicsContext
 	{
 	public:
-		VKContext(GLFWwindow* windowHandle);
-		~VKContext();
+		VulkanContext(GLFWwindow* windowHandle);
+		~VulkanContext();
+
+		inline static VulkanContext& Get() { return *s_Instance; }
 
 		// -- Inherited -- //
 		void Init() override;
+		void TempSecondaryInit() override;
 		void DrawFrame() override;
 		void OnImGuiRender() override;
 		void OnFinish() override; // main loop completed
@@ -184,7 +93,23 @@ namespace Magnefu
 		const RendererInfo& GetRendererInfo() const override { return m_RendererInfo; }
 		void SetPushConstants(PushConstants& pushConstants) override { m_PushConstants = pushConstants; }
 
+		// -- Getter Methods -- //
+		inline const VkDevice& GetDevice() const { return m_VkDevice; }
+		inline const VkPhysicalDevice& GetPhysicalDevice() const { return m_VkPhysicalDevice; }
+		inline const VkCommandPool& GetCommandPool() const { return m_CommandPool; }
+		inline const VkQueue& GetGraphicsQueue() const { return m_GraphicsQueue; }
+		inline const VkExtent2D& GetSwapChainExtent() const { return m_SwapChainExtent; }
+		inline const uint32_t GetCurrentFrame() const { return m_CurrentFrame; }
+		inline const VkPhysicalDeviceProperties GetDeviceProperties() const { return m_Properties; }
+		inline const VkPhysicalDeviceFeatures GetSupportedFeatures() const { return m_SupportedFeatures; }
+		inline const VkPhysicalDeviceFeatures GetEnabledFeatures() const { return m_EnabledFeatures; }
+		inline const VkSampleCountFlagBits GetMSAASamples() const { return m_MSAASamples; }
+		inline const VkRenderPass& GetRenderPass() const { return m_RenderPass; }
+
+
 	private:
+
+		
 
 		// -- Initialization -- //
 		void CreateVkInstance();
@@ -193,29 +118,23 @@ namespace Magnefu
 		void CreateWindowSurface();
 		void SelectPhysicalDevice();
 		void CreateLogicalDevice();
+
 		void CreateSwapChain();
 		void CreateImageViews();
 		void CreateRenderPass();
-		void CreateDescriptorSetLayout();
 		void CreateComputeDescriptorSetLayout();
-		void CreateGraphicsPipeline();
-		void CreateParticleGraphicsPipeline();
+		//void CreateGraphicsPipeline();
+		//void CreateParticleGraphicsPipeline();
 		void CreateFrameBuffers();
 		void CreateCommandPool();
 		void CreateShaderStorageBuffers();
-		void CreateComputePipeline();
+		//void CreateComputePipeline();
 		void CreateColorResources();
 		void CreateDepthResources();
-		void CreateTextures();
-		void CreateTextureSampler();
-		void LoadModel();
-		void CreateVertexBuffer();
-		void CreateIndexBuffer();
-		void CreateUniformBuffers();
+		void LoadModels();
+
 		void CreateComputeUniformBuffers();
-		void CreateDescriptorPool();
 		void CreateComputeDescriptorPool();
-		void CreateDescriptorSets();
 		void CreateComputeDescriptorSets();
 		void CreateCommandBuffers();
 		void CreateComputeCommandBuffers();
@@ -242,40 +161,18 @@ namespace Magnefu
 
 
 		// Place in VKShader
-		ShaderList ParseShader(const String& filepath);
-		VkShaderModule CreateShaderModule(const ShaderSource& source);
-
-		// Texture Creation
-		void CreateTextureImage(TextureInfo& texture);
-		void CreateTextureImageView(TextureInfo& texture);
-
+		//ShaderList ParseShader(const char* filepath);
+		//VkShaderModule CreateShaderModule(const ShaderSource& source);
 		
-		// Buffers
-		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-		VkCommandBuffer BeginSingleTimeCommands();
-		void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
-
 
 		// Uniforms
-		void UpdateUniformBuffer();
+		//void UpdateUniformBuffer();
 		void UpdateComputeUniformBuffer();
 
-
-		// Image Manipulation
-		void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
-		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
-		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
-		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-
-		
 		// Depth 
 		bool HasStencilComponent(VkFormat format);
 
-		
-		// Mip Maps
-		void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
+
 		VkSampleCountFlagBits GetMaxUsableSampleCount();
 		
 
@@ -293,6 +190,8 @@ namespace Magnefu
 
 	private:
 
+		static VulkanContext* s_Instance;
+
 #ifdef MF_DEBUG
 		const bool                   m_EnableValidationLayers = true;
 #else			                   
@@ -303,6 +202,8 @@ namespace Magnefu
 		// -- Device Properties and Features -- //
 		VkPhysicalDeviceProperties   m_Properties{};
 		VkPhysicalDeviceFeatures     m_SupportedFeatures;
+		VkPhysicalDeviceFeatures     m_EnabledFeatures;
+		
 
 		// -- Device Primitives -- //
 		RendererInfo                 m_RendererInfo;
@@ -335,10 +236,9 @@ namespace Magnefu
 
 		// -- Render Pass and Pipeline Primitives -- //
 		VkRenderPass                 m_RenderPass;
-		VkDescriptorSetLayout        m_DescriptorSetLayout;
-		ShaderList                   m_ParticleShaderList;
-		VkPipelineLayout             m_PipelineLayout;
-		VkPipeline                   m_GraphicsPipeline;
+		//ShaderList                   m_ParticleShaderList;
+		//VkPipelineLayout             m_PipelineLayout;
+		//VkPipeline                   m_GraphicsPipeline;
 		std::vector<VkFramebuffer>   m_SwapChainFramebuffers;
 		VkCommandPool                m_CommandPool;
 		std::vector<VkCommandBuffer> m_CommandBuffers;
@@ -351,28 +251,10 @@ namespace Magnefu
 		std::vector<VkSemaphore>     m_RenderFinishedSemaphores;
 		std::vector<VkFence>         m_InFlightFences;
 
-		
-		// -- Shader Buffers (Uniforms, Indices, Vertices) -- //
-		std::vector<Vertex>          m_Vertices;
-		std::vector<uint32_t>        m_Indices;
-		VkBuffer                     m_VertexBuffer;
-		VkDeviceMemory               m_VertexBufferMemory;
-		VkBuffer                     m_IndexBuffer;
-		VkDeviceMemory               m_IndexBufferMemory;
-		std::vector<VkBuffer>        m_UniformBuffers;
-		std::vector<VkDeviceMemory>  m_UniformBuffersMemory;
-		std::vector<void*>           m_UniformBuffersMapped;
-		VkDescriptorPool             m_DescriptorPool;
-		std::vector<VkDescriptorSet> m_DescriptorSets;
 
 		// -- Mip Map Info -- //
 		VkSampleCountFlagBits        m_MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
-
-		// -- Texture Info -- //
-
-		std::vector<TextureInfo>     m_Textures;  // assumption that any texture in this vector is PBR...maybe i should change the name
-		VkSampler                    m_TextureSampler;
 
 		// -- Image Buffers -- //
 

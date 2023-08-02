@@ -29,6 +29,7 @@
 #include "Magnefu/Core/Maths/Matrices.h"
 #include "Magnefu/Core/Log.h"
 #include "Magnefu/Core/SmartPointers.h"
+#include "Magnefu/Core/Span.h"
 
 #include "Magnefu/Debug/Instrumentor.h"
 

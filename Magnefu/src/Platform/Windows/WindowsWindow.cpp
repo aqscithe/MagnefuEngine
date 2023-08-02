@@ -3,7 +3,7 @@
 #include "Magnefu/Core/Events/ApplicationEvent.h"
 #include "Magnefu/Core/Events/MouseEvent.h"
 #include "Magnefu/Core/Events/KeyEvent.h"
-#include "Platform/VK/VKContext.h"
+#include "Platform/Vulkan/VulkanContext.h"
 #include "Magnefu/Renderer/Camera.h"
 #include "Magnefu/Renderer/RendererAPI.h"
 

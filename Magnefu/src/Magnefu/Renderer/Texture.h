@@ -11,38 +11,102 @@ namespace Magnefu
 		NONE = -1,
 		DIFFUSE,
 		ARM,
-		//METAL,
-		//ROUGHNESS,
-		//AO,
 		NORMAL,
 		EMISSIVE,
 		DISPLACEMENT
 	};
 
-	enum TextureOptions {
+	enum TextureTiling
+	{
+		IMAGE_TILING_NONE = -1,
+		IMAGE_TILING_OPTIMAL = 0,
+		IMAGE_TILING_LINEAR = 1
+	};
+
+	enum TextureFormat
+	{
+		FORMAT_NONE = -1,
+		FORMAT_R8G8B8A8_UNORM = 37,
+		FORMAT_R8G8B8A8_SRGB = 43
+	};
+
+	enum TextureChannels
+	{
+		CHANNELS_DEFAULT = 0,
+		CHANNELS_GREY = 1,
+		CHANNELS_GREY_ALPHA = 2,
+		CHANNELS_RGB = 3,
+		CHANNELS_RGB_ALPHA = 4
+	};
+
+	enum TextureOptions 
+	{
 		TextureOptions_None = 0,
 		TextureOptions_Skybox = BIT(0),
 		TextureOptions_All = 1
 	};
 
+
+	struct TextureDimensions
+	{
+		int Width;
+		int Height;
+		int Channels;
+	};
+
+	struct TextureDesc
+	{
+		const char*         DebugName = nullptr;
+		uint32_t            Index;
+		TextureType         Type = TextureType::NONE;
+		TextureTiling       Tiling = TextureTiling::IMAGE_TILING_NONE;
+		TextureFormat       Format = TextureFormat::FORMAT_NONE;
+		TextureChannels     RequestedChannels = TextureChannels::CHANNELS_DEFAULT;
+		//Span<const uint8_t> InitData;
+	};
+
+
+	// -- Pre-defined Texture Descriptions -- //
+	const TextureDesc DiffuseTextureDesc = {
+		"DiffuseTexture",
+		0,
+		TextureType::DIFFUSE,
+		TextureTiling::IMAGE_TILING_OPTIMAL,
+		TextureFormat::FORMAT_R8G8B8A8_SRGB,
+		TextureChannels::CHANNELS_RGB_ALPHA,
+	};
+
+	const TextureDesc ARMTextureDesc = {
+		"ARMTexture",
+		0,
+		TextureType::ARM,
+		TextureTiling::IMAGE_TILING_OPTIMAL,
+		TextureFormat::FORMAT_R8G8B8A8_UNORM,
+		TextureChannels::CHANNELS_RGB_ALPHA,
+	};
+
+	const TextureDesc NormalTextureDesc = {
+		"NormalTexture",
+		0,
+		TextureType::NORMAL,
+		TextureTiling::IMAGE_TILING_OPTIMAL,
+		TextureFormat::FORMAT_R8G8B8A8_UNORM,
+		TextureChannels::CHANNELS_RGB_ALPHA
+	};
+
+
 	class Texture
 	{
 	public:
+		Texture(const TextureDesc& desc);
 		virtual ~Texture() = default;
-
-		virtual void Bind() = 0;
-		virtual void Unbind() = 0;
-
-		virtual std::string GetFilepath() const = 0;
-		virtual int GetHeight() const = 0;
-		virtual int GetWidth() const = 0;
-		virtual uint32_t GetSlot() const = 0;
-
-		virtual void OnImGuiRender() const = 0;
+	};
 
 
-		static Ref<Texture> Create(const TextureOptions& options = TextureOptions_None, const std::string& filepath = "res/textures/darkmarble/dark-marbled-stone_d.jpg");
-		
+	class TextureFactory
+	{
+	public:
+		static Texture* CreateTexture(const TextureDesc& desc);
 	};
 
 }

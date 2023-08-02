@@ -1,25 +1,35 @@
 #include "mfpch.h"
 #include "Texture.h"
-#include "Magnefu/ResourceManagement/CacheableResource.h"
+#include "Platform/Vulkan/VulkanTexture.h"
 #include "Renderer.h"
-#include "Magnefu/Application.h"
 
 namespace Magnefu
 {
+	
 
-	Ref<Texture> Texture::Create(const TextureOptions& options, const std::string& filepath)
+	Texture::Texture(const TextureDesc& desc)
+	{
+		
+	}
+
+	Texture* TextureFactory::CreateTexture(const TextureDesc& desc)
 	{
 		switch (Renderer::GetAPI())
 		{
-			case RendererAPI::API::NONE:
+			case RendererAPI::API::VULKAN:
 			{
-				MF_CORE_ASSERT(false, "RendererAPI::API::NONE Texture not supported");
+				return new VulkanTexture(desc);
+			}
+
+			default:
+			{
+				MF_CORE_ASSERT(false, "TEXTURE - Unknown Renderer API");
 				return nullptr;
 			}
 			
 		}
 
-		MF_CORE_ASSERT(false, "TEXTURE - Unknown Renderer API");
-		return nullptr;
+		
+		
 	}
 }

@@ -177,9 +177,9 @@ namespace Magnefu
 	}
 
 	void SceneCamera::SetDefaultProps()
-	{
-		m_Data.Yaw = 0.f;
-		m_Data.Pitch = 0.f;
+	{	
+		m_Data.Yaw = 1.3f;
+		m_Data.Pitch = -0.3f;
 		m_Data.FOV = 45.f;
 		m_Data.Position = { 0.f, 0.f, 4.f };
 	}

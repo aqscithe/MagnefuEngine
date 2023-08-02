@@ -7,16 +7,7 @@ namespace Magnefu
 
 	struct PushConstants
 	{
-		alignas(16) Maths::vec3 Tint;
-		alignas(16) Maths::vec3 CameraPos;
-		alignas(16) Maths::vec3 LightPos;
-		alignas(16) Maths::vec3 LightColor;
-		alignas(16) Maths::vec3 Ka;
-		float                   MaxLightDist;
-		float                   Opacity;
-		float                   RadiantFlux;
-		float                   Reflectance; // fresnel reflectance for dielectrics [0.0, 1.0]
-		int                     LightEnabled;
+		
 	};
 
 	struct RendererInfo
@@ -30,6 +21,7 @@ namespace Magnefu
 	{
 	public:
 		virtual void Init() = 0;
+		virtual void TempSecondaryInit() = 0;
 		virtual void DrawFrame() = 0;
 		virtual void OnImGuiRender() = 0;
 		virtual void OnFinish() = 0;

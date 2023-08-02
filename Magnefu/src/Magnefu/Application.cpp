@@ -2,7 +2,7 @@
 
 #include "Application.h"
 #include "Renderer/GraphicsContext.h"
-
+#include "Magnefu/ResourceManagement/ResourcePaths.h"
 
 //TEMP
 #include "imgui/imgui.h"
@@ -14,6 +14,7 @@ namespace Magnefu
 
     Application* Application::s_Instance = nullptr;
 
+
 	Application::Application()
 	{
         MF_PROFILE_FUNCTION();
@@ -24,24 +25,60 @@ namespace Magnefu
             MF_PROFILE_SCOPE("Window Creation");
             m_Window = Scope<Window>(Window::Create());
             m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
+
         }
         m_Minimized = false;
 
+        m_RM = Scope<ResourceManager>(ResourceManager::Create());
+
+        // -- Global RenderPass -- //
+        m_RenderPassGlobals = m_RM->CreateBindGroup({
+            .DebugName  = "Render Pass Globals",
+            .LayoutType = BindingLayoutType::LAYOUT_RENDERPASS,
+            .Layout     = DEFAULT_RENDERPASS_BINDING_LAYOUT,
+            .Textures   = {},
+            .Buffers    = RenderPassUniformBufferDesc
+        });
+
+        // -- Scene Objects -- //
+
+        for (size_t i = 0; i < m_SceneObjects.size(); i++)
+            m_SceneObjects[i].Init(i);
+
+        for (auto& light : m_Lights)
+        {
+            light.LightEnabled = 1;
+            light.MaxLightDist = 200.f;
+            light.RadiantFlux = 10.f;
+            light.LightPos = { 235.f, 65.f, 20.f };
+            light.LightColor = Maths::vec3(1.0f);
+        }
+
+        /*m_Light.LightColor = Maths::vec3(1.0f);
+        m_Light.LightEnabled = 1;
+        m_Light.LightPos = { 235.f, 65.f, 20.f };
+        m_Light.RadiantFlux = 10.f;
+        m_Light.MaxLightDist = 200.f;*/
+
+        m_Window->GetGraphicsContext()->TempSecondaryInit();
+
         m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);
-
-        m_ResourceCache = Scope<ResourceCache>(ResourceCache::Create());
-
-        {
-            MF_PROFILE_SCOPE("Renderer Init");
-            Renderer::Init();
-        }
 	}
 
 	Application::~Application()
 	{
         
 	}
+
+    void Application::SetVertexBlock(DataBlock&& vertexBlock, size_t objPos)
+    {
+        //DataBlock&& tempBlock = std::move(vertexBlock);
+
+        m_SceneObjects[objPos].SetVertexBlock(std::move(vertexBlock));
+        //m_SceneObjects[objPos].m_Vertices = std::move(vertexBlock);
+        //m_Vertices = std::move(vertexBlock);
+    }
 
     bool Application::OnWindowClose(WindowCloseEvent& e)
     {
@@ -101,6 +138,7 @@ namespace Magnefu
 
         // Maybe Do a unique pointer(Scope) as there should only be one
         GraphicsContext* GraphicsContext = m_Window->GetGraphicsContext();
+
 
         // TODO: Create setting to switch between locked and unlocked frame rate
         m_TimeStep.Init();
