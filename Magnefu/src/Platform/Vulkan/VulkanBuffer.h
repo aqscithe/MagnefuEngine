@@ -20,10 +20,6 @@ namespace Magnefu
 		void CreateVertexBuffer(const BufferDesc& desc);
 		void CreateIndexBuffer(const BufferDesc& desc);
 
-		
-
-	protected:
-
 
 	private:
 		VkBuffer        m_Buffer;
@@ -47,7 +43,7 @@ namespace Magnefu
 		std::vector<VkBuffer>        m_Buffers;
 		std::vector<VkDeviceMemory>  m_BuffersMemory;
 		std::vector<void*>           m_BuffersMapped;
-		std::vector< OffsetAllocator::Allocation>  m_Allocations;
+		//std::vector< OffsetAllocator::Allocation>  m_Allocations;
 
 		UniformBufferType            m_UniformType = UniformBufferType::UNIFORM_NONE;
 

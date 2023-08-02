@@ -134,11 +134,11 @@ namespace Magnefu
 		m_Buffers.resize(MAX_FRAMES_IN_FLIGHT);
 		m_BuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
 		m_BuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
-		m_Allocations.resize(MAX_FRAMES_IN_FLIGHT);
+		//m_Allocations.resize(MAX_FRAMES_IN_FLIGHT);
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
 		{
-			/*VulkanCommon::CreateBuffer(
+			VulkanCommon::CreateBuffer(
 				bufferSize,
 				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -146,9 +146,9 @@ namespace Magnefu
 				m_BuffersMemory[i]
 			);
 
-			vkMapMemory(VulkanContext::Get().GetDevice(), m_BuffersMemory[i], 0, bufferSize, 0, &m_BuffersMapped[i]);*/
+			vkMapMemory(VulkanContext::Get().GetDevice(), m_BuffersMemory[i], 0, bufferSize, 0, &m_BuffersMapped[i]);
 
-			VulkanCommon::CreateBufferCustom(
+			/*VulkanCommon::CreateBufferCustom(
 				bufferSize,
 				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -157,7 +157,7 @@ namespace Magnefu
 				m_Allocations[i]
 			);
 
-			vkMapMemory(VulkanContext::Get().GetDevice(), m_BuffersMemory[i], 0, bufferSize, 0, &m_BuffersMapped[i]);
+			vkMapMemory(VulkanContext::Get().GetDevice(), m_BuffersMemory[i], 0, bufferSize, 0, &m_BuffersMapped[i]);*/
 		}
 	}
 
@@ -187,7 +187,6 @@ namespace Magnefu
 				camera->SetAspectRatio((float)swapChainExtent.width / (float)swapChainExtent.height);
 				
 				auto& lights = app.GetLightData();
-				//auto& light = app.GetLightData();
 
 				RenderPassUniformBufferObject ubo{};
 				ubo.ViewMatrix = camera->CalculateView();
@@ -202,12 +201,6 @@ namespace Magnefu
 				}
 				ubo.LightCount = lights.size();
 
-				/*ubo.LightColor   = light.LightColor;
-				ubo.MaxLightDist = light.MaxLightDist;
-				ubo.LightPos     = light.LightPos;
-				ubo.LightEnabled = light.LightEnabled;
-				ubo.RadiantFlux  = light.RadiantFlux;
-				ubo.LightCount = 1;*/
 				
 				size_t ubo_size = sizeof(ubo);
 				memcpy(m_BuffersMapped[context.GetCurrentFrame()], &ubo, ubo_size);
