@@ -32,6 +32,23 @@ namespace Magnefu
 
         m_RM = Scope<ResourceManager>(ResourceManager::Create());
 
+        // -- The corresponding graphics api context will store the memory objects.
+
+        // -- Initial Memory Allocations -- //
+
+        //  m_Window->GetGraphicsContext()->AllocateMemory();
+            // Vertex Buffers
+            
+            // Index buffers
+            
+            // Uniforms - # of allocations equals MAX_FRAMES_IN_FLIGHT
+            
+            // Textures
+            
+            // Framebuffer Resources
+
+
+
         // -- Global RenderPass -- //
         m_RenderPassGlobals = m_RM->CreateBindGroup({
             .DebugName  = "Render Pass Globals",
@@ -55,11 +72,6 @@ namespace Magnefu
             light.LightColor = Maths::vec3(1.0f);
         }
 
-        /*m_Light.LightColor = Maths::vec3(1.0f);
-        m_Light.LightEnabled = 1;
-        m_Light.LightPos = { 235.f, 65.f, 20.f };
-        m_Light.RadiantFlux = 10.f;
-        m_Light.MaxLightDist = 200.f;*/
 
         m_Window->GetGraphicsContext()->TempSecondaryInit();
 

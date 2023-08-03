@@ -5,6 +5,7 @@
 #include "VulkanCommon.h"
 
 #include "VulkanBuffer.h"
+#include "Magnefu/Core/MemoryAllocation/VmaUsage.h"
 
 
 struct GLFWwindow;
@@ -118,6 +119,7 @@ namespace Magnefu
 		void CreateWindowSurface();
 		void SelectPhysicalDevice();
 		void CreateLogicalDevice();
+		void AllocateResourceMemory();
 
 		void CreateSwapChain();
 		void CreateImageViews();
@@ -197,6 +199,11 @@ namespace Magnefu
 #else			                   
 		const bool                   m_EnableValidationLayers = false;
 #endif
+		
+		uint32_t m_APIVersion = VK_API_VERSION_1_3;
+
+		// -- Vma Primitives -- //
+		VmaAllocator m_VmaAllocator;
 
 
 		// -- Device Properties and Features -- //
@@ -264,6 +271,14 @@ namespace Magnefu
 		VkImage                      m_ColorImage;
 		VkDeviceMemory               m_ColorImageMemory;
 		VkImageView                  m_ColorImageView;
+
+		// -- Memory Allocations -- //
+
+		//VkDeviceMemory               m_VerticesMemory;
+		//VkDeviceMemory               m_IndicesMemory;
+		//VkDeviceMemory               m_TextureMemory;
+		//VkDeviceMemory               m_FramebufferMemory;
+		std::vector<VkDeviceMemory>  m_UniformMemory;
 		
 
 		//------------------- Compute Shader ---------------------- //

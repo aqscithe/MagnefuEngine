@@ -169,8 +169,10 @@
     <ClInclude Include="src\Magnefu\Core\MemoryAllocation\PoolAllocator.h" />
     <ClInclude Include="src\Magnefu\Core\MemoryAllocation\StackAllocator.h" />
     <ClInclude Include="src\Magnefu\Core\MemoryAllocation\VectorAllocator.h" />
+    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\VmaUsage.h" />
     <ClInclude Include="src\Magnefu\Core\NumGen.h" />
     <ClInclude Include="src\Magnefu\Core\SmartPointers.h" />
+    <ClInclude Include="src\Magnefu\Core\Span.h" />
     <ClInclude Include="src\Magnefu\Core\TimeStep.h" />
     <ClInclude Include="src\Magnefu\Debug\Instrumentor.h" />
     <ClInclude Include="src\Magnefu\Entrypoint.h" />
@@ -195,13 +197,13 @@
     <ClInclude Include="src\Magnefu\ResourceManagement\Handle.h" />
     <ClInclude Include="src\Magnefu\ResourceManagement\Pool.h" />
     <ClInclude Include="src\Magnefu\ResourceManagement\ResourceManager.h" />
-    <ClInclude Include="src\Magnefu\Core\Span.h" />
     <ClInclude Include="src\Magnefu\ResourceManagement\ResourcePaths.h" />
     <ClInclude Include="src\Magnefu\Window.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanBindGroup.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanBuffer.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanCommon.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanContext.h" />
+    <ClInclude Include="src\Platform\Vulkan\VulkanMemory.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanShader.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanTexture.h" />
     <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
@@ -366,6 +368,7 @@
     <ClInclude Include="vendor\spdlog\version.h" />
     <ClInclude Include="vendor\stb_image\stb_image.h" />
     <ClInclude Include="vendor\tiny_obj_loader\tiny_obj_loader.h" />
+    <ClInclude Include="vendor\vma\vk_mem_alloc.h" />
     <ClInclude Include="vendor\vulkan\include\SDL2\SDL.h" />
     <ClInclude Include="vendor\vulkan\include\SDL2\SDL_assert.h" />
     <ClInclude Include="vendor\vulkan\include\SDL2\SDL_atomic.h" />
@@ -530,6 +533,7 @@
     <ClCompile Include="src\Magnefu\Core\MemoryAllocation\OffsetAllocatorTests.cpp" />
     <ClCompile Include="src\Magnefu\Core\MemoryAllocation\PoolAllocator.cpp" />
     <ClCompile Include="src\Magnefu\Core\MemoryAllocation\StackAllocator.cpp" />
+    <ClCompile Include="src\Magnefu\Core\MemoryAllocation\VmaUsage.cpp" />
     <ClCompile Include="src\Magnefu\Core\NumGen.cpp" />
     <ClCompile Include="src\Magnefu\Core\TimeStep.cpp" />
     <ClCompile Include="src\Magnefu\ImGui\ImGuiBuild.cpp" />
@@ -552,9 +556,10 @@
     <ClCompile Include="src\Magnefu\ResourceManagement\Pool.cpp" />
     <ClCompile Include="src\Magnefu\ResourceManagement\ResourceManager.cpp" />
     <ClCompile Include="src\Platform\Vulkan\VulkanBindGroup.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\VulkanBuffer.cpp" />
     <ClCompile Include="src\Platform\Vulkan\VulkanCommon.cpp" />
     <ClCompile Include="src\Platform\Vulkan\VulkanContext.cpp" />
-    <ClCompile Include="src\Platform\Vulkan\VulkanBuffer.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\VulkanMemory.cpp" />
     <ClCompile Include="src\Platform\Vulkan\VulkanShader.cpp" />
     <ClCompile Include="src\Platform\Vulkan\VulkanTexture.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />

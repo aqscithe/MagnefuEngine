@@ -11,6 +11,7 @@
 #include "Magnefu/ResourceManagement/ResourceManager.h"
 #include "Magnefu/ResourceManagement/ResourcePaths.h"
 
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -22,8 +23,79 @@
 #include <set>
 #include <unordered_map>
 
+
+
 namespace Magnefu
 {
+	static void* const CUSTOM_CPU_ALLOCATION_CALLBACK_USER_DATA = (void*)(intptr_t)43564544;
+	static const bool USE_CUSTOM_CPU_ALLOCATION_CALLBACKS = true;
+
+	static std::atomic_uint32_t g_CpuAllocCount;
+
+	static const VkAllocationCallbacks* s_Allocs;
+
+	static void* CustomCpuAllocation(
+		void* pUserData, size_t size, size_t alignment,
+		VkSystemAllocationScope allocationScope)
+	{
+		assert(pUserData == CUSTOM_CPU_ALLOCATION_CALLBACK_USER_DATA);
+		void* const result = _aligned_malloc(size, alignment);
+		if (result)
+		{
+			++g_CpuAllocCount;
+		}
+		return result;
+	}
+
+	static void* CustomCpuReallocation(
+		void* pUserData, void* pOriginal, size_t size, size_t alignment,
+		VkSystemAllocationScope allocationScope)
+	{
+		assert(pUserData == CUSTOM_CPU_ALLOCATION_CALLBACK_USER_DATA);
+		void* const result = _aligned_realloc(pOriginal, size, alignment);
+		if (pOriginal && !result)
+		{
+			--g_CpuAllocCount;
+		}
+		else if (!pOriginal && result)
+		{
+			++g_CpuAllocCount;
+		}
+		return result;
+	}
+
+	static void CustomCpuFree(void* pUserData, void* pMemory)
+	{
+		assert(pUserData == CUSTOM_CPU_ALLOCATION_CALLBACK_USER_DATA);
+		if (pMemory)
+		{
+			const uint32_t oldAllocCount = g_CpuAllocCount.fetch_sub(1);
+			MF_CORE_ASSERT(oldAllocCount > 0, "old allocation not greater than 0");
+			_aligned_free(pMemory);
+		}
+	}
+
+	static const VkAllocationCallbacks g_CpuAllocationCallbacks = {
+		CUSTOM_CPU_ALLOCATION_CALLBACK_USER_DATA, // pUserData
+		&CustomCpuAllocation, // pfnAllocation
+		&CustomCpuReallocation, // pfnReallocation
+		&CustomCpuFree // pfnFree
+	};
+
+	
+
+	bool VK_KHR_get_memory_requirements2_enabled        = false;
+	bool VK_KHR_get_physical_device_properties2_enabled = false;
+	bool VK_KHR_dedicated_allocation_enabled            = false;
+	bool VK_KHR_bind_memory2_enabled                    = false;
+	bool VK_AMD_device_coherent_memory_enabled          = false;
+	bool VK_KHR_buffer_device_address_enabled           = false;
+	bool VK_EXT_debug_utils_enabled                     = false;
+
+	bool VK_EXT_memory_budget_enabled   = true;
+	bool VK_EXT_memory_priority_enabled = true;
+
+
 
 	static const std::vector<const char*> validationLayers = {
 			"VK_LAYER_KHRONOS_validation"
@@ -31,7 +103,10 @@ namespace Magnefu
 
 	static const std::vector<const char*> deviceExtensions =
 	{
-		VK_KHR_SWAPCHAIN_EXTENSION_NAME
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+		VK_EXT_MEMORY_BUDGET_EXTENSION_NAME,
+		VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME
+
 	};
 
 	bool operator==(const Vertex& a, const Vertex& b)
@@ -140,6 +215,10 @@ namespace Magnefu
 		LoadModels();
 		CreateRenderPass();
 
+		// The Application should tell Context how much memory is needed à la m_GraphicsContext->AllocateResourceMemory(BytesStruct)
+		// For now, I will explicitly state within the function what is needed.
+		AllocateResourceMemory();
+
 	}
 
 	void VulkanContext::TempSecondaryInit()
@@ -225,7 +304,7 @@ namespace Magnefu
 		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.pEngineName = "Magnefu Engine - Vulkan";
 		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-		appInfo.apiVersion = VK_API_VERSION_1_3;
+		appInfo.apiVersion = m_APIVersion;
 
 		VkInstanceCreateInfo instanceCreateInfo{};
 		instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -371,6 +450,7 @@ namespace Magnefu
 		VkPhysicalDeviceFeatures deviceFeatures{}; //empty for now
 		deviceFeatures.samplerAnisotropy = VK_TRUE;
 		deviceFeatures.sampleRateShading = VK_FALSE;
+		deviceFeatures.sparseBinding = VK_FALSE;
 
 		// Create the logical device
 
@@ -415,6 +495,80 @@ namespace Magnefu
 		vkGetDeviceQueue(m_VkDevice, m_QueueFamilyIndices.PresentFamily.value(), 0, &m_PresentQueue);
 		vkGetDeviceQueue(m_VkDevice, m_QueueFamilyIndices.ComputeFamily.value(), 0, &m_ComputeQueue);
 
+	}
+
+	void VulkanContext::AllocateResourceMemory()
+	{
+		if (USE_CUSTOM_CPU_ALLOCATION_CALLBACKS)
+		{
+			s_Allocs = &g_CpuAllocationCallbacks;
+		}
+
+		VmaAllocatorCreateInfo allocatorInfo{};
+		allocatorInfo.device = m_VkDevice;
+		allocatorInfo.physicalDevice = m_VkPhysicalDevice;
+		allocatorInfo.instance = m_VkInstance;
+		allocatorInfo.vulkanApiVersion = m_APIVersion;
+
+
+		if (VK_KHR_dedicated_allocation_enabled)
+		{
+			allocatorInfo.flags |= VMA_ALLOCATOR_CREATE_KHR_DEDICATED_ALLOCATION_BIT;
+		}
+		if (VK_KHR_bind_memory2_enabled)
+		{
+			allocatorInfo.flags |= VMA_ALLOCATOR_CREATE_KHR_BIND_MEMORY2_BIT;
+		}
+#if !defined(VMA_MEMORY_BUDGET) || VMA_MEMORY_BUDGET == 1
+		if (VK_EXT_memory_budget_enabled && (
+			m_APIVersion >= VK_API_VERSION_1_1 || VK_KHR_get_physical_device_properties2_enabled))
+		{
+			allocatorInfo.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
+		}
+#endif
+		if (VK_AMD_device_coherent_memory_enabled)
+		{
+			allocatorInfo.flags |= VMA_ALLOCATOR_CREATE_AMD_DEVICE_COHERENT_MEMORY_BIT;
+		}
+		if (VK_KHR_buffer_device_address_enabled)
+		{
+			allocatorInfo.flags |= VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
+		}
+#if !defined(VMA_MEMORY_PRIORITY) || VMA_MEMORY_PRIORITY == 1
+		if (VK_EXT_memory_priority_enabled)
+		{
+			allocatorInfo.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_PRIORITY_BIT;
+		}
+#endif
+
+		if (USE_CUSTOM_CPU_ALLOCATION_CALLBACKS)
+		{
+			allocatorInfo.pAllocationCallbacks = &g_CpuAllocationCallbacks;
+		}
+
+#if VMA_DYNAMIC_VULKAN_FUNCTIONS
+		static VmaVulkanFunctions vulkanFunctions = {};
+		vulkanFunctions.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
+		vulkanFunctions.vkGetDeviceProcAddr = vkGetDeviceProcAddr;
+		allocatorInfo.pVulkanFunctions = &vulkanFunctions;
+#endif*/
+
+		// Uncomment to enable recording to CSV file.
+		/*
+		static VmaRecordSettings recordSettings = {};
+		recordSettings.pFilePath = "VulkanSample.csv";
+		outInfo.pRecordSettings = &recordSettings;
+		*/
+
+		// Uncomment to enable HeapSizeLimit.
+		/*
+		static std::array<VkDeviceSize, VK_MAX_MEMORY_HEAPS> heapSizeLimit;
+		std::fill(heapSizeLimit.begin(), heapSizeLimit.end(), VK_WHOLE_SIZE);
+		heapSizeLimit[0] = 512ull * 1024 * 1024;
+		outInfo.pHeapSizeLimit = heapSizeLimit.data();
+		*/
+		
+		vmaCreateAllocator(&allocatorInfo, &m_VmaAllocator);
 	}
 
 	void VulkanContext::CreateSwapChain()
@@ -1334,6 +1488,20 @@ namespace Magnefu
 		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
 
 		std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+
+		// add necessary device extensions here:
+		if (m_APIVersion == VK_API_VERSION_1_0)
+		{
+			requiredExtensions.insert(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
+			requiredExtensions.insert(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
+			requiredExtensions.insert(VK_KHR_BIND_MEMORY_2_EXTENSION_NAME);
+		}
+
+		if (m_APIVersion < VK_API_VERSION_1_2)
+			requiredExtensions.insert(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME);
+			
+
+
 
 		for (const auto& extension : availableExtensions) {
 			requiredExtensions.erase(extension.extensionName);
