@@ -44,7 +44,6 @@ namespace Magnefu
 		
 	private:
 		std::vector<VkBuffer>        m_Buffers;
-		//std::vector<VkDeviceMemory>  m_BuffersMemory;
 		std::vector<void*>           m_BuffersMapped;
 
 		std::vector<VmaAllocation>     m_Allocation;
