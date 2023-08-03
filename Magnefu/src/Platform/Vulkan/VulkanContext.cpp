@@ -160,41 +160,43 @@ namespace Magnefu
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			vkDestroyBuffer(m_VkDevice, m_ComputeUniformBuffers[i], nullptr);
-			vkFreeMemory(m_VkDevice, m_ComputeUniformBuffersMemory[i], nullptr);
+			vkDestroyBuffer(m_VkDevice, m_ComputeUniformBuffers[i], s_Allocs);
+			vkFreeMemory(m_VkDevice, m_ComputeUniformBuffersMemory[i], s_Allocs);
 		}
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			vkDestroyBuffer(m_VkDevice, m_ShaderStorageBuffers[i], nullptr);
-			vkFreeMemory(m_VkDevice, m_ShaderStorageBuffersMemory[i], nullptr);
+			vkDestroyBuffer(m_VkDevice, m_ShaderStorageBuffers[i], s_Allocs);
+			vkFreeMemory(m_VkDevice, m_ShaderStorageBuffersMemory[i], s_Allocs);
 		}
 
-		vkDestroyDescriptorPool(m_VkDevice, m_ComputeDescriptorPool, nullptr);
-		vkDestroyDescriptorSetLayout(m_VkDevice, m_ComputeDescriptorSetLayout, nullptr);
+		vkDestroyDescriptorPool(m_VkDevice, m_ComputeDescriptorPool, s_Allocs);
+		vkDestroyDescriptorSetLayout(m_VkDevice, m_ComputeDescriptorSetLayout, s_Allocs);
 
 
-		vkDestroyRenderPass(m_VkDevice, m_RenderPass, nullptr);
+		vkDestroyRenderPass(m_VkDevice, m_RenderPass, s_Allocs);
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			vkDestroySemaphore(m_VkDevice, m_ImageAvailableSemaphores[i], nullptr);
-			vkDestroySemaphore(m_VkDevice, m_ImGuiRenderFinishedSemaphores[i], nullptr);
-			vkDestroySemaphore(m_VkDevice, m_RenderFinishedSemaphores[i], nullptr);
-			vkDestroyFence(m_VkDevice, m_InFlightFences[i], nullptr);
-			vkDestroyFence(m_VkDevice, m_ImGuiInFlightFences[i], nullptr);
+			vkDestroySemaphore(m_VkDevice, m_ImageAvailableSemaphores[i], s_Allocs);
+			vkDestroySemaphore(m_VkDevice, m_ImGuiRenderFinishedSemaphores[i], s_Allocs);
+			vkDestroySemaphore(m_VkDevice, m_RenderFinishedSemaphores[i], s_Allocs);
+			vkDestroyFence(m_VkDevice, m_InFlightFences[i], s_Allocs);
+			vkDestroyFence(m_VkDevice, m_ImGuiInFlightFences[i], s_Allocs);
 		}
 
-		vkDestroyCommandPool(m_VkDevice, m_CommandPool, nullptr);
+		vkDestroyCommandPool(m_VkDevice, m_CommandPool, s_Allocs);
+
+		vmaDestroyAllocator(m_VmaAllocator);
 		
-		vkDestroyDevice(m_VkDevice, nullptr);
+		vkDestroyDevice(m_VkDevice, s_Allocs);
 
 		if (m_EnableValidationLayers)
-			DestroyDebugUtilsMessengerEXT(m_VkInstance, m_DebugMessenger, nullptr);
+			DestroyDebugUtilsMessengerEXT(m_VkInstance, m_DebugMessenger, s_Allocs);
 
-		vkDestroySurfaceKHR(m_VkInstance, m_WindowSurface, nullptr);
+		vkDestroySurfaceKHR(m_VkInstance, m_WindowSurface, s_Allocs);
 		
-		vkDestroyInstance(m_VkInstance, nullptr);
+		vkDestroyInstance(m_VkInstance, s_Allocs);
 		
 	}
 
@@ -331,7 +333,7 @@ namespace Magnefu
 		}
 
 
-		if (vkCreateInstance(&instanceCreateInfo, nullptr, &m_VkInstance) != VK_SUCCESS)
+		if (vkCreateInstance(&instanceCreateInfo, s_Allocs, &m_VkInstance) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "Failed to create Vulkan VkInstance");
 	}
 
@@ -389,7 +391,7 @@ namespace Magnefu
 			VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
 			PopulateDebugMessengerCreateInfo(debugCreateInfo);
 
-			if (CreateDebugUtilsMessengerEXT(m_VkInstance, &debugCreateInfo, nullptr, &m_DebugMessenger) != VK_SUCCESS)
+			if (CreateDebugUtilsMessengerEXT(m_VkInstance, &debugCreateInfo, s_Allocs, &m_DebugMessenger) != VK_SUCCESS)
 				MF_CORE_ERROR("failed to set up debug messenger!");
 
 		}
@@ -400,7 +402,7 @@ namespace Magnefu
 		if (glfwVulkanSupported() == GLFW_FALSE)
 			MF_CORE_DEBUG("GLFW - Vulkan not Supported!!");
 
-		if (glfwCreateWindowSurface(m_VkInstance, m_WindowHandle, nullptr, &m_WindowSurface) != VK_SUCCESS)
+		if (glfwCreateWindowSurface(m_VkInstance, m_WindowHandle, s_Allocs, &m_WindowSurface) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "Failed to create a window surface!");
 	}
 
@@ -487,7 +489,7 @@ namespace Magnefu
 		}
 
 		// Instantiate the logical device
-		if (vkCreateDevice(m_VkPhysicalDevice, &logicalDevCreateInfo, nullptr, &m_VkDevice) != VK_SUCCESS)
+		if (vkCreateDevice(m_VkPhysicalDevice, &logicalDevCreateInfo, s_Allocs, &m_VkDevice) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to create logical device!");
 
 		// Retrieving queue handles
@@ -567,8 +569,9 @@ namespace Magnefu
 		heapSizeLimit[0] = 512ull * 1024 * 1024;
 		outInfo.pHeapSizeLimit = heapSizeLimit.data();
 		*/
+		if (vmaCreateAllocator(&allocatorInfo, &m_VmaAllocator) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "Failed to create the VMA Allocator.");
 		
-		vmaCreateAllocator(&allocatorInfo, &m_VmaAllocator);
 	}
 
 	void VulkanContext::CreateSwapChain()
@@ -623,7 +626,7 @@ namespace Magnefu
 		swapChainCreateInfo.clipped = VK_TRUE;
 		swapChainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
-		if (vkCreateSwapchainKHR(m_VkDevice, &swapChainCreateInfo, nullptr, &m_SwapChain) != VK_SUCCESS)
+		if (vkCreateSwapchainKHR(m_VkDevice, &swapChainCreateInfo, s_Allocs, &m_SwapChain) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "Failed to create swap chain!");
 
 		vkGetSwapchainImagesKHR(m_VkDevice, m_SwapChain, &imageCount, nullptr);
@@ -715,7 +718,7 @@ namespace Magnefu
 		renderPassInfo.dependencyCount = 1;
 		renderPassInfo.pDependencies = &dependency;
 
-		if (vkCreateRenderPass(m_VkDevice, &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS)
+		if (vkCreateRenderPass(m_VkDevice, &renderPassInfo, s_Allocs, &m_RenderPass) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to create render pass!");
 	}
 
@@ -745,7 +748,7 @@ namespace Magnefu
 		layoutInfo.bindingCount = 3;
 		layoutInfo.pBindings = layoutBindings.data();
 
-		if (vkCreateDescriptorSetLayout(m_VkDevice, &layoutInfo, nullptr, &m_ComputeDescriptorSetLayout) != VK_SUCCESS) {
+		if (vkCreateDescriptorSetLayout(m_VkDevice, &layoutInfo, s_Allocs, &m_ComputeDescriptorSetLayout) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create compute descriptor set layout!");
 		}
 	}
@@ -1022,7 +1025,7 @@ namespace Magnefu
 			framebufferInfo.height = m_SwapChainExtent.height;
 			framebufferInfo.layers = 1;
 
-			if (vkCreateFramebuffer(m_VkDevice, &framebufferInfo, nullptr, &m_SwapChainFramebuffers[i]) != VK_SUCCESS)
+			if (vkCreateFramebuffer(m_VkDevice, &framebufferInfo, s_Allocs, &m_SwapChainFramebuffers[i]) != VK_SUCCESS)
 				MF_CORE_ASSERT(false, "failed to create framebuffer!");
 		}
 	}
@@ -1034,7 +1037,7 @@ namespace Magnefu
 		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 		poolInfo.queueFamilyIndex = m_QueueFamilyIndices.GraphicsFamily.value();
 
-		if (vkCreateCommandPool(m_VkDevice, &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS)
+		if (vkCreateCommandPool(m_VkDevice, &poolInfo, s_Allocs, &m_CommandPool) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to create command pool!");
 	}
 
@@ -1261,7 +1264,7 @@ namespace Magnefu
 		poolInfo.pPoolSizes = poolSizes.data();
 		poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
-		if (vkCreateDescriptorPool(m_VkDevice, &poolInfo, nullptr, &m_ComputeDescriptorPool) != VK_SUCCESS)
+		if (vkCreateDescriptorPool(m_VkDevice, &poolInfo, s_Allocs, &m_ComputeDescriptorPool) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to create COMPUTE descriptor pool!");
 	}
 
@@ -1399,17 +1402,17 @@ namespace Magnefu
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			if (vkCreateSemaphore(m_VkDevice, &computeSemaphoreInfo, nullptr, &m_ComputeFinishedSemaphores[i]) != VK_SUCCESS ||
-				vkCreateFence(m_VkDevice, &computeFenceInfo, nullptr, &m_ComputeInFlightFences[i]) != VK_SUCCESS)
+			if (vkCreateSemaphore(m_VkDevice, &computeSemaphoreInfo, s_Allocs, &m_ComputeFinishedSemaphores[i]) != VK_SUCCESS ||
+				vkCreateFence(m_VkDevice, &computeFenceInfo, s_Allocs, &m_ComputeInFlightFences[i]) != VK_SUCCESS)
 			{
 				MF_CORE_ASSERT(false, "failed to create COMPUTE semaphores and/or fences!");
 			}
 
-			if (vkCreateSemaphore(m_VkDevice, &semaphoreInfo, nullptr, &m_ImageAvailableSemaphores[i]) != VK_SUCCESS ||
-				vkCreateSemaphore(m_VkDevice, &semaphoreInfo, nullptr, &m_ImGuiRenderFinishedSemaphores[i]) != VK_SUCCESS ||
-				vkCreateSemaphore(m_VkDevice, &semaphoreInfo, nullptr, &m_RenderFinishedSemaphores[i]) != VK_SUCCESS ||
-				vkCreateFence(m_VkDevice, &fenceInfo, nullptr, &m_InFlightFences[i]) != VK_SUCCESS ||
-				vkCreateFence(m_VkDevice, &fenceInfo, nullptr, &m_ImGuiInFlightFences[i]) != VK_SUCCESS)
+			if (vkCreateSemaphore(m_VkDevice, &semaphoreInfo, s_Allocs, &m_ImageAvailableSemaphores[i]) != VK_SUCCESS ||
+				vkCreateSemaphore(m_VkDevice, &semaphoreInfo, s_Allocs, &m_ImGuiRenderFinishedSemaphores[i]) != VK_SUCCESS ||
+				vkCreateSemaphore(m_VkDevice, &semaphoreInfo, s_Allocs, &m_RenderFinishedSemaphores[i]) != VK_SUCCESS ||
+				vkCreateFence(m_VkDevice, &fenceInfo, s_Allocs, &m_InFlightFences[i]) != VK_SUCCESS ||
+				vkCreateFence(m_VkDevice, &fenceInfo, s_Allocs, &m_ImGuiInFlightFences[i]) != VK_SUCCESS)
 			{
 				MF_CORE_ASSERT(false, "failed to create GRAPHICS semaphores and/or fences!");
 			}
@@ -1788,21 +1791,21 @@ namespace Magnefu
 
 	void VulkanContext::CleanupSwapChain()
 	{
-		vkDestroyImageView(m_VkDevice, m_ColorImageView, nullptr);
-		vkDestroyImage(m_VkDevice, m_ColorImage, nullptr);
-		vkFreeMemory(m_VkDevice, m_ColorImageMemory, nullptr);
+		vkDestroyImageView(m_VkDevice, m_ColorImageView, s_Allocs);
+		vkDestroyImage(m_VkDevice, m_ColorImage, s_Allocs);
+		vkFreeMemory(m_VkDevice, m_ColorImageMemory, s_Allocs);
 
-		vkDestroyImageView(m_VkDevice, m_DepthImageView, nullptr);
-		vkDestroyImage(m_VkDevice,     m_DepthImage, nullptr);
-		vkFreeMemory(m_VkDevice,       m_DepthImageMemory, nullptr);
+		vkDestroyImageView(m_VkDevice, m_DepthImageView, s_Allocs);
+		vkDestroyImage(m_VkDevice,     m_DepthImage, s_Allocs);
+		vkFreeMemory(m_VkDevice,       m_DepthImageMemory, s_Allocs);
 
 		for (auto framebuffer : m_SwapChainFramebuffers)
-			vkDestroyFramebuffer(m_VkDevice, framebuffer, nullptr);
+			vkDestroyFramebuffer(m_VkDevice, framebuffer, s_Allocs);
 
 		for (auto imageView : m_SwapChainImageViews)
-			vkDestroyImageView(m_VkDevice, imageView, nullptr);
+			vkDestroyImageView(m_VkDevice, imageView, s_Allocs);
 
-		vkDestroySwapchainKHR(m_VkDevice, m_SwapChain, nullptr);
+		vkDestroySwapchainKHR(m_VkDevice, m_SwapChain, s_Allocs);
 	}
 
 

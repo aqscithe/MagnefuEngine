@@ -24,6 +24,9 @@ namespace Magnefu
 	private:
 		VkBuffer        m_Buffer;
 		VkDeviceMemory  m_BufferMemory;
+
+		VmaAllocation     m_Allocation;
+		VmaAllocationInfo m_AllocInfo;
 		
 		
 	};
@@ -41,9 +44,11 @@ namespace Magnefu
 		
 	private:
 		std::vector<VkBuffer>        m_Buffers;
-		std::vector<VkDeviceMemory>  m_BuffersMemory;
+		//std::vector<VkDeviceMemory>  m_BuffersMemory;
 		std::vector<void*>           m_BuffersMapped;
-		//std::vector< OffsetAllocator::Allocation>  m_Allocations;
+
+		std::vector<VmaAllocation>     m_Allocation;
+		std::vector<VmaAllocationInfo> m_AllocInfo;
 
 		UniformBufferType            m_UniformType = UniformBufferType::UNIFORM_NONE;
 

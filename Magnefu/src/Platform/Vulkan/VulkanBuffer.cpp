@@ -37,6 +37,9 @@ namespace Magnefu
 		VkDevice device = VulkanContext::Get().GetDevice();
 		vkDestroyBuffer(device, m_Buffer, nullptr);
 		vkFreeMemory(device, m_BufferMemory, nullptr);
+
+		/*VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();
+		vmaDestroyBuffer(allocator, m_Buffer, m_Allocation);*/
 	}
 
 	void VulkanBuffer::CreateVertexBuffer(const BufferDesc& desc)
@@ -131,14 +134,17 @@ namespace Magnefu
 
 		VkDeviceSize bufferSize = desc.ByteSize;
 
+		VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();
+
 		m_Buffers.resize(MAX_FRAMES_IN_FLIGHT);
-		m_BuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+		//m_BuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
 		m_BuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
-		//m_Allocations.resize(MAX_FRAMES_IN_FLIGHT);
+		m_Allocation.resize(MAX_FRAMES_IN_FLIGHT);
+		m_AllocInfo.resize(MAX_FRAMES_IN_FLIGHT);
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
 		{
-			VulkanCommon::CreateBuffer(
+			/*VulkanCommon::CreateBuffer(
 				bufferSize,
 				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -146,30 +152,38 @@ namespace Magnefu
 				m_BuffersMemory[i]
 			);
 
-			vkMapMemory(VulkanContext::Get().GetDevice(), m_BuffersMemory[i], 0, bufferSize, 0, &m_BuffersMapped[i]);
+			vkMapMemory(VulkanContext::Get().GetDevice(), m_BuffersMemory[i], 0, bufferSize, 0, &m_BuffersMapped[i]);*/
 
-			/*VulkanCommon::CreateBufferCustom(
+			VulkanCommon::CreateBuffer(
 				bufferSize,
 				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 				m_Buffers[i],
-				m_BuffersMemory[i],
-				m_Allocations[i]
+				VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+				VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+				m_Allocation[i],
+				m_AllocInfo[i]
 			);
 
-			vkMapMemory(VulkanContext::Get().GetDevice(), m_BuffersMemory[i], 0, bufferSize, 0, &m_BuffersMapped[i]);*/
+			vmaMapMemory(allocator, m_Allocation[i], &m_BuffersMapped[i]);
+
 		}
 	}
 
 	VulkanUniformBuffer::~VulkanUniformBuffer()
 	{
-		VkDevice device = VulkanContext::Get().GetDevice();
+		/*VkDevice device = VulkanContext::Get().GetDevice();
+
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			vkDestroyBuffer(device, m_Buffers[i], nullptr);
 			vkFreeMemory(device, m_BuffersMemory[i], nullptr);
-		}
+		}*/
+
+		VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();
+
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+			vmaDestroyBuffer(allocator, m_Buffers[i], m_Allocation[i]);
 	}
 
 	void VulkanUniformBuffer::UpdateUniformBuffer(const Material& mat)
