@@ -577,12 +577,28 @@ namespace Magnefu
 		uint32_t sceneObjCount = app.GetSceneObjects().size();
 
 		// Uniform buffer
-		VkDeviceSize totalSize = sizeof(RenderPassUniformBufferObject) + sizeof(MaterialUniformBufferObject) * sceneObjCount; // Total size of the buffer
 
-		m_UniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-		m_UniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
-		m_UniformAllocations.resize(MAX_FRAMES_IN_FLIGHT);
-		m_UniformAllocInfo.resize(MAX_FRAMES_IN_FLIGHT);
+		// Since I'm already finding the offsets here, I should probably store them and supply them to the buffers when 
+		// I create them.
+
+		VkDeviceSize totalSize = 0;
+		VkDeviceSize size = sizeof(RenderPassUniformBufferObject);
+		VkDeviceSize offset = (totalSize + m_VulkanMemory.UniformAlignment - 1) & ~(m_VulkanMemory.UniformAlignment - 1);
+
+		totalSize = offset + size;
+		
+		for (int i = 0; i < sceneObjCount; i++)
+		{
+			size = sizeof(MaterialUniformBufferObject);
+			offset = (totalSize + m_VulkanMemory.UniformAlignment - 1) & ~(m_VulkanMemory.UniformAlignment - 1);
+			totalSize = offset + size;
+		}
+
+		m_VulkanMemory.UniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+		m_VulkanMemory.UniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+		m_VulkanMemory.UniformAllocations.resize(MAX_FRAMES_IN_FLIGHT);
+		m_VulkanMemory.UniformAllocInfo.resize(MAX_FRAMES_IN_FLIGHT);
+		m_VulkanMemory.UniformOffset = 0;
 
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -590,14 +606,14 @@ namespace Magnefu
 			VulkanCommon::CreateBuffer(
 				totalSize,
 				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-				m_UniformBuffers[i],
+				m_VulkanMemory.UniformBuffers[i],
 				VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
 				VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
-				m_UniformAllocations[i],
-				m_UniformAllocInfo[i]
+				m_VulkanMemory.UniformAllocations[i],
+				m_VulkanMemory.UniformAllocInfo[i]
 			);
 
-			vmaMapMemory(m_VmaAllocator, m_UniformAllocations[i], &m_UniformBuffersMapped[i]);
+			vmaMapMemory(m_VmaAllocator, m_VulkanMemory.UniformAllocations[i], &m_VulkanMemory.UniformBuffersMapped[i]);
 		}
 
 		// You can now use different regions of 'buffer' as individual buffers, keeping track of the offsets and sizes yourself.
@@ -1504,8 +1520,10 @@ namespace Magnefu
 		{
 			m_SupportedFeatures = deviceFeatures;
 			m_Properties = deviceProperties;
+			m_VulkanMemory.UniformAlignment = m_Properties.limits.minUniformBufferOffsetAlignment;
 
 			MF_CORE_DEBUG("Max Push Constant Size: {}", m_Properties.limits.maxPushConstantsSize);
+			MF_CORE_DEBUG("Min Uniform Buffer Offset Alignment: {}", m_Properties.limits.minUniformBufferOffsetAlignment);
 			return true;
 		}
 

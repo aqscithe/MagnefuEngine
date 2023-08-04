@@ -74,6 +74,17 @@ namespace Magnefu
 		}
 	};
 
+	struct VulkanMemory
+	{
+		// Uniforms
+		VkDeviceSize                   UniformOffset = 0;
+		VkDeviceSize                   UniformAlignment;
+		std::vector<VkBuffer>          UniformBuffers;
+		std::vector<void*>             UniformBuffersMapped;
+		std::vector<VmaAllocation>     UniformAllocations;
+		std::vector<VmaAllocationInfo> UniformAllocInfo;
+	};
+
 	
 	class VulkanContext : public GraphicsContext
 	{
@@ -107,6 +118,9 @@ namespace Magnefu
 		inline const VkSampleCountFlagBits GetMSAASamples() const { return m_MSAASamples; }
 		inline const VkRenderPass& GetRenderPass() const { return m_RenderPass; }
 		inline const VmaAllocator& GetVmaAllocator() const { return m_VmaAllocator; }
+
+		inline const std::vector<VkBuffer>& GetUniformBuffers() { return m_VulkanMemory.UniformBuffers; }
+		inline VulkanMemory& GetVulkanMemory() { return m_VulkanMemory; }
 
 
 	private:
@@ -161,11 +175,6 @@ namespace Magnefu
 		
 		VkFormat FindDepthFormat();
 		VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
-
-
-		// Place in VKShader
-		//ShaderList ParseShader(const char* filepath);
-		//VkShaderModule CreateShaderModule(const ShaderSource& source);
 		
 
 		// Uniforms
@@ -174,7 +183,6 @@ namespace Magnefu
 
 		// Depth 
 		bool HasStencilComponent(VkFormat format);
-
 
 		VkSampleCountFlagBits GetMaxUsableSampleCount();
 		
@@ -280,11 +288,8 @@ namespace Magnefu
 		VkImage  m_FrameImageBuffer;
 		VkImage  m_TextureImageBuffer;
 
-		// Uniforms
-		std::vector<VkBuffer>          m_UniformBuffers;
-		std::vector<void*>             m_UniformBuffersMapped;
-		std::vector<VmaAllocation>     m_UniformAllocations;
-		std::vector<VmaAllocationInfo> m_UniformAllocInfo;
+		VulkanMemory m_VulkanMemory;
+		
 
 		//------------------- Compute Shader ---------------------- //
 		std::vector<VkBuffer>        m_ShaderStorageBuffers;

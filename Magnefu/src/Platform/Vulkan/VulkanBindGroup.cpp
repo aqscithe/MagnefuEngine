@@ -179,8 +179,8 @@ namespace Magnefu
 					// UBO
 					VkDescriptorBufferInfo bufferInfo{};
 					bufferInfo.buffer = uniformBuffer.GetBuffers()[i];  
-					bufferInfo.offset = 0;
-					bufferInfo.range = sizeof(MaterialUniformBufferObject);
+					bufferInfo.offset = uniformBuffer.GetOffset();
+					bufferInfo.range = uniformBuffer.GetRange();
 
 					// Diffuse
 					imageInfo[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -257,8 +257,8 @@ namespace Magnefu
 					// UBO
 					VkDescriptorBufferInfo bufferInfo{};
 					bufferInfo.buffer = uniformBuffer.GetBuffers()[i];
-					bufferInfo.offset = 0;
-					bufferInfo.range = sizeof(RenderPassUniformBufferObject); 
+					bufferInfo.offset = uniformBuffer.GetOffset();
+					bufferInfo.range = uniformBuffer.GetRange();
 
 					std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
 

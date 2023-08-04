@@ -138,11 +138,20 @@ namespace Magnefu
 
 	VulkanUniformBuffer::VulkanUniformBuffer(const BufferDesc& desc) : VulkanBuffer(desc)
 	{
+		VulkanMemory& vulkanMem = VulkanContext::Get().GetVulkanMemory();
+
+		m_Buffers = vulkanMem.UniformBuffers;
 		m_UniformType = desc.UniformType;
+		m_Range = desc.ByteSize;
 
-		VkDeviceSize bufferSize = desc.ByteSize;
+		m_Offset = (vulkanMem.UniformOffset + vulkanMem.UniformAlignment - 1) & ~(vulkanMem.UniformAlignment - 1);
 
-		VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();
+		vulkanMem.UniformOffset = m_Offset + m_Range;
+
+
+		//VkDeviceSize bufferSize = desc.ByteSize;
+
+		/*VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();
 
 		m_Buffers.resize(MAX_FRAMES_IN_FLIGHT);
 		m_BuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
@@ -162,7 +171,7 @@ namespace Magnefu
 			);
 
 			vmaMapMemory(allocator, m_Allocation[i], &m_BuffersMapped[i]);
-		}
+		}*/
 	}
 
 	VulkanUniformBuffer::~VulkanUniformBuffer()
@@ -176,6 +185,7 @@ namespace Magnefu
 	void VulkanUniformBuffer::UpdateUniformBuffer(const Material& mat)
 	{
 		VulkanContext& context = VulkanContext::Get();
+		VulkanMemory& vulkanMem = context.GetVulkanMemory();
 		VkExtent2D swapChainExtent = context.GetSwapChainExtent();
 
 		Application& app = Application::Get();
@@ -203,8 +213,11 @@ namespace Magnefu
 				ubo.LightCount = lights.size();
 
 				
-				size_t ubo_size = sizeof(ubo);
-				memcpy(m_BuffersMapped[context.GetCurrentFrame()], &ubo, ubo_size);
+				assert(sizeof(ubo) == m_Range);
+
+				void* data = static_cast<char*>(vulkanMem.UniformBuffersMapped[context.GetCurrentFrame()]) + m_Offset;
+				//memcpy(m_BuffersMapped[context.GetCurrentFrame()], &ubo, ubo_size);
+				memcpy(data, &ubo, m_Range);
 
 				break;
 			}
@@ -223,7 +236,10 @@ namespace Magnefu
 				ubo.Reflectance = mat.Reflectance;
 				ubo.Opacity = mat.Opacity;
 
-				memcpy(m_BuffersMapped[context.GetCurrentFrame()], &ubo, sizeof(ubo));
+				assert(sizeof(ubo) == m_Range);
+				void* data = static_cast<char*>(vulkanMem.UniformBuffersMapped[context.GetCurrentFrame()]) + m_Offset;
+				//memcpy(m_BuffersMapped[context.GetCurrentFrame()], &ubo, sizeof(ubo));
+				memcpy(data, &ubo, m_Range);
 
 				break;
 			}
