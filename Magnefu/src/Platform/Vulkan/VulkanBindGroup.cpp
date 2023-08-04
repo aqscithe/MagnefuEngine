@@ -178,7 +178,7 @@ namespace Magnefu
 				{
 					// UBO
 					VkDescriptorBufferInfo bufferInfo{};
-					bufferInfo.buffer = uniformBuffer.GetBuffers()[i];
+					bufferInfo.buffer = uniformBuffer.GetBuffers()[i];  
 					bufferInfo.offset = 0;
 					bufferInfo.range = sizeof(MaterialUniformBufferObject);
 

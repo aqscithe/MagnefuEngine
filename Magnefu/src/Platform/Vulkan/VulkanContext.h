@@ -275,12 +275,16 @@ namespace Magnefu
 
 		// -- Memory Allocations -- //
 
-		//VkDeviceMemory               m_VerticesMemory;
-		//VkDeviceMemory               m_IndicesMemory;
-		//VkDeviceMemory               m_TextureMemory;
-		//VkDeviceMemory               m_FramebufferMemory;
-		//std::vector<VkDeviceMemory>  m_UniformMemory;
-		
+		VkBuffer m_VerticesBuffer;
+		VkBuffer m_IndicesBuffer;
+		VkImage  m_FrameImageBuffer;
+		VkImage  m_TextureImageBuffer;
+
+		// Uniforms
+		std::vector<VkBuffer>          m_UniformBuffers;
+		std::vector<void*>             m_UniformBuffersMapped;
+		std::vector<VmaAllocation>     m_UniformAllocations;
+		std::vector<VmaAllocationInfo> m_UniformAllocInfo;
 
 		//------------------- Compute Shader ---------------------- //
 		std::vector<VkBuffer>        m_ShaderStorageBuffers;

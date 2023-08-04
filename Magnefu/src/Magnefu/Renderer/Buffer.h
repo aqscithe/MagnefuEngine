@@ -76,8 +76,7 @@ namespace Magnefu
     };*/
 
 
-
-    struct MaterialUniformBufferObject
+    struct alignas(16) MaterialUniformBufferObject
     {
         Maths::mat4 ModelMatrix;
         alignas(16) Maths::vec3 Tint;

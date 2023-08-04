@@ -571,6 +571,37 @@ namespace Magnefu
 		*/
 		if (vmaCreateAllocator(&allocatorInfo, &m_VmaAllocator) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "Failed to create the VMA Allocator.");
+
+		// Create Main Buffers that will be suballocated
+		Application& app = Application::Get();
+		uint32_t sceneObjCount = app.GetSceneObjects().size();
+
+		// Uniform buffer
+		VkDeviceSize totalSize = sizeof(RenderPassUniformBufferObject) + sizeof(MaterialUniformBufferObject) * sceneObjCount; // Total size of the buffer
+
+		m_UniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+		m_UniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+		m_UniformAllocations.resize(MAX_FRAMES_IN_FLIGHT);
+		m_UniformAllocInfo.resize(MAX_FRAMES_IN_FLIGHT);
+
+
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			VulkanCommon::CreateBuffer(
+				totalSize,
+				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+				m_UniformBuffers[i],
+				VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+				VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+				m_UniformAllocations[i],
+				m_UniformAllocInfo[i]
+			);
+
+			vmaMapMemory(m_VmaAllocator, m_UniformAllocations[i], &m_UniformBuffersMapped[i]);
+		}
+
+		// You can now use different regions of 'buffer' as individual buffers, keeping track of the offsets and sizes yourself.
+
 		
 	}
 

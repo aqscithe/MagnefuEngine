@@ -46,19 +46,6 @@ namespace Magnefu
 			memAllocInfo.allocationSize = memRequirements.size;
 			memAllocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
 
-			// TODO:
-			// It should be noted that in a real world application, you're not supposed to actually call
-			// vkAllocateMemory for every individual buffer. The maximum number of simultaneous memory 
-			// allocations is limited by the maxMemoryAllocationCount physical device limit, which may 
-			// be as low as 4096 even on high end hardware like an NVIDIA GTX 1080. The right way to 
-			// allocate memory for a large number of objects at the same time is to create a custom 
-			// allocator that splits up a single allocation among many different objects by using the 
-			// offset parameters that we've seen in many functions.
-
-			// You can either implement such an allocator yourself, or use the VulkanMemoryAllocator 
-			// library provided by the GPUOpen initiative.However, for this tutorial it's okay to use a 
-			// separate allocation for every resource, because we won't come close to hitting any of 
-			// these limits for now.
 			if (vkAllocateMemory(device, &memAllocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
 				MF_CORE_ASSERT(false, "failed to allocate buffer memory!");
 
