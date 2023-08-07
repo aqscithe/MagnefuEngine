@@ -31,6 +31,7 @@ namespace Magnefu
 		virtual void SetPushConstants(PushConstants& pushConstants) = 0;
 
 		virtual uint64_t GetVBufferOffset(uint32_t index) = 0;
+		virtual uint64_t GetIBufferOffset(uint32_t index) = 0;
 
 		static GraphicsContext* Create(void* windowHandle);
 

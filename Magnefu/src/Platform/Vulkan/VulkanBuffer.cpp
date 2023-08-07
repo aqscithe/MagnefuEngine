@@ -34,14 +34,19 @@ namespace Magnefu
 
 	VulkanBuffer::~VulkanBuffer()
 	{
-		VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();
-		vmaDestroyBuffer(allocator, m_Buffer, m_Allocation);
+		// Needs to be done in vulkan context now
+
+		// Also, will need a system that says "hey the data at this offset is not being used
+		// feel free to put a uniform's data here"
+		// Will become more pertinent once I want to add and remove objects at runtime.
+
+		// Perhaps this is what the offset allocator could be used for...
 	}
 
 	void VulkanBuffer::CreateVertexBuffer(const BufferDesc& desc)
 	{
-		VkDevice device = VulkanContext::Get().GetDevice();
-		VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();
+		/*VkDevice device = VulkanContext::Get().GetDevice();
+		VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();*/
 
 		// TODO:
 		// The previous chapter already mentioned that you should allocate multiple resources like 
@@ -61,80 +66,18 @@ namespace Magnefu
 		m_Range = desc.ByteSize;
 		m_Offset = static_cast<VkDeviceSize>(desc.Offset);
 
-		/*VkBuffer stagingBuffer;
-		VmaAllocation stagingAllocation;
-		VmaAllocationInfo stagingAllocInfo;
-
-		VulkanCommon::CreateBuffer(
-			bufferSize,
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			stagingBuffer,
-			VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
-			VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
-			stagingAllocation,
-			stagingAllocInfo
-		);
-
-
-		void* data;
-		vmaMapMemory(allocator, stagingAllocation, &data);
-		memcpy(data, desc.InitData.GetData(), (size_t)bufferSize);
-		vmaUnmapMemory(allocator, stagingAllocation);
-
-		VulkanCommon::CreateBuffer(
-			bufferSize,
-			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-			m_Buffer,
-			VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
-			VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
-			m_Allocation,
-			m_AllocInfo
-		);
-
-		VulkanCommon::CopyBuffer(stagingBuffer, m_Buffer, bufferSize);
-
-		vmaDestroyBuffer(allocator, stagingBuffer, stagingAllocation);*/
+		
 	}
 
 	void VulkanBuffer::CreateIndexBuffer(const BufferDesc& desc)
 	{
-		VkDevice device = VulkanContext::Get().GetDevice();
-		VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();
+		VulkanMemory& vulkanMem = VulkanContext::Get().GetVulkanMemory();
 
-		VkDeviceSize bufferSize = desc.ByteSize;
+		m_Buffer = vulkanMem.IBuffer;
+		m_Range = desc.ByteSize;
+		m_Offset = static_cast<VkDeviceSize>(desc.Offset);
 
-		VkBuffer stagingBuffer;
-		VmaAllocation stagingAllocation;
-		VmaAllocationInfo stagingAllocInfo;
-
-		VulkanCommon::CreateBuffer(
-			bufferSize,
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			stagingBuffer,
-			VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
-			VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
-			stagingAllocation,
-			stagingAllocInfo
-		);
-
-		void* data;
-		vmaMapMemory(allocator, stagingAllocation, &data);
-		memcpy(data, desc.InitData.GetData(), (size_t)bufferSize);
-		vmaUnmapMemory(allocator, stagingAllocation);
-
-		VulkanCommon::CreateBuffer(
-			bufferSize,
-			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-			m_Buffer,
-			VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
-			VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
-			m_Allocation,
-			m_AllocInfo
-		);
-
-		VulkanCommon::CopyBuffer(stagingBuffer, m_Buffer, bufferSize);
-
-		vmaDestroyBuffer(allocator, stagingBuffer, stagingAllocation);
+		
 	}
 
 

@@ -109,7 +109,7 @@ namespace Magnefu
 
         m_IndexBuffer = rm.CreateBuffer({
             .DebugName = "IndexBuffer",
-            .Offset = 0,
+            .Offset = context->GetIBufferOffset(index),
             .ByteSize = static_cast<uint64_t>(m_Indices.data.size()),
             .Usage = BufferUsage::USAGE_INDEX,
             .UniformType = UniformBufferType::UNIFORM_NONE,

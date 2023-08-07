@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Magnefu/Renderer/GraphicsContext.h"
+#include "Magnefu/Renderer/SceneObject.h"
 
 #include "VulkanCommon.h"
 
@@ -77,10 +78,16 @@ namespace Magnefu
 	struct VulkanMemory
 	{
 		// Vertex Buffer
-		std::vector<VkDeviceSize>          VBufferOffsets;
-		VkBuffer                       VBuffer;
-		VmaAllocation     VBufferAllocation;
-		VmaAllocationInfo VBufferAllocInfo;
+		std::vector<VkDeviceSize> VBufferOffsets;
+		VkBuffer                  VBuffer;
+		VmaAllocation             VBufferAllocation;
+		VmaAllocationInfo         VBufferAllocInfo;
+
+		// Index Buffer
+		std::vector<VkDeviceSize> IBufferOffsets;
+		VkBuffer                  IBuffer;
+		VmaAllocation             IBufferAllocation;
+		VmaAllocationInfo         IBufferAllocInfo;
 
 
 		// Uniforms
@@ -113,6 +120,7 @@ namespace Magnefu
 		void SetPushConstants(PushConstants& pushConstants) override { m_PushConstants = pushConstants; }
 
 		uint64_t GetVBufferOffset(uint32_t index) override { return static_cast<uint64_t>(m_VulkanMemory.VBufferOffsets[index]); }
+		uint64_t GetIBufferOffset(uint32_t index) override { return static_cast<uint64_t>(m_VulkanMemory.IBufferOffsets[index]); }
 
 		// -- Getter Methods -- //
 		inline const VkDevice& GetDevice() const { return m_VkDevice; }
@@ -144,6 +152,8 @@ namespace Magnefu
 		void SelectPhysicalDevice();
 		void CreateLogicalDevice();
 		void AllocateResourceMemory();
+
+		void AllocateVertexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs);
 
 		void AllocateUniformBuffers(const uint32_t& sceneObjCount);
 

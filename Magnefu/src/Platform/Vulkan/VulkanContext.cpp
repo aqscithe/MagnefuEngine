@@ -191,6 +191,9 @@ namespace Magnefu
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 			vmaDestroyBuffer(m_VmaAllocator, m_VulkanMemory.UniformBuffers[i], m_VulkanMemory.UniformAllocations[i]);
 
+		vmaDestroyBuffer(m_VmaAllocator, m_VulkanMemory.VBuffer, m_VulkanMemory.VBufferAllocation);
+		vmaDestroyBuffer(m_VmaAllocator, m_VulkanMemory.IBuffer, m_VulkanMemory.IBufferAllocation);
+
 		vmaDestroyAllocator(m_VmaAllocator);
 		
 		vkDestroyDevice(m_VkDevice, s_Allocs);
@@ -589,8 +592,65 @@ namespace Magnefu
 
 		AllocateUniformBuffers(sceneObjCount);
 
-		// -- Vertex Buffer -- // 
+		AllocateVertexBuffers(sceneObjCount, sceneObjs);
 		
+
+		// -- Index Buffer -- // 
+
+		VkDeviceSize totalSize = 0;
+		VkDeviceSize size = 0;
+		VkDeviceSize offset = 0;
+
+		m_VulkanMemory.IBufferOffsets.resize(sceneObjCount);
+
+		for (size_t i = 0; i < sceneObjCount; i++)
+		{
+			size = sceneObjs[i].GetIndicesSize();
+			offset = (totalSize + ALIGNMENT_INDEX_BUFFER - 1) & ~(ALIGNMENT_INDEX_BUFFER - 1);
+			totalSize = offset + size;
+			m_VulkanMemory.IBufferOffsets[i] = offset;
+		}
+
+		VkBuffer stagingBuffer;
+		VmaAllocation stagingAllocation;
+		VmaAllocationInfo stagingAllocInfo;
+
+		VulkanCommon::CreateBuffer(
+			totalSize,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			stagingBuffer,
+			VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+			VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+			stagingAllocation,
+			stagingAllocInfo
+		);
+
+		void* data;
+		vmaMapMemory(m_VmaAllocator, stagingAllocation, &data);
+
+		for (size_t i = 0; i < sceneObjCount; i++)
+			memcpy(static_cast<char*>(data) + m_VulkanMemory.IBufferOffsets[i], sceneObjs[i].GetIndicesData(), sceneObjs[i].GetIndicesSize());
+
+		vmaUnmapMemory(m_VmaAllocator, stagingAllocation);
+
+		VulkanCommon::CreateBuffer(
+			totalSize,
+			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+			m_VulkanMemory.IBuffer,
+			VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+			VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+			m_VulkanMemory.IBufferAllocation,
+			m_VulkanMemory.IBufferAllocInfo
+		);
+
+		VulkanCommon::CopyBuffer(stagingBuffer, m_VulkanMemory.IBuffer, totalSize);
+
+		vmaDestroyBuffer(m_VmaAllocator, stagingBuffer, stagingAllocation);
+
+	}
+
+	void VulkanContext::AllocateVertexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs)
+	{
 		VkDeviceSize totalSize = 0;
 		VkDeviceSize size = 0;
 		VkDeviceSize offset = 0;
@@ -640,7 +700,6 @@ namespace Magnefu
 		VulkanCommon::CopyBuffer(stagingBuffer, m_VulkanMemory.VBuffer, totalSize);
 
 		vmaDestroyBuffer(m_VmaAllocator, stagingBuffer, stagingAllocation);
-
 	}
 
 	void VulkanContext::AllocateUniformBuffers(const uint32_t& sceneObjCount)
@@ -1812,7 +1871,7 @@ namespace Magnefu
 			VkDeviceSize offsets[] = { vertexBuffer.GetOffset() };
 			vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-			vkCmdBindIndexBuffer(commandBuffer, indexBuffer.GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindIndexBuffer(commandBuffer, indexBuffer.GetBuffer(), indexBuffer.GetOffset(), VK_INDEX_TYPE_UINT32);
 
 
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader.GetPipelineLayout(), 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
