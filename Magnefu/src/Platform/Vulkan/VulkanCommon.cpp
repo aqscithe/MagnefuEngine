@@ -179,6 +179,8 @@ namespace Magnefu
 			imageInfo.samples = numSamples;
 			imageInfo.flags = 0; // Optional
 
+			
+
 			if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS)
 				MF_CORE_ASSERT(false, "Failed to create image!");
 
@@ -194,6 +196,33 @@ namespace Magnefu
 				MF_CORE_ASSERT(false, "Failed to allocate image memory!");
 
 			vkBindImageMemory(device, image, imageMemory, 0);
+		}
+
+		void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkImage& image, VmaMemoryUsage vmaUsage, VmaAllocationCreateFlags vmaFlags, VmaAllocation& allocation, VmaAllocationInfo& allocInfo)
+		{
+			VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();
+
+			VkImageCreateInfo imageInfo{};
+			imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+			imageInfo.imageType = imageType;
+			imageInfo.extent.width = width;
+			imageInfo.extent.height = height;
+			imageInfo.extent.depth = 1;
+			imageInfo.mipLevels = mipLevels;
+			imageInfo.arrayLayers = 1;
+			imageInfo.format = format;
+			imageInfo.tiling = tiling;
+			imageInfo.usage = usage;
+			imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			imageInfo.samples = numSamples;
+			imageInfo.flags = 0; // Optional
+
+			VmaAllocationCreateInfo allocCreateInfo{};
+			allocCreateInfo.usage = vmaUsage;
+			allocCreateInfo.flags = vmaFlags;
+
+			if (vmaCreateImage(allocator, &imageInfo, &allocCreateInfo, &image, &allocation, &allocInfo) != VK_SUCCESS)
+				MF_CORE_ASSERT(false, "Failed to create image via VMA.");
 		}
 
 		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
