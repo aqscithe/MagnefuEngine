@@ -76,6 +76,13 @@ namespace Magnefu
 
 	struct VulkanMemory
 	{
+		// Vertex Buffer
+		std::vector<VkDeviceSize>          VBufferOffsets;
+		VkBuffer                       VBuffer;
+		VmaAllocation     VBufferAllocation;
+		VmaAllocationInfo VBufferAllocInfo;
+
+
 		// Uniforms
 		VkDeviceSize                   UniformOffset = 0;
 		VkDeviceSize                   UniformAlignment;
@@ -104,6 +111,8 @@ namespace Magnefu
 		void SetFramebufferResized(bool framebufferResized) override { m_FramebufferResized = framebufferResized; }
 		const RendererInfo& GetRendererInfo() const override { return m_RendererInfo; }
 		void SetPushConstants(PushConstants& pushConstants) override { m_PushConstants = pushConstants; }
+
+		uint64_t GetVBufferOffset(uint32_t index) override { return static_cast<uint64_t>(m_VulkanMemory.VBufferOffsets[index]); }
 
 		// -- Getter Methods -- //
 		inline const VkDevice& GetDevice() const { return m_VkDevice; }
@@ -135,6 +144,8 @@ namespace Magnefu
 		void SelectPhysicalDevice();
 		void CreateLogicalDevice();
 		void AllocateResourceMemory();
+
+		void AllocateUniformBuffers(const uint32_t& sceneObjCount);
 
 		void CreateSwapChain();
 		void CreateImageViews();

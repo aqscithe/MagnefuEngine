@@ -147,8 +147,8 @@ namespace Magnefu
 	void Application::Run()
 	{        
         MF_PROFILE_FUNCTION();
-        Scope<StackAllocator>& SingleFrameAllocator = StackAllocator::Get();
-        Scope<OffsetAllocator::Allocator>& OffsetAllocator = OffsetAllocator::Allocator::Get();
+        //Scope<StackAllocator>& SingleFrameAllocator = StackAllocator::Get();
+        //Scope<OffsetAllocator::Allocator>& OffsetAllocator = OffsetAllocator::Allocator::Get();
 
         // Maybe Do a unique pointer(Scope) as there should only be one
         GraphicsContext* GraphicsContext = m_Window->GetGraphicsContext();

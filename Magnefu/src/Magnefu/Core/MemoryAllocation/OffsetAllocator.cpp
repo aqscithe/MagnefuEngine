@@ -26,7 +26,7 @@ namespace Magnefu
 {
     namespace OffsetAllocator
     {
-        Scope<Allocator> Allocator::s_Instance = CreateScope<Allocator>(1000000000);
+        //Scope<Allocator> Allocator::s_Instance = CreateScope<Allocator>(1000000000);
 
         inline uint32 lzcnt_nonzero(uint32 v)
         {

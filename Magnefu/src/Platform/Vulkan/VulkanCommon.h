@@ -7,6 +7,9 @@
 
 namespace Magnefu
 {
+	static const VkDeviceSize ALIGNMENT_VERTEX_BUFFER = 4;
+	static const VkDeviceSize ALIGNMENT_INDEX_BUFFER = 4;
+
 	struct Vertex
 	{
 		Maths::vec3 pos;

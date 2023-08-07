@@ -67,7 +67,7 @@ namespace Magnefu
             StorageReport storageReport() const;
             StorageReportFull storageReportFull() const;
 
-            static Scope<Allocator>& Get() { return s_Instance; }
+            //static Scope<Allocator>& Get() { return s_Instance; }
 
         private:
             uint32 insertNodeIntoBin(uint32 size, uint32 dataOffset);
@@ -98,7 +98,7 @@ namespace Magnefu
             NodeIndex* m_freeNodes;
             uint32 m_freeOffset;
 
-            static Scope<Allocator> s_Instance;
+            //static Scope<Allocator> s_Instance;
         };
     }
 }

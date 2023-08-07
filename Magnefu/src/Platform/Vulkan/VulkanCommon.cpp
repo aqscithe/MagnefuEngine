@@ -56,6 +56,8 @@ namespace Magnefu
 		{
 			VkDevice device = VulkanContext::Get().GetDevice();
 			VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();
+			
+			
 
 			VkBufferCreateInfo bufferInfo{};
 			bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -70,6 +72,9 @@ namespace Magnefu
 
 			if (vmaCreateBuffer(allocator, &bufferInfo, &allocCreateInfo, &buffer, &allocation, &allocInfo) != VK_SUCCESS)
 				MF_CORE_ASSERT(false, "failed to create buffer via VMA.");
+
+			/*VkMemoryRequirements memRequirements;
+			vkGetBufferMemoryRequirements(device, buffer, &memRequirements);*/
 		}
 
 

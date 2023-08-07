@@ -54,10 +54,14 @@ namespace Magnefu
 		// refreshed, of course. This is known as aliasing and some Vulkan functions have explicit 
 		 // flags to specify that you want to do this.
 
-		VkDeviceSize bufferSize = desc.ByteSize;
 
+		VulkanMemory& vulkanMem = VulkanContext::Get().GetVulkanMemory();
 
-		VkBuffer stagingBuffer;
+		m_Buffer = vulkanMem.VBuffer;
+		m_Range = desc.ByteSize;
+		m_Offset = static_cast<VkDeviceSize>(desc.Offset);
+
+		/*VkBuffer stagingBuffer;
 		VmaAllocation stagingAllocation;
 		VmaAllocationInfo stagingAllocInfo;
 
@@ -89,7 +93,7 @@ namespace Magnefu
 
 		VulkanCommon::CopyBuffer(stagingBuffer, m_Buffer, bufferSize);
 
-		vmaDestroyBuffer(allocator, stagingBuffer, stagingAllocation);
+		vmaDestroyBuffer(allocator, stagingBuffer, stagingAllocation);*/
 	}
 
 	void VulkanBuffer::CreateIndexBuffer(const BufferDesc& desc)
@@ -147,39 +151,18 @@ namespace Magnefu
 		m_Offset = (vulkanMem.UniformOffset + vulkanMem.UniformAlignment - 1) & ~(vulkanMem.UniformAlignment - 1);
 
 		vulkanMem.UniformOffset = m_Offset + m_Range;
-
-
-		//VkDeviceSize bufferSize = desc.ByteSize;
-
-		/*VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();
-
-		m_Buffers.resize(MAX_FRAMES_IN_FLIGHT);
-		m_BuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
-		m_Allocation.resize(MAX_FRAMES_IN_FLIGHT);
-		m_AllocInfo.resize(MAX_FRAMES_IN_FLIGHT);
-
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
-		{
-			VulkanCommon::CreateBuffer(
-				bufferSize,
-				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-				m_Buffers[i],
-				VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
-				VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
-				m_Allocation[i],
-				m_AllocInfo[i]
-			);
-
-			vmaMapMemory(allocator, m_Allocation[i], &m_BuffersMapped[i]);
-		}*/
 	}
 
 	VulkanUniformBuffer::~VulkanUniformBuffer()
 	{
-		VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();
+		// Needs to be done in vulkan context now
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-			vmaDestroyBuffer(allocator, m_Buffers[i], m_Allocation[i]);
+		// Also, will need a system that says "hey the data at this offset is not being used
+		// feel free to put a uniform's data here"
+		// Will become more pertinent once I want to add and remove objects at runtime.
+
+		// Perhaps this is what the offset allocator could be used for...
+
 	}
 
 	void VulkanUniformBuffer::UpdateUniformBuffer(const Material& mat)

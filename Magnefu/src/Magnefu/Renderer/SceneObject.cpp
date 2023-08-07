@@ -1,6 +1,7 @@
 #include "mfpch.h"
 #include "SceneObject.h"
 #include "Magnefu/Application.h"
+#include "GraphicsContext.h"
 #include "Magnefu/ResourceManagement/ResourceManager.h"
 #include "Magnefu/ResourceManagement/ResourcePaths.h"
 
@@ -16,6 +17,7 @@ namespace Magnefu
 	{
         Application& app = Application::Get();
         ResourceManager& rm = app.GetResourceManager();
+        GraphicsContext* context = app.GetWindow().GetGraphicsContext();
 
         m_Material = rm.CreateBindGroup({
             .DebugName = "SciFi Corridor",
@@ -98,6 +100,7 @@ namespace Magnefu
 
         m_VertexBuffer = rm.CreateBuffer({
             .DebugName = "VertexBuffer",
+            .Offset = context->GetVBufferOffset(index),
             .ByteSize = static_cast<uint64_t>(m_Vertices.data.size()),
             .Usage = BufferUsage::USAGE_VERTEX,
             .UniformType = UniformBufferType::UNIFORM_NONE,
@@ -106,6 +109,7 @@ namespace Magnefu
 
         m_IndexBuffer = rm.CreateBuffer({
             .DebugName = "IndexBuffer",
+            .Offset = 0,
             .ByteSize = static_cast<uint64_t>(m_Indices.data.size()),
             .Usage = BufferUsage::USAGE_INDEX,
             .UniformType = UniformBufferType::UNIFORM_NONE,

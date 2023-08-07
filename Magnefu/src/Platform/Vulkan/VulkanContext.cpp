@@ -187,6 +187,10 @@ namespace Magnefu
 
 		vkDestroyCommandPool(m_VkDevice, m_CommandPool, s_Allocs);
 
+
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+			vmaDestroyBuffer(m_VmaAllocator, m_VulkanMemory.UniformBuffers[i], m_VulkanMemory.UniformAllocations[i]);
+
 		vmaDestroyAllocator(m_VmaAllocator);
 		
 		vkDestroyDevice(m_VkDevice, s_Allocs);
@@ -574,19 +578,79 @@ namespace Magnefu
 
 		// Create Main Buffers that will be suballocated
 		Application& app = Application::Get();
-		uint32_t sceneObjCount = app.GetSceneObjects().size();
+		auto sceneObjs = app.GetSceneObjects();
+		uint32_t sceneObjCount = sceneObjs.size();
 
-		// Uniform buffer
+		//  -- Uniform buffer -- //
 
 		// Since I'm already finding the offsets here, I should probably store them and supply them to the buffers when 
-		// I create them.
+		// I create them. Probably a vector that stores all of the offsets in vulkan memory
 
+
+		AllocateUniformBuffers(sceneObjCount);
+
+		// -- Vertex Buffer -- // 
+		
+		VkDeviceSize totalSize = 0;
+		VkDeviceSize size = 0;
+		VkDeviceSize offset = 0;
+
+		m_VulkanMemory.VBufferOffsets.resize(sceneObjCount);
+
+		for (size_t i = 0; i < sceneObjCount; i++)
+		{
+			size = sceneObjs[i].GetVerticesSize();
+			offset = (totalSize + ALIGNMENT_VERTEX_BUFFER - 1) & ~(ALIGNMENT_VERTEX_BUFFER - 1);
+			totalSize = offset + size;
+			m_VulkanMemory.VBufferOffsets[i] = offset;
+		}
+
+		VkBuffer stagingBuffer;
+		VmaAllocation stagingAllocation;
+		VmaAllocationInfo stagingAllocInfo;
+
+		VulkanCommon::CreateBuffer(
+			totalSize,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			stagingBuffer,
+			VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+			VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+			stagingAllocation,
+			stagingAllocInfo
+		);
+
+		void* data;
+		vmaMapMemory(m_VmaAllocator, stagingAllocation, &data);
+
+		for (size_t i = 0; i < sceneObjCount; i++)
+			memcpy(static_cast<char*>(data) + m_VulkanMemory.VBufferOffsets[i], sceneObjs[i].GetVerticesData(), sceneObjs[i].GetVerticesSize());
+
+		vmaUnmapMemory(m_VmaAllocator, stagingAllocation);
+
+		VulkanCommon::CreateBuffer(
+			totalSize,
+			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+			m_VulkanMemory.VBuffer,
+			VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+			VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+			m_VulkanMemory.VBufferAllocation,
+			m_VulkanMemory.VBufferAllocInfo
+		);
+
+		VulkanCommon::CopyBuffer(stagingBuffer, m_VulkanMemory.VBuffer, totalSize);
+
+		vmaDestroyBuffer(m_VmaAllocator, stagingBuffer, stagingAllocation);
+
+	}
+
+	void VulkanContext::AllocateUniformBuffers(const uint32_t& sceneObjCount)
+	{
 		VkDeviceSize totalSize = 0;
 		VkDeviceSize size = sizeof(RenderPassUniformBufferObject);
 		VkDeviceSize offset = (totalSize + m_VulkanMemory.UniformAlignment - 1) & ~(m_VulkanMemory.UniformAlignment - 1);
 
 		totalSize = offset + size;
-		
+
 		for (int i = 0; i < sceneObjCount; i++)
 		{
 			size = sizeof(MaterialUniformBufferObject);
@@ -615,10 +679,6 @@ namespace Magnefu
 
 			vmaMapMemory(m_VmaAllocator, m_VulkanMemory.UniformAllocations[i], &m_VulkanMemory.UniformBuffersMapped[i]);
 		}
-
-		// You can now use different regions of 'buffer' as individual buffers, keeping track of the offsets and sizes yourself.
-
-		
 	}
 
 	void VulkanContext::CreateSwapChain()
@@ -1749,7 +1809,7 @@ namespace Magnefu
 			VulkanBuffer& indexBuffer = static_cast<VulkanBuffer&>(rm.GetBuffer(sceneObject.GetIndexBufferHandle()));
 
 			VkBuffer vertexBuffers[] = { vertexBuffer.GetBuffer() };
-			VkDeviceSize offsets[] = { 0 };
+			VkDeviceSize offsets[] = { vertexBuffer.GetOffset() };
 			vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
 			vkCmdBindIndexBuffer(commandBuffer, indexBuffer.GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
@@ -1760,7 +1820,6 @@ namespace Magnefu
 			//vkCmdPushConstants(commandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &m_PushConstants);
 
 			vkCmdDrawIndexed(commandBuffer, sceneObject.GetIndexCount(), 1, 0, 0, 0);
-			
 		}
 			
 

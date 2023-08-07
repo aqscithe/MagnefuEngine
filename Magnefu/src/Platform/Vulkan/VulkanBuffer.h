@@ -14,12 +14,17 @@ namespace Magnefu
 		~VulkanBuffer();
 
 		VkBuffer& GetBuffer() { return m_Buffer; }
-		
+		VkDeviceSize GetRange() { return m_Range; }
+		VkDeviceSize GetOffset() { return m_Offset; }
 
 
 	private:
 		void CreateVertexBuffer(const BufferDesc& desc);
 		void CreateIndexBuffer(const BufferDesc& desc);
+
+	protected:
+		VkDeviceSize  m_Offset;
+		VkDeviceSize  m_Range;
 
 
 	private:
@@ -42,13 +47,11 @@ namespace Magnefu
 		void UpdateUniformBuffer(const Material& mat);
 
 		std::vector<VkBuffer>& GetBuffers() { return m_Buffers; }
-		VkDeviceSize GetRange() { return m_Range; }
-		VkDeviceSize GetOffset() { return m_Offset; }
+		
 		
 	private:
 		std::vector<VkBuffer>        m_Buffers;
-		VkDeviceSize  m_Offset;
-		VkDeviceSize  m_Range;
+		
 
 		UniformBufferType            m_UniformType = UniformBufferType::UNIFORM_NONE;
 		std::vector<void*>           m_BuffersMapped;
