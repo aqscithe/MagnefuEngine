@@ -151,11 +151,9 @@ namespace Magnefu
 		void CreateWindowSurface();
 		void SelectPhysicalDevice();
 		void CreateLogicalDevice();
-		void AllocateResourceMemory();
+		void CreateVmaAllocator();
+		void AllocateBufferMemory();
 
-		void AllocateVertexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs);
-
-		void AllocateUniformBuffers(const uint32_t& sceneObjCount);
 
 		void CreateSwapChain();
 		void CreateImageViews();
@@ -177,6 +175,12 @@ namespace Magnefu
 		void CreateCommandBuffers();
 		void CreateComputeCommandBuffers();
 		void CreateSyncObjects();
+
+
+		// -- Buffers -- //
+		void AllocateIndexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs);
+		void AllocateVertexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs);
+		void AllocateUniformBuffers(const uint32_t& sceneObjCount);
 
 
 		// -- Device -- //

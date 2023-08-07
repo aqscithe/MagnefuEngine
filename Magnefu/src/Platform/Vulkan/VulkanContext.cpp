@@ -226,7 +226,8 @@ namespace Magnefu
 
 		// The Application should tell Context how much memory is needed à la m_GraphicsContext->AllocateResourceMemory(BytesStruct)
 		// For now, I will explicitly state within the function what is needed.
-		AllocateResourceMemory();
+		CreateVmaAllocator();
+		AllocateBufferMemory();
 
 	}
 
@@ -506,7 +507,7 @@ namespace Magnefu
 
 	}
 
-	void VulkanContext::AllocateResourceMemory()
+	void VulkanContext::CreateVmaAllocator()
 	{
 		if (USE_CUSTOM_CPU_ALLOCATION_CALLBACKS)
 		{
@@ -579,24 +580,23 @@ namespace Magnefu
 		if (vmaCreateAllocator(&allocatorInfo, &m_VmaAllocator) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "Failed to create the VMA Allocator.");
 
-		// Create Main Buffers that will be suballocated
+	}
+
+	// Create Main Buffers that will be suballocated
+	void VulkanContext::AllocateBufferMemory()
+	{
 		Application& app = Application::Get();
 		auto sceneObjs = app.GetSceneObjects();
 		uint32_t sceneObjCount = sceneObjs.size();
 
-		//  -- Uniform buffer -- //
-
-		// Since I'm already finding the offsets here, I should probably store them and supply them to the buffers when 
-		// I create them. Probably a vector that stores all of the offsets in vulkan memory
-
 
 		AllocateUniformBuffers(sceneObjCount);
-
 		AllocateVertexBuffers(sceneObjCount, sceneObjs);
-		
+		AllocateIndexBuffers(sceneObjCount, sceneObjs);
+	}
 
-		// -- Index Buffer -- // 
-
+	void VulkanContext::AllocateIndexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs)
+	{
 		VkDeviceSize totalSize = 0;
 		VkDeviceSize size = 0;
 		VkDeviceSize offset = 0;
@@ -646,7 +646,6 @@ namespace Magnefu
 		VulkanCommon::CopyBuffer(stagingBuffer, m_VulkanMemory.IBuffer, totalSize);
 
 		vmaDestroyBuffer(m_VmaAllocator, stagingBuffer, stagingAllocation);
-
 	}
 
 	void VulkanContext::AllocateVertexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs)
