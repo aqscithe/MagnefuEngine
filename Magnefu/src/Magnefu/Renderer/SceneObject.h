@@ -21,6 +21,10 @@ namespace Magnefu
 		inline Handle<Buffer>& GetVertexBufferHandle() { return m_VertexBuffer; }
 		inline Handle<Buffer>& GetIndexBufferHandle() { return m_IndexBuffer; }
 		inline uint32_t GetIndexCount() { return m_IndexCount; }
+		inline const size_t GetVerticesSize() { return m_Vertices.span.GetSize(); }
+		inline const size_t GetIndicesSize() { return m_Indices.span.GetSize(); }
+		inline const uint8_t* GetVerticesData() { return m_Vertices.span.GetData(); }
+		inline const uint8_t* GetIndicesData() { return m_Indices.span.GetData(); }
 
 		inline Material& GetMaterialData() { return m_MaterialData; }
 

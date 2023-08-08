@@ -85,20 +85,28 @@ namespace Magnefu
 		VkDeviceSize imageSize = width * height * desc.RequestedChannels;
 
 		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
+		VmaAllocation stagingAllocation;
+		VmaAllocationInfo stagingAllocInfo;
+
+		VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();
+
 
 		VulkanCommon::CreateBuffer(
 			imageSize,
 			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 			stagingBuffer,
-			stagingBufferMemory
+			VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+			VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+			stagingAllocation,
+			stagingAllocInfo
 		);
 
 		void* data;
-		vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
+		vmaMapMemory(allocator, stagingAllocation, &data);
+
 		memcpy(data, pixels, static_cast<size_t>(imageSize));
-		vkUnmapMemory(device, stagingBufferMemory);
+
+		vmaUnmapMemory(allocator, stagingAllocation);
 
 		stbi_image_free(pixels);
 
@@ -111,18 +119,20 @@ namespace Magnefu
 			VK_IMAGE_TYPE_2D,
 			static_cast<VkImageTiling>(desc.Tiling),
 			VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 			m_Image,
-			m_BufferMemory
+			VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+			//0,
+			//VMA_ALLOCATION_CREATE_STRATEGY_BEST_FIT_BIT, 
+			VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT, // I'm currently using 4k textures so this is perhaps the best option. Will need to make the flag choice programmatic.
+			m_Allocation,
+			m_AllocInfo
 		);
 
 		TransitionImageLayout(m_Image, static_cast<VkFormat>(desc.Format), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_MipLevels);
 		VulkanCommon::CopyBufferToImage(stagingBuffer, m_Image, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
-		//TransitionImageLayout(m_TextureImage, texture.Format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_MipLevels);
 		GenerateMipmaps(m_Image, static_cast<VkFormat>(desc.Format), width, height, m_MipLevels);
 
-		vkDestroyBuffer(device, stagingBuffer, nullptr);
-		vkFreeMemory(device, stagingBufferMemory, nullptr);
+		vmaDestroyBuffer(allocator, stagingBuffer, stagingAllocation);
 	}
 
 	void VulkanTexture::CreateTextureImageView(const TextureDesc& desc)

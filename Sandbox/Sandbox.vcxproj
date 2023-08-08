@@ -150,16 +150,21 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="res\materials\12221_Cat_v1_l3.mtl" />
+    <None Include="res\materials\Bronze_shield.mtl" />
     <None Include="res\materials\T-rex.mtl" />
     <None Include="res\materials\Victorian_Painting.mtl" />
     <None Include="res\materials\retrotv0319.mtl" />
     <None Include="res\materials\santa_hat.mtl" />
     <None Include="res\materials\wooden_watch_tower2.mtl" />
     <None Include="res\meshes\12221_Cat_v1_l3.obj" />
+    <None Include="res\meshes\Bronze_shield.obj" />
     <None Include="res\meshes\Victorian_Painting.obj" />
+    <None Include="res\meshes\corridor.obj" />
     <None Include="res\meshes\primitives\3D\cube.obj" />
     <None Include="res\meshes\retrotv0319.obj" />
     <None Include="res\meshes\santa_hat(DEFAULT).obj" />
+    <None Include="res\meshes\usd\Sci-fi-corridor.usdz" />
+    <None Include="res\meshes\usd\The_Hunters_Rest.usdz" />
     <None Include="res\meshes\viking_room.obj" />
     <None Include="res\meshes\wooden_watch_tower2.obj" />
     <None Include="res\shaders\Basic.shader" />
@@ -177,6 +182,7 @@
     <None Include="res\shaders\TestLighting.shader" />
     <None Include="res\shaders\TestModelLoading.shader" />
     <None Include="res\shaders\Texture2D.shader" />
+    <None Include="res\textures\create_arm_texture.py" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\textures\12221_Cat_v1_l3\Cat_ao.jpg" />
@@ -184,6 +190,13 @@
     <Image Include="res\textures\12221_Cat_v1_l3\Cat_diffuse.jpg" />
     <Image Include="res\textures\12221_Cat_v1_l3\Cat_normal.jpg" />
     <Image Include="res\textures\12221_Cat_v1_l3\Cat_rough.png" />
+    <Image Include="res\textures\Bronze_shield\Bronze_shield_AO.png" />
+    <Image Include="res\textures\Bronze_shield\Bronze_shield_ARM.png" />
+    <Image Include="res\textures\Bronze_shield\Bronze_shield_BaseColor.png" />
+    <Image Include="res\textures\Bronze_shield\Bronze_shield_Height.png" />
+    <Image Include="res\textures\Bronze_shield\Bronze_shield_Metallic.png" />
+    <Image Include="res\textures\Bronze_shield\Bronze_shield_Normal.png" />
+    <Image Include="res\textures\Bronze_shield\Bronze_shield_Roughness.png" />
     <Image Include="res\textures\Lava_03-2K\Lava_03_ambientocclusion-2K.png" />
     <Image Include="res\textures\Lava_03-2K\Lava_03_basecolor-2K.png" />
     <Image Include="res\textures\Lava_03-2K\Lava_03_emissive-2K.png" />
@@ -193,6 +206,9 @@
     <Image Include="res\textures\Lava_03-2K\Lava_03_roughness-2K.png" />
     <Image Include="res\textures\Lava_03-2K\Lava_03_spec.jpg" />
     <Image Include="res\textures\T-rex\755688691_2048x2048.png" />
+    <Image Include="res\textures\Victorian_Painting\VictorianPaintings_AO_1_Utility-Raw.png" />
+    <Image Include="res\textures\Victorian_Painting\VictorianPaintings_AO_2_Utility-Raw.png" />
+    <Image Include="res\textures\Victorian_Painting\VictorianPaintings_ARM_Utility-sRGB-Texture.png" />
     <Image Include="res\textures\Victorian_Painting\VictorianPaintings_BaseColor_Utility-sRGB-Texture.png" />
     <Image Include="res\textures\Victorian_Painting\VictorianPaintings_Metallic_Utility-Raw.png" />
     <Image Include="res\textures\Victorian_Painting\VictorianPaintings_Normal_Utility-Raw.png" />
@@ -264,6 +280,13 @@
     <Image Include="res\textures\santa_hat\rough.png" />
     <Image Include="res\textures\santa_hat\softnessmap.jpg" />
     <Image Include="res\textures\santa_hat\specular.jpg" />
+    <Image Include="res\textures\scificorridor\scene_1001_AO.png" />
+    <Image Include="res\textures\scificorridor\scene_1001_ARM.png" />
+    <Image Include="res\textures\scificorridor\scene_1001_BaseColor.png" />
+    <Image Include="res\textures\scificorridor\scene_1001_Emissive.png" />
+    <Image Include="res\textures\scificorridor\scene_1001_Metalness.png" />
+    <Image Include="res\textures\scificorridor\scene_1001_Normal.png" />
+    <Image Include="res\textures\scificorridor\scene_1001_Roughness.png" />
     <Image Include="res\textures\skybox\default\back-nz.png" />
     <Image Include="res\textures\skybox\default\bottom-ny.png" />
     <Image Include="res\textures\skybox\default\front-pz.png" />

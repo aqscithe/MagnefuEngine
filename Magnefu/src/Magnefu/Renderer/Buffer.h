@@ -76,8 +76,7 @@ namespace Magnefu
     };*/
 
 
-
-    struct MaterialUniformBufferObject
+    struct alignas(16) MaterialUniformBufferObject
     {
         Maths::mat4 ModelMatrix;
         alignas(16) Maths::vec3 Tint;
@@ -95,6 +94,7 @@ namespace Magnefu
 	struct BufferDesc
 	{
 		const char*         DebugName = nullptr;
+        uint64_t            Offset = 0;
 		uint64_t            ByteSize = 0;
         BufferUsage         Usage = BufferUsage::USAGE_NONE;
         UniformBufferType   UniformType = UniformBufferType::UNIFORM_NONE;
@@ -103,6 +103,7 @@ namespace Magnefu
 
     const BufferDesc RenderPassUniformBufferDesc = {
         "Renderpass Uniform Buffer",
+        0,
         sizeof(RenderPassUniformBufferObject),
         BufferUsage::USAGE_UNIFORM,
         UniformBufferType::UNIFORM_RENDERPASS,
@@ -111,6 +112,7 @@ namespace Magnefu
 
     const BufferDesc MaterialUniformBufferDesc = {
         "Material Uniform Buffer",
+        0,
         sizeof(MaterialUniformBufferObject),
         BufferUsage::USAGE_UNIFORM,
         UniformBufferType::UNIFORM_MATERIAL,

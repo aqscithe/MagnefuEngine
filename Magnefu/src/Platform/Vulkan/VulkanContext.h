@@ -1,10 +1,12 @@
 #pragma once
 
 #include "Magnefu/Renderer/GraphicsContext.h"
+#include "Magnefu/Renderer/SceneObject.h"
 
 #include "VulkanCommon.h"
 
 #include "VulkanBuffer.h"
+
 
 
 struct GLFWwindow;
@@ -73,6 +75,38 @@ namespace Magnefu
 		}
 	};
 
+	struct VulkanMemory
+	{
+		// Vertex Buffer
+		std::vector<VkDeviceSize> VBufferOffsets;
+		VkBuffer                  VBuffer;
+		VmaAllocation             VBufferAllocation;
+		VmaAllocationInfo         VBufferAllocInfo;
+
+		// Index Buffer
+		std::vector<VkDeviceSize> IBufferOffsets;
+		VkBuffer                  IBuffer;
+		VmaAllocation             IBufferAllocation;
+		VmaAllocationInfo         IBufferAllocInfo;
+
+
+		// Uniforms
+		VkDeviceSize                   UniformOffset = 0;
+		VkDeviceSize                   UniformAlignment;
+		std::vector<VkBuffer>          UniformBuffers;
+		std::vector<void*>             UniformBuffersMapped;
+		std::vector<VmaAllocation>     UniformAllocations;
+		std::vector<VmaAllocationInfo> UniformAllocInfo;
+
+		// Framebuffer Resources
+		VkImage DepthImage;
+		VkImage ColorImage;
+		VmaAllocation DepthResAllocation;
+		VmaAllocation ColorResAllocation;
+		VmaAllocationInfo DepthResAllocInfo;
+		VmaAllocationInfo ColorResAllocInfo;
+	};
+
 	
 	class VulkanContext : public GraphicsContext
 	{
@@ -93,6 +127,9 @@ namespace Magnefu
 		const RendererInfo& GetRendererInfo() const override { return m_RendererInfo; }
 		void SetPushConstants(PushConstants& pushConstants) override { m_PushConstants = pushConstants; }
 
+		uint64_t GetVBufferOffset(uint32_t index) override { return static_cast<uint64_t>(m_VulkanMemory.VBufferOffsets[index]); }
+		uint64_t GetIBufferOffset(uint32_t index) override { return static_cast<uint64_t>(m_VulkanMemory.IBufferOffsets[index]); }
+
 		// -- Getter Methods -- //
 		inline const VkDevice& GetDevice() const { return m_VkDevice; }
 		inline const VkPhysicalDevice& GetPhysicalDevice() const { return m_VkPhysicalDevice; }
@@ -105,6 +142,10 @@ namespace Magnefu
 		inline const VkPhysicalDeviceFeatures GetEnabledFeatures() const { return m_EnabledFeatures; }
 		inline const VkSampleCountFlagBits GetMSAASamples() const { return m_MSAASamples; }
 		inline const VkRenderPass& GetRenderPass() const { return m_RenderPass; }
+		inline const VmaAllocator& GetVmaAllocator() const { return m_VmaAllocator; }
+
+		inline const std::vector<VkBuffer>& GetUniformBuffers() { return m_VulkanMemory.UniformBuffers; }
+		inline VulkanMemory& GetVulkanMemory() { return m_VulkanMemory; }
 
 
 	private:
@@ -118,6 +159,9 @@ namespace Magnefu
 		void CreateWindowSurface();
 		void SelectPhysicalDevice();
 		void CreateLogicalDevice();
+		void CreateVmaAllocator();
+		void AllocateBufferMemory();
+
 
 		void CreateSwapChain();
 		void CreateImageViews();
@@ -141,6 +185,12 @@ namespace Magnefu
 		void CreateSyncObjects();
 
 
+		// -- Buffers -- //
+		void AllocateIndexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs);
+		void AllocateVertexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs);
+		void AllocateUniformBuffers(const uint32_t& sceneObjCount);
+
+
 		// -- Device -- //
 		std::vector<const char*> GetRequiredExtensions();
 		void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
@@ -158,11 +208,6 @@ namespace Magnefu
 		
 		VkFormat FindDepthFormat();
 		VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
-
-
-		// Place in VKShader
-		//ShaderList ParseShader(const char* filepath);
-		//VkShaderModule CreateShaderModule(const ShaderSource& source);
 		
 
 		// Uniforms
@@ -171,7 +216,6 @@ namespace Magnefu
 
 		// Depth 
 		bool HasStencilComponent(VkFormat format);
-
 
 		VkSampleCountFlagBits GetMaxUsableSampleCount();
 		
@@ -197,6 +241,11 @@ namespace Magnefu
 #else			                   
 		const bool                   m_EnableValidationLayers = false;
 #endif
+		
+		uint32_t m_APIVersion = VK_API_VERSION_1_3;
+
+		// -- Vma Primitives -- //
+		VmaAllocator                m_VmaAllocator;
 
 
 		// -- Device Properties and Features -- //
@@ -258,12 +307,21 @@ namespace Magnefu
 
 		// -- Image Buffers -- //
 
-		VkImage                      m_DepthImage;
-		VkDeviceMemory               m_DepthImageMemory;
+		//VkImage                      m_DepthImage;
+		//VkDeviceMemory               m_DepthImageMemory;
 		VkImageView                  m_DepthImageView;
-		VkImage                      m_ColorImage;
-		VkDeviceMemory               m_ColorImageMemory;
+		//VkImage                      m_ColorImage;
+		//VkDeviceMemory               m_ColorImageMemory;
 		VkImageView                  m_ColorImageView;
+
+		// -- Memory Allocations -- //
+
+		//VkBuffer m_VerticesBuffer;
+		//VkBuffer m_IndicesBuffer;
+		//VkImage  m_FrameImageBuffer;
+		//VkImage  m_TextureImageBuffer;
+
+		VulkanMemory m_VulkanMemory;
 		
 
 		//------------------- Compute Shader ---------------------- //

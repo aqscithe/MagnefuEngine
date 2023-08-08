@@ -16,6 +16,7 @@
 #include "Magnefu/Core/TimeStep.h"
 
 
+
 namespace Magnefu
 {
 	struct Draw
@@ -96,7 +97,6 @@ namespace Magnefu
 		std::vector<SceneObject> m_SceneObjects;
 
 		std::array<Light, 3> m_Lights;
-		//Light m_Light;
 		
 
 	};
