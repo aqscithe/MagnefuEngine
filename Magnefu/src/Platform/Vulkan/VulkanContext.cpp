@@ -1211,19 +1211,22 @@ namespace Magnefu
 		VkFormat colorFormat = m_SwapChainImageFormat;
 
 		VulkanCommon::CreateImage(
-			m_SwapChainExtent.width, 
-			m_SwapChainExtent.height, 
-			1, m_MSAASamples, 
-			colorFormat, 
-			VK_IMAGE_TYPE_2D, 
-			VK_IMAGE_TILING_OPTIMAL, 
-			VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, 
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
-			m_ColorImage, 
-			m_ColorImageMemory
+			m_SwapChainExtent.width,
+			m_SwapChainExtent.height,
+			1,
+			m_MSAASamples,
+			colorFormat,
+			VK_IMAGE_TYPE_2D,
+			VK_IMAGE_TILING_OPTIMAL,
+			VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+			m_VulkanMemory.ColorImage,
+			VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+			0,
+			m_VulkanMemory.ColorResAllocation,
+			m_VulkanMemory.ColorResAllocInfo
 		);
 
-		m_ColorImageView = VulkanCommon::CreateImageView(m_ColorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+		m_ColorImageView = VulkanCommon::CreateImageView(m_VulkanMemory.ColorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 	}
 
 	void VulkanContext::CreateDepthResources()
@@ -1231,20 +1234,22 @@ namespace Magnefu
 		VkFormat depthFormat = FindDepthFormat();
 
 		VulkanCommon::CreateImage(
-			m_SwapChainExtent.width, 
-			m_SwapChainExtent.height, 
+			m_SwapChainExtent.width,
+			m_SwapChainExtent.height,
 			1,
 			m_MSAASamples,
-			depthFormat, 
-			VK_IMAGE_TYPE_2D, // ???
-			VK_IMAGE_TILING_OPTIMAL, 
-			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
-			m_DepthImage, 
-			m_DepthImageMemory
+			depthFormat,
+			VK_IMAGE_TYPE_2D,
+			VK_IMAGE_TILING_OPTIMAL,
+			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+			m_VulkanMemory.DepthImage,
+			VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+			0,
+			m_VulkanMemory.DepthResAllocation,
+			m_VulkanMemory.DepthResAllocInfo
 		);
 
-		m_DepthImageView = VulkanCommon::CreateImageView(m_DepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
+		m_DepthImageView = VulkanCommon::CreateImageView(m_VulkanMemory.DepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 	}
 
 	void VulkanContext::LoadModels()
@@ -1958,12 +1963,10 @@ namespace Magnefu
 	void VulkanContext::CleanupSwapChain()
 	{
 		vkDestroyImageView(m_VkDevice, m_ColorImageView, s_Allocs);
-		vkDestroyImage(m_VkDevice, m_ColorImage, s_Allocs);
-		vkFreeMemory(m_VkDevice, m_ColorImageMemory, s_Allocs);
+		vmaDestroyImage(m_VmaAllocator, m_VulkanMemory.ColorImage, m_VulkanMemory.ColorResAllocation);
 
 		vkDestroyImageView(m_VkDevice, m_DepthImageView, s_Allocs);
-		vkDestroyImage(m_VkDevice,     m_DepthImage, s_Allocs);
-		vkFreeMemory(m_VkDevice,       m_DepthImageMemory, s_Allocs);
+		vmaDestroyImage(m_VmaAllocator, m_VulkanMemory.DepthImage, m_VulkanMemory.DepthResAllocation);
 
 		for (auto framebuffer : m_SwapChainFramebuffers)
 			vkDestroyFramebuffer(m_VkDevice, framebuffer, s_Allocs);

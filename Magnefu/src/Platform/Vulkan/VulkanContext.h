@@ -97,6 +97,14 @@ namespace Magnefu
 		std::vector<void*>             UniformBuffersMapped;
 		std::vector<VmaAllocation>     UniformAllocations;
 		std::vector<VmaAllocationInfo> UniformAllocInfo;
+
+		// Framebuffer Resources
+		VkImage DepthImage;
+		VkImage ColorImage;
+		VmaAllocation DepthResAllocation;
+		VmaAllocation ColorResAllocation;
+		VmaAllocationInfo DepthResAllocInfo;
+		VmaAllocationInfo ColorResAllocInfo;
 	};
 
 	
@@ -299,19 +307,19 @@ namespace Magnefu
 
 		// -- Image Buffers -- //
 
-		VkImage                      m_DepthImage;
-		VkDeviceMemory               m_DepthImageMemory;
+		//VkImage                      m_DepthImage;
+		//VkDeviceMemory               m_DepthImageMemory;
 		VkImageView                  m_DepthImageView;
-		VkImage                      m_ColorImage;
-		VkDeviceMemory               m_ColorImageMemory;
+		//VkImage                      m_ColorImage;
+		//VkDeviceMemory               m_ColorImageMemory;
 		VkImageView                  m_ColorImageView;
 
 		// -- Memory Allocations -- //
 
-		VkBuffer m_VerticesBuffer;
-		VkBuffer m_IndicesBuffer;
-		VkImage  m_FrameImageBuffer;
-		VkImage  m_TextureImageBuffer;
+		//VkBuffer m_VerticesBuffer;
+		//VkBuffer m_IndicesBuffer;
+		//VkImage  m_FrameImageBuffer;
+		//VkImage  m_TextureImageBuffer;
 
 		VulkanMemory m_VulkanMemory;
 		
