@@ -3,6 +3,7 @@
 #include "VulkanContext.h"
 #include "Magnefu/Renderer/Shader.h"
 
+
 namespace Magnefu
 {
 	namespace VulkanCommon
@@ -35,7 +36,7 @@ namespace Magnefu
 			//bufferInfo.flags = 
 
 			if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
-				MF_CORE_ASSERT(false, "failed to create vertex buffer!");
+				MF_CORE_ASSERT(false, "failed to create buffer!");
 
 			VkMemoryRequirements memRequirements;
 			vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
@@ -45,24 +46,37 @@ namespace Magnefu
 			memAllocInfo.allocationSize = memRequirements.size;
 			memAllocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
 
-			// TODO:
-			// It should be noted that in a real world application, you're not supposed to actually call
-			// vkAllocateMemory for every individual buffer. The maximum number of simultaneous memory 
-			// allocations is limited by the maxMemoryAllocationCount physical device limit, which may 
-			// be as low as 4096 even on high end hardware like an NVIDIA GTX 1080. The right way to 
-			// allocate memory for a large number of objects at the same time is to create a custom 
-			// allocator that splits up a single allocation among many different objects by using the 
-			// offset parameters that we've seen in many functions.
-
-			// You can either implement such an allocator yourself, or use the VulkanMemoryAllocator 
-			// library provided by the GPUOpen initiative.However, for this tutorial it's okay to use a 
-			// separate allocation for every resource, because we won't come close to hitting any of 
-			// these limits for now.
 			if (vkAllocateMemory(device, &memAllocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
-				MF_CORE_ASSERT(false, "failed to allocate vertex buffer memory!");
+				MF_CORE_ASSERT(false, "failed to allocate buffer memory!");
 
 			vkBindBufferMemory(device, buffer, bufferMemory, 0);
 		}
+
+		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkBuffer& buffer, VmaMemoryUsage vmaUsage, VmaAllocationCreateFlags vmaFlags, VmaAllocation& allocation, VmaAllocationInfo& allocInfo)
+		{
+			VkDevice device = VulkanContext::Get().GetDevice();
+			VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();
+			
+			
+
+			VkBufferCreateInfo bufferInfo{};
+			bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+			bufferInfo.size = size;
+			bufferInfo.usage = usage;
+			bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			//bufferInfo.flags = 
+
+			VmaAllocationCreateInfo allocCreateInfo{};
+			allocCreateInfo.usage = vmaUsage;
+			allocCreateInfo.flags = vmaFlags;
+
+			if (vmaCreateBuffer(allocator, &bufferInfo, &allocCreateInfo, &buffer, &allocation, &allocInfo) != VK_SUCCESS)
+				MF_CORE_ASSERT(false, "failed to create buffer via VMA.");
+
+			/*VkMemoryRequirements memRequirements;
+			vkGetBufferMemoryRequirements(device, buffer, &memRequirements);*/
+		}
+
 
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 		{
@@ -165,6 +179,8 @@ namespace Magnefu
 			imageInfo.samples = numSamples;
 			imageInfo.flags = 0; // Optional
 
+			
+
 			if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS)
 				MF_CORE_ASSERT(false, "Failed to create image!");
 
@@ -180,6 +196,33 @@ namespace Magnefu
 				MF_CORE_ASSERT(false, "Failed to allocate image memory!");
 
 			vkBindImageMemory(device, image, imageMemory, 0);
+		}
+
+		void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkImage& image, VmaMemoryUsage vmaUsage, VmaAllocationCreateFlags vmaFlags, VmaAllocation& allocation, VmaAllocationInfo& allocInfo)
+		{
+			VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();
+
+			VkImageCreateInfo imageInfo{};
+			imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+			imageInfo.imageType = imageType;
+			imageInfo.extent.width = width;
+			imageInfo.extent.height = height;
+			imageInfo.extent.depth = 1;
+			imageInfo.mipLevels = mipLevels;
+			imageInfo.arrayLayers = 1;
+			imageInfo.format = format;
+			imageInfo.tiling = tiling;
+			imageInfo.usage = usage;
+			imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			imageInfo.samples = numSamples;
+			imageInfo.flags = 0; // Optional
+
+			VmaAllocationCreateInfo allocCreateInfo{};
+			allocCreateInfo.usage = vmaUsage;
+			allocCreateInfo.flags = vmaFlags;
+
+			if (vmaCreateImage(allocator, &imageInfo, &allocCreateInfo, &image, &allocation, &allocInfo) != VK_SUCCESS)
+				MF_CORE_ASSERT(false, "Failed to create image via VMA.");
 		}
 
 		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)

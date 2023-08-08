@@ -11,6 +11,7 @@
 #include "Magnefu/ResourceManagement/ResourceManager.h"
 #include "Magnefu/ResourceManagement/ResourcePaths.h"
 
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -22,8 +23,79 @@
 #include <set>
 #include <unordered_map>
 
+
+
 namespace Magnefu
 {
+	static void* const CUSTOM_CPU_ALLOCATION_CALLBACK_USER_DATA = (void*)(intptr_t)43564544;
+	static const bool USE_CUSTOM_CPU_ALLOCATION_CALLBACKS = true;
+
+	static std::atomic_uint32_t g_CpuAllocCount;
+
+	static const VkAllocationCallbacks* s_Allocs;
+
+	static void* CustomCpuAllocation(
+		void* pUserData, size_t size, size_t alignment,
+		VkSystemAllocationScope allocationScope)
+	{
+		assert(pUserData == CUSTOM_CPU_ALLOCATION_CALLBACK_USER_DATA);
+		void* const result = _aligned_malloc(size, alignment);
+		if (result)
+		{
+			++g_CpuAllocCount;
+		}
+		return result;
+	}
+
+	static void* CustomCpuReallocation(
+		void* pUserData, void* pOriginal, size_t size, size_t alignment,
+		VkSystemAllocationScope allocationScope)
+	{
+		assert(pUserData == CUSTOM_CPU_ALLOCATION_CALLBACK_USER_DATA);
+		void* const result = _aligned_realloc(pOriginal, size, alignment);
+		if (pOriginal && !result)
+		{
+			--g_CpuAllocCount;
+		}
+		else if (!pOriginal && result)
+		{
+			++g_CpuAllocCount;
+		}
+		return result;
+	}
+
+	static void CustomCpuFree(void* pUserData, void* pMemory)
+	{
+		assert(pUserData == CUSTOM_CPU_ALLOCATION_CALLBACK_USER_DATA);
+		if (pMemory)
+		{
+			const uint32_t oldAllocCount = g_CpuAllocCount.fetch_sub(1);
+			MF_CORE_ASSERT(oldAllocCount > 0, "old allocation not greater than 0");
+			_aligned_free(pMemory);
+		}
+	}
+
+	static const VkAllocationCallbacks g_CpuAllocationCallbacks = {
+		CUSTOM_CPU_ALLOCATION_CALLBACK_USER_DATA, // pUserData
+		&CustomCpuAllocation, // pfnAllocation
+		&CustomCpuReallocation, // pfnReallocation
+		&CustomCpuFree // pfnFree
+	};
+
+	
+
+	bool VK_KHR_get_memory_requirements2_enabled        = false;
+	bool VK_KHR_get_physical_device_properties2_enabled = false;
+	bool VK_KHR_dedicated_allocation_enabled            = false;
+	bool VK_KHR_bind_memory2_enabled                    = false;
+	bool VK_AMD_device_coherent_memory_enabled          = false;
+	bool VK_KHR_buffer_device_address_enabled           = false;
+	bool VK_EXT_debug_utils_enabled                     = false;
+
+	bool VK_EXT_memory_budget_enabled   = true;
+	bool VK_EXT_memory_priority_enabled = true;
+
+
 
 	static const std::vector<const char*> validationLayers = {
 			"VK_LAYER_KHRONOS_validation"
@@ -31,7 +103,10 @@ namespace Magnefu
 
 	static const std::vector<const char*> deviceExtensions =
 	{
-		VK_KHR_SWAPCHAIN_EXTENSION_NAME
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+		VK_EXT_MEMORY_BUDGET_EXTENSION_NAME,
+		VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME
+
 	};
 
 	bool operator==(const Vertex& a, const Vertex& b)
@@ -85,41 +160,50 @@ namespace Magnefu
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			vkDestroyBuffer(m_VkDevice, m_ComputeUniformBuffers[i], nullptr);
-			vkFreeMemory(m_VkDevice, m_ComputeUniformBuffersMemory[i], nullptr);
+			vkDestroyBuffer(m_VkDevice, m_ComputeUniformBuffers[i], s_Allocs);
+			vkFreeMemory(m_VkDevice, m_ComputeUniformBuffersMemory[i], s_Allocs);
 		}
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			vkDestroyBuffer(m_VkDevice, m_ShaderStorageBuffers[i], nullptr);
-			vkFreeMemory(m_VkDevice, m_ShaderStorageBuffersMemory[i], nullptr);
+			vkDestroyBuffer(m_VkDevice, m_ShaderStorageBuffers[i], s_Allocs);
+			vkFreeMemory(m_VkDevice, m_ShaderStorageBuffersMemory[i], s_Allocs);
 		}
 
-		vkDestroyDescriptorPool(m_VkDevice, m_ComputeDescriptorPool, nullptr);
-		vkDestroyDescriptorSetLayout(m_VkDevice, m_ComputeDescriptorSetLayout, nullptr);
+		vkDestroyDescriptorPool(m_VkDevice, m_ComputeDescriptorPool, s_Allocs);
+		vkDestroyDescriptorSetLayout(m_VkDevice, m_ComputeDescriptorSetLayout, s_Allocs);
 
 
-		vkDestroyRenderPass(m_VkDevice, m_RenderPass, nullptr);
+		vkDestroyRenderPass(m_VkDevice, m_RenderPass, s_Allocs);
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			vkDestroySemaphore(m_VkDevice, m_ImageAvailableSemaphores[i], nullptr);
-			vkDestroySemaphore(m_VkDevice, m_ImGuiRenderFinishedSemaphores[i], nullptr);
-			vkDestroySemaphore(m_VkDevice, m_RenderFinishedSemaphores[i], nullptr);
-			vkDestroyFence(m_VkDevice, m_InFlightFences[i], nullptr);
-			vkDestroyFence(m_VkDevice, m_ImGuiInFlightFences[i], nullptr);
+			vkDestroySemaphore(m_VkDevice, m_ImageAvailableSemaphores[i], s_Allocs);
+			vkDestroySemaphore(m_VkDevice, m_ImGuiRenderFinishedSemaphores[i], s_Allocs);
+			vkDestroySemaphore(m_VkDevice, m_RenderFinishedSemaphores[i], s_Allocs);
+			vkDestroyFence(m_VkDevice, m_InFlightFences[i], s_Allocs);
+			vkDestroyFence(m_VkDevice, m_ImGuiInFlightFences[i], s_Allocs);
 		}
 
-		vkDestroyCommandPool(m_VkDevice, m_CommandPool, nullptr);
+		vkDestroyCommandPool(m_VkDevice, m_CommandPool, s_Allocs);
+
+
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+			vmaDestroyBuffer(m_VmaAllocator, m_VulkanMemory.UniformBuffers[i], m_VulkanMemory.UniformAllocations[i]);
+
+		vmaDestroyBuffer(m_VmaAllocator, m_VulkanMemory.VBuffer, m_VulkanMemory.VBufferAllocation);
+		vmaDestroyBuffer(m_VmaAllocator, m_VulkanMemory.IBuffer, m_VulkanMemory.IBufferAllocation);
+
+		vmaDestroyAllocator(m_VmaAllocator);
 		
-		vkDestroyDevice(m_VkDevice, nullptr);
+		vkDestroyDevice(m_VkDevice, s_Allocs);
 
 		if (m_EnableValidationLayers)
-			DestroyDebugUtilsMessengerEXT(m_VkInstance, m_DebugMessenger, nullptr);
+			DestroyDebugUtilsMessengerEXT(m_VkInstance, m_DebugMessenger, s_Allocs);
 
-		vkDestroySurfaceKHR(m_VkInstance, m_WindowSurface, nullptr);
+		vkDestroySurfaceKHR(m_VkInstance, m_WindowSurface, s_Allocs);
 		
-		vkDestroyInstance(m_VkInstance, nullptr);
+		vkDestroyInstance(m_VkInstance, s_Allocs);
 		
 	}
 
@@ -139,6 +223,11 @@ namespace Magnefu
 		CreateCommandPool(); 
 		LoadModels();
 		CreateRenderPass();
+
+		// The Application should tell Context how much memory is needed à la m_GraphicsContext->AllocateResourceMemory(BytesStruct)
+		// For now, I will explicitly state within the function what is needed.
+		CreateVmaAllocator();
+		AllocateBufferMemory();
 
 	}
 
@@ -225,7 +314,7 @@ namespace Magnefu
 		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.pEngineName = "Magnefu Engine - Vulkan";
 		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-		appInfo.apiVersion = VK_API_VERSION_1_3;
+		appInfo.apiVersion = m_APIVersion;
 
 		VkInstanceCreateInfo instanceCreateInfo{};
 		instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -252,7 +341,7 @@ namespace Magnefu
 		}
 
 
-		if (vkCreateInstance(&instanceCreateInfo, nullptr, &m_VkInstance) != VK_SUCCESS)
+		if (vkCreateInstance(&instanceCreateInfo, s_Allocs, &m_VkInstance) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "Failed to create Vulkan VkInstance");
 	}
 
@@ -310,7 +399,7 @@ namespace Magnefu
 			VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
 			PopulateDebugMessengerCreateInfo(debugCreateInfo);
 
-			if (CreateDebugUtilsMessengerEXT(m_VkInstance, &debugCreateInfo, nullptr, &m_DebugMessenger) != VK_SUCCESS)
+			if (CreateDebugUtilsMessengerEXT(m_VkInstance, &debugCreateInfo, s_Allocs, &m_DebugMessenger) != VK_SUCCESS)
 				MF_CORE_ERROR("failed to set up debug messenger!");
 
 		}
@@ -321,7 +410,7 @@ namespace Magnefu
 		if (glfwVulkanSupported() == GLFW_FALSE)
 			MF_CORE_DEBUG("GLFW - Vulkan not Supported!!");
 
-		if (glfwCreateWindowSurface(m_VkInstance, m_WindowHandle, nullptr, &m_WindowSurface) != VK_SUCCESS)
+		if (glfwCreateWindowSurface(m_VkInstance, m_WindowHandle, s_Allocs, &m_WindowSurface) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "Failed to create a window surface!");
 	}
 
@@ -371,6 +460,7 @@ namespace Magnefu
 		VkPhysicalDeviceFeatures deviceFeatures{}; //empty for now
 		deviceFeatures.samplerAnisotropy = VK_TRUE;
 		deviceFeatures.sampleRateShading = VK_FALSE;
+		deviceFeatures.sparseBinding = VK_FALSE;
 
 		// Create the logical device
 
@@ -407,7 +497,7 @@ namespace Magnefu
 		}
 
 		// Instantiate the logical device
-		if (vkCreateDevice(m_VkPhysicalDevice, &logicalDevCreateInfo, nullptr, &m_VkDevice) != VK_SUCCESS)
+		if (vkCreateDevice(m_VkPhysicalDevice, &logicalDevCreateInfo, s_Allocs, &m_VkDevice) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to create logical device!");
 
 		// Retrieving queue handles
@@ -415,6 +505,238 @@ namespace Magnefu
 		vkGetDeviceQueue(m_VkDevice, m_QueueFamilyIndices.PresentFamily.value(), 0, &m_PresentQueue);
 		vkGetDeviceQueue(m_VkDevice, m_QueueFamilyIndices.ComputeFamily.value(), 0, &m_ComputeQueue);
 
+	}
+
+	void VulkanContext::CreateVmaAllocator()
+	{
+		if (USE_CUSTOM_CPU_ALLOCATION_CALLBACKS)
+		{
+			s_Allocs = &g_CpuAllocationCallbacks;
+		}
+
+		VmaAllocatorCreateInfo allocatorInfo{};
+		allocatorInfo.device = m_VkDevice;
+		allocatorInfo.physicalDevice = m_VkPhysicalDevice;
+		allocatorInfo.instance = m_VkInstance;
+		allocatorInfo.vulkanApiVersion = m_APIVersion;
+
+
+		if (VK_KHR_dedicated_allocation_enabled)
+		{
+			allocatorInfo.flags |= VMA_ALLOCATOR_CREATE_KHR_DEDICATED_ALLOCATION_BIT;
+		}
+		if (VK_KHR_bind_memory2_enabled)
+		{
+			allocatorInfo.flags |= VMA_ALLOCATOR_CREATE_KHR_BIND_MEMORY2_BIT;
+		}
+#if !defined(VMA_MEMORY_BUDGET) || VMA_MEMORY_BUDGET == 1
+		if (VK_EXT_memory_budget_enabled && (
+			m_APIVersion >= VK_API_VERSION_1_1 || VK_KHR_get_physical_device_properties2_enabled))
+		{
+			allocatorInfo.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
+		}
+#endif
+		if (VK_AMD_device_coherent_memory_enabled)
+		{
+			allocatorInfo.flags |= VMA_ALLOCATOR_CREATE_AMD_DEVICE_COHERENT_MEMORY_BIT;
+		}
+		if (VK_KHR_buffer_device_address_enabled)
+		{
+			allocatorInfo.flags |= VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
+		}
+#if !defined(VMA_MEMORY_PRIORITY) || VMA_MEMORY_PRIORITY == 1
+		if (VK_EXT_memory_priority_enabled)
+		{
+			allocatorInfo.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_PRIORITY_BIT;
+		}
+#endif
+
+		if (USE_CUSTOM_CPU_ALLOCATION_CALLBACKS)
+		{
+			allocatorInfo.pAllocationCallbacks = &g_CpuAllocationCallbacks;
+		}
+
+#if VMA_DYNAMIC_VULKAN_FUNCTIONS
+		static VmaVulkanFunctions vulkanFunctions = {};
+		vulkanFunctions.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
+		vulkanFunctions.vkGetDeviceProcAddr = vkGetDeviceProcAddr;
+		allocatorInfo.pVulkanFunctions = &vulkanFunctions;
+#endif*/
+
+		// Uncomment to enable recording to CSV file.
+		/*
+		static VmaRecordSettings recordSettings = {};
+		recordSettings.pFilePath = "VulkanSample.csv";
+		outInfo.pRecordSettings = &recordSettings;
+		*/
+
+		// Uncomment to enable HeapSizeLimit.
+		/*
+		static std::array<VkDeviceSize, VK_MAX_MEMORY_HEAPS> heapSizeLimit;
+		std::fill(heapSizeLimit.begin(), heapSizeLimit.end(), VK_WHOLE_SIZE);
+		heapSizeLimit[0] = 512ull * 1024 * 1024;
+		outInfo.pHeapSizeLimit = heapSizeLimit.data();
+		*/
+		if (vmaCreateAllocator(&allocatorInfo, &m_VmaAllocator) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "Failed to create the VMA Allocator.");
+
+	}
+
+	// Create Main Buffers that will be suballocated
+	void VulkanContext::AllocateBufferMemory()
+	{
+		Application& app = Application::Get();
+		auto sceneObjs = app.GetSceneObjects();
+		uint32_t sceneObjCount = sceneObjs.size();
+
+
+		AllocateUniformBuffers(sceneObjCount);
+		AllocateVertexBuffers(sceneObjCount, sceneObjs);
+		AllocateIndexBuffers(sceneObjCount, sceneObjs);
+	}
+
+	void VulkanContext::AllocateIndexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs)
+	{
+		VkDeviceSize totalSize = 0;
+		VkDeviceSize size = 0;
+		VkDeviceSize offset = 0;
+
+		m_VulkanMemory.IBufferOffsets.resize(sceneObjCount);
+
+		for (size_t i = 0; i < sceneObjCount; i++)
+		{
+			size = sceneObjs[i].GetIndicesSize();
+			offset = (totalSize + ALIGNMENT_INDEX_BUFFER - 1) & ~(ALIGNMENT_INDEX_BUFFER - 1);
+			totalSize = offset + size;
+			m_VulkanMemory.IBufferOffsets[i] = offset;
+		}
+
+		VkBuffer stagingBuffer;
+		VmaAllocation stagingAllocation;
+		VmaAllocationInfo stagingAllocInfo;
+
+		VulkanCommon::CreateBuffer(
+			totalSize,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			stagingBuffer,
+			VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+			VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+			stagingAllocation,
+			stagingAllocInfo
+		);
+
+		void* data;
+		vmaMapMemory(m_VmaAllocator, stagingAllocation, &data);
+
+		for (size_t i = 0; i < sceneObjCount; i++)
+			memcpy(static_cast<char*>(data) + m_VulkanMemory.IBufferOffsets[i], sceneObjs[i].GetIndicesData(), sceneObjs[i].GetIndicesSize());
+
+		vmaUnmapMemory(m_VmaAllocator, stagingAllocation);
+
+		VulkanCommon::CreateBuffer(
+			totalSize,
+			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+			m_VulkanMemory.IBuffer,
+			VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+			0,
+			m_VulkanMemory.IBufferAllocation,
+			m_VulkanMemory.IBufferAllocInfo
+		);
+
+		VulkanCommon::CopyBuffer(stagingBuffer, m_VulkanMemory.IBuffer, totalSize);
+
+		vmaDestroyBuffer(m_VmaAllocator, stagingBuffer, stagingAllocation);
+	}
+
+	void VulkanContext::AllocateVertexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs)
+	{
+		VkDeviceSize totalSize = 0;
+		VkDeviceSize size = 0;
+		VkDeviceSize offset = 0;
+
+		m_VulkanMemory.VBufferOffsets.resize(sceneObjCount);
+
+		for (size_t i = 0; i < sceneObjCount; i++)
+		{
+			size = sceneObjs[i].GetVerticesSize();
+			offset = (totalSize + ALIGNMENT_VERTEX_BUFFER - 1) & ~(ALIGNMENT_VERTEX_BUFFER - 1);
+			totalSize = offset + size;
+			m_VulkanMemory.VBufferOffsets[i] = offset;
+		}
+
+		VkBuffer stagingBuffer;
+		VmaAllocation stagingAllocation;
+		VmaAllocationInfo stagingAllocInfo;
+
+		VulkanCommon::CreateBuffer(
+			totalSize,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			stagingBuffer,
+			VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+			VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+			stagingAllocation,
+			stagingAllocInfo
+		);
+
+		void* data;
+		vmaMapMemory(m_VmaAllocator, stagingAllocation, &data);
+
+		for (size_t i = 0; i < sceneObjCount; i++)
+			memcpy(static_cast<char*>(data) + m_VulkanMemory.VBufferOffsets[i], sceneObjs[i].GetVerticesData(), sceneObjs[i].GetVerticesSize());
+
+		vmaUnmapMemory(m_VmaAllocator, stagingAllocation);
+
+		VulkanCommon::CreateBuffer(
+			totalSize,
+			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+			m_VulkanMemory.VBuffer,
+			VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+			0,
+			m_VulkanMemory.VBufferAllocation,
+			m_VulkanMemory.VBufferAllocInfo
+		);
+
+		VulkanCommon::CopyBuffer(stagingBuffer, m_VulkanMemory.VBuffer, totalSize);
+
+		vmaDestroyBuffer(m_VmaAllocator, stagingBuffer, stagingAllocation);
+	}
+
+	void VulkanContext::AllocateUniformBuffers(const uint32_t& sceneObjCount)
+	{
+		VkDeviceSize totalSize = 0;
+		VkDeviceSize size = sizeof(RenderPassUniformBufferObject);
+		VkDeviceSize offset = (totalSize + m_VulkanMemory.UniformAlignment - 1) & ~(m_VulkanMemory.UniformAlignment - 1);
+
+		totalSize = offset + size;
+
+		for (int i = 0; i < sceneObjCount; i++)
+		{
+			size = sizeof(MaterialUniformBufferObject);
+			offset = (totalSize + m_VulkanMemory.UniformAlignment - 1) & ~(m_VulkanMemory.UniformAlignment - 1);
+			totalSize = offset + size;
+		}
+
+		m_VulkanMemory.UniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+		m_VulkanMemory.UniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+		m_VulkanMemory.UniformAllocations.resize(MAX_FRAMES_IN_FLIGHT);
+		m_VulkanMemory.UniformAllocInfo.resize(MAX_FRAMES_IN_FLIGHT);
+		m_VulkanMemory.UniformOffset = 0;
+
+
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			VulkanCommon::CreateBuffer(
+				totalSize,
+				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+				m_VulkanMemory.UniformBuffers[i],
+				VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+				VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+				m_VulkanMemory.UniformAllocations[i],
+				m_VulkanMemory.UniformAllocInfo[i]
+			);
+
+			vmaMapMemory(m_VmaAllocator, m_VulkanMemory.UniformAllocations[i], &m_VulkanMemory.UniformBuffersMapped[i]);
+		}
 	}
 
 	void VulkanContext::CreateSwapChain()
@@ -469,7 +791,7 @@ namespace Magnefu
 		swapChainCreateInfo.clipped = VK_TRUE;
 		swapChainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
-		if (vkCreateSwapchainKHR(m_VkDevice, &swapChainCreateInfo, nullptr, &m_SwapChain) != VK_SUCCESS)
+		if (vkCreateSwapchainKHR(m_VkDevice, &swapChainCreateInfo, s_Allocs, &m_SwapChain) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "Failed to create swap chain!");
 
 		vkGetSwapchainImagesKHR(m_VkDevice, m_SwapChain, &imageCount, nullptr);
@@ -561,7 +883,7 @@ namespace Magnefu
 		renderPassInfo.dependencyCount = 1;
 		renderPassInfo.pDependencies = &dependency;
 
-		if (vkCreateRenderPass(m_VkDevice, &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS)
+		if (vkCreateRenderPass(m_VkDevice, &renderPassInfo, s_Allocs, &m_RenderPass) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to create render pass!");
 	}
 
@@ -591,7 +913,7 @@ namespace Magnefu
 		layoutInfo.bindingCount = 3;
 		layoutInfo.pBindings = layoutBindings.data();
 
-		if (vkCreateDescriptorSetLayout(m_VkDevice, &layoutInfo, nullptr, &m_ComputeDescriptorSetLayout) != VK_SUCCESS) {
+		if (vkCreateDescriptorSetLayout(m_VkDevice, &layoutInfo, s_Allocs, &m_ComputeDescriptorSetLayout) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create compute descriptor set layout!");
 		}
 	}
@@ -868,7 +1190,7 @@ namespace Magnefu
 			framebufferInfo.height = m_SwapChainExtent.height;
 			framebufferInfo.layers = 1;
 
-			if (vkCreateFramebuffer(m_VkDevice, &framebufferInfo, nullptr, &m_SwapChainFramebuffers[i]) != VK_SUCCESS)
+			if (vkCreateFramebuffer(m_VkDevice, &framebufferInfo, s_Allocs, &m_SwapChainFramebuffers[i]) != VK_SUCCESS)
 				MF_CORE_ASSERT(false, "failed to create framebuffer!");
 		}
 	}
@@ -880,7 +1202,7 @@ namespace Magnefu
 		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 		poolInfo.queueFamilyIndex = m_QueueFamilyIndices.GraphicsFamily.value();
 
-		if (vkCreateCommandPool(m_VkDevice, &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS)
+		if (vkCreateCommandPool(m_VkDevice, &poolInfo, s_Allocs, &m_CommandPool) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to create command pool!");
 	}
 
@@ -889,19 +1211,22 @@ namespace Magnefu
 		VkFormat colorFormat = m_SwapChainImageFormat;
 
 		VulkanCommon::CreateImage(
-			m_SwapChainExtent.width, 
-			m_SwapChainExtent.height, 
-			1, m_MSAASamples, 
-			colorFormat, 
-			VK_IMAGE_TYPE_2D, 
-			VK_IMAGE_TILING_OPTIMAL, 
-			VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, 
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
-			m_ColorImage, 
-			m_ColorImageMemory
+			m_SwapChainExtent.width,
+			m_SwapChainExtent.height,
+			1,
+			m_MSAASamples,
+			colorFormat,
+			VK_IMAGE_TYPE_2D,
+			VK_IMAGE_TILING_OPTIMAL,
+			VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+			m_VulkanMemory.ColorImage,
+			VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+			0,
+			m_VulkanMemory.ColorResAllocation,
+			m_VulkanMemory.ColorResAllocInfo
 		);
 
-		m_ColorImageView = VulkanCommon::CreateImageView(m_ColorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+		m_ColorImageView = VulkanCommon::CreateImageView(m_VulkanMemory.ColorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 	}
 
 	void VulkanContext::CreateDepthResources()
@@ -909,20 +1234,22 @@ namespace Magnefu
 		VkFormat depthFormat = FindDepthFormat();
 
 		VulkanCommon::CreateImage(
-			m_SwapChainExtent.width, 
-			m_SwapChainExtent.height, 
+			m_SwapChainExtent.width,
+			m_SwapChainExtent.height,
 			1,
 			m_MSAASamples,
-			depthFormat, 
-			VK_IMAGE_TYPE_2D, // ???
-			VK_IMAGE_TILING_OPTIMAL, 
-			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
-			m_DepthImage, 
-			m_DepthImageMemory
+			depthFormat,
+			VK_IMAGE_TYPE_2D,
+			VK_IMAGE_TILING_OPTIMAL,
+			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+			m_VulkanMemory.DepthImage,
+			VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+			0,
+			m_VulkanMemory.DepthResAllocation,
+			m_VulkanMemory.DepthResAllocInfo
 		);
 
-		m_DepthImageView = VulkanCommon::CreateImageView(m_DepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
+		m_DepthImageView = VulkanCommon::CreateImageView(m_VulkanMemory.DepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 	}
 
 	void VulkanContext::LoadModels()
@@ -1107,7 +1434,7 @@ namespace Magnefu
 		poolInfo.pPoolSizes = poolSizes.data();
 		poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
-		if (vkCreateDescriptorPool(m_VkDevice, &poolInfo, nullptr, &m_ComputeDescriptorPool) != VK_SUCCESS)
+		if (vkCreateDescriptorPool(m_VkDevice, &poolInfo, s_Allocs, &m_ComputeDescriptorPool) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to create COMPUTE descriptor pool!");
 	}
 
@@ -1245,17 +1572,17 @@ namespace Magnefu
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			if (vkCreateSemaphore(m_VkDevice, &computeSemaphoreInfo, nullptr, &m_ComputeFinishedSemaphores[i]) != VK_SUCCESS ||
-				vkCreateFence(m_VkDevice, &computeFenceInfo, nullptr, &m_ComputeInFlightFences[i]) != VK_SUCCESS)
+			if (vkCreateSemaphore(m_VkDevice, &computeSemaphoreInfo, s_Allocs, &m_ComputeFinishedSemaphores[i]) != VK_SUCCESS ||
+				vkCreateFence(m_VkDevice, &computeFenceInfo, s_Allocs, &m_ComputeInFlightFences[i]) != VK_SUCCESS)
 			{
 				MF_CORE_ASSERT(false, "failed to create COMPUTE semaphores and/or fences!");
 			}
 
-			if (vkCreateSemaphore(m_VkDevice, &semaphoreInfo, nullptr, &m_ImageAvailableSemaphores[i]) != VK_SUCCESS ||
-				vkCreateSemaphore(m_VkDevice, &semaphoreInfo, nullptr, &m_ImGuiRenderFinishedSemaphores[i]) != VK_SUCCESS ||
-				vkCreateSemaphore(m_VkDevice, &semaphoreInfo, nullptr, &m_RenderFinishedSemaphores[i]) != VK_SUCCESS ||
-				vkCreateFence(m_VkDevice, &fenceInfo, nullptr, &m_InFlightFences[i]) != VK_SUCCESS ||
-				vkCreateFence(m_VkDevice, &fenceInfo, nullptr, &m_ImGuiInFlightFences[i]) != VK_SUCCESS)
+			if (vkCreateSemaphore(m_VkDevice, &semaphoreInfo, s_Allocs, &m_ImageAvailableSemaphores[i]) != VK_SUCCESS ||
+				vkCreateSemaphore(m_VkDevice, &semaphoreInfo, s_Allocs, &m_ImGuiRenderFinishedSemaphores[i]) != VK_SUCCESS ||
+				vkCreateSemaphore(m_VkDevice, &semaphoreInfo, s_Allocs, &m_RenderFinishedSemaphores[i]) != VK_SUCCESS ||
+				vkCreateFence(m_VkDevice, &fenceInfo, s_Allocs, &m_InFlightFences[i]) != VK_SUCCESS ||
+				vkCreateFence(m_VkDevice, &fenceInfo, s_Allocs, &m_ImGuiInFlightFences[i]) != VK_SUCCESS)
 			{
 				MF_CORE_ASSERT(false, "failed to create GRAPHICS semaphores and/or fences!");
 			}
@@ -1316,8 +1643,10 @@ namespace Magnefu
 		{
 			m_SupportedFeatures = deviceFeatures;
 			m_Properties = deviceProperties;
+			m_VulkanMemory.UniformAlignment = m_Properties.limits.minUniformBufferOffsetAlignment;
 
 			MF_CORE_DEBUG("Max Push Constant Size: {}", m_Properties.limits.maxPushConstantsSize);
+			MF_CORE_DEBUG("Min Uniform Buffer Offset Alignment: {}", m_Properties.limits.minUniformBufferOffsetAlignment);
 			return true;
 		}
 
@@ -1334,6 +1663,20 @@ namespace Magnefu
 		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
 
 		std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+
+		// add necessary device extensions here:
+		if (m_APIVersion == VK_API_VERSION_1_0)
+		{
+			requiredExtensions.insert(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
+			requiredExtensions.insert(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
+			requiredExtensions.insert(VK_KHR_BIND_MEMORY_2_EXTENSION_NAME);
+		}
+
+		if (m_APIVersion < VK_API_VERSION_1_2)
+			requiredExtensions.insert(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME);
+			
+
+
 
 		for (const auto& extension : availableExtensions) {
 			requiredExtensions.erase(extension.extensionName);
@@ -1529,10 +1872,10 @@ namespace Magnefu
 			VulkanBuffer& indexBuffer = static_cast<VulkanBuffer&>(rm.GetBuffer(sceneObject.GetIndexBufferHandle()));
 
 			VkBuffer vertexBuffers[] = { vertexBuffer.GetBuffer() };
-			VkDeviceSize offsets[] = { 0 };
+			VkDeviceSize offsets[] = { vertexBuffer.GetOffset() };
 			vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-			vkCmdBindIndexBuffer(commandBuffer, indexBuffer.GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindIndexBuffer(commandBuffer, indexBuffer.GetBuffer(), indexBuffer.GetOffset(), VK_INDEX_TYPE_UINT32);
 
 
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader.GetPipelineLayout(), 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
@@ -1540,7 +1883,6 @@ namespace Magnefu
 			//vkCmdPushConstants(commandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &m_PushConstants);
 
 			vkCmdDrawIndexed(commandBuffer, sceneObject.GetIndexCount(), 1, 0, 0, 0);
-			
 		}
 			
 
@@ -1620,21 +1962,19 @@ namespace Magnefu
 
 	void VulkanContext::CleanupSwapChain()
 	{
-		vkDestroyImageView(m_VkDevice, m_ColorImageView, nullptr);
-		vkDestroyImage(m_VkDevice, m_ColorImage, nullptr);
-		vkFreeMemory(m_VkDevice, m_ColorImageMemory, nullptr);
+		vkDestroyImageView(m_VkDevice, m_ColorImageView, s_Allocs);
+		vmaDestroyImage(m_VmaAllocator, m_VulkanMemory.ColorImage, m_VulkanMemory.ColorResAllocation);
 
-		vkDestroyImageView(m_VkDevice, m_DepthImageView, nullptr);
-		vkDestroyImage(m_VkDevice,     m_DepthImage, nullptr);
-		vkFreeMemory(m_VkDevice,       m_DepthImageMemory, nullptr);
+		vkDestroyImageView(m_VkDevice, m_DepthImageView, s_Allocs);
+		vmaDestroyImage(m_VmaAllocator, m_VulkanMemory.DepthImage, m_VulkanMemory.DepthResAllocation);
 
 		for (auto framebuffer : m_SwapChainFramebuffers)
-			vkDestroyFramebuffer(m_VkDevice, framebuffer, nullptr);
+			vkDestroyFramebuffer(m_VkDevice, framebuffer, s_Allocs);
 
 		for (auto imageView : m_SwapChainImageViews)
-			vkDestroyImageView(m_VkDevice, imageView, nullptr);
+			vkDestroyImageView(m_VkDevice, imageView, s_Allocs);
 
-		vkDestroySwapchainKHR(m_VkDevice, m_SwapChain, nullptr);
+		vkDestroySwapchainKHR(m_VkDevice, m_SwapChain, s_Allocs);
 	}
 
 

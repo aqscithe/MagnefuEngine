@@ -34,8 +34,8 @@
     <Filter Include="src\Platform">
       <UniqueIdentifier>{21CA02E5-0D2D-9289-B6B2-CA3FA2F45D0C}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Platform\VK">
-      <UniqueIdentifier>{D175994C-3D01-0711-4612-8A05B21C6311}</UniqueIdentifier>
+    <Filter Include="src\Platform\Vulkan">
+      <UniqueIdentifier>{81084748-ED69-2456-76D7-6A08E2375B15}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Platform\Windows">
       <UniqueIdentifier>{5B054582-4794-CE4B-F0B2-E246DC20DFF1}</UniqueIdentifier>
@@ -117,6 +117,9 @@
     </Filter>
     <Filter Include="vendor\tiny_obj_loader">
       <UniqueIdentifier>{D6D36F96-C2CD-98E8-AB3A-2FF997D3FE54}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\vma">
+      <UniqueIdentifier>{66DFC5A8-5297-07F6-BB9E-E051A775A2E6}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor\vulkan">
       <UniqueIdentifier>{F30DBE29-5FCE-3960-2809-83DD94887E3C}</UniqueIdentifier>
@@ -237,6 +240,9 @@
     <ClInclude Include="src\Magnefu\Core\MemoryAllocation\LinkedListAlloc.h">
       <Filter>src\Magnefu\Core\MemoryAllocation</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\OffsetAllocator.h">
+      <Filter>src\Magnefu\Core\MemoryAllocation</Filter>
+    </ClInclude>
     <ClInclude Include="src\Magnefu\Core\MemoryAllocation\PoolAllocator.h">
       <Filter>src\Magnefu\Core\MemoryAllocation</Filter>
     </ClInclude>
@@ -246,10 +252,16 @@
     <ClInclude Include="src\Magnefu\Core\MemoryAllocation\VectorAllocator.h">
       <Filter>src\Magnefu\Core\MemoryAllocation</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\MemoryAllocation\VmaUsage.h">
+      <Filter>src\Magnefu\Core\MemoryAllocation</Filter>
+    </ClInclude>
     <ClInclude Include="src\Magnefu\Core\NumGen.h">
       <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Core\SmartPointers.h">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Span.h">
       <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Core\TimeStep.h">
@@ -270,6 +282,9 @@
     <ClInclude Include="src\Magnefu\LayerStack.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\BindGroup.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\Buffer.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
@@ -279,7 +294,16 @@
     <ClInclude Include="src\Magnefu\Renderer\GraphicsContext.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\Light.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\Material.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\RenderConstants.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\Renderer.h">
@@ -294,17 +318,47 @@
     <ClInclude Include="src\Magnefu\Renderer\SceneCamera.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\SceneObject.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\Shader.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\Texture.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\ResourceManagement\Handle.h">
+      <Filter>src\Magnefu\ResourceManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\ResourceManagement\Pool.h">
+      <Filter>src\Magnefu\ResourceManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\ResourceManagement\ResourceManager.h">
+      <Filter>src\Magnefu\ResourceManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\ResourceManagement\ResourcePaths.h">
+      <Filter>src\Magnefu\ResourceManagement</Filter>
+    </ClInclude>
     <ClInclude Include="src\Magnefu\Window.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\VulkanBindGroup.h">
+      <Filter>src\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\VulkanBuffer.h">
+      <Filter>src\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\VulkanCommon.h">
+      <Filter>src\Platform\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\VulkanContext.h">
-      <Filter>src\Platform\VK</Filter>
+      <Filter>src\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\VulkanShader.h">
+      <Filter>src\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\VulkanTexture.h">
+      <Filter>src\Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsInput.h">
       <Filter>src\Platform\Windows</Filter>
@@ -792,6 +846,9 @@
     <ClInclude Include="vendor\tiny_obj_loader\tiny_obj_loader.h">
       <Filter>vendor\tiny_obj_loader</Filter>
     </ClInclude>
+    <ClInclude Include="vendor\vma\vk_mem_alloc.h">
+      <Filter>vendor\vma</Filter>
+    </ClInclude>
     <ClInclude Include="vendor\vulkan\include\SDL2\SDL.h">
       <Filter>vendor\vulkan\include\SDL2</Filter>
     </ClInclude>
@@ -1242,21 +1299,6 @@
     <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_xlib_xrandr.h">
       <Filter>vendor\vulkan\include\vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\ResourceManagement\ResourceManager.h" />
-    <ClInclude Include="src\Magnefu\ResourceManagement\Pool.h" />
-    <ClInclude Include="src\Magnefu\Core\Span.h" />
-    <ClInclude Include="src\Platform\Vulkan\VulkanBuffer.h" />
-    <ClInclude Include="src\Magnefu\Renderer\RenderConstants.h" />
-    <ClInclude Include="src\Platform\Vulkan\VulkanCommon.h" />
-    <ClInclude Include="src\Platform\Vulkan\VulkanTexture.h" />
-    <ClInclude Include="src\Magnefu\Renderer\BindGroup.h" />
-    <ClInclude Include="src\Platform\Vulkan\VulkanBindGroup.h" />
-    <ClInclude Include="src\Platform\Vulkan\VulkanShader.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Light.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Material.h" />
-    <ClInclude Include="src\Magnefu\ResourceManagement\Handle.h" />
-    <ClInclude Include="src\Magnefu\ResourceManagement\ResourcePaths.h" />
-    <ClInclude Include="src\Magnefu\Renderer\SceneObject.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application.cpp">
@@ -1283,10 +1325,19 @@
     <ClCompile Include="src\Magnefu\Core\Maths\Vectors.cpp">
       <Filter>src\Magnefu\Core\Maths</Filter>
     </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\MemoryAllocation\OffsetAllocator.cpp">
+      <Filter>src\Magnefu\Core\MemoryAllocation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\MemoryAllocation\OffsetAllocatorTests.cpp">
+      <Filter>src\Magnefu\Core\MemoryAllocation</Filter>
+    </ClCompile>
     <ClCompile Include="src\Magnefu\Core\MemoryAllocation\PoolAllocator.cpp">
       <Filter>src\Magnefu\Core\MemoryAllocation</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Core\MemoryAllocation\StackAllocator.cpp">
+      <Filter>src\Magnefu\Core\MemoryAllocation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\MemoryAllocation\VmaUsage.cpp">
       <Filter>src\Magnefu\Core\MemoryAllocation</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Core\NumGen.cpp">
@@ -1307,6 +1358,9 @@
     <ClCompile Include="src\Magnefu\LayerStack.cpp">
       <Filter>src\Magnefu</Filter>
     </ClCompile>
+    <ClCompile Include="src\Magnefu\Renderer\BindGroup.cpp">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\Magnefu\Renderer\Buffer.cpp">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClCompile>
@@ -1314,6 +1368,12 @@
       <Filter>src\Magnefu\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Renderer\GraphicsContext.cpp">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Renderer\Light.cpp">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Renderer\Material.cpp">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Renderer\RenderCommand.cpp">
@@ -1328,14 +1388,38 @@
     <ClCompile Include="src\Magnefu\Renderer\SceneCamera.cpp">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\Magnefu\Renderer\SceneObject.cpp">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\Magnefu\Renderer\Shader.cpp">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Renderer\Texture.cpp">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\Magnefu\ResourceManagement\Pool.cpp">
+      <Filter>src\Magnefu\ResourceManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\ResourceManagement\ResourceManager.cpp">
+      <Filter>src\Magnefu\ResourceManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\VulkanBindGroup.cpp">
+      <Filter>src\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\VulkanBuffer.cpp">
+      <Filter>src\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\VulkanCommon.cpp">
+      <Filter>src\Platform\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\VulkanContext.cpp">
-      <Filter>src\Platform\VK</Filter>
+      <Filter>src\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\VulkanShader.cpp">
+      <Filter>src\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\VulkanTexture.cpp">
+      <Filter>src\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
       <Filter>src\Platform\Windows</Filter>
@@ -1373,16 +1457,5 @@
     <ClCompile Include="vendor\vulkan\include\glm\detail\glm.cpp">
       <Filter>vendor\vulkan\include\glm\detail</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\ResourceManagement\ResourceManager.cpp" />
-    <ClCompile Include="src\Magnefu\ResourceManagement\Pool.cpp" />
-    <ClCompile Include="src\Platform\Vulkan\VulkanBuffer.cpp" />
-    <ClCompile Include="src\Platform\Vulkan\VulkanCommon.cpp" />
-    <ClCompile Include="src\Platform\Vulkan\VulkanTexture.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\BindGroup.cpp" />
-    <ClCompile Include="src\Platform\Vulkan\VulkanBindGroup.cpp" />
-    <ClCompile Include="src\Platform\Vulkan\VulkanShader.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\Light.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\Material.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\SceneObject.cpp" />
   </ItemGroup>
 </Project>

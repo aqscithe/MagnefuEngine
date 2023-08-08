@@ -32,5 +32,8 @@ namespace Magnefu
 		VkDeviceMemory     m_BufferMemory;
 		static Ref<VkSampler>  s_TextureSampler;
 		static bool s_SamplerCreated;
+
+		VmaAllocation     m_Allocation;
+		VmaAllocationInfo m_AllocInfo;
 	};
 }

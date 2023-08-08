@@ -34,14 +34,19 @@ namespace Magnefu
 
 	VulkanBuffer::~VulkanBuffer()
 	{
-		VkDevice device = VulkanContext::Get().GetDevice();
-		vkDestroyBuffer(device, m_Buffer, nullptr);
-		vkFreeMemory(device, m_BufferMemory, nullptr);
+		// Needs to be done in vulkan context now
+
+		// Also, will need a system that says "hey the data at this offset is not being used
+		// feel free to put a uniform's data here"
+		// Will become more pertinent once I want to add and remove objects at runtime.
+
+		// Perhaps this is what the offset allocator could be used for...
 	}
 
 	void VulkanBuffer::CreateVertexBuffer(const BufferDesc& desc)
 	{
-		VkDevice device = VulkanContext::Get().GetDevice();
+		/*VkDevice device = VulkanContext::Get().GetDevice();
+		VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();*/
 
 		// TODO:
 		// The previous chapter already mentioned that you should allocate multiple resources like 
@@ -54,72 +59,25 @@ namespace Magnefu
 		// refreshed, of course. This is known as aliasing and some Vulkan functions have explicit 
 		 // flags to specify that you want to do this.
 
-		VkDeviceSize bufferSize = desc.ByteSize;
 
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
+		VulkanMemory& vulkanMem = VulkanContext::Get().GetVulkanMemory();
 
-		VulkanCommon::CreateBuffer(
-			bufferSize,
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			stagingBuffer,
-			stagingBufferMemory
-		);
+		m_Buffer = vulkanMem.VBuffer;
+		m_Range = desc.ByteSize;
+		m_Offset = static_cast<VkDeviceSize>(desc.Offset);
 
-
-		void* data;
-		vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-		memcpy(data, desc.InitData.GetData(), (size_t)bufferSize);
-		vkUnmapMemory(device, stagingBufferMemory);
-
-		VulkanCommon::CreateBuffer(
-			bufferSize,
-			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			m_Buffer,
-			m_BufferMemory
-		);
-
-		VulkanCommon::CopyBuffer(stagingBuffer, m_Buffer, bufferSize);
-
-		vkDestroyBuffer(device, stagingBuffer, nullptr);
-		vkFreeMemory(device, stagingBufferMemory, nullptr);
+		
 	}
 
 	void VulkanBuffer::CreateIndexBuffer(const BufferDesc& desc)
 	{
-		VkDevice device = VulkanContext::Get().GetDevice();
+		VulkanMemory& vulkanMem = VulkanContext::Get().GetVulkanMemory();
 
-		VkDeviceSize bufferSize = desc.ByteSize;
+		m_Buffer = vulkanMem.IBuffer;
+		m_Range = desc.ByteSize;
+		m_Offset = static_cast<VkDeviceSize>(desc.Offset);
 
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
-		VulkanCommon::CreateBuffer(
-			bufferSize,
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			stagingBuffer,
-			stagingBufferMemory
-		);
-
-		void* data;
-		vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-		memcpy(data, desc.InitData.GetData(), (size_t)bufferSize);
-		vkUnmapMemory(device, stagingBufferMemory);
-
-		VulkanCommon::CreateBuffer(
-			bufferSize,
-			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			m_Buffer,
-			m_BufferMemory
-		);
-
-		VulkanCommon::CopyBuffer(stagingBuffer, m_Buffer, bufferSize);
-
-		vkDestroyBuffer(device, stagingBuffer, nullptr);
-		vkFreeMemory(device, stagingBufferMemory, nullptr);
+		
 	}
 
 
@@ -127,41 +85,33 @@ namespace Magnefu
 
 	VulkanUniformBuffer::VulkanUniformBuffer(const BufferDesc& desc) : VulkanBuffer(desc)
 	{
+		VulkanMemory& vulkanMem = VulkanContext::Get().GetVulkanMemory();
+
+		m_Buffers = vulkanMem.UniformBuffers;
 		m_UniformType = desc.UniformType;
+		m_Range = desc.ByteSize;
 
-		VkDeviceSize bufferSize = desc.ByteSize;
+		m_Offset = (vulkanMem.UniformOffset + vulkanMem.UniformAlignment - 1) & ~(vulkanMem.UniformAlignment - 1);
 
-		m_Buffers.resize(MAX_FRAMES_IN_FLIGHT);
-		m_BuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-		m_BuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
-
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			VulkanCommon::CreateBuffer(
-				bufferSize,
-				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-				m_Buffers[i],
-				m_BuffersMemory[i]
-			);
-
-			vkMapMemory(VulkanContext::Get().GetDevice(), m_BuffersMemory[i], 0, bufferSize, 0, &m_BuffersMapped[i]);
-		}
+		vulkanMem.UniformOffset = m_Offset + m_Range;
 	}
 
 	VulkanUniformBuffer::~VulkanUniformBuffer()
 	{
-		VkDevice device = VulkanContext::Get().GetDevice();
+		// Needs to be done in vulkan context now
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-		{
-			vkDestroyBuffer(device, m_Buffers[i], nullptr);
-			vkFreeMemory(device, m_BuffersMemory[i], nullptr);
-		}
+		// Also, will need a system that says "hey the data at this offset is not being used
+		// feel free to put a uniform's data here"
+		// Will become more pertinent once I want to add and remove objects at runtime.
+
+		// Perhaps this is what the offset allocator could be used for...
+
 	}
 
 	void VulkanUniformBuffer::UpdateUniformBuffer(const Material& mat)
 	{
 		VulkanContext& context = VulkanContext::Get();
+		VulkanMemory& vulkanMem = context.GetVulkanMemory();
 		VkExtent2D swapChainExtent = context.GetSwapChainExtent();
 
 		Application& app = Application::Get();
@@ -174,7 +124,6 @@ namespace Magnefu
 				camera->SetAspectRatio((float)swapChainExtent.width / (float)swapChainExtent.height);
 				
 				auto& lights = app.GetLightData();
-				//auto& light = app.GetLightData();
 
 				RenderPassUniformBufferObject ubo{};
 				ubo.ViewMatrix = camera->CalculateView();
@@ -189,15 +138,12 @@ namespace Magnefu
 				}
 				ubo.LightCount = lights.size();
 
-				/*ubo.LightColor   = light.LightColor;
-				ubo.MaxLightDist = light.MaxLightDist;
-				ubo.LightPos     = light.LightPos;
-				ubo.LightEnabled = light.LightEnabled;
-				ubo.RadiantFlux  = light.RadiantFlux;
-				ubo.LightCount = 1;*/
 				
-				size_t ubo_size = sizeof(ubo);
-				memcpy(m_BuffersMapped[context.GetCurrentFrame()], &ubo, ubo_size);
+				assert(sizeof(ubo) == m_Range);
+
+				void* data = static_cast<char*>(vulkanMem.UniformBuffersMapped[context.GetCurrentFrame()]) + m_Offset;
+				//memcpy(m_BuffersMapped[context.GetCurrentFrame()], &ubo, ubo_size);
+				memcpy(data, &ubo, m_Range);
 
 				break;
 			}
@@ -216,7 +162,10 @@ namespace Magnefu
 				ubo.Reflectance = mat.Reflectance;
 				ubo.Opacity = mat.Opacity;
 
-				memcpy(m_BuffersMapped[context.GetCurrentFrame()], &ubo, sizeof(ubo));
+				assert(sizeof(ubo) == m_Range);
+				void* data = static_cast<char*>(vulkanMem.UniformBuffersMapped[context.GetCurrentFrame()]) + m_Offset;
+				//memcpy(m_BuffersMapped[context.GetCurrentFrame()], &ubo, sizeof(ubo));
+				memcpy(data, &ubo, m_Range);
 
 				break;
 			}
