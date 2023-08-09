@@ -1284,38 +1284,30 @@ namespace Magnefu
 
 	void VulkanContext::LoadTextures()
 	{
-		Application& app = Application::Get();
-		auto& sceneObjs = app.GetSceneObjects();
+		
+		//auto& sceneObjs = app.GetSceneObjects();
 
 		MF_CORE_ASSERT(
-			sceneObjs.size() == TEXTURE_PATHS.size(), 
+			Application::Get().GetSceneObjects().size() == TEXTURE_PATHS.size(),
 			"Texture path count does not match number of scene objects"
 		); // Will only be relevant as long as each object has a different set of textures.
 
+		std::vector<std::thread> threads;
+		threads.resize(TEXTURE_PATHS.size() * 3); // TODO: Hard coding this is REEEAALLY dangerous. Update ASAP!!
+
 		for (int i = 0; i < TEXTURE_PATHS.size(); i++)  //
 		{
+			//auto& sceneObj = sceneObjs[i];
 			for (int j = 0; j < 3; j++)
 			{
-				int width, height, channels;
-				stbi_set_flip_vertically_on_load(0);
-
-				stbi_uc* pixels = stbi_load(
-					TEXTURE_PATHS[i].Paths[j],
-					&width, &height, &channels,
-					TextureChannels::CHANNELS_RGB_ALPHA // For now all textures have 4 channels
-				);
-
-				if (!pixels)
-					MF_CORE_ASSERT(false, "failed to load texture image!");
-
-				MF_CORE_DEBUG("Width: {0} | Height: {1} | Channels: {2}", width, height, channels);
-
-				DataBlock textureBlock(reinterpret_cast<const uint8_t*>(pixels), width * height * TextureChannels::CHANNELS_RGB_ALPHA);
-				sceneObjs[i].SetTextureBlock(static_cast<TextureType>(j), std::move(textureBlock), width, height, channels);
-				stbi_image_free(pixels); // this seems unnecessary as I have moved pixels into the data block.
+				threads[i * 3 + j] = std::thread(&VulkanContext::LoadSingleTexture, this, i, TEXTURE_PATHS[i].Paths[j], j);
 			}
 			
 		}
+
+		// Join all threads
+		for (auto& t : threads)
+			t.join();
 	}
 
 	void VulkanContext::LoadSingleModel(const char* modelPath, size_t objIndex)
@@ -1465,6 +1457,27 @@ namespace Magnefu
 
 		DataBlock indexBlock(reinterpret_cast<const uint8_t*>(indices.data()), indices.size() * sizeof(uint32_t));
 		app.SetIndexBlock(std::move(indexBlock), objIndex);
+	}
+
+	void VulkanContext::LoadSingleTexture(int sceneObjIndex, const char* texturePath, int textureType)
+	{
+		int width, height, channels;
+		stbi_set_flip_vertically_on_load(0);
+
+		stbi_uc* pixels = stbi_load(
+			texturePath,
+			&width, &height, &channels,
+			TextureChannels::CHANNELS_RGB_ALPHA // For now all textures have 4 channels
+		);
+
+		if (!pixels)
+			MF_CORE_ASSERT(false, "failed to load texture image!");
+
+		MF_CORE_DEBUG("Width: {0} | Height: {1} | Channels: {2}", width, height, channels);
+
+		DataBlock textureBlock(reinterpret_cast<const uint8_t*>(pixels), width * height * TextureChannels::CHANNELS_RGB_ALPHA);
+		Application::Get().GetSceneObjects()[sceneObjIndex].SetTextureBlock(static_cast<TextureType>(textureType), std::move(textureBlock), width, height, channels);
+		stbi_image_free(pixels); // this seems unnecessary as I have moved pixels into the data block.
 	}
 
 	void VulkanContext::CreateComputeUniformBuffers()

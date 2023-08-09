@@ -187,6 +187,7 @@ namespace Magnefu
 
 
 		void LoadSingleModel(const char* modelPath, size_t objIndex);
+		void LoadSingleTexture(int sceneObjIndex, const char* texturePath, int textureType);
 
 
 		// -- Buffers -- //
