@@ -30,7 +30,7 @@ namespace Magnefu
                     TextureType::DIFFUSE,
                     TextureTiling::IMAGE_TILING_OPTIMAL,
                     TextureFormat::FORMAT_R8G8B8A8_SRGB,
-                    TextureChannels::CHANNELS_RGB_ALPHA,
+                    //TextureChannels::CHANNELS_RGB_ALPHA,
                 },
                 .ARM = {
                     "ARMTexture",
@@ -38,7 +38,7 @@ namespace Magnefu
                     TextureType::ARM,
                     TextureTiling::IMAGE_TILING_OPTIMAL,
                     TextureFormat::FORMAT_R8G8B8A8_UNORM,
-                    TextureChannels::CHANNELS_RGB_ALPHA,
+                    //TextureChannels::CHANNELS_RGB_ALPHA,
                 },
                 .Normal = {
                     "NormalTexture",
@@ -46,7 +46,7 @@ namespace Magnefu
                     TextureType::NORMAL,
                     TextureTiling::IMAGE_TILING_OPTIMAL,
                     TextureFormat::FORMAT_R8G8B8A8_UNORM,
-                    TextureChannels::CHANNELS_RGB_ALPHA
+                    //TextureChannels::CHANNELS_RGB_ALPHA
                 }
             },
             .Buffers = MaterialUniformBufferDesc
@@ -116,5 +116,91 @@ namespace Magnefu
             .InitData = m_Indices.span
             });
 	}
+
+    inline TextureDataBlock& SceneObject::GetTextureData(TextureType type)
+    {
+        switch (type)
+        {
+            case Magnefu::NONE:
+            {
+                MF_CORE_ASSERT(false, "Texture type incorrectly set to none - SetTextureBlock");
+                return;
+            }
+            case Magnefu::DIFFUSE:
+            {
+                return m_DiffuseTextureBlock;
+            }
+            case Magnefu::ARM:
+            {
+                return m_ARMTextureBlock;
+            }
+            case Magnefu::NORMAL:
+            {
+                return m_NormalTextureBlock;
+            }
+            /*case Magnefu::EMISSIVE:
+            {
+                break;
+            }
+            case Magnefu::DISPLACEMENT:
+            {
+                break;
+            }*/
+            default:
+            {
+                MF_CORE_ASSERT(false, "Unknown Texture type - SetTextureBlock");
+                return;
+            }
+        }
+    }
+
+    inline void SceneObject::SetTextureBlock(TextureType type, DataBlock&& dataBlock, int width, int height, int channels)
+    {
+        switch (type)
+        {
+            case Magnefu::NONE:
+            {
+                MF_CORE_ASSERT(false, "Texture type incorrectly set to none - SetTextureBlock");
+                break;
+            }
+            case Magnefu::DIFFUSE:
+            {
+                m_DiffuseTextureBlock.Pixels = std::move(dataBlock);
+                m_DiffuseTextureBlock.Dimensions.Width = width;
+                m_DiffuseTextureBlock.Dimensions.Height = height;
+                m_DiffuseTextureBlock.Dimensions.Channels = channels;
+                break;
+            }
+            case Magnefu::ARM:
+            {
+                m_ARMTextureBlock.Pixels = std::move(dataBlock);
+                m_ARMTextureBlock.Dimensions.Width = width;
+                m_ARMTextureBlock.Dimensions.Height = height;
+                m_ARMTextureBlock.Dimensions.Channels = channels;
+                break;
+            }
+            case Magnefu::NORMAL:
+            {
+                m_NormalTextureBlock.Pixels = std::move(dataBlock);
+                m_NormalTextureBlock.Dimensions.Width = width;
+                m_NormalTextureBlock.Dimensions.Height = height;
+                m_NormalTextureBlock.Dimensions.Channels = channels;
+                break;
+            }
+            /*case Magnefu::EMISSIVE:
+            {
+                break;
+            }
+            case Magnefu::DISPLACEMENT:
+            {
+                break;
+            }*/
+            default:
+            {
+                MF_CORE_ASSERT(false, "Unknown Texture type - SetTextureBlock");
+                break;
+            }
+        }
+    }
 }
 

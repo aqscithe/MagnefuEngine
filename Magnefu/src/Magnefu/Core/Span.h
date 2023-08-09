@@ -18,6 +18,7 @@ namespace Magnefu
 
         const std::size_t GetSize() const { return m_Size; }
         const T* GetData() const { return m_Data; }
+        
 
 
     private:

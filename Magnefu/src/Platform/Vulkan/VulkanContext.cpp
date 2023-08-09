@@ -20,8 +20,12 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader/tiny_obj_loader.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image/stb_image.h"
+
 #include <set>
 #include <unordered_map>
+#include <thread>
 
 
 
@@ -222,6 +226,7 @@ namespace Magnefu
 		CreateSwapChain();
 		CreateCommandPool(); 
 		LoadModels();
+		LoadTextures();
 		CreateRenderPass();
 
 		// The Application should tell Context how much memory is needed à la m_GraphicsContext->AllocateResourceMemory(BytesStruct)
@@ -629,7 +634,11 @@ namespace Magnefu
 		vmaMapMemory(m_VmaAllocator, stagingAllocation, &data);
 
 		for (size_t i = 0; i < sceneObjCount; i++)
+		{
 			memcpy(static_cast<char*>(data) + m_VulkanMemory.IBufferOffsets[i], sceneObjs[i].GetIndicesData(), sceneObjs[i].GetIndicesSize());
+			sceneObjs[i].ClearIndexDataBlock();
+		}
+			
 
 		vmaUnmapMemory(m_VmaAllocator, stagingAllocation);
 
@@ -682,7 +691,11 @@ namespace Magnefu
 		vmaMapMemory(m_VmaAllocator, stagingAllocation, &data);
 
 		for (size_t i = 0; i < sceneObjCount; i++)
+		{
 			memcpy(static_cast<char*>(data) + m_VulkanMemory.VBufferOffsets[i], sceneObjs[i].GetVerticesData(), sceneObjs[i].GetVerticesSize());
+			sceneObjs[i].ClearVertexDataBlock();
+		}
+			
 
 		vmaUnmapMemory(m_VmaAllocator, stagingAllocation);
 
@@ -1254,147 +1267,202 @@ namespace Magnefu
 
 	void VulkanContext::LoadModels()
 	{
-		Application& app = Application::Get();
-		app.ResizeSceneObjects(MODEL_PATHS.size());
+		Application::Get().ResizeSceneObjects(MODEL_PATHS.size());
+
+		std::vector<std::thread> threads;
+		threads.resize(MODEL_PATHS.size());  // TODO: I need to do some testing to programmatically determine max number of threads
 
 		for (size_t i = 0; i < MODEL_PATHS.size(); i++)
+			threads[i] = std::thread(&VulkanContext::LoadSingleModel, this, MODEL_PATHS[i], i);
+	
+
+		// Join all threads
+		for (auto& t : threads)
+			t.join();
+		
+	}
+
+	void VulkanContext::LoadTextures()
+	{
+		Application& app = Application::Get();
+		auto& sceneObjs = app.GetSceneObjects();
+
+		MF_CORE_ASSERT(
+			sceneObjs.size() == TEXTURE_PATHS.size(), 
+			"Texture path count does not match number of scene objects"
+		); // Will only be relevant as long as each object has a different set of textures.
+
+		for (size_t i = 0; i < TEXTURE_PATHS.size(); i++)  //
 		{
-			tinyobj::attrib_t attrib;
-			std::vector<tinyobj::shape_t> shapes;
-			std::vector<tinyobj::material_t> materials;
-			std::string warn, err;
-
-			if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_PATHS[i]))
+			for (size_t j = 0; j < 3; j++)
 			{
-				MF_CORE_WARN(warn);
-				MF_CORE_ERROR(err);
+				int width, height, channels;
+				stbi_set_flip_vertically_on_load(0);
+
+				stbi_uc* pixels = stbi_load(
+					TEXTURE_PATHS[i].Paths[j],
+					&width, &height, &channels,
+					TextureChannels::CHANNELS_RGB_ALPHA // For now all textures have 4 channels
+				);
+
+				if (!pixels)
+					MF_CORE_ASSERT(false, "failed to load texture image!");
+
+				DataBlock textureBlock(reinterpret_cast<const uint8_t*>(pixels), width * height * TextureChannels::CHANNELS_RGB_ALPHA);
+				sceneObjs[i].SetTextureBlock(static_cast<TextureType>(j), std::move(textureBlock), width, height, channels);
+				stbi_image_free(pixels); // this seems unnecessary as I have moved pixels into the data block.
 			}
-
-			std::unordered_map<Vertex, uint32_t> uniqueVertices{};
-
-			std::vector<Vertex>    vertices;
-			std::vector<uint32_t>  indices;
-
-			// Note that this code(tangents and bitangents) does not handle mirrored UV sand other special cases, 
-			// and it does not normalize the vectors, which you may want to do depending on how you use them.
-
-			std::vector<std::vector<Maths::vec3>> tempTangents(attrib.vertices.size() / 3);
-			std::vector<std::vector<Maths::vec3>> tempBitangents(attrib.vertices.size() / 3);
-
-
-			for (const auto& shape : shapes)
-			{
-				for (size_t i = 0; i < shape.mesh.indices.size(); i += 3)
-				{
-					tinyobj::index_t idx1 = shape.mesh.indices[i];
-					tinyobj::index_t idx2 = shape.mesh.indices[i + 1];
-					tinyobj::index_t idx3 = shape.mesh.indices[i + 2];
-
-					// Grab the three vertices of the current face
-					Maths::vec3 pos1 = Maths::vec3(&attrib.vertices[3 * idx1.vertex_index]);
-					Maths::vec3 pos2 = Maths::vec3(&attrib.vertices[3 * idx2.vertex_index]);
-					Maths::vec3 pos3 = Maths::vec3(&attrib.vertices[3 * idx3.vertex_index]);
-
-					// Same for the texture coordinates
-					Maths::vec2 uv1 = Maths::vec2(&attrib.texcoords[2 * idx1.texcoord_index]);
-					Maths::vec2 uv2 = Maths::vec2(&attrib.texcoords[2 * idx2.texcoord_index]);
-					Maths::vec2 uv3 = Maths::vec2(&attrib.texcoords[2 * idx3.texcoord_index]);
-
-					// Edges of the triangle in position and texture space
-					Maths::vec3 deltaPos1 = pos2 - pos1;
-					Maths::vec3 deltaPos2 = pos3 - pos1;
-					Maths::vec2 deltaUV1 = uv2 - uv1;
-					Maths::vec2 deltaUV2 = uv3 - uv1;
-
-					// This will give us a direction vector pointing in the direction of positive s for this triangle.
-					// It calculates how much each vertex position needs to be adjusted in space to match how it was proportionally stretched when the texture was mapped.
-					float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
-					Maths::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
-					Maths::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
-
-					// Store the tangents and bitangents in the temporary vectors
-					tempTangents[idx1.vertex_index].push_back(tangent);
-					tempBitangents[idx1.vertex_index].push_back(bitangent);
-					tempTangents[idx2.vertex_index].push_back(tangent);
-					tempBitangents[idx2.vertex_index].push_back(bitangent);
-					tempTangents[idx3.vertex_index].push_back(tangent);
-					tempBitangents[idx3.vertex_index].push_back(bitangent);
-				}
-
-				for (const auto& index : shape.mesh.indices)
-				{
-
-					Vertex vertex{};
-
-					vertex.pos = {
-						attrib.vertices[3 * index.vertex_index + 0],
-						attrib.vertices[3 * index.vertex_index + 1],
-						attrib.vertices[3 * index.vertex_index + 2]
-					};
-
-					vertex.texCoord = {
-						attrib.texcoords[2 * index.texcoord_index + 0],
-						1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
-					};
-
-					vertex.color = { 1.0f, 1.0f, 1.0f };
-
-					vertex.normal = {
-						attrib.normals[3 * index.normal_index + 0],
-						attrib.normals[3 * index.normal_index + 1],
-						attrib.normals[3 * index.normal_index + 2]
-					};
-
-					vertex.tangent = Maths::normalize(std::accumulate(tempTangents[index.vertex_index].begin(), tempTangents[index.vertex_index].end(), Maths::vec3(0.0f)));
-					vertex.bitangent = Maths::normalize(std::accumulate(tempBitangents[index.vertex_index].begin(), tempBitangents[index.vertex_index].end(), Maths::vec3(0.0f)));
-
-
-					if (uniqueVertices.count(vertex) == 0)
-					{
-						uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
-						vertices.push_back(vertex);
-					}
-
-					indices.push_back(uniqueVertices[vertex]);
-				}
-			}
-
-			{
-				size_t bufferSize = vertices.size() * sizeof(Vertex); // Buffer size
-				constexpr size_t alignment = 32; // Alignment requirement
-
-				// Allocate extra memory to accommodate alignment
-				Scope<char[]> vertexData(new char[bufferSize + alignment]);
-				void* ptr = vertexData.get();
-				size_t space = bufferSize + alignment;
-
-				void* alignedPtr = std::align(alignment, bufferSize, ptr, space);
-
-
-				if (alignedPtr != nullptr)
-				{
-					// Copy the vertex data to the aligned memory
-					std::memcpy(alignedPtr, vertices.data(), bufferSize);
-
-					// Create the Span from the aligned memory
-					//Span<const uint8_t> vertexDataSpan(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
-					DataBlock vertexBlock(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
-
-					// Now you can set InitData in BufferDesc with vertexDataSpan
-					// Note: Make sure original is not destroyed until you're done with vertexDataSpan
-					//app.SetVertices(std::move(vertexDataSpan));
-					//app.SetVertexData(std::move(vertexData));
-					app.SetVertexBlock(std::move(vertexBlock), i);
-				}
-				else
-				{
-					MF_CORE_ASSERT(false, "Failed to properly align data.");
-				}
-			}
-
-			DataBlock indexBlock(reinterpret_cast<const uint8_t*>(indices.data()), indices.size() * sizeof(uint32_t));
-			app.SetIndexBlock(std::move(indexBlock), i);
+			
 		}
+	}
+
+	void VulkanContext::LoadSingleModel(const char* modelPath, size_t objIndex)
+	{
+		Application& app = Application::Get();
+
+		tinyobj::attrib_t attrib;
+		std::vector<tinyobj::shape_t> shapes;
+		std::vector<tinyobj::material_t> materials;
+		std::string warn, err;
+
+		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, modelPath))
+		{
+			MF_CORE_WARN(warn);
+			MF_CORE_ERROR(err);
+		}
+
+		MF_CORE_DEBUG(
+			"Loaded model: Vertices {0} | Normals {1} | TexCoords {2} | Shapes {3}", 
+			attrib.vertices.size(), 
+			attrib.normals.size(), 
+			attrib.texcoords.size(), 
+			shapes.size()
+		);
+
+		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+
+		std::vector<Vertex>    vertices;
+		std::vector<uint32_t>  indices;
+
+		// Note that this code(tangents and bitangents) does not handle mirrored UV sand other special cases, 
+		// and it does not normalize the vectors, which you may want to do depending on how you use them.
+
+		std::vector<std::vector<Maths::vec3>> tempTangents(attrib.vertices.size() / 3);
+		std::vector<std::vector<Maths::vec3>> tempBitangents(attrib.vertices.size() / 3);
+
+
+		for (const auto& shape : shapes)
+		{
+			for (size_t i = 0; i < shape.mesh.indices.size(); i += 3)
+			{
+				tinyobj::index_t idx1 = shape.mesh.indices[i];
+				tinyobj::index_t idx2 = shape.mesh.indices[i + 1];
+				tinyobj::index_t idx3 = shape.mesh.indices[i + 2];
+
+				// Grab the three vertices of the current face
+				Maths::vec3 pos1 = Maths::vec3(&attrib.vertices[3 * idx1.vertex_index]);
+				Maths::vec3 pos2 = Maths::vec3(&attrib.vertices[3 * idx2.vertex_index]);
+				Maths::vec3 pos3 = Maths::vec3(&attrib.vertices[3 * idx3.vertex_index]);
+
+				// Same for the texture coordinates
+				Maths::vec2 uv1 = Maths::vec2(&attrib.texcoords[2 * idx1.texcoord_index]);
+				Maths::vec2 uv2 = Maths::vec2(&attrib.texcoords[2 * idx2.texcoord_index]);
+				Maths::vec2 uv3 = Maths::vec2(&attrib.texcoords[2 * idx3.texcoord_index]);
+
+				// Edges of the triangle in position and texture space
+				Maths::vec3 deltaPos1 = pos2 - pos1;
+				Maths::vec3 deltaPos2 = pos3 - pos1;
+				Maths::vec2 deltaUV1 = uv2 - uv1;
+				Maths::vec2 deltaUV2 = uv3 - uv1;
+
+				// This will give us a direction vector pointing in the direction of positive s for this triangle.
+				// It calculates how much each vertex position needs to be adjusted in space to match how it was proportionally stretched when the texture was mapped.
+				float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+				Maths::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
+				Maths::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
+
+				// Store the tangents and bitangents in the temporary vectors
+				tempTangents[idx1.vertex_index].push_back(tangent);
+				tempBitangents[idx1.vertex_index].push_back(bitangent);
+				tempTangents[idx2.vertex_index].push_back(tangent);
+				tempBitangents[idx2.vertex_index].push_back(bitangent);
+				tempTangents[idx3.vertex_index].push_back(tangent);
+				tempBitangents[idx3.vertex_index].push_back(bitangent);
+			}
+
+			for (const auto& index : shape.mesh.indices)
+			{
+
+				Vertex vertex{};
+
+				vertex.pos = {
+					attrib.vertices[3 * index.vertex_index + 0],
+					attrib.vertices[3 * index.vertex_index + 1],
+					attrib.vertices[3 * index.vertex_index + 2]
+				};
+
+				vertex.texCoord = {
+					attrib.texcoords[2 * index.texcoord_index + 0],
+					1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
+				};
+
+				vertex.color = { 1.0f, 1.0f, 1.0f };
+
+				vertex.normal = {
+					attrib.normals[3 * index.normal_index + 0],
+					attrib.normals[3 * index.normal_index + 1],
+					attrib.normals[3 * index.normal_index + 2]
+				};
+
+				vertex.tangent = Maths::normalize(std::accumulate(tempTangents[index.vertex_index].begin(), tempTangents[index.vertex_index].end(), Maths::vec3(0.0f)));
+				vertex.bitangent = Maths::normalize(std::accumulate(tempBitangents[index.vertex_index].begin(), tempBitangents[index.vertex_index].end(), Maths::vec3(0.0f)));
+
+
+				if (uniqueVertices.count(vertex) == 0)
+				{
+					uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
+					vertices.push_back(vertex);
+				}
+
+				indices.push_back(uniqueVertices[vertex]);
+			}
+		}
+
+		{
+			size_t bufferSize = vertices.size() * sizeof(Vertex); // Buffer size
+			constexpr size_t alignment = 32; // Alignment requirement
+
+			// Allocate extra memory to accommodate alignment
+			Scope<char[]> vertexData(new char[bufferSize + alignment]);
+			void* ptr = vertexData.get();
+			size_t space = bufferSize + alignment;
+
+			void* alignedPtr = std::align(alignment, bufferSize, ptr, space);
+
+
+			if (alignedPtr != nullptr)
+			{
+				// Copy the vertex data to the aligned memory
+				std::memcpy(alignedPtr, vertices.data(), bufferSize);
+
+				// Create the Span from the aligned memory
+				//Span<const uint8_t> vertexDataSpan(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
+				DataBlock vertexBlock(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
+
+				// Now you can set InitData in BufferDesc with vertexDataSpan
+				// Note: Make sure original is not destroyed until you're done with vertexDataSpan
+				//app.SetVertices(std::move(vertexDataSpan));
+				//app.SetVertexData(std::move(vertexData));
+				app.SetVertexBlock(std::move(vertexBlock), objIndex);
+			}
+			else
+			{
+				MF_CORE_ASSERT(false, "Failed to properly align data.");
+			}
+		}
+
+		DataBlock indexBlock(reinterpret_cast<const uint8_t*>(indices.data()), indices.size() * sizeof(uint32_t));
+		app.SetIndexBlock(std::move(indexBlock), objIndex);
 	}
 
 	void VulkanContext::CreateComputeUniformBuffers()
@@ -1589,6 +1657,8 @@ namespace Magnefu
 		}
 		
 	}
+
+	
 
 	std::vector<const char*> VulkanContext::GetRequiredExtensions()
 	{

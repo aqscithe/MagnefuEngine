@@ -25,16 +25,21 @@ namespace Magnefu
 		inline const size_t GetIndicesSize() { return m_Indices.span.GetSize(); }
 		inline const uint8_t* GetVerticesData() { return m_Vertices.span.GetData(); }
 		inline const uint8_t* GetIndicesData() { return m_Indices.span.GetData(); }
+		inline TextureDataBlock& GetTextureData(TextureType type);
 
 		inline Material& GetMaterialData() { return m_MaterialData; }
 
 		inline void SetVertexBlock(DataBlock&& vertexBlock) { m_Vertices = std::move(vertexBlock); }
 		inline void SetIndexBlock(DataBlock&& indexBlock) { m_Indices = std::move(indexBlock); m_IndexCount = static_cast<uint32_t>(m_Indices.data.size()) / sizeof(uint32_t); }
 
+		inline void SetTextureBlock(TextureType type, DataBlock&& dataBlock, int width, int height, int channels);
+
 		inline void SetMaterialData(Material& materialData) { m_MaterialData = materialData; }
 
-		//void UpdateUniformBuffer();
-		DataBlock         m_Vertices;
+		inline void ClearIndexDataBlock() { m_Indices.data.clear(); }
+		inline void ClearVertexDataBlock() { m_Vertices.data.clear(); }
+
+		
 
 	private:
 		Handle<BindGroup> m_Material;
@@ -42,10 +47,16 @@ namespace Magnefu
 		Handle<Buffer>    m_IndexBuffer;
 		Handle<Shader>    m_GraphicsPipelineShader;
 		
+		DataBlock         m_Vertices;
 		DataBlock         m_Indices;
-		uint32_t          m_IndexCount;
+		uint32_t          m_IndexCount;         
 
 		Material m_MaterialData;
+
+
+		TextureDataBlock    m_DiffuseTextureBlock;
+		TextureDataBlock    m_ARMTextureBlock;
+		TextureDataBlock    m_NormalTextureBlock;
 
 	};
 }

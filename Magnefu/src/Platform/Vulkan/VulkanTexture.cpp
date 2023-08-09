@@ -1,6 +1,7 @@
 #include "mfpch.h"
 #include "VulkanTexture.h"
 #include "VulkanContext.h"
+#include "Magnefu/Application.h"
 #include "Magnefu/ResourceManagement/ResourcePaths.h"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -63,9 +64,8 @@ namespace Magnefu
 	void VulkanTexture::CreateTextureImage(const TextureDesc& desc)
 	{
 
-		VkDevice device = VulkanContext::Get().GetDevice();
 		
-		int width, height, channels;
+		/*int width, height, channels;
 		stbi_set_flip_vertically_on_load(0);
 
 		
@@ -76,11 +76,16 @@ namespace Magnefu
 		);
 
 		if (!pixels)
-			MF_CORE_ASSERT(false, "failed to load texture image!");
+			MF_CORE_ASSERT(false, "failed to load texture image!");*/
+
+		auto& sceneObj = Application::Get().GetSceneObjects()[desc.Index];
+
+		TextureDataBlock& texture = sceneObj.GetTextureData(desc.Type);
+		
 
 		m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
 
-		MF_CORE_DEBUG("Mip Levels: {0} | Width: {1} | Height: {2} | Channels: {3} | Requested Channels: {4}", m_MipLevels, width, height, channels, desc.RequestedChannels);
+		MF_CORE_DEBUG("Mip Levels: {0} | Width: {1} | Height: {2} | Channels: {3}", m_MipLevels, width, height, channels);
 
 		VkDeviceSize imageSize = width * height * desc.RequestedChannels;
 
@@ -108,7 +113,7 @@ namespace Magnefu
 
 		vmaUnmapMemory(allocator, stagingAllocation);
 
-		stbi_image_free(pixels);
+		//stbi_image_free(pixels);
 
 		VulkanCommon::CreateImage(
 			static_cast<uint32_t>(width),
