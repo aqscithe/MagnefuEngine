@@ -25,19 +25,19 @@ namespace Magnefu
 		inline const size_t GetIndicesSize() { return m_Indices.span.GetSize(); }
 		inline const uint8_t* GetVerticesData() { return m_Vertices.span.GetData(); }
 		inline const uint8_t* GetIndicesData() { return m_Indices.span.GetData(); }
-		inline TextureDataBlock& GetTextureData(TextureType type);
+		TextureDataBlock& GetTextureData(TextureType type);
 
 		inline Material& GetMaterialData() { return m_MaterialData; }
 
 		inline void SetVertexBlock(DataBlock&& vertexBlock) { m_Vertices = std::move(vertexBlock); }
 		inline void SetIndexBlock(DataBlock&& indexBlock) { m_Indices = std::move(indexBlock); m_IndexCount = static_cast<uint32_t>(m_Indices.data.size()) / sizeof(uint32_t); }
 
-		inline void SetTextureBlock(TextureType type, DataBlock&& dataBlock, int width, int height, int channels);
+		void SetTextureBlock(TextureType type, DataBlock&& dataBlock, int width, int height, int channels);
 
 		inline void SetMaterialData(Material& materialData) { m_MaterialData = materialData; }
 
-		inline void ClearIndexDataBlock() { m_Indices.data.clear(); }
-		inline void ClearVertexDataBlock() { m_Vertices.data.clear(); }
+		inline void ClearIndexDataBlock() { m_Indices.data.clear(); m_Indices.data.shrink_to_fit(); }
+		inline void ClearVertexDataBlock() { m_Vertices.data.clear(); m_Vertices.data.shrink_to_fit(); }
 
 		
 

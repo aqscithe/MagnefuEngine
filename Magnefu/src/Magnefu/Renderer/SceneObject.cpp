@@ -117,15 +117,15 @@ namespace Magnefu
             });
 	}
 
-    inline TextureDataBlock& SceneObject::GetTextureData(TextureType type)
+    TextureDataBlock& SceneObject::GetTextureData(TextureType type)
     {
         switch (type)
         {
-            case Magnefu::NONE:
+            /*case Magnefu::NONE:
             {
                 MF_CORE_ASSERT(false, "Texture type incorrectly set to none - SetTextureBlock");
                 return;
-            }
+            }*/
             case Magnefu::DIFFUSE:
             {
                 return m_DiffuseTextureBlock;
@@ -146,15 +146,15 @@ namespace Magnefu
             {
                 break;
             }*/
-            default:
+            /*default:
             {
                 MF_CORE_ASSERT(false, "Unknown Texture type - SetTextureBlock");
-                return;
-            }
+                break;
+            }*/
         }
     }
 
-    inline void SceneObject::SetTextureBlock(TextureType type, DataBlock&& dataBlock, int width, int height, int channels)
+    void SceneObject::SetTextureBlock(TextureType type, DataBlock&& dataBlock, int width, int height, int channels)
     {
         switch (type)
         {

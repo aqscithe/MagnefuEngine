@@ -1292,9 +1292,9 @@ namespace Magnefu
 			"Texture path count does not match number of scene objects"
 		); // Will only be relevant as long as each object has a different set of textures.
 
-		for (size_t i = 0; i < TEXTURE_PATHS.size(); i++)  //
+		for (int i = 0; i < TEXTURE_PATHS.size(); i++)  //
 		{
-			for (size_t j = 0; j < 3; j++)
+			for (int j = 0; j < 3; j++)
 			{
 				int width, height, channels;
 				stbi_set_flip_vertically_on_load(0);
@@ -1307,6 +1307,8 @@ namespace Magnefu
 
 				if (!pixels)
 					MF_CORE_ASSERT(false, "failed to load texture image!");
+
+				MF_CORE_DEBUG("Width: {0} | Height: {1} | Channels: {2}", width, height, channels);
 
 				DataBlock textureBlock(reinterpret_cast<const uint8_t*>(pixels), width * height * TextureChannels::CHANNELS_RGB_ALPHA);
 				sceneObjs[i].SetTextureBlock(static_cast<TextureType>(j), std::move(textureBlock), width, height, channels);

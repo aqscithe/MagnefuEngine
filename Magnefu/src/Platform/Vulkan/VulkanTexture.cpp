@@ -4,8 +4,8 @@
 #include "Magnefu/Application.h"
 #include "Magnefu/ResourceManagement/ResourcePaths.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image/stb_image.h"
+//#define STB_IMAGE_IMPLEMENTATION
+//#include "stb_image/stb_image.h"
 
 
 namespace Magnefu
@@ -83,11 +83,11 @@ namespace Magnefu
 		TextureDataBlock& texture = sceneObj.GetTextureData(desc.Type);
 		
 
-		m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
+		m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texture.Dimensions.Width, texture.Dimensions.Height)))) + 1;
 
-		MF_CORE_DEBUG("Mip Levels: {0} | Width: {1} | Height: {2} | Channels: {3}", m_MipLevels, width, height, channels);
+		MF_CORE_DEBUG("Mip Levels: {}", m_MipLevels);
 
-		VkDeviceSize imageSize = width * height * desc.RequestedChannels;
+		VkDeviceSize imageSize = texture.Pixels.span.GetSize();
 
 		VkBuffer stagingBuffer;
 		VmaAllocation stagingAllocation;
@@ -109,15 +109,15 @@ namespace Magnefu
 		void* data;
 		vmaMapMemory(allocator, stagingAllocation, &data);
 
-		memcpy(data, pixels, static_cast<size_t>(imageSize));
+		memcpy(data, texture.Pixels.span.GetData(), static_cast<size_t>(imageSize));
 
 		vmaUnmapMemory(allocator, stagingAllocation);
 
 		//stbi_image_free(pixels);
 
 		VulkanCommon::CreateImage(
-			static_cast<uint32_t>(width),
-			static_cast<uint32_t>(height),
+			static_cast<uint32_t>(texture.Dimensions.Width),
+			static_cast<uint32_t>(texture.Dimensions.Height),
 			m_MipLevels,
 			VK_SAMPLE_COUNT_1_BIT,
 			static_cast<VkFormat>(desc.Format),
@@ -134,10 +134,13 @@ namespace Magnefu
 		);
 
 		TransitionImageLayout(m_Image, static_cast<VkFormat>(desc.Format), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_MipLevels);
-		VulkanCommon::CopyBufferToImage(stagingBuffer, m_Image, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
-		GenerateMipmaps(m_Image, static_cast<VkFormat>(desc.Format), width, height, m_MipLevels);
+		VulkanCommon::CopyBufferToImage(stagingBuffer, m_Image, static_cast<uint32_t>(texture.Dimensions.Width), static_cast<uint32_t>(texture.Dimensions.Height));
+		GenerateMipmaps(m_Image, static_cast<VkFormat>(desc.Format), texture.Dimensions.Width, texture.Dimensions.Height, m_MipLevels);
 
 		vmaDestroyBuffer(allocator, stagingBuffer, stagingAllocation);
+
+		texture.Pixels.data.clear();
+		texture.Pixels.data.shrink_to_fit();
 	}
 
 	void VulkanTexture::CreateTextureImageView(const TextureDesc& desc)

@@ -43,6 +43,7 @@ namespace Magnefu
         }
 
 
+
         std::vector<uint8_t> data;
         Span<const uint8_t> span;
 
