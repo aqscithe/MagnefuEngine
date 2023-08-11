@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Magnefu/Core/Span.h"
+
 #include "glm/glm.hpp"
 #include "glm/gtx/hash.hpp"
 
@@ -39,19 +41,18 @@ namespace Magnefu
 		CHANNELS_RGB_ALPHA = 4
 	};
 
-	enum TextureOptions 
-	{
-		TextureOptions_None = 0,
-		TextureOptions_Skybox = BIT(0),
-		TextureOptions_All = 1
-	};
-
-
 	struct TextureDimensions
 	{
 		int Width;
 		int Height;
 		int Channels;
+	};
+
+	struct TextureDataBlock
+	{
+		DataBlock Pixels;
+		TextureDimensions Dimensions;
+		//TextureChannels RequestedChannels;
 	};
 
 	struct TextureDesc
@@ -61,8 +62,6 @@ namespace Magnefu
 		TextureType         Type = TextureType::NONE;
 		TextureTiling       Tiling = TextureTiling::IMAGE_TILING_NONE;
 		TextureFormat       Format = TextureFormat::FORMAT_NONE;
-		TextureChannels     RequestedChannels = TextureChannels::CHANNELS_DEFAULT;
-		//Span<const uint8_t> InitData;
 	};
 
 
@@ -73,7 +72,7 @@ namespace Magnefu
 		TextureType::DIFFUSE,
 		TextureTiling::IMAGE_TILING_OPTIMAL,
 		TextureFormat::FORMAT_R8G8B8A8_SRGB,
-		TextureChannels::CHANNELS_RGB_ALPHA,
+		//TextureChannels::CHANNELS_RGB_ALPHA,
 	};
 
 	const TextureDesc ARMTextureDesc = {
@@ -82,7 +81,7 @@ namespace Magnefu
 		TextureType::ARM,
 		TextureTiling::IMAGE_TILING_OPTIMAL,
 		TextureFormat::FORMAT_R8G8B8A8_UNORM,
-		TextureChannels::CHANNELS_RGB_ALPHA,
+		//TextureChannels::CHANNELS_RGB_ALPHA,
 	};
 
 	const TextureDesc NormalTextureDesc = {
@@ -91,7 +90,7 @@ namespace Magnefu
 		TextureType::NORMAL,
 		TextureTiling::IMAGE_TILING_OPTIMAL,
 		TextureFormat::FORMAT_R8G8B8A8_UNORM,
-		TextureChannels::CHANNELS_RGB_ALPHA
+		//TextureChannels::CHANNELS_RGB_ALPHA
 	};
 
 

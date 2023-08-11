@@ -176,6 +176,7 @@ namespace Magnefu
 		void CreateColorResources();
 		void CreateDepthResources();
 		void LoadModels();
+		void LoadTextures();
 
 		void CreateComputeUniformBuffers();
 		void CreateComputeDescriptorPool();
@@ -183,6 +184,10 @@ namespace Magnefu
 		void CreateCommandBuffers();
 		void CreateComputeCommandBuffers();
 		void CreateSyncObjects();
+
+
+		void LoadSingleModel(const char* modelPath, size_t objIndex);
+		void LoadSingleTexture(int sceneObjIndex, const char* texturePath, int textureType);
 
 
 		// -- Buffers -- //
