@@ -1476,27 +1476,19 @@ namespace Magnefu
 	void VulkanContext::LoadSingleTexture(int sceneObjIndex, const char* texturePath, int textureType)
 	{
 		
-
 		int width, height, channels;
 
-		unsigned char* soilPixelsTest = SOIL_load_image(texturePath, &width, &height, &channels, TextureChannels::CHANNELS_RGB_ALPHA);
+		unsigned char* pixels = SOIL_load_image(texturePath, &width, &height, &channels, TextureChannels::CHANNELS_RGB_ALPHA);
 
-		//stbi_set_flip_vertically_on_load(0);
 
-		//stbi_uc* pixels = stbi_load(
-		//	texturePath,
-		//	&width, &height, &channels,
-		//	TextureChannels::CHANNELS_RGB_ALPHA // For now all textures have 4 channels
-		//);
+		if (!pixels)
+			MF_CORE_ASSERT(false, "failed to load texture image!");
 
-		//if (!pixels)
-		//	MF_CORE_ASSERT(false, "failed to load texture image!");
+		MF_CORE_DEBUG("Width: {0} | Height: {1} | Channels: {2}", width, height, channels);
 
-		//MF_CORE_DEBUG("Width: {0} | Height: {1} | Channels: {2}", width, height, channels);
-
-		//DataBlock textureBlock(reinterpret_cast<const uint8_t*>(pixels), width * height * TextureChannels::CHANNELS_RGB_ALPHA);
-		//Application::Get().GetSceneObjects()[sceneObjIndex].SetTextureBlock(static_cast<TextureType>(textureType), std::move(textureBlock), width, height, channels);
-		//stbi_image_free(pixels); // this seems unnecessary as I have moved pixels into the data block.
+		DataBlock textureBlock(reinterpret_cast<const uint8_t*>(pixels), width * height * TextureChannels::CHANNELS_RGB_ALPHA);
+		Application::Get().GetSceneObjects()[sceneObjIndex].SetTextureBlock(static_cast<TextureType>(textureType), std::move(textureBlock), width, height, channels);
+		SOIL_free_image_data(pixels); // this seems unnecessary as I have moved pixels into the data block.
 	}
 
 	void VulkanContext::CreateComputeUniformBuffers()
