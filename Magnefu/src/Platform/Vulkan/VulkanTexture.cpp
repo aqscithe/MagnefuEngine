@@ -134,11 +134,12 @@ namespace Magnefu
 		);
 
 		TransitionImageLayout(m_Image, static_cast<VkFormat>(desc.Format), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_MipLevels);
-		VulkanCommon::CopyBufferToImage(stagingBuffer, m_Image, static_cast<uint32_t>(texture.Dimensions.Width), static_cast<uint32_t>(texture.Dimensions.Height));
+		VulkanCommon::CopyBufferToImage(stagingBuffer, m_Image, static_cast<uint32_t>(texture.Dimensions.Width), static_cast<uint32_t>(texture.Dimensions.Height), VK_NULL_HANDLE);
 		GenerateMipmaps(m_Image, static_cast<VkFormat>(desc.Format), texture.Dimensions.Width, texture.Dimensions.Height, m_MipLevels);
 
 		vmaDestroyBuffer(allocator, stagingBuffer, stagingAllocation);
 
+		// Freeing the texture memory host-side from sceneObject
 		texture.Pixels.data.clear();
 		texture.Pixels.data.shrink_to_fit();
 	}
@@ -187,7 +188,7 @@ namespace Magnefu
 
 	void VulkanTexture::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels)
 	{
-		VkCommandBuffer commandBuffer = VulkanCommon::BeginSingleTimeCommands();
+		VkCommandBuffer commandBuffer = VulkanCommon::BeginSingleTimeCommands(VK_NULL_HANDLE);
 
 		VkImageMemoryBarrier barrier{};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -237,7 +238,7 @@ namespace Magnefu
 			1, &barrier
 		);
 
-		VulkanCommon::EndSingleTimeCommands(commandBuffer);
+		VulkanCommon::EndSingleTimeCommands(commandBuffer, VK_NULL_HANDLE);
 	}
 
 
@@ -253,7 +254,7 @@ namespace Magnefu
 			throw std::runtime_error("texture image format does not support linear blitting!");
 		}
 
-		VkCommandBuffer commandBuffer = VulkanCommon::BeginSingleTimeCommands();
+		VkCommandBuffer commandBuffer = VulkanCommon::BeginSingleTimeCommands(VK_NULL_HANDLE);
 
 		VkImageMemoryBarrier barrier{};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -332,7 +333,7 @@ namespace Magnefu
 			0, nullptr,
 			1, &barrier);
 
-		VulkanCommon::EndSingleTimeCommands(commandBuffer);
+		VulkanCommon::EndSingleTimeCommands(commandBuffer, VK_NULL_HANDLE);
 	}
 
 }

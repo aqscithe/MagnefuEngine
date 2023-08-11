@@ -35,19 +35,6 @@ layout(set = 0, binding = 0) uniform RenderPassGlobalsUBO
 
 } globals_ubo;
 
-//layout(set = 0, binding = 0) uniform RenderPassGlobalsUBO
-//{
-//    mat4 View;
-//    mat4 Proj;
-//    vec3 CameraPos;
-//    vec3 LightPos;
-//    vec3 LightColor;
-//    float MaxLightDist;
-//    float RadiantFlux;
-//    int LightEnabled;
-//    int LightCount;
-//} globals_ubo;
-
 // -- Set 1 -- //
 layout(set = 1, binding = 0) uniform MaterialUBO
 {
@@ -99,6 +86,7 @@ void main()
 #shader fragment
 #version 460 core
 
+
 const float PI = 3.1415926535897932384626;
 const int MAX_LIGHTS = 3;
 
@@ -115,6 +103,8 @@ struct Light
     int LightEnabled;
     int padding3;
 };
+
+
 
 // -- Push Constants -- //
 //layout(push_constant) uniform PushConstants
@@ -135,18 +125,6 @@ layout(set = 0, binding = 0) uniform RenderPassGlobalsUBO
 
 } globals_ubo;
 
-//layout(set = 0, binding = 0) uniform RenderPassGlobalsUBO
-//{
-//    mat4 View;
-//    mat4 Proj;
-//    vec3 CameraPos;
-//    vec3 LightPos;
-//    vec3 LightColor;
-//    float MaxLightDist;
-//    float RadiantFlux;
-//    int LightEnabled;
-//    int LightCount;
-//} globals_ubo;
 
 // TODO: 
     /*
@@ -208,12 +186,11 @@ float G_Smith(float roughness, float NoL, float NoV)
 
 void main()
 {
+    
     vec3 BRDF = vec3(0.0);
     vec3 BaseColor = vec3(texture(DiffuseSampler, TexCoord));
     vec3 ARM = texture(ARMSampler, TexCoord).rgb;
 
-    //OutColor = vec4(BaseColor, 1.0);
-    //return;
 
     float AO = ARM.r;
     float Roughness = ARM.g;
@@ -223,22 +200,6 @@ void main()
     {
         if (globals_ubo.Lights[i].LightEnabled == 1)
         {
-            /*if (i == 0)
-            {
-                BRDF += vec3(1.0, 0.0, 0.0);
-                continue;
-            }
-            else if (i == 1)
-            {
-                BRDF += vec3(0.0, 1.0, 0.0);
-                continue;
-            }
-            else if (i == 2)
-            {
-                BRDF += vec3(0.0, 0.0, 1.0);
-                continue;
-            }
-            continue;*/
 
             // Sample Normal Map
             vec3 Normal = texture(NormalSampler, TexCoord).rgb;
@@ -318,11 +279,6 @@ void main()
             float NdotL = max(NormDotLight, 0.0);
             BRDF += (Kd * BaseColor / PI + spec) * Radiance * NdotL;
         }
-        /*else
-        {
-            OutColor = vec4(BaseColor, 1.0);
-            return;
-        }*/
     }
 
     vec3 color = BRDF * AO;

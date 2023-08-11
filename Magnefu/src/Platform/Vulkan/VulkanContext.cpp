@@ -20,8 +20,10 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader/tiny_obj_loader.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image/stb_image.h"
+//#define STB_IMAGE_IMPLEMENTATION
+//#include "stb_image/stb_image.h"
+
+#include "SOIL2/SOIL2.h"
 
 #include <set>
 #include <unordered_map>
@@ -232,7 +234,9 @@ namespace Magnefu
 		// The Application should tell Context how much memory is needed à la m_GraphicsContext->AllocateResourceMemory(BytesStruct)
 		// For now, I will explicitly state within the function what is needed.
 		CreateVmaAllocator();
-		AllocateBufferMemory();
+
+		std::thread& bufferThread = Application::Get().GetBufferThread();
+		bufferThread = std::thread(&VulkanContext::AllocateBufferMemory, this);
 
 	}
 
@@ -594,13 +598,23 @@ namespace Magnefu
 		auto sceneObjs = app.GetSceneObjects();
 		uint32_t sceneObjCount = sceneObjs.size();
 
+		VkCommandPool commandPool;
+
+		VkCommandPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+		poolInfo.queueFamilyIndex = m_QueueFamilyIndices.GraphicsFamily.value();
+
+		if (vkCreateCommandPool(m_VkDevice, &poolInfo, s_Allocs, &commandPool) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "failed to create command pool!");
+
 
 		AllocateUniformBuffers(sceneObjCount);
-		AllocateVertexBuffers(sceneObjCount, sceneObjs);
-		AllocateIndexBuffers(sceneObjCount, sceneObjs);
+		AllocateVertexBuffers(sceneObjCount, sceneObjs, commandPool);
+		AllocateIndexBuffers(sceneObjCount, sceneObjs, commandPool);
 	}
 
-	void VulkanContext::AllocateIndexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs)
+	void VulkanContext::AllocateIndexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool)
 	{
 		VkDeviceSize totalSize = 0;
 		VkDeviceSize size = 0;
@@ -652,12 +666,12 @@ namespace Magnefu
 			m_VulkanMemory.IBufferAllocInfo
 		);
 
-		VulkanCommon::CopyBuffer(stagingBuffer, m_VulkanMemory.IBuffer, totalSize);
+		VulkanCommon::CopyBuffer(stagingBuffer, m_VulkanMemory.IBuffer, totalSize, commandPool);
 
 		vmaDestroyBuffer(m_VmaAllocator, stagingBuffer, stagingAllocation);
 	}
 
-	void VulkanContext::AllocateVertexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs)
+	void VulkanContext::AllocateVertexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool)
 	{
 		VkDeviceSize totalSize = 0;
 		VkDeviceSize size = 0;
@@ -709,7 +723,7 @@ namespace Magnefu
 			m_VulkanMemory.VBufferAllocInfo
 		);
 
-		VulkanCommon::CopyBuffer(stagingBuffer, m_VulkanMemory.VBuffer, totalSize);
+		VulkanCommon::CopyBuffer(stagingBuffer, m_VulkanMemory.VBuffer, totalSize, commandPool);
 
 		vmaDestroyBuffer(m_VmaAllocator, stagingBuffer, stagingAllocation);
 	}
@@ -1122,7 +1136,7 @@ namespace Magnefu
 			);
 
 			// Copy data from the staging buffer (host) to the shader storage buffer (GPU)
-			VulkanCommon::CopyBuffer(stagingBuffer, m_ShaderStorageBuffers[i], bufferSize);
+			VulkanCommon::CopyBuffer(stagingBuffer, m_ShaderStorageBuffers[i], bufferSize, VK_NULL_HANDLE);
 		}
 
 		std::array<VkDescriptorSetLayoutBinding, 3> layoutBindings{};
@@ -1461,23 +1475,28 @@ namespace Magnefu
 
 	void VulkanContext::LoadSingleTexture(int sceneObjIndex, const char* texturePath, int textureType)
 	{
+		
+
 		int width, height, channels;
-		stbi_set_flip_vertically_on_load(0);
 
-		stbi_uc* pixels = stbi_load(
-			texturePath,
-			&width, &height, &channels,
-			TextureChannels::CHANNELS_RGB_ALPHA // For now all textures have 4 channels
-		);
+		unsigned char* soilPixelsTest = SOIL_load_image(texturePath, &width, &height, &channels, TextureChannels::CHANNELS_RGB_ALPHA);
 
-		if (!pixels)
-			MF_CORE_ASSERT(false, "failed to load texture image!");
+		//stbi_set_flip_vertically_on_load(0);
 
-		MF_CORE_DEBUG("Width: {0} | Height: {1} | Channels: {2}", width, height, channels);
+		//stbi_uc* pixels = stbi_load(
+		//	texturePath,
+		//	&width, &height, &channels,
+		//	TextureChannels::CHANNELS_RGB_ALPHA // For now all textures have 4 channels
+		//);
 
-		DataBlock textureBlock(reinterpret_cast<const uint8_t*>(pixels), width * height * TextureChannels::CHANNELS_RGB_ALPHA);
-		Application::Get().GetSceneObjects()[sceneObjIndex].SetTextureBlock(static_cast<TextureType>(textureType), std::move(textureBlock), width, height, channels);
-		stbi_image_free(pixels); // this seems unnecessary as I have moved pixels into the data block.
+		//if (!pixels)
+		//	MF_CORE_ASSERT(false, "failed to load texture image!");
+
+		//MF_CORE_DEBUG("Width: {0} | Height: {1} | Channels: {2}", width, height, channels);
+
+		//DataBlock textureBlock(reinterpret_cast<const uint8_t*>(pixels), width * height * TextureChannels::CHANNELS_RGB_ALPHA);
+		//Application::Get().GetSceneObjects()[sceneObjIndex].SetTextureBlock(static_cast<TextureType>(textureType), std::move(textureBlock), width, height, channels);
+		//stbi_image_free(pixels); // this seems unnecessary as I have moved pixels into the data block.
 	}
 
 	void VulkanContext::CreateComputeUniformBuffers()

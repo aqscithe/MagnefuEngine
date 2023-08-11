@@ -13,6 +13,8 @@ namespace Magnefu
 {
 #define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
 
+    //static const int THREAD_POOL_WORKERS = 2;
+
     Application* Application::s_Instance = nullptr;
 
 
@@ -21,6 +23,7 @@ namespace Magnefu
         MF_PROFILE_FUNCTION();
         MF_CORE_ASSERT(!s_Instance, "Application instance already exists.");
         s_Instance = this;
+
 
         {
             MF_PROFILE_SCOPE("Window Creation");
@@ -32,22 +35,8 @@ namespace Magnefu
 
         m_RM = Scope<ResourceManager>(ResourceManager::Create());
 
-        // -- The corresponding graphics api context will store the memory objects.
 
-        // -- Initial Memory Allocations -- //
-
-        //  m_Window->GetGraphicsContext()->AllocateMemory();
-            // Vertex Buffers
-            
-            // Index buffers
-            
-            // Uniforms - # of allocations equals MAX_FRAMES_IN_FLIGHT
-            
-            // Textures
-            
-            // Framebuffer Resources
-
-
+        m_BufferResourceThread.join();
 
         // -- Global RenderPass -- //
         m_RenderPassGlobals = m_RM->CreateBindGroup({
@@ -156,6 +145,8 @@ namespace Magnefu
 
         // TODO: Create setting to switch between locked and unlocked frame rate
         m_TimeStep.Init();
+
+       MF_CORE_INFO("STARTING FIRST LOOP");
 
         while (m_Running)
         {

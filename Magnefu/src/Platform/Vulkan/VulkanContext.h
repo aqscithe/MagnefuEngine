@@ -191,8 +191,8 @@ namespace Magnefu
 
 
 		// -- Buffers -- //
-		void AllocateIndexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs);
-		void AllocateVertexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs);
+		void AllocateIndexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool);
+		void AllocateVertexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool);
 		void AllocateUniformBuffers(const uint32_t& sceneObjCount);
 
 

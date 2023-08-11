@@ -75,9 +75,9 @@ namespace Magnefu
 		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 		void     CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 		void     CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkBuffer& buffer, VmaMemoryUsage vmaUsage, VmaAllocationCreateFlags vmaFlags, VmaAllocation& allocation, VmaAllocationInfo& allocInfo);
-		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-		VkCommandBuffer BeginSingleTimeCommands();
-		void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
+		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkCommandPool commandPool);
+		VkCommandBuffer BeginSingleTimeCommands(VkCommandPool commandPool);
+		void EndSingleTimeCommands(VkCommandBuffer commandBuffer, VkCommandPool commandPool);
 
 
 		// Image Manipulation
@@ -86,7 +86,7 @@ namespace Magnefu
 		void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkImage& image, VmaMemoryUsage vmaUsage, VmaAllocationCreateFlags vmaFlags, VmaAllocation& allocation, VmaAllocationInfo& allocInfo);
 
 		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
-		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkCommandPool commandPool);
 
 		VkShaderStageFlags GetShaderStageFlags(const ShaderStage&);
 		VkShaderStageFlagBits GetShaderStageFlagBits(const ShaderStage& stage);

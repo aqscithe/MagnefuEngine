@@ -78,9 +78,9 @@ namespace Magnefu
 		}
 
 
-		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkCommandPool commandPool)
 		{
-			VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+			VkCommandBuffer commandBuffer = BeginSingleTimeCommands(commandPool);
 
 			VkBufferCopy copyRegion{};
 			copyRegion.srcOffset = 0; // Optional
@@ -88,17 +88,17 @@ namespace Magnefu
 			copyRegion.size = size;
 			vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-			EndSingleTimeCommands(commandBuffer);
+			EndSingleTimeCommands(commandBuffer, commandPool);
 		}
 
-		VkCommandBuffer BeginSingleTimeCommands()
+		VkCommandBuffer BeginSingleTimeCommands(VkCommandPool commandPool)
 		{
 			VulkanContext& context = VulkanContext::Get();
 
 			VkCommandBufferAllocateInfo allocInfo{};
 			allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 			allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-			allocInfo.commandPool = context.GetCommandPool();
+			allocInfo.commandPool = commandPool != VK_NULL_HANDLE ? commandPool : context.GetCommandPool();
 			allocInfo.commandBufferCount = 1;
 
 			VkCommandBuffer commandBuffer;
@@ -113,7 +113,7 @@ namespace Magnefu
 			return commandBuffer;
 		}
 
-		void EndSingleTimeCommands(VkCommandBuffer commandBuffer)
+		void EndSingleTimeCommands(VkCommandBuffer commandBuffer, VkCommandPool commandPool)
 		{
 			VulkanContext& context = VulkanContext::Get();
 
@@ -133,7 +133,12 @@ namespace Magnefu
 			//vkWaitForFences()
 			vkQueueWaitIdle(context.GetGraphicsQueue());
 
-			vkFreeCommandBuffers(context.GetDevice(), context.GetCommandPool(), 1, &commandBuffer);
+			vkFreeCommandBuffers(
+				context.GetDevice(), 
+				commandPool != VK_NULL_HANDLE ? commandPool : context.GetCommandPool(), 
+				1, 
+				&commandBuffer
+			);
 		}
 
 
@@ -251,9 +256,9 @@ namespace Magnefu
 			return imageView;
 		}
 
-		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
+		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkCommandPool commandPool)
 		{
-			VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+			VkCommandBuffer commandBuffer = BeginSingleTimeCommands(commandPool);
 
 			VkBufferImageCopy region{};
 			region.bufferOffset = 0;
@@ -281,7 +286,7 @@ namespace Magnefu
 				&region
 			);
 
-			EndSingleTimeCommands(commandBuffer);
+			EndSingleTimeCommands(commandBuffer, commandPool);
 		}
 
 		VkShaderStageFlags GetShaderStageFlags(const ShaderStage& stage)
