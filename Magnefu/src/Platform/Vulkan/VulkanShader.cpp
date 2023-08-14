@@ -172,9 +172,8 @@ namespace Magnefu
 			MF_CORE_DEBUG("Size of Push Constants: {}", sizeof(PushConstants));
 		}
 
-
+		VulkanBindGroup& renderpassGlobals = static_cast<VulkanBindGroup&>(rm.GetBindGroup(desc.BindGroups[0]));
 		VulkanBindGroup& material = static_cast<VulkanBindGroup&>(rm.GetBindGroup(desc.BindGroups[1]));
-		VulkanBindGroup& renderpassGlobals = static_cast<VulkanBindGroup&>(rm.GetBindGroup(app.GetRenderPassBindGroup()));
 
 		std::vector<VkDescriptorSetLayout> layouts = {
 			renderpassGlobals.GetDescriptorSetLayout(),

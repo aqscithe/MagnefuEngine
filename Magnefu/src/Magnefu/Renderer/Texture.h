@@ -15,7 +15,8 @@ namespace Magnefu
 		ARM,
 		NORMAL,
 		EMISSIVE,
-		DISPLACEMENT
+		DISPLACEMENT,
+		MATRIX
 	};
 
 	enum TextureTiling

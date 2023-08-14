@@ -67,6 +67,7 @@ namespace Magnefu
 
 	};
 
+
 	enum ShaderStage;
 
 	namespace VulkanCommon

@@ -184,6 +184,7 @@
     <ClInclude Include="src\Magnefu\Renderer\Camera.h" />
     <ClInclude Include="src\Magnefu\Renderer\GraphicsContext.h" />
     <ClInclude Include="src\Magnefu\Renderer\Light.h" />
+    <ClInclude Include="src\Magnefu\Renderer\LTCMatrix.h" />
     <ClInclude Include="src\Magnefu\Renderer\Material.h" />
     <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h" />
     <ClInclude Include="src\Magnefu\Renderer\RenderConstants.h" />

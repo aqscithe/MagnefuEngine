@@ -8,6 +8,7 @@
 #include "Magnefu/Application.h"
 #include "Magnefu/Core/Maths/Quaternion.h"
 #include "Magnefu/Renderer/RenderConstants.h"
+#include "Magnefu/Renderer/LTCMatrix.h"
 #include "Magnefu/ResourceManagement/ResourceManager.h"
 #include "Magnefu/ResourceManagement/ResourcePaths.h"
 
@@ -1298,9 +1299,6 @@ namespace Magnefu
 
 	void VulkanContext::LoadTextures()
 	{
-		
-		//auto& sceneObjs = app.GetSceneObjects();
-
 		MF_CORE_ASSERT(
 			Application::Get().GetSceneObjects().size() == TEXTURE_PATHS.size(),
 			"Texture path count does not match number of scene objects"
@@ -1475,11 +1473,21 @@ namespace Magnefu
 
 	void VulkanContext::LoadSingleTexture(int sceneObjIndex, const char* texturePath, int textureType)
 	{
-		
 		int width, height, channels;
 
-		unsigned char* pixels = SOIL_load_image(texturePath, &width, &height, &channels, TextureChannels::CHANNELS_RGB_ALPHA);
+		unsigned char* pixels = SOIL_load_image(
+			texturePath, 
+			&width, &height, &channels, 
+			TextureChannels::CHANNELS_RGB_ALPHA
+		);
 
+		
+		//stbi_set_flip_vertically_on_load(0);
+		//stbi_uc* pixels = stbi_load(
+		//	texturePath,
+		//	&width, &height, &channels,
+		//	TextureChannels::CHANNELS_RGB_ALPHA // For now all textures have 4 channels
+		//);
 
 		if (!pixels)
 			MF_CORE_ASSERT(false, "failed to load texture image!");
@@ -1489,6 +1497,7 @@ namespace Magnefu
 		DataBlock textureBlock(reinterpret_cast<const uint8_t*>(pixels), width * height * TextureChannels::CHANNELS_RGB_ALPHA);
 		Application::Get().GetSceneObjects()[sceneObjIndex].SetTextureBlock(static_cast<TextureType>(textureType), std::move(textureBlock), width, height, channels);
 		SOIL_free_image_data(pixels); // this seems unnecessary as I have moved pixels into the data block.
+		//stbi_image_free(pixels); // this seems unnecessary as I have moved pixels into the data block.
 	}
 
 	void VulkanContext::CreateComputeUniformBuffers()
