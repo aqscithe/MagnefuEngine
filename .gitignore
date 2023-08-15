@@ -85,6 +85,7 @@ Magnefu/vendor/*/bin-int/*
 
 # Resources
 Sandbox/res/*
+!Sandbox/res/shaders
 
 # Vendor
 !vendor/bin/premake/premake5.exe
