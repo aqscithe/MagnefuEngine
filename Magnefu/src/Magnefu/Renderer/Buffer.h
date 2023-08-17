@@ -61,7 +61,7 @@ namespace Magnefu
         float padding1;
 
         // Light Info
-        Light Lights[3];
+        PointLight PointLights[3];
         int   LightCount;
     };
 

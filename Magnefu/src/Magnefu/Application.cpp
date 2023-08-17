@@ -52,7 +52,7 @@ namespace Magnefu
         for (size_t i = 0; i < m_SceneObjects.size(); i++)
             m_SceneObjects[i].Init(i);
 
-        for (auto& light : m_Lights)
+        for (auto& light : m_PointLights)
         {
             light.LightEnabled = 1;
             light.MaxLightDist = 200.f;

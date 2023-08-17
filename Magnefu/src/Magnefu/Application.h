@@ -60,7 +60,7 @@ namespace Magnefu
 
 		inline size_t GetTextureCount() { return sizeof(BindingTextureDescs) / sizeof(TextureDesc); }
 		inline Handle<BindGroup>& GetRenderPassBindGroup() { return m_RenderPassGlobals; }
-		inline std::array<Light, 3>& GetLightData() { return m_Lights; }
+		inline std::array<PointLight, 3>& GetPointLightData() { return m_PointLights; }
 		
 		inline std::thread& GetBufferThread() { return m_BufferResourceThread; }
 		inline std::thread& GetImageThread() { return m_ImageResourceThread; }
@@ -98,7 +98,7 @@ namespace Magnefu
 		Handle<BindGroup>        m_RenderPassGlobals;
 		std::vector<SceneObject> m_SceneObjects;
 
-		std::array<Light, 3> m_Lights;
+		std::array<PointLight, 3> m_PointLights;
 
 		//std::vector<std::thread> m_ThreadPool;
 		std::thread m_BufferResourceThread;

@@ -1,9 +1,9 @@
 #shader vertex
 #version 460 core
 
-const int MAX_LIGHTS = 3;
+const int MAX_POINT_LIGHTS = 3;
 
-struct Light 
+struct PointLight 
 {
     vec3 LightPos; // Use vec4 to include the padding
     float padding1;
@@ -30,7 +30,7 @@ layout(set = 0, binding = 0) uniform RenderPassGlobalsUBO
     vec3 CameraPos;
     float padding1;
 
-    Light Lights[MAX_LIGHTS];
+    PointLight PointLights[MAX_POINT_LIGHTS];
     int   LightCount;
 
 } globals_ubo;
@@ -56,7 +56,7 @@ layout(location = 5) in vec2 InTexCoord;
 layout(location = 0) out vec2 FragTexCoord;
 layout(location = 1) out vec3 TangentCameraPos;
 layout(location = 2) out vec3 TangentFragPos;
-layout(location = 3) out vec3 TangentLightPos[MAX_LIGHTS];
+layout(location = 3) out vec3 TangentLightPos[MAX_POINT_LIGHTS];
 //layout(location = 3) out vec3 TangentLightPos;
 
 
@@ -74,7 +74,7 @@ void main()
     // Move Light and Camera Pos to Tangent Space
     for (int i = 0; i < globals_ubo.LightCount; i++)
     {
-        TangentLightPos[i] = TBN * globals_ubo.Lights[i].LightPos;
+        TangentLightPos[i] = TBN * globals_ubo.PointLights[i].LightPos;
     }
     //TangentLightPos = TBN * globals_ubo.LightPos;
     TangentCameraPos = TBN * globals_ubo.CameraPos;
@@ -88,9 +88,9 @@ void main()
 
 
 const float PI = 3.1415926535897932384626;
-const int MAX_LIGHTS = 3;
+const int MAX_POINT_LIGHTS = 3;
 
-struct Light
+struct PointLight
 {
     vec3 LightPos; // Use vec4 to include the padding
     float padding1;
@@ -120,7 +120,7 @@ layout(set = 0, binding = 0) uniform RenderPassGlobalsUBO
     vec3 CameraPos;
     float padding1;
 
-    Light Lights[MAX_LIGHTS];
+    PointLight PointLights[MAX_POINT_LIGHTS];
     int   LightCount;
 
 } globals_ubo;
@@ -152,7 +152,7 @@ layout(set = 1, binding = 3) uniform sampler2D NormalSampler;
 layout(location = 0) in vec2 TexCoord;
 layout(location = 1) in vec3 TangentCameraPos;
 layout(location = 2) in vec3 TangentFragPos;
-layout(location = 3) in vec3 TangentLightPos[MAX_LIGHTS];
+layout(location = 3) in vec3 TangentLightPos[MAX_POINT_LIGHTS];
 //layout(location = 3) in vec3 TangentLightPos;
 
 
@@ -198,7 +198,7 @@ void main()
 
     for (int i = 0; i < globals_ubo.LightCount; i++)
     {
-        if (globals_ubo.Lights[i].LightEnabled == 1)
+        if (globals_ubo.PointLights[i].LightEnabled == 1)
         {
 
             // Sample Normal Map
@@ -214,7 +214,7 @@ void main()
             // --- Getting Attenuation --- //
 
             float distance = length(LightPosMinusFragPos);
-            float lightIntensity = globals_ubo.Lights[i].RadiantFlux;
+            float lightIntensity = globals_ubo.PointLights[i].RadiantFlux;
 
             // Basic Approach
             /*if (distance > PC.MaxLightDist)
@@ -224,11 +224,11 @@ void main()
             }*/
 
             // Smoothstep Function Approach
-            float smoothRadius = globals_ubo.Lights[i].MaxLightDist * 0.8;
+            float smoothRadius = globals_ubo.PointLights[i].MaxLightDist * 0.8;
 
             if (distance > smoothRadius)
             {
-                float t = (distance - smoothRadius) / (globals_ubo.Lights[i].MaxLightDist - smoothRadius);
+                float t = (distance - smoothRadius) / (globals_ubo.PointLights[i].MaxLightDist - smoothRadius);
                 if (t == 1.0)
                 {
                     OutColor = vec4(vec3(0.0), mat_ubo.Opacity);
@@ -242,7 +242,7 @@ void main()
             //float attenuation = 1.0 / distance
             float attenuation = 1.0 / (distance * distance);
             //float attenuation = 1.0 / (constant + linear * distance + quadratic * distance * distance);
-            vec3 Radiance = globals_ubo.Lights[i].LightColor * lightIntensity * attenuation;
+            vec3 Radiance = globals_ubo.PointLights[i].LightColor * lightIntensity * attenuation;
 
 
             // ---Microfacet BRDF--- //

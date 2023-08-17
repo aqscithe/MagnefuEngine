@@ -14,7 +14,7 @@ public:
 		Layer("3D Primitives"), 
 		m_SceneObjects(Magnefu::Application::Get().GetSceneObjects()), 
 		m_Camera(std::static_pointer_cast<Magnefu::SceneCamera>(Magnefu::Application::Get().GetWindow().GetSceneCamera())),
-		m_Lights(Magnefu::Application::Get().GetLightData())
+		m_PointLights(Magnefu::Application::Get().GetPointLightData())
 		//m_Light(Magnefu::Application::Get().GetLightData())
 	{
 		m_GraphicsContext = Magnefu::Application::Get().GetWindow().GetGraphicsContext();
@@ -91,23 +91,23 @@ public:
 				ImGui::Text("LIGHT DATA");
 				ImGui::Separator();
 
-				for (int i = 0; i < m_Lights.size(); i++)
+				for (int i = 0; i < m_PointLights.size(); i++)
 				{
 					char label[32];
 					snprintf(label, sizeof(label), "Light %d Enabled", i);
-					ImGui::SliderInt(label, &m_Lights[i].LightEnabled, 0, 1);
+					ImGui::SliderInt(label, &m_PointLights[i].LightEnabled, 0, 1);
 
 					snprintf(label, sizeof(label), "Light %d Position", i);
-					ImGui::SliderFloat3(label, m_Lights[i].LightPos.e, -500.f, 500.f);
+					ImGui::SliderFloat3(label, m_PointLights[i].LightPos.e, -500.f, 500.f);
 
 					snprintf(label, sizeof(label), "Light %d Color", i);
-					ImGui::ColorEdit3(label, m_Lights[i].LightColor.e);
+					ImGui::ColorEdit3(label, m_PointLights[i].LightColor.e);
 
 					snprintf(label, sizeof(label), "Max Light Distance %d", i);
-					ImGui::SliderFloat(label, &m_Lights[i].MaxLightDist, 0.f, 1000.f, "%.2f");
+					ImGui::SliderFloat(label, &m_PointLights[i].MaxLightDist, 0.f, 1000.f, "%.2f");
 
 					snprintf(label, sizeof(label), "Light %d Radiant Flux", i);
-					ImGui::SliderFloat(label, &m_Lights[i].RadiantFlux, 0.f, 100.f, "%.2f");
+					ImGui::SliderFloat(label, &m_PointLights[i].RadiantFlux, 0.f, 100.f, "%.2f");
 
 					ImGui::Separator();
 				}
@@ -130,7 +130,7 @@ private:
 	Magnefu::GraphicsContext* m_GraphicsContext;
 	//Magnefu::PushConstants m_PushConstants;
 	std::vector<Magnefu::SceneObject>& m_SceneObjects;
-	std::array<Magnefu::Light, 3>&     m_Lights;
+	std::array<Magnefu::PointLight, 3>&     m_PointLights;
 	//Magnefu::Light&     m_Light;
 };
 

@@ -123,7 +123,7 @@ namespace Magnefu
 				auto& camera = app.GetWindow().GetSceneCamera();
 				camera->SetAspectRatio((float)swapChainExtent.width / (float)swapChainExtent.height);
 				
-				auto& lights = app.GetLightData();
+				auto& lights = app.GetPointLightData();
 
 				RenderPassUniformBufferObject ubo{};
 				ubo.ViewMatrix = camera->CalculateView();
@@ -134,7 +134,7 @@ namespace Magnefu
 				ubo.CameraPos = camera->GetData().Position;
 				for (size_t i = 0; i < lights.size(); i++)
 				{
-					ubo.Lights[i] = lights[i];
+					ubo.PointLights[i] = lights[i];
 				}
 				ubo.LightCount = lights.size();
 

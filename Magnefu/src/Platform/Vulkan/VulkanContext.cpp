@@ -1445,20 +1445,13 @@ namespace Magnefu
 
 			void* alignedPtr = std::align(alignment, bufferSize, ptr, space);
 
-
 			if (alignedPtr != nullptr)
 			{
 				// Copy the vertex data to the aligned memory
 				std::memcpy(alignedPtr, vertices.data(), bufferSize);
 
 				// Create the Span from the aligned memory
-				//Span<const uint8_t> vertexDataSpan(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
 				DataBlock vertexBlock(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
-
-				// Now you can set InitData in BufferDesc with vertexDataSpan
-				// Note: Make sure original is not destroyed until you're done with vertexDataSpan
-				//app.SetVertices(std::move(vertexDataSpan));
-				//app.SetVertexData(std::move(vertexData));
 				app.SetVertexBlock(std::move(vertexBlock), objIndex);
 			}
 			else
@@ -1481,14 +1474,6 @@ namespace Magnefu
 			TextureChannels::CHANNELS_RGB_ALPHA
 		);
 
-		
-		//stbi_set_flip_vertically_on_load(0);
-		//stbi_uc* pixels = stbi_load(
-		//	texturePath,
-		//	&width, &height, &channels,
-		//	TextureChannels::CHANNELS_RGB_ALPHA // For now all textures have 4 channels
-		//);
-
 		if (!pixels)
 			MF_CORE_ASSERT(false, "failed to load texture image!");
 
@@ -1496,8 +1481,7 @@ namespace Magnefu
 
 		DataBlock textureBlock(reinterpret_cast<const uint8_t*>(pixels), width * height * TextureChannels::CHANNELS_RGB_ALPHA);
 		Application::Get().GetSceneObjects()[sceneObjIndex].SetTextureBlock(static_cast<TextureType>(textureType), std::move(textureBlock), width, height, channels);
-		SOIL_free_image_data(pixels); // this seems unnecessary as I have moved pixels into the data block.
-		//stbi_image_free(pixels); // this seems unnecessary as I have moved pixels into the data block.
+		SOIL_free_image_data(pixels);
 	}
 
 	void VulkanContext::CreateComputeUniformBuffers()

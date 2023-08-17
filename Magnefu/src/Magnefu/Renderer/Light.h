@@ -3,7 +3,7 @@
 
 namespace Magnefu
 {
-	struct alignas(16) Light
+	struct alignas(16) PointLight
 	{
         Maths::vec3 LightPos;
         float       padding1;
