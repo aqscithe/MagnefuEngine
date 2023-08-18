@@ -23,7 +23,7 @@ namespace Magnefu
 		void CreateDescriptorSetLayout(const BindingLayout&);
 		void CreateBindingBuffers(const BindingBufferDescs&);
 		void CreateBindingTextures(const BindingTextureDescs&);
-		void CreateDescriptorPool(const BindingLayoutType&);
+		void CreateDescriptorPool(const BindingLayoutType&, bool);
 		void CreateDescriptorSets(const BindingLayoutType& type);
 
 		VkDescriptorType GetDescriptorType(const BindingType&);
@@ -38,5 +38,7 @@ namespace Magnefu
 		Handle<Texture>  m_DiffuseTexture;
 		Handle<Texture>  m_ARMTexture;
 		Handle<Texture>  m_NormalTexture;
+		Handle<Texture>  m_LTC1;
+		Handle<Texture>  m_LTC2;
 	};
 }

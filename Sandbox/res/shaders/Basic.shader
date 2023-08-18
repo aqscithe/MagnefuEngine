@@ -42,6 +42,7 @@ layout(set = 1, binding = 0) uniform MaterialUBO
     vec3 Tint;
     float Reflectance;
     float Opacity;
+    bool  IsTextured;
 } mat_ubo;
 
 // -- In -- //
@@ -141,6 +142,7 @@ layout(set = 1, binding = 0) uniform MaterialUBO
     vec3 Tint;
     float Reflectance;
     float Opacity;
+    bool  IsTextured;
 } mat_ubo;
 
 layout(set = 1, binding = 1) uniform sampler2D DiffuseSampler;

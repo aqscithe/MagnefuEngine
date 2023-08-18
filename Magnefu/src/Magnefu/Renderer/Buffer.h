@@ -65,6 +65,14 @@ namespace Magnefu
         int   LightCount;
     };
 
+    struct alignas(16) RenderPassUniformBufferObjectLTC
+    {
+        // Camera Info
+        Maths::mat4 ViewMatrix;
+        Maths::mat4 ProjMatrix;
+        Maths::vec3 CameraPos;
+    };
+
     /*struct alignas(16) LightUniformBufferObject
     {
         Maths::vec3 LightPos;
@@ -82,6 +90,7 @@ namespace Magnefu
         alignas(16) Maths::vec3 Tint;
         float                   Reflectance; // fresnel reflectance for dielectrics [0.0, 1.0]
         float                   Opacity;
+        bool                    IsTextured;
     };
 
 
@@ -105,6 +114,15 @@ namespace Magnefu
         "Renderpass Uniform Buffer",
         0,
         sizeof(RenderPassUniformBufferObject),
+        BufferUsage::USAGE_UNIFORM,
+        UniformBufferType::UNIFORM_RENDERPASS,
+        {0}
+    };
+
+    const BufferDesc RenderPassUniformBufferDescLTC = {
+        "Renderpass Uniform Buffer",
+        0,
+        sizeof(RenderPassUniformBufferObjectLTC),
         BufferUsage::USAGE_UNIFORM,
         UniformBufferType::UNIFORM_RENDERPASS,
         {0}

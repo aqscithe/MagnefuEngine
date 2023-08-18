@@ -16,7 +16,7 @@ namespace Magnefu
 		NORMAL,
 		EMISSIVE,
 		DISPLACEMENT,
-		MATRIX
+		FLOAT
 	};
 
 	enum TextureTiling
@@ -30,7 +30,8 @@ namespace Magnefu
 	{
 		FORMAT_NONE = -1,
 		FORMAT_R8G8B8A8_UNORM = 37,
-		FORMAT_R8G8B8A8_SRGB = 43
+		FORMAT_R8G8B8A8_SRGB = 43,
+		FORMAT_R32G32B32A32_SFLOAT = 109,
 	};
 
 	enum TextureChannels

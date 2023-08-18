@@ -44,22 +44,24 @@ namespace Magnefu
             .LayoutType = BindingLayoutType::LAYOUT_RENDERPASS,
             .Layout     = DEFAULT_RENDERPASS_BINDING_LAYOUT,
             .Textures   = {},
-            .Buffers    = RenderPassUniformBufferDesc
+            .Buffers    = RenderPassUniformBufferDescLTC
         });
 
         // -- Scene Objects -- //
 
+        // need to get info on whether the object is textured from
+        // MODEL_PATHS
         for (size_t i = 0; i < m_SceneObjects.size(); i++)
             m_SceneObjects[i].Init(i);
 
-        for (auto& light : m_PointLights)
+        /*for (auto& light : m_PointLights)
         {
             light.LightEnabled = 1;
             light.MaxLightDist = 200.f;
             light.RadiantFlux = 10.f;
             light.LightPos = { 235.f, 65.f, 20.f };
             light.LightColor = Maths::vec3(1.0f);
-        }
+        }*/
 
 
         m_Window->GetGraphicsContext()->TempSecondaryInit();

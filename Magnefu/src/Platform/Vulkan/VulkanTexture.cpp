@@ -64,19 +64,7 @@ namespace Magnefu
 	void VulkanTexture::CreateTextureImage(const TextureDesc& desc)
 	{
 
-		
-		/*int width, height, channels;
-		stbi_set_flip_vertically_on_load(0);
-
-		
-		stbi_uc* pixels = stbi_load(
-			TEXTURE_PATHS[desc.Index].Paths[static_cast<uint32_t>(desc.Type)],
-			&width, &height, &channels,
-			desc.RequestedChannels
-		);
-
-		if (!pixels)
-			MF_CORE_ASSERT(false, "failed to load texture image!");*/
+		// EXPLORE HOW THIS FUNCTION CHANGES FOR THE LTC DATA.
 
 		auto& sceneObj = Application::Get().GetSceneObjects()[desc.Index];
 

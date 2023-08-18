@@ -19,10 +19,13 @@ namespace Magnefu
         ResourceManager& rm = app.GetResourceManager();
         GraphicsContext* context = app.GetWindow().GetGraphicsContext();
 
+        bool IsTextured = RESOURCE_PATHS[index].IsTextured;
+
         m_Material = rm.CreateBindGroup({
             .DebugName = "SciFi Corridor",
             .LayoutType = BindingLayoutType::LAYOUT_MATERIAL,
-            .Layout = DEFAULT_MATERIAL_BINDING_LAYOUT,
+            .Layout = IsTextured ? OBJECT_LIT_BY_AREA_LIGHT_MATERIAL_BINDING_LAYOUT : AREA_LIGHT_NONTEXTURED_MATERIAL_BINDING_LAYOUT,
+            .IsTextured = IsTextured,
             .Textures = {
                 .Diffuse = {
                     "DiffuseTexture",
@@ -47,6 +50,20 @@ namespace Magnefu
                     TextureTiling::IMAGE_TILING_OPTIMAL,
                     TextureFormat::FORMAT_R8G8B8A8_UNORM,
                     //TextureChannels::CHANNELS_RGB_ALPHA
+                },
+                .LTC1 = {
+                    "LTC1Texture",
+                    index,
+                    TextureType::FLOAT,
+                    TextureTiling::IMAGE_TILING_OPTIMAL,
+                    TextureFormat::FORMAT_R32G32B32A32_SFLOAT,
+                },
+                .LTC2 = {
+                    "LTC2Texture",
+                    index,
+                    TextureType::FLOAT,
+                    TextureTiling::IMAGE_TILING_OPTIMAL,
+                    TextureFormat::FORMAT_R32G32B32A32_SFLOAT,
                 }
             },
             .Buffers = MaterialUniformBufferDesc
@@ -54,7 +71,7 @@ namespace Magnefu
 
         m_GraphicsPipelineShader = rm.CreateShader({   // shader will be set by the object. Ex: drawStream.SetShader(sceneObject.shader);
             .DebugName = "Basic Shader",
-            .Path = SHADER_PATH,
+            .Path = RESOURCE_PATHS[index].ShaderPath,
             .StageDescriptions = {
                 .VS = DefaultVertexShaderDesc,
                 .FS = DefaultFragmentShaderDesc

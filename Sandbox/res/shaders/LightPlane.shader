@@ -29,7 +29,7 @@ void main()
 {
     gl_Position = globals_ubo.Proj * globals_ubo.View * mat_ubo.Model * vec4(InPosition, 1.0);
     FragNormal = InNormal
-    FragTexCoord = InTexCoord;
+        FragTexCoord = InTexCoord;
     FragPosition = vec3(mat_ubo.Model * vec4(InPosition, 1.0));
 }
 
@@ -61,8 +61,8 @@ layout(push_constant) uniform PushConstants
 {
     AreaLight AreaLight;
 
-    // I don't think I need this. Should be obtained from textures
-    //vec4 albedoRoughness; // (x,y,z) = color, w = roughness
+// I don't think I need this. Should be obtained from textures
+//vec4 albedoRoughness; // (x,y,z) = color, w = roughness
 } PC;
 
 // -- Set 0 -- //
@@ -71,7 +71,6 @@ layout(set = 0, binding = 0) uniform RenderPassLTCUBO
     mat4 View;
     mat4 Proj;
     vec3 CameraPos;
-
 } globals_ubo;
 
 // -- Set 1 -- //
@@ -83,8 +82,11 @@ layout(set = 1, binding = 0) uniform MaterialUBO
     float Opacity;
 } mat_ubo;
 
-layout(set = 1, binding = 1) uniform sampler2D LTC1;
-layout(set = 1, binding = 2) uniform sampler2D LTC2;
+layout(set = 1, binding = 1) uniform sampler2D DiffuseSampler;
+layout(set = 1, binding = 2) uniform sampler2D ARMSampler;
+layout(set = 1, binding = 3) uniform sampler2D NormalSampler;
+layout(set = 1, binding = 4) uniform sampler2D LTC1;
+layout(set = 1, binding = 5) uniform sampler2D LTC2;
 
 
 const float LUT_SIZE = 64.0;

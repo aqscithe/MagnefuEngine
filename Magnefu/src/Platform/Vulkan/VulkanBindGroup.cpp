@@ -19,7 +19,7 @@ namespace Magnefu
 			{
 				CreateDescriptorSetLayout(desc.Layout);
 				CreateBindingBuffers(desc.Buffers);
-				CreateDescriptorPool(desc.LayoutType);
+				CreateDescriptorPool(desc.LayoutType, false);
 				CreateDescriptorSets(desc.LayoutType);
 				break;
 			}
@@ -27,8 +27,11 @@ namespace Magnefu
 			{
 				CreateDescriptorSetLayout(desc.Layout);
 				CreateBindingBuffers(desc.Buffers);
-				CreateBindingTextures(desc.Textures);
-				CreateDescriptorPool(desc.LayoutType);
+
+				if(desc.IsTextured)
+					CreateBindingTextures(desc.Textures);
+
+				CreateDescriptorPool(desc.LayoutType, desc.IsTextured);
 				CreateDescriptorSets(desc.LayoutType);
 				break;
 			}
@@ -50,7 +53,6 @@ namespace Magnefu
 	void VulkanBindGroup::CreateDescriptorSetLayout(const BindingLayout& layout)
 	{
 		int BindingCount = layout.Bindings.size();
-		//MF_CORE_ASSERT( BindingCount == 4, "Incorrect material binding layout size");
 
 		std::vector<VkDescriptorSetLayoutBinding> layoutBindings(layout.Bindings.size());
 		
@@ -86,7 +88,7 @@ namespace Magnefu
 		m_NormalTexture = rm.CreateTexture(descriptions.Normal);
 	}
 
-	void VulkanBindGroup::CreateDescriptorPool(const BindingLayoutType& type)
+	void VulkanBindGroup::CreateDescriptorPool(const BindingLayoutType& type, bool IsTextured)
 	{
 		switch (type)
 		{
@@ -97,10 +99,21 @@ namespace Magnefu
 				uboPoolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
 				VkDescriptorPoolSize samplerPoolSize{};
-				samplerPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-				samplerPoolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-
-				std::array<VkDescriptorPoolSize, 2> poolSizes{ uboPoolSize, samplerPoolSize };
+				std::vector<VkDescriptorPoolSize> poolSizes;
+				if (IsTextured)
+				{
+					
+					samplerPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+					samplerPoolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+					poolSizes.resize(2);
+					poolSizes = { uboPoolSize, samplerPoolSize };
+					
+				}
+				else
+				{
+					poolSizes.push_back(uboPoolSize);
+				}
+				
 
 				VkDescriptorPoolCreateInfo poolInfo{};
 				poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
