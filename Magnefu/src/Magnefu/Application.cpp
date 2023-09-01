@@ -2,7 +2,6 @@
 
 #include "Application.h"
 #include "Renderer/GraphicsContext.h"
-#include "Magnefu/ResourceManagement/ResourcePaths.h"
 #include "Magnefu/Core/MemoryAllocation/OffsetAllocator.h"
 
 //TEMP
@@ -43,7 +42,21 @@ namespace Magnefu
             .DebugName  = "Render Pass Globals",
             .LayoutType = BindingLayoutType::LAYOUT_RENDERPASS,
             .Layout     = DEFAULT_RENDERPASS_BINDING_LAYOUT,
-            .Textures   = {},
+            .Textures   = {
+                .LTC1 = {
+                    "LTC1Texture",
+                    0,
+                    TextureType::LTC1,
+                    TextureTiling::IMAGE_TILING_OPTIMAL,
+                    TextureFormat::FORMAT_R32G32B32A32_SFLOAT,
+                },
+                .LTC2 = {
+                    "LTC2Texture",
+                    0,
+                    TextureType::LTC2,
+                    TextureTiling::IMAGE_TILING_OPTIMAL,
+                    TextureFormat::FORMAT_R32G32B32A32_SFLOAT,
+                }},
             .Buffers    = RenderPassUniformBufferDescLTC
         });
 
@@ -51,9 +64,15 @@ namespace Magnefu
 
         // need to get info on whether the object is textured from
         // MODEL_PATHS
-        for (size_t i = 0; i < m_SceneObjects.size(); i++)
-            m_SceneObjects[i].Init(i);
 
+        MF_CORE_INFO("Currently not Initializing any sceneobjects!");
+        for (size_t i = 0; i < m_SceneObjects.size(); i++)
+            m_SceneObjects[i].Init(i, ModelType::MODEL_DEFAULT);
+
+        for (size_t i = 0; i < m_LightObjects.size(); i++)
+            m_LightObjects[i].Init(i, ModelType::MODEL_LIGHT);
+
+        // NON AREA LIGHTS
         /*for (auto& light : m_PointLights)
         {
             light.LightEnabled = 1;
@@ -75,13 +94,50 @@ namespace Magnefu
         
 	}
 
-    void Application::SetVertexBlock(DataBlock&& vertexBlock, size_t objPos)
+    void Application::SetVertexBlock(DataBlock&& vertexBlock, size_t objPos, ModelType modelType)
     {
-        //DataBlock&& tempBlock = std::move(vertexBlock);
+        switch (modelType)
+        {
+            case Magnefu::MODEL_DEFAULT:
+            {
+                m_SceneObjects[objPos].SetVertexBlock(std::move(vertexBlock));
+                break;
+            }
+            case Magnefu::MODEL_LIGHT:
+            {
+                m_LightObjects[objPos].SetVertexBlock(std::move(vertexBlock));
+                break;
+            }
+            default:
+            {
+                MF_CORE_ASSERT(false, "Invalid Model Type -- Application::SetVertexBlock");
+                break;
+            }
+        }
+        
+    }
 
-        m_SceneObjects[objPos].SetVertexBlock(std::move(vertexBlock));
-        //m_SceneObjects[objPos].m_Vertices = std::move(vertexBlock);
-        //m_Vertices = std::move(vertexBlock);
+    void Application::SetIndexBlock(DataBlock&& indexBlock, size_t objPos, ModelType modelType)
+    {
+        switch (modelType)
+        {
+            case Magnefu::MODEL_DEFAULT:
+            {
+                m_SceneObjects[objPos].SetIndexBlock(std::move(indexBlock));
+                break;
+            }
+            case Magnefu::MODEL_LIGHT:
+            {
+                m_LightObjects[objPos].SetIndexBlock(std::move(indexBlock));
+                break;
+            }
+            default:
+            {
+                MF_CORE_ASSERT(false, "Invalid Model Type -- Application::SetIndexBlock");
+                break;
+            }
+        }
+        
     }
 
     bool Application::OnWindowClose(WindowCloseEvent& e)

@@ -16,7 +16,8 @@ namespace Magnefu
 		NORMAL,
 		EMISSIVE,
 		DISPLACEMENT,
-		FLOAT
+		LTC1,
+		LTC2
 	};
 
 	enum TextureTiling

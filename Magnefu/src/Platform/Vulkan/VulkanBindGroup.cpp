@@ -19,11 +19,12 @@ namespace Magnefu
 			{
 				CreateDescriptorSetLayout(desc.Layout);
 				CreateBindingBuffers(desc.Buffers);
-				CreateDescriptorPool(desc.LayoutType, false);
+				CreateBindingTextures(desc.Textures);
+				CreateDescriptorPool(desc.LayoutType, true);
 				CreateDescriptorSets(desc.LayoutType);
 				break;
 			}
-			case BindingLayoutType::LAYOUT_MATERIAL:
+			case BindingLayoutType::LAYOUT_MATERIAL_DEFAULT:
 			{
 				CreateDescriptorSetLayout(desc.Layout);
 				CreateBindingBuffers(desc.Buffers);
@@ -83,16 +84,28 @@ namespace Magnefu
 	void VulkanBindGroup::CreateBindingTextures(const BindingTextureDescs& descriptions)
 	{
 		ResourceManager& rm = Application::Get().GetResourceManager();
-		m_DiffuseTexture = rm.CreateTexture(descriptions.Diffuse);
-		m_ARMTexture = rm.CreateTexture(descriptions.ARM);
-		m_NormalTexture = rm.CreateTexture(descriptions.Normal);
+
+		if(descriptions.Diffuse.Type == TextureType::DIFFUSE)
+			m_DiffuseTexture = rm.CreateTexture(descriptions.Diffuse);
+
+		if(descriptions.ARM.Type == TextureType::ARM)
+			m_ARMTexture = rm.CreateTexture(descriptions.ARM);
+
+		if(descriptions.Normal.Type == TextureType::NORMAL)
+			m_NormalTexture = rm.CreateTexture(descriptions.Normal);
+
+		if (descriptions.LTC1.Type == TextureType::LTC1)
+			m_LTC1_Texture = rm.CreateTexture(descriptions.LTC1);
+
+		if (descriptions.LTC2.Type == TextureType::LTC2)
+			m_LTC2_Texture = rm.CreateTexture(descriptions.LTC2);
 	}
 
 	void VulkanBindGroup::CreateDescriptorPool(const BindingLayoutType& type, bool IsTextured)
 	{
 		switch (type)
 		{
-			case BindingLayoutType::LAYOUT_MATERIAL:
+			case BindingLayoutType::LAYOUT_MATERIAL_DEFAULT:
 			{
 				VkDescriptorPoolSize uboPoolSize{};
 				uboPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -177,85 +190,85 @@ namespace Magnefu
 
 		switch (type)
 		{
-			case BindingLayoutType::LAYOUT_MATERIAL:
+			case BindingLayoutType::LAYOUT_MATERIAL_DEFAULT:
 			{
 				std::vector<VkDescriptorImageInfo> imageInfo{};
-				imageInfo.resize(sizeof(BindingTextureDescs) / sizeof(TextureDesc));
-
-				MF_CORE_ASSERT(imageInfo.size() == 3, "Descriptor set texture image info count doesn't match texture handle count.");
-
-				VkSampler& sampler = VulkanTexture::GetSampler();
-
+				/*imageInfo.resize(sizeof(BindingTextureDescs) / sizeof(TextureDesc));
+				MF_CORE_ASSERT(imageInfo.size() == 3, "Descriptor set texture image info count doesn't match texture handle count.");*/
 
 				for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 				{
-					// UBO
-					VkDescriptorBufferInfo bufferInfo{};
-					bufferInfo.buffer = uniformBuffer.GetBuffers()[i];  
-					bufferInfo.offset = uniformBuffer.GetOffset();
-					bufferInfo.range = uniformBuffer.GetRange();
+					// SET BUFFER AND IMAGE INFO
+					
+						// UBO
+						VkDescriptorBufferInfo bufferInfo{};
+						bufferInfo.buffer = uniformBuffer.GetBuffers()[i];  
+						bufferInfo.offset = uniformBuffer.GetOffset();
+						bufferInfo.range = uniformBuffer.GetRange();
 
-					// Diffuse
-					imageInfo[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-					imageInfo[0].imageView = static_cast<VulkanTexture&>(rm.GetTexture(m_DiffuseTexture)).GetImageView();
-					imageInfo[0].sampler = sampler;
+						// Diffuse
+						//imageInfo[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+						//imageInfo[0].imageView = static_cast<VulkanTexture&>(rm.GetTexture(m_DiffuseTexture)).GetImageView();
+						//imageInfo[0].sampler = static_cast<VulkanTexture&>(rm.GetTexture(m_DiffuseTexture)).GetSampler();
 
-					// ARM
-					imageInfo[1].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-					imageInfo[1].imageView = static_cast<VulkanTexture&>(rm.GetTexture(m_ARMTexture)).GetImageView();
-					imageInfo[1].sampler = sampler;
+						//// ARM
+						//imageInfo[1].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+						//imageInfo[1].imageView = static_cast<VulkanTexture&>(rm.GetTexture(m_ARMTexture)).GetImageView();
+						//imageInfo[1].sampler = static_cast<VulkanTexture&>(rm.GetTexture(m_ARMTexture)).GetSampler();
 
-					// Normal
-					imageInfo[2].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-					imageInfo[2].imageView = static_cast<VulkanTexture&>(rm.GetTexture(m_NormalTexture)).GetImageView();
-					imageInfo[2].sampler = sampler;
+						//// Normal
+						//imageInfo[2].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+						//imageInfo[2].imageView = static_cast<VulkanTexture&>(rm.GetTexture(m_NormalTexture)).GetImageView();
+						//imageInfo[2].sampler = static_cast<VulkanTexture&>(rm.GetTexture(m_NormalTexture)).GetSampler();
 
 
-					std::array<VkWriteDescriptorSet, 4> descriptorWrites{};
+					// WRITE DESCRIPTORS
 
-					// UBO
-					descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-					descriptorWrites[0].dstSet = m_DescriptorSets[i];
-					descriptorWrites[0].dstBinding = 0;
-					descriptorWrites[0].dstArrayElement = 0;
-					descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-					descriptorWrites[0].descriptorCount = 1;
-					descriptorWrites[0].pBufferInfo = &bufferInfo;
-					descriptorWrites[0].pImageInfo = nullptr; // Optional
-					descriptorWrites[0].pTexelBufferView = nullptr; // Optional
+						std::array<VkWriteDescriptorSet, 4> descriptorWrites{};
 
-					// Diffuse Texture
-					descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-					descriptorWrites[1].dstSet = m_DescriptorSets[i];
-					descriptorWrites[1].dstBinding = 1;
-					descriptorWrites[1].dstArrayElement = 0;
-					descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-					descriptorWrites[1].descriptorCount = 1;
-					descriptorWrites[1].pBufferInfo = nullptr;
-					descriptorWrites[1].pImageInfo = &imageInfo[0];
-					descriptorWrites[1].pTexelBufferView = nullptr; // Optional
+						// UBO
+						descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						descriptorWrites[0].dstSet = m_DescriptorSets[i];
+						descriptorWrites[0].dstBinding = 0;
+						descriptorWrites[0].dstArrayElement = 0;
+						descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+						descriptorWrites[0].descriptorCount = 1;
+						descriptorWrites[0].pBufferInfo = &bufferInfo;
+						descriptorWrites[0].pImageInfo = nullptr; // Optional
+						descriptorWrites[0].pTexelBufferView = nullptr; // Optional
 
-					// ARM Texture
-					descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-					descriptorWrites[2].dstSet = m_DescriptorSets[i];
-					descriptorWrites[2].dstBinding = 2;
-					descriptorWrites[2].dstArrayElement = 0;
-					descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-					descriptorWrites[2].descriptorCount = 1;
-					descriptorWrites[2].pBufferInfo = nullptr;
-					descriptorWrites[2].pImageInfo = &imageInfo[1];
-					descriptorWrites[2].pTexelBufferView = nullptr; // Optional
+						// Diffuse Texture
+						//descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						//descriptorWrites[1].dstSet = m_DescriptorSets[i];
+						//descriptorWrites[1].dstBinding = 1;
+						//descriptorWrites[1].dstArrayElement = 0;
+						//descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+						//descriptorWrites[1].descriptorCount = 1;
+						//descriptorWrites[1].pBufferInfo = nullptr;
+						//descriptorWrites[1].pImageInfo = &imageInfo[0];
+						//descriptorWrites[1].pTexelBufferView = nullptr; // Optional
 
-					// Normal Texture
-					descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-					descriptorWrites[3].dstSet = m_DescriptorSets[i];
-					descriptorWrites[3].dstBinding = 3;
-					descriptorWrites[3].dstArrayElement = 0;
-					descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-					descriptorWrites[3].descriptorCount = 1;
-					descriptorWrites[3].pBufferInfo = nullptr;
-					descriptorWrites[3].pImageInfo = &imageInfo[2];
-					descriptorWrites[3].pTexelBufferView = nullptr; // Optional
+						//// ARM Texture
+						//descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						//descriptorWrites[2].dstSet = m_DescriptorSets[i];
+						//descriptorWrites[2].dstBinding = 2;
+						//descriptorWrites[2].dstArrayElement = 0;
+						//descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+						//descriptorWrites[2].descriptorCount = 1;
+						//descriptorWrites[2].pBufferInfo = nullptr;
+						//descriptorWrites[2].pImageInfo = &imageInfo[1];
+						//descriptorWrites[2].pTexelBufferView = nullptr; // Optional
+
+						//// Normal Texture
+						//descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						//descriptorWrites[3].dstSet = m_DescriptorSets[i];
+						//descriptorWrites[3].dstBinding = 3;
+						//descriptorWrites[3].dstArrayElement = 0;
+						//descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+						//descriptorWrites[3].descriptorCount = 1;
+						//descriptorWrites[3].pBufferInfo = nullptr;
+						//descriptorWrites[3].pImageInfo = &imageInfo[2];
+						//descriptorWrites[3].pTexelBufferView = nullptr; // Optional
 
 					vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 
@@ -265,26 +278,66 @@ namespace Magnefu
 
 			case BindingLayoutType::LAYOUT_RENDERPASS:
 			{
+				std::vector<VkDescriptorImageInfo> imageInfo{};
+				imageInfo.resize(2);
+
 				for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 				{
-					// UBO
-					VkDescriptorBufferInfo bufferInfo{};
-					bufferInfo.buffer = uniformBuffer.GetBuffers()[i];
-					bufferInfo.offset = uniformBuffer.GetOffset();
-					bufferInfo.range = uniformBuffer.GetRange();
+					// SET BUFFER AND IMAGE INFO
+					
+						// UBO
+						VkDescriptorBufferInfo bufferInfo{};
+						bufferInfo.buffer = uniformBuffer.GetBuffers()[i];
+						bufferInfo.offset = uniformBuffer.GetOffset();
+						bufferInfo.range = uniformBuffer.GetRange();
 
-					std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
+						// LTC1
+						imageInfo[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+						imageInfo[0].imageView = static_cast<VulkanTexture&>(rm.GetTexture(m_LTC1_Texture)).GetImageView();
+						imageInfo[0].sampler = static_cast<VulkanTexture&>(rm.GetTexture(m_LTC1_Texture)).GetSampler();
 
-					// UBO
-					descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-					descriptorWrites[0].dstSet = m_DescriptorSets[i];
-					descriptorWrites[0].dstBinding = 0;
-					descriptorWrites[0].dstArrayElement = 0;
-					descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-					descriptorWrites[0].descriptorCount = 1;
-					descriptorWrites[0].pBufferInfo = &bufferInfo;
-					descriptorWrites[0].pImageInfo = nullptr; // Optional
-					descriptorWrites[0].pTexelBufferView = nullptr; // Optional
+						// LTC2
+						imageInfo[1].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+						imageInfo[1].imageView = static_cast<VulkanTexture&>(rm.GetTexture(m_LTC2_Texture)).GetImageView();
+						imageInfo[1].sampler = static_cast<VulkanTexture&>(rm.GetTexture(m_LTC2_Texture)).GetSampler();
+
+
+					// WRITE DESCRIPTORS
+
+						std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
+
+						// UBO
+						descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						descriptorWrites[0].dstSet = m_DescriptorSets[i];
+						descriptorWrites[0].dstBinding = 0;
+						descriptorWrites[0].dstArrayElement = 0;
+						descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+						descriptorWrites[0].descriptorCount = 1;
+						descriptorWrites[0].pBufferInfo = &bufferInfo;
+						descriptorWrites[0].pImageInfo = nullptr; // Optional
+						descriptorWrites[0].pTexelBufferView = nullptr; // Optional
+
+						// LTC1 Texture
+						descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						descriptorWrites[1].dstSet = m_DescriptorSets[i];
+						descriptorWrites[1].dstBinding = 1;
+						descriptorWrites[1].dstArrayElement = 0;
+						descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+						descriptorWrites[1].descriptorCount = 1;
+						descriptorWrites[1].pBufferInfo = nullptr;
+						descriptorWrites[1].pImageInfo = &imageInfo[0];
+						descriptorWrites[1].pTexelBufferView = nullptr; // Optional
+
+						// LTC2 Texture
+						descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+						descriptorWrites[2].dstSet = m_DescriptorSets[i];
+						descriptorWrites[2].dstBinding = 2;
+						descriptorWrites[2].dstArrayElement = 0;
+						descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+						descriptorWrites[2].descriptorCount = 1;
+						descriptorWrites[2].pBufferInfo = nullptr;
+						descriptorWrites[2].pImageInfo = &imageInfo[1];
+						descriptorWrites[2].pTexelBufferView = nullptr; // Optional
 
 					vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 				}

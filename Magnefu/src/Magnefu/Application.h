@@ -14,6 +14,7 @@
 #include "Magnefu/Renderer/Material.h"
 #include "Magnefu/Renderer/SceneObject.h"
 #include "Magnefu/Core/TimeStep.h"
+#include "Magnefu/ResourceManagement/ResourcePaths.h"
 
 
 
@@ -68,8 +69,8 @@ namespace Magnefu
 
 		inline static Application& Get() { return *s_Instance; }
 
-		void SetVertexBlock(DataBlock&& vertexBlock, size_t objPos); 
-		inline void SetIndexBlock(DataBlock&& indexBlock, size_t objPos) { m_SceneObjects[objPos].SetIndexBlock(std::move(indexBlock)); }
+		void SetVertexBlock(DataBlock&& vertexBlock, size_t objPos, enum ModelType);
+		void SetIndexBlock(DataBlock&& indexBlock, size_t objPos, enum ModelType);
 
 		//inline void SetLightData(Light& lightData) { m_LightData = lightData; }
 		
@@ -96,7 +97,9 @@ namespace Magnefu
 		bool m_Minimized;
 
 		Handle<BindGroup>        m_RenderPassGlobals;
+
 		std::vector<SceneObject> m_SceneObjects;
+		std::vector<SceneObject> m_LightObjects;
 
 		std::array<PointLight, 3> m_PointLights;
 

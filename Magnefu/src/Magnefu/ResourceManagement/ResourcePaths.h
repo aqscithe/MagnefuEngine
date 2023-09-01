@@ -6,7 +6,13 @@ namespace Magnefu
 
 	// -- MODELS -- //
 
-	// this should probably renamed to resource info
+	enum ModelType
+	{
+		MODEL_DEFAULT = 0,
+		MODEL_LIGHT,
+	};
+
+
 	struct ResourceInfo
 	{
 		bool IsTextured;
@@ -14,14 +20,20 @@ namespace Magnefu
 		const char* ShaderPath;
 	};
 
-	static std::array<ResourceInfo, 2> RESOURCE_PATHS = {
+	static std::array<ResourceInfo, 1> LIGHT_RESOURCE_PATHS = {
+		{
+			{false, "res/meshes/area_lights/square_light.obj", "res/shaders/PolygonalLight.shader"}
+		}
+	};
+
+	static std::array<ResourceInfo, 1> RESOURCE_PATHS = {
 		/*"res/meshes/corridor.obj",
 		"res/meshes/Bronze_shield.obj",
 		"res/meshes/Victorian_Painting.obj",*/
 
 		{
 			{true, "res/meshes/primitives/3D/planes.obj", "res/shaders/LightPlane.shader"},
-			{false, "res/meshes/area_lights/square_light.obj", "res/shaders/PolygonalLight.shader"}
+			
 		}
 	};
 

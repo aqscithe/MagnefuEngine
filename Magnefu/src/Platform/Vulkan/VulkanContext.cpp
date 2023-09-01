@@ -10,7 +10,7 @@
 #include "Magnefu/Renderer/RenderConstants.h"
 #include "Magnefu/Renderer/LTCMatrix.h"
 #include "Magnefu/ResourceManagement/ResourceManager.h"
-#include "Magnefu/ResourceManagement/ResourcePaths.h"
+
 
 
 #define GLFW_INCLUDE_VULKAN
@@ -113,7 +113,7 @@ namespace Magnefu
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 		VK_EXT_MEMORY_BUDGET_EXTENSION_NAME,
 		VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME
-
+		//VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME
 	};
 
 	bool operator==(const Vertex& a, const Vertex& b)
@@ -159,6 +159,8 @@ namespace Magnefu
 		MF_CORE_ASSERT(!s_Instance, "VulkanContext instance already exists.");
 
 		s_Instance = this;
+
+		MF_CORE_DEBUG("Size of LTC1: {0}  | Size of LTC2 : {1}", sizeof(LTC1_Matrix), sizeof(LTC2_Matrix));
 	}
 
 	VulkanContext::~VulkanContext()
@@ -1282,13 +1284,16 @@ namespace Magnefu
 
 	void VulkanContext::LoadModels()
 	{
-		Application::Get().ResizeSceneObjects(MODEL_PATHS.size());
+		Application::Get().ResizeSceneObjects(RESOURCE_PATHS.size());
 
 		std::vector<std::thread> threads;
-		threads.resize(MODEL_PATHS.size());  // TODO: I need to do some testing to programmatically determine max number of threads
+		threads.resize(RESOURCE_PATHS.size() + LIGHT_RESOURCE_PATHS.size());  // TODO: I need to do some testing to programmatically determine max number of threads
 
-		for (size_t i = 0; i < MODEL_PATHS.size(); i++)
-			threads[i] = std::thread(&VulkanContext::LoadSingleModel, this, MODEL_PATHS[i], i);
+		for (size_t i = 0; i < RESOURCE_PATHS.size(); i++)
+			threads[i] = std::thread(&VulkanContext::LoadSingleModel, this, RESOURCE_PATHS[i].ModelPath, i, ModelType::MODEL_DEFAULT);
+
+		for (size_t i = 0; i < LIGHT_RESOURCE_PATHS.size(); i++)
+			threads[RESOURCE_PATHS.size() + i] = std::thread(&VulkanContext::LoadSingleModel, this, LIGHT_RESOURCE_PATHS[i].ModelPath, i, ModelType::MODEL_LIGHT);
 	
 
 		// Join all threads
@@ -1322,7 +1327,7 @@ namespace Magnefu
 			t.join();
 	}
 
-	void VulkanContext::LoadSingleModel(const char* modelPath, size_t objIndex)
+	void VulkanContext::LoadSingleModel(const char* modelPath, size_t objIndex, ModelType modelType)
 	{
 		Application& app = Application::Get();
 
@@ -1452,7 +1457,7 @@ namespace Magnefu
 
 				// Create the Span from the aligned memory
 				DataBlock vertexBlock(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
-				app.SetVertexBlock(std::move(vertexBlock), objIndex);
+				app.SetVertexBlock(std::move(vertexBlock), objIndex, modelType);
 			}
 			else
 			{
@@ -1461,8 +1466,9 @@ namespace Magnefu
 		}
 
 		DataBlock indexBlock(reinterpret_cast<const uint8_t*>(indices.data()), indices.size() * sizeof(uint32_t));
-		app.SetIndexBlock(std::move(indexBlock), objIndex);
+		app.SetIndexBlock(std::move(indexBlock), objIndex, modelType);
 	}
+
 
 	void VulkanContext::LoadSingleTexture(int sceneObjIndex, const char* texturePath, int textureType)
 	{

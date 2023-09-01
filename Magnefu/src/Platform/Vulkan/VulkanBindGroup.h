@@ -38,7 +38,7 @@ namespace Magnefu
 		Handle<Texture>  m_DiffuseTexture;
 		Handle<Texture>  m_ARMTexture;
 		Handle<Texture>  m_NormalTexture;
-		Handle<Texture>  m_LTC1;
-		Handle<Texture>  m_LTC2;
+		Handle<Texture>  m_LTC1_Texture;
+		Handle<Texture>  m_LTC2_Texture;
 	};
 }

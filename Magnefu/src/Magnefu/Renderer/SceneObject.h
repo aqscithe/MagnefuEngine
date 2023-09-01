@@ -3,6 +3,7 @@
 #include "Magnefu/Core/Span.h"
 #include "Magnefu/Renderer/BindGroup.h"
 #include "Magnefu/Renderer/Material.h"
+#include "Magnefu/ResourceManagement/ResourcePaths.h"
 
 
 
@@ -14,7 +15,7 @@ namespace Magnefu
 		SceneObject() = default;
 		~SceneObject();
 
-		void Init(uint32_t index);
+		void Init(uint32_t index, ModelType modelType);
 
 		inline Handle<Shader>& GetGraphicsPipelineShaderHandle() { return m_GraphicsPipelineShader; }
 		inline Handle<BindGroup>& GetMaterialBindGroup() { return m_Material; }

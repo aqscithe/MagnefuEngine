@@ -29,6 +29,11 @@ namespace Magnefu
 		BindGroup& GetBindGroup(const Handle<BindGroup>& handle);
 		Shader&    GetShader(const Handle<Shader>& handle);
 
+		uint32_t GetTextureCount() { return m_TexturePool.GetResourceCount(); }
+		uint32_t GetBufferCount() { return m_BufferPool.GetResourceCount(); }
+		uint32_t GetBindGroupCount() { return m_BindGroupPool.GetResourceCount(); }
+		uint32_t GetShaderCount() { return m_ShaderPool.GetResourceCount(); }
+
 		void DestroyTexture(Handle<Texture> handle);
 		void DestroyBuffer(Handle<Buffer> handle);
 		void DestroyBindGroup(Handle<BindGroup> handle);

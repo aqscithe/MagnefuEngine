@@ -172,7 +172,7 @@
     <None Include="res\shaders\Cube.shader" />
     <None Include="res\shaders\LightCube.shader" />
     <None Include="res\shaders\Particles.shader" />
-    <None Include="res\shaders\Plane.shader" />
+    <None Include="res\shaders\LightPlane.shader" />
     <None Include="res\shaders\PolygonalLight.shader" />
     <None Include="res\shaders\Primitive.shader" />
     <None Include="res\shaders\RecPrism.shader" />

@@ -74,6 +74,9 @@ layout(set = 0, binding = 0) uniform RenderPassLTCUBO
 
 } globals_ubo;
 
+layout(set = 0, binding = 1) uniform sampler2D LTC1;
+layout(set = 0, binding = 2) uniform sampler2D LTC2;
+
 // -- Set 1 -- //
 layout(set = 1, binding = 0) uniform MaterialUBO
 {
@@ -83,8 +86,9 @@ layout(set = 1, binding = 0) uniform MaterialUBO
     float Opacity;
 } mat_ubo;
 
-layout(set = 1, binding = 1) uniform sampler2D LTC1;
-layout(set = 1, binding = 2) uniform sampler2D LTC2;
+layout(set = 1, binding = 1) uniform sampler2D DiffuseSampler;
+layout(set = 1, binding = 2) uniform sampler2D ARMSampler;
+layout(set = 1, binding = 3) uniform sampler2D NormalSampler;
 
 
 const float LUT_SIZE = 64.0;

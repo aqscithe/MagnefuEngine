@@ -3,7 +3,7 @@
 #include "Magnefu/Application.h"
 #include "GraphicsContext.h"
 #include "Magnefu/ResourceManagement/ResourceManager.h"
-#include "Magnefu/ResourceManagement/ResourcePaths.h"
+
 
 
 namespace Magnefu
@@ -13,19 +13,39 @@ namespace Magnefu
 
     }
 
-    void SceneObject::Init(uint32_t index)
+    void SceneObject::Init(uint32_t index, ModelType modelType)
 	{
+        ResourceInfo resourceInfo;
+
+        switch (modelType)
+        {
+            case Magnefu::MODEL_DEFAULT:
+            {
+                resourceInfo = RESOURCE_PATHS[index];
+                break;
+            }
+            case Magnefu::MODEL_LIGHT:
+            {
+                resourceInfo = LIGHT_RESOURCE_PATHS[index];
+                break;
+            }
+            default:
+            {
+                MF_CORE_ASSERT(false, "Invalid or Unknown Model Type -- SceneObject::Init");
+                break;
+            }
+        }
         Application& app = Application::Get();
         ResourceManager& rm = app.GetResourceManager();
         GraphicsContext* context = app.GetWindow().GetGraphicsContext();
 
-        bool IsTextured = RESOURCE_PATHS[index].IsTextured;
+        
 
         m_Material = rm.CreateBindGroup({
             .DebugName = "SciFi Corridor",
-            .LayoutType = BindingLayoutType::LAYOUT_MATERIAL,
-            .Layout = IsTextured ? OBJECT_LIT_BY_AREA_LIGHT_MATERIAL_BINDING_LAYOUT : AREA_LIGHT_NONTEXTURED_MATERIAL_BINDING_LAYOUT,
-            .IsTextured = IsTextured,
+            .LayoutType = BindingLayoutType::LAYOUT_MATERIAL_DEFAULT,
+            .Layout = DEFAULT_MATERIAL_BINDING_LAYOUT,
+            .IsTextured = resourceInfo.IsTextured,
             .Textures = {
                 .Diffuse = {
                     "DiffuseTexture",
@@ -50,20 +70,6 @@ namespace Magnefu
                     TextureTiling::IMAGE_TILING_OPTIMAL,
                     TextureFormat::FORMAT_R8G8B8A8_UNORM,
                     //TextureChannels::CHANNELS_RGB_ALPHA
-                },
-                .LTC1 = {
-                    "LTC1Texture",
-                    index,
-                    TextureType::FLOAT,
-                    TextureTiling::IMAGE_TILING_OPTIMAL,
-                    TextureFormat::FORMAT_R32G32B32A32_SFLOAT,
-                },
-                .LTC2 = {
-                    "LTC2Texture",
-                    index,
-                    TextureType::FLOAT,
-                    TextureTiling::IMAGE_TILING_OPTIMAL,
-                    TextureFormat::FORMAT_R32G32B32A32_SFLOAT,
                 }
             },
             .Buffers = MaterialUniformBufferDesc
@@ -71,7 +77,7 @@ namespace Magnefu
 
         m_GraphicsPipelineShader = rm.CreateShader({   // shader will be set by the object. Ex: drawStream.SetShader(sceneObject.shader);
             .DebugName = "Basic Shader",
-            .Path = RESOURCE_PATHS[index].ShaderPath,
+            .Path = resourceInfo.ShaderPath,
             .StageDescriptions = {
                 .VS = DefaultVertexShaderDesc,
                 .FS = DefaultFragmentShaderDesc

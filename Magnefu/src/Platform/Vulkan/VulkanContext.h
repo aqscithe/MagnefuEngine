@@ -2,6 +2,7 @@
 
 #include "Magnefu/Renderer/GraphicsContext.h"
 #include "Magnefu/Renderer/SceneObject.h"
+#include "Magnefu/ResourceManagement/ResourcePaths.h"
 
 #include "VulkanCommon.h"
 
@@ -186,7 +187,7 @@ namespace Magnefu
 		void CreateSyncObjects();
 
 
-		void LoadSingleModel(const char* modelPath, size_t objIndex);
+		void LoadSingleModel(const char* modelPath, size_t objIndex, ModelType modelType);
 		void LoadSingleTexture(int sceneObjIndex, const char* texturePath, int textureType);
 
 

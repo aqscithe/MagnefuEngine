@@ -175,7 +175,7 @@
     <None Include="res\shaders\Particles.shader">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\Plane.shader">
+    <None Include="res\shaders\LightPlane.shader">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\PolygonalLight.shader">

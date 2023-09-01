@@ -73,6 +73,9 @@ layout(set = 0, binding = 0) uniform RenderPassLTCUBO
     vec3 CameraPos;
 } globals_ubo;
 
+layout(set = 0, binding = 1) uniform sampler2D LTC1;
+layout(set = 0, binding = 2) uniform sampler2D LTC2;
+
 // -- Set 1 -- //
 layout(set = 1, binding = 0) uniform MaterialUBO
 {
@@ -85,8 +88,6 @@ layout(set = 1, binding = 0) uniform MaterialUBO
 layout(set = 1, binding = 1) uniform sampler2D DiffuseSampler;
 layout(set = 1, binding = 2) uniform sampler2D ARMSampler;
 layout(set = 1, binding = 3) uniform sampler2D NormalSampler;
-layout(set = 1, binding = 4) uniform sampler2D LTC1;
-layout(set = 1, binding = 5) uniform sampler2D LTC2;
 
 
 const float LUT_SIZE = 64.0;
