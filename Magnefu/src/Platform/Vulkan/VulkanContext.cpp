@@ -1285,17 +1285,12 @@ namespace Magnefu
 	void VulkanContext::LoadModels()
 	{
 		Application::Get().ResizeSceneObjects(RESOURCE_PATHS.size());
-		Application::Get().ResizeLightObjects(LIGHT_RESOURCE_PATHS.size());
 
 		std::vector<std::thread> threads;
-		threads.resize(RESOURCE_PATHS.size() + LIGHT_RESOURCE_PATHS.size());  // TODO: I need to do some testing to programmatically determine max number of threads
+		threads.resize(RESOURCE_PATHS.size());  // TODO: I need to do some testing to programmatically determine max number of threads
 
 		for (size_t i = 0; i < RESOURCE_PATHS.size(); i++)
 			threads[i] = std::thread(&VulkanContext::LoadSingleModel, this, RESOURCE_PATHS[i].ModelPath, i, ModelType::MODEL_DEFAULT);
-
-		for (size_t i = 0; i < LIGHT_RESOURCE_PATHS.size(); i++)
-			threads[RESOURCE_PATHS.size() + i] = std::thread(&VulkanContext::LoadSingleModel, this, LIGHT_RESOURCE_PATHS[i].ModelPath, i, ModelType::MODEL_LIGHT);
-	
 
 		// Join all threads
 		for (auto& t : threads)

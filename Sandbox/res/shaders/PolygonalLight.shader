@@ -46,7 +46,7 @@ void main()
 #shader fragment
 #version 460 core
 
-
+// Just create this in sandbox for now
 struct AreaLight {
     float Intensity;
     vec3  Color;
@@ -57,9 +57,9 @@ struct AreaLight {
 
 
 // -- In -- //
-layout(location = 0) in vec2 FragPosition;
+layout(location = 0) in vec3 FragPosition;
 layout(location = 1) in vec3 FragNormal;
-layout(location = 2) in vec3 FragTexCoord;
+layout(location = 2) in vec2 FragTexCoord;
 
 // -- Out -- //
 layout(location = 0) out vec4 FragColor;
@@ -71,8 +71,6 @@ layout(push_constant) uniform PushConstants
 {
     AreaLight AreaLight;
 
-    // I don't think I need this. Should be obtained from textures
-    //vec4 albedoRoughness; // (x,y,z) = color, w = roughness
 } PC;
 
 // -- Set 0 -- //
@@ -96,9 +94,9 @@ layout(set = 1, binding = 0) uniform MaterialUBO
     float Opacity;
 } mat_ubo;
 
-//layout(set = 1, binding = 1) uniform sampler2D DiffuseSampler;
-//layout(set = 1, binding = 2) uniform sampler2D ARMSampler;
-//layout(set = 1, binding = 3) uniform sampler2D NormalSampler;
+layout(set = 1, binding = 1) uniform sampler2D DiffuseSampler;
+layout(set = 1, binding = 2) uniform sampler2D ARMSampler;
+layout(set = 1, binding = 3) uniform sampler2D NormalSampler;
 
 
 const float LUT_SIZE = 64.0;
@@ -204,7 +202,7 @@ vec3 ToSRGB(vec3 v) { return PowVec3(v, 1.0 / GAMMA); }
 
 void main()
 {
-    vec3 ARM = texture(ARMSampler, TexCoord).rgb;
+    vec3 ARM = texture(ARMSampler, FragTexCoord).rgb;
     vec3 Diffuse = texture(DiffuseSampler, FragTexCoord).xyz;// * vec3(0.7f, 0.8f, 0.96f);
 
     // gamma correction
@@ -215,7 +213,7 @@ void main()
     vec3 result = vec3(0.0f);
 
     // Sample Normal Map
-    vec3 Normal = texture(NormalSampler, TexCoord).rgb;
+    vec3 Normal = texture(NormalSampler, FragTexCoord).rgb;
 
     vec3 ViewVector = normalize(globals_ubo.CameraPos - FragPosition);
     float dotNV = clamp(dot(Normal, ViewVector), 0.0f, 1.0f);
@@ -239,12 +237,13 @@ void main()
 
     // translate light source for testing
     vec3 translatedPoints[4];
-    translatedPoints[0] = PC.AreaLight.Points[0] + PC.AreaLight.Translate;
-    translatedPoints[1] = PC.AreaLight.Points[1] + PC.AreaLight.Translate;
-    translatedPoints[2] = PC.AreaLight.Points[2] + PC.AreaLight.Translate;
-    translatedPoints[3] = PC.AreaLight.Points[3] + PC.AreaLight.Translate;
+    translatedPoints[0] = PC.AreaLight.Points[0] + PC.AreaLight.Translation;
+    translatedPoints[1] = PC.AreaLight.Points[1] + PC.AreaLight.Translation;
+    translatedPoints[2] = PC.AreaLight.Points[2] + PC.AreaLight.Translation;
+    translatedPoints[3] = PC.AreaLight.Points[3] + PC.AreaLight.Translation;
 
     // Evaluate LTC shading
+
     vec3 LTC_Diffuse = LTC_Evaluate(Normal, ViewVector, FragPosition, mat3(1), translatedPoints, PC.AreaLight.TwoSided);
     vec3 LTC_Specular = LTC_Evaluate(Normal, ViewVector, FragPosition, Minv, translatedPoints, PC.AreaLight.TwoSided);
 

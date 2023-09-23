@@ -65,13 +65,9 @@ namespace Magnefu
         // need to get info on whether the object is textured from
         // MODEL_PATHS
 
-        MF_CORE_INFO("Currently not Initializing any sceneobjects!");
+        for (size_t i = 0; i < m_SceneObjects.size(); i++)
+            m_SceneObjects[i].Init(i, ModelType::MODEL_DEFAULT);
 
-        /*for (size_t i = 0; i < m_SceneObjects.size(); i++)
-            m_SceneObjects[i].Init(i, ModelType::MODEL_DEFAULT);*/
-
-        for (size_t i = 0; i < m_LightObjects.size(); i++)
-            m_LightObjects[i].Init(i, ModelType::MODEL_LIGHT);
 
         // NON AREA LIGHTS
         /*for (auto& light : m_PointLights)
@@ -104,11 +100,6 @@ namespace Magnefu
                 m_SceneObjects[objPos].SetVertexBlock(std::move(vertexBlock));
                 break;
             }
-            case Magnefu::MODEL_LIGHT:
-            {
-                m_LightObjects[objPos].SetVertexBlock(std::move(vertexBlock));
-                break;
-            }
             default:
             {
                 MF_CORE_ASSERT(false, "Invalid Model Type -- Application::SetVertexBlock");
@@ -125,11 +116,6 @@ namespace Magnefu
             case Magnefu::MODEL_DEFAULT:
             {
                 m_SceneObjects[objPos].SetIndexBlock(std::move(indexBlock));
-                break;
-            }
-            case Magnefu::MODEL_LIGHT:
-            {
-                m_LightObjects[objPos].SetIndexBlock(std::move(indexBlock));
                 break;
             }
             default:

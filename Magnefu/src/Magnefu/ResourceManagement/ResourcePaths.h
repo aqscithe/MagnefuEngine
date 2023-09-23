@@ -8,8 +8,7 @@ namespace Magnefu
 
 	enum ModelType
 	{
-		MODEL_DEFAULT = 0,
-		MODEL_LIGHT,
+		MODEL_DEFAULT = 0
 	};
 
 
@@ -20,20 +19,13 @@ namespace Magnefu
 		const char* ShaderPath;
 	};
 
-	static std::array<ResourceInfo, 1> LIGHT_RESOURCE_PATHS = {
-		{
-			{false, "res/meshes/area_lights/square_light.obj", "res/shaders/PolygonalLight.shader"}
-		}
-	};
-
 	static std::array<ResourceInfo, 1> RESOURCE_PATHS = {
 		/*"res/meshes/corridor.obj",
 		"res/meshes/Bronze_shield.obj",
 		"res/meshes/Victorian_Painting.obj",*/
 
 		{
-			{true, "res/meshes/primitives/3D/plane.obj", "res/shaders/LightPlane.shader"},
-			
+			{true, "res/meshes/primitives/3D/plane.obj", "res/shaders/PolygonalLight.shader"},
 		}
 	};
 

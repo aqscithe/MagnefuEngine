@@ -24,11 +24,6 @@ namespace Magnefu
                 resourceInfo = RESOURCE_PATHS[index];
                 break;
             }
-            case Magnefu::MODEL_LIGHT:
-            {
-                resourceInfo = LIGHT_RESOURCE_PATHS[index];
-                break;
-            }
             default:
             {
                 MF_CORE_ASSERT(false, "Invalid or Unknown Model Type -- SceneObject::Init");
