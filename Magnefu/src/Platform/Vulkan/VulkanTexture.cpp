@@ -106,7 +106,11 @@ namespace Magnefu
 			m_MipLevels = 1;  
 			MF_CORE_DEBUG("Mip Levels: {}", m_MipLevels);  
 
-			VkDeviceSize imageSize = 128 * 128 * TextureChannels::CHANNELS_RGB_ALPHA;  // Image Size with this texture is still a question marke for me...
+			int width, height;
+			width = 64;
+			height = 64;
+
+			VkDeviceSize imageSize = 65536;  // Image Size with this texture is still a question marke for me...
 
 			VkBuffer stagingBuffer;
 			VmaAllocation stagingAllocation;
@@ -125,14 +129,16 @@ namespace Magnefu
 				stagingAllocInfo
 			);
 
+			MF_CORE_DEBUG("Size of LTC1: {0} | Size of LTC2: {1}", sizeof(LTC1_Matrix), sizeof(LTC2_Matrix));
+
 			void* data;
 			vmaMapMemory(allocator, stagingAllocation, &data);
-			memcpy(data, desc.Type == TextureType::LTC1 ? LTC1_Matrix : LTC2_Matrix, static_cast<size_t>(imageSize));
+			memcpy(data, desc.Type == TextureType::LTC1 ? LTC1_Matrix : LTC2_Matrix, desc.Type == TextureType::LTC1 ? sizeof(LTC1_Matrix) : sizeof(LTC2_Matrix));
 			vmaUnmapMemory(allocator, stagingAllocation);
 
 			VulkanCommon::CreateImage(
-				128,  // HOW WILL WIDTH AND HEIGHT BE DETERMINED WITH LTC
-				128,
+				width,  // HOW WILL WIDTH AND HEIGHT BE DETERMINED WITH LTC
+				height,
 				m_MipLevels,
 				VK_SAMPLE_COUNT_1_BIT,
 				static_cast<VkFormat>(desc.Format),
@@ -147,8 +153,8 @@ namespace Magnefu
 			);
 
 			TransitionImageLayout(m_Image, static_cast<VkFormat>(desc.Format), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_MipLevels);
-			VulkanCommon::CopyBufferToImage(stagingBuffer, m_Image, 128, 128, VK_NULL_HANDLE);
-			GenerateMipmaps(m_Image, static_cast<VkFormat>(desc.Format), 128, 128, m_MipLevels); 
+			VulkanCommon::CopyBufferToImage(stagingBuffer, m_Image, width, height, VK_NULL_HANDLE);
+			GenerateMipmaps(m_Image, static_cast<VkFormat>(desc.Format), width, height, m_MipLevels); 
 
 			vmaDestroyBuffer(allocator, stagingBuffer, stagingAllocation);
 		}

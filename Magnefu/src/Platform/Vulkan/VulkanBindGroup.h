@@ -23,8 +23,8 @@ namespace Magnefu
 		void CreateDescriptorSetLayout(const BindingLayout&);
 		void CreateBindingBuffers(const BindingBufferDescs&);
 		void CreateBindingTextures(const BindingTextureDescs&);
-		void CreateDescriptorPool(const BindingLayoutType&, bool);
-		void CreateDescriptorSets(const BindingLayoutType& type);
+		void CreateDescriptorPool(const BindingLayoutType&, bool isTextured);
+		void CreateDescriptorSets(const BindingLayoutType& type, bool isTextured);
 
 		VkDescriptorType GetDescriptorType(const BindingType&);
 		

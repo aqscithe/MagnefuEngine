@@ -12,9 +12,9 @@ layout(location = 4) in vec3 InBitangent;
 layout(location = 5) in vec2 InTexCoord;
 
 // -- Out -- //
-layout(location = 0) out vec2 FragPosition;
+layout(location = 0) out vec3 FragPosition;
 layout(location = 1) out vec3 FragNormal;
-layout(location = 2) out vec3 FragTexCoord;
+layout(location = 2) out vec2 FragTexCoord;
 
 // -- Set 0 -- //
 layout(set = 0, binding = 0) uniform RenderPassLTCUBO
@@ -24,11 +24,21 @@ layout(set = 0, binding = 0) uniform RenderPassLTCUBO
     vec3 CameraPos;
 } globals_ubo;
 
+// -- Set 1 -- //
+layout(set = 1, binding = 0) uniform MaterialUBO
+{
+    mat4 Model;
+    vec3 Tint;
+    float Reflectance;
+    float Opacity;
+} mat_ubo;
+
+
 
 void main()
 {
     gl_Position = globals_ubo.Proj * globals_ubo.View * mat_ubo.Model * vec4(InPosition, 1.0);
-    FragNormal = InNormal
+    FragNormal = InNormal;
     FragTexCoord = InTexCoord;
     FragPosition = vec3(mat_ubo.Model * vec4(InPosition, 1.0));
 }
@@ -86,9 +96,9 @@ layout(set = 1, binding = 0) uniform MaterialUBO
     float Opacity;
 } mat_ubo;
 
-layout(set = 1, binding = 1) uniform sampler2D DiffuseSampler;
-layout(set = 1, binding = 2) uniform sampler2D ARMSampler;
-layout(set = 1, binding = 3) uniform sampler2D NormalSampler;
+//layout(set = 1, binding = 1) uniform sampler2D DiffuseSampler;
+//layout(set = 1, binding = 2) uniform sampler2D ARMSampler;
+//layout(set = 1, binding = 3) uniform sampler2D NormalSampler;
 
 
 const float LUT_SIZE = 64.0;

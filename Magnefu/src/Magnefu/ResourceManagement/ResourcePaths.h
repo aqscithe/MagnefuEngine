@@ -32,7 +32,7 @@ namespace Magnefu
 		"res/meshes/Victorian_Painting.obj",*/
 
 		{
-			{true, "res/meshes/primitives/3D/planes.obj", "res/shaders/LightPlane.shader"},
+			{true, "res/meshes/primitives/3D/plane.obj", "res/shaders/LightPlane.shader"},
 			
 		}
 	};
@@ -59,9 +59,9 @@ namespace Magnefu
 		"res/textures/Victorian_Painting/VictorianPaintings_ARM_Utility-sRGB-Texture.png",
 		"res/textures/Victorian_Painting/VictorianPaintings_Normal_Utility-Raw.png"*/
 
-		"res/textures/surfaces/snow_01_diff_2k.png",
-		"res/textures/surfaces/snow_01_arm_2k.png",
-		"res/textures/surfaces/snow_01_nor_dx_2k.png",
+		"res/textures/surfaces/snow_01/snow_01_diff_2k.png",
+		"res/textures/surfaces/snow_01/snow_01_arm_2k.png",
+		"res/textures/surfaces/snow_01/snow_01_nor_dx_2k.png",
 			
 	};
 

@@ -59,7 +59,6 @@ namespace Magnefu
 
 		inline ResourceManager& GetResourceManager() { return *m_RM; }
 
-		inline size_t GetTextureCount() { return sizeof(BindingTextureDescs) / sizeof(TextureDesc); }
 		inline Handle<BindGroup>& GetRenderPassBindGroup() { return m_RenderPassGlobals; }
 		inline std::array<PointLight, 3>& GetPointLightData() { return m_PointLights; }
 		
@@ -69,14 +68,15 @@ namespace Magnefu
 
 		inline static Application& Get() { return *s_Instance; }
 
-		void SetVertexBlock(DataBlock&& vertexBlock, size_t objPos, enum ModelType);
-		void SetIndexBlock(DataBlock&& indexBlock, size_t objPos, enum ModelType);
-
-		//inline void SetLightData(Light& lightData) { m_LightData = lightData; }
+		void SetVertexBlock(DataBlock&& vertexBlock, size_t objPos, ModelType modelType);
+		void SetIndexBlock(DataBlock&& indexBlock, size_t objPos, ModelType modelType);
 		
 
 		inline void ResizeSceneObjects(const size_t size) { m_SceneObjects.resize(size); }
+		inline void ResizeLightObjects(const size_t size) { m_LightObjects.resize(size); }
+
 		inline std::vector<SceneObject>& GetSceneObjects() { return m_SceneObjects; }
+		inline std::vector<SceneObject>& GetLightObjects() { return m_LightObjects; }
 
 
 	private:

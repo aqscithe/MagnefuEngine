@@ -66,8 +66,9 @@ namespace Magnefu
         // MODEL_PATHS
 
         MF_CORE_INFO("Currently not Initializing any sceneobjects!");
-        for (size_t i = 0; i < m_SceneObjects.size(); i++)
-            m_SceneObjects[i].Init(i, ModelType::MODEL_DEFAULT);
+
+        /*for (size_t i = 0; i < m_SceneObjects.size(); i++)
+            m_SceneObjects[i].Init(i, ModelType::MODEL_DEFAULT);*/
 
         for (size_t i = 0; i < m_LightObjects.size(); i++)
             m_LightObjects[i].Init(i, ModelType::MODEL_LIGHT);
