@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Light.h"
+
 
 namespace Magnefu
 {
@@ -7,7 +9,7 @@ namespace Magnefu
 
 	struct PushConstants
 	{
-		
+		AreaLight ALight;
 	};
 
 	struct RendererInfo

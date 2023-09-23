@@ -108,10 +108,10 @@ namespace Magnefu
                     .StencilTestEnable = false
                 },
                 .PushConstantInfo = {
-                    .Enabled = false,
-                    .Stages = ShaderStage::SHADER_STAGE_VERTEX_AND_FRAGMENT,
+                    .Enabled = true,
+                    .Stages = ShaderStage::SHADER_STAGE_FRAGMENT,
                     .Offset = 0,
-                    .ByteSize = 0
+                    .ByteSize = sizeof(PushConstants)
                 }
             }
         });
