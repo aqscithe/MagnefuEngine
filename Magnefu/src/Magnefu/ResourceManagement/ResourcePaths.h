@@ -8,15 +8,17 @@ namespace Magnefu
 
 	enum ModelType
 	{
-		MODEL_DEFAULT = 0
+		MODEL_DEFAULT = 0,
+		MODEL_AREA_LIGHT = 1,
 	};
 
 
 	struct ResourceInfo
 	{
-		bool IsTextured;
+		bool        IsTextured;
 		const char* ModelPath;
 		const char* ShaderPath;
+		ModelType   ModelType;
 	};
 
 	static std::array<ResourceInfo, 1> RESOURCE_PATHS = {
@@ -25,7 +27,7 @@ namespace Magnefu
 		"res/meshes/Victorian_Painting.obj",*/
 
 		{
-			{true, "res/meshes/primitives/3D/plane.obj", "res/shaders/AreaLightLTC.shader"},
+			{true, "res/meshes/primitives/3D/plane.obj", "res/shaders/AreaLightLTC.shader", ModelType::MODEL_DEFAULT},
 			//{false, "res/meshes/area_lights/square_light.obj", "res/shaders/AreaLight.shader"}
 		}
 	};

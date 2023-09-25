@@ -40,11 +40,16 @@ void main()
 
 
 struct AreaLight {
-    float Intensity;
+    vec4  Points0;
+    vec4  Points1;
+    vec4  Points2;
+    vec4  Points3;
     vec3  Color;
+    float padding1;
     vec3  Translation;
-    vec3  Points[4];
-    bool  TwoSided;
+    float padding2;
+    float Intensity;
+    int   TwoSided;
 };
 
 

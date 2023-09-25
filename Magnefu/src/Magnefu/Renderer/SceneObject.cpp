@@ -15,26 +15,11 @@ namespace Magnefu
 
     void SceneObject::Init(uint32_t index, ModelType modelType)
 	{
-        ResourceInfo resourceInfo;
-
-        switch (modelType)
-        {
-            case Magnefu::MODEL_DEFAULT:
-            {
-                resourceInfo = RESOURCE_PATHS[index];
-                break;
-            }
-            default:
-            {
-                MF_CORE_ASSERT(false, "Invalid or Unknown Model Type -- SceneObject::Init");
-                break;
-            }
-        }
+        ResourceInfo resourceInfo = RESOURCE_PATHS[index];
         Application& app = Application::Get();
         ResourceManager& rm = app.GetResourceManager();
         GraphicsContext* context = app.GetWindow().GetGraphicsContext();
 
-        
 
         m_Material = rm.CreateBindGroup({
             .DebugName = "SciFi Corridor",
@@ -93,7 +78,7 @@ namespace Magnefu
                 .RasterizerInfo = {
                     .PolygonMode = PolygonMode::POLYGON_MODE_FILL,
                     .LineWidth = 1.f,
-                    .CullMode = CullMode::CULL_MODE_BACK,
+                    .CullMode = resourceInfo.ModelType == ModelType::MODEL_AREA_LIGHT ? CullMode::CULL_MODE_NONE : CullMode::CULL_MODE_BACK,  // Should distinguish between 2D and 3D area lights
                 },
                 .MSAAInfo = {
                 //.SampleCount         = MSAASampleCountFlag::SAMPLE_COUNT_8_BIT, // Should be a parameter for when I create the graphics context as that is when this value is found
