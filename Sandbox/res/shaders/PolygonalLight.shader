@@ -259,9 +259,9 @@ void main()
 
     result = PC.AreaLight.Color * PC.AreaLight.Intensity * (LTC_Specular + Diffuse * LTC_Diffuse);
 
-    //FragColor = vec4(ToSRGB(result), 1.0f);
+    FragColor = vec4(ToSRGB(result), 1.0f);
 
-    FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    //FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 }
 
 
