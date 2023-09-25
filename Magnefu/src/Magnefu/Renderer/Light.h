@@ -17,13 +17,16 @@ namespace Magnefu
 
     struct alignas(16) AreaLight
     {
-        float        Intensity;
+        Maths::vec4  Points0;
+        Maths::vec4  Points1;
+        Maths::vec4  Points2;
+        Maths::vec4  Points3;
         Maths::vec3  Color;
         float        padding1;
         Maths::vec3  Translation;
         float        padding2;
-        Maths::vec4  Points[4];  // vec3 => vec4 -- last component(4) in each array position is padding
-        bool         TwoSided;
+        float        Intensity;
+        int          TwoSided;   // 0 or 1
         
     };
 }

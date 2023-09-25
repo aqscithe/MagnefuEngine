@@ -132,11 +132,11 @@ namespace Magnefu
 				ubo.ProjMatrix.c[1].e[1] *= -1; // I don't remember why I am doing this.... :(
 
 				ubo.CameraPos = camera->GetData().Position;
-				for (size_t i = 0; i < lights.size(); i++)
+				/*for (size_t i = 0; i < lights.size(); i++)
 				{
 					ubo.PointLights[i] = lights[i];
 				}
-				ubo.LightCount = lights.size();
+				ubo.LightCount = lights.size();*/
 
 				
 				assert(sizeof(ubo) == m_Range);

@@ -48,11 +48,16 @@ void main()
 
 // Just create this in sandbox for now
 struct AreaLight {
-    float Intensity;
+    vec4  Points0;
+    vec4  Points1;
+    vec4  Points2;
+    vec4  Points3;
     vec3  Color;
+    float padding1;
     vec3  Translation;
-    vec3  Points[4];
-    bool  TwoSided;
+    float padding2;
+    float Intensity;
+    int   TwoSided;
 };
 
 
@@ -129,7 +134,7 @@ float IntegrateEdge(vec3 v1, vec3 v2)
 }
 
 // P is fragPos in world space (LTC distribution)
-vec3 LTC_Evaluate(vec3 N, vec3 V, vec3 P, mat3 Minv, vec3 points[4], bool twoSided)
+vec3 LTC_Evaluate(vec3 N, vec3 V, vec3 P, mat3 Minv, vec3 points[4], int twoSided)
 {
     // construct orthonormal basis around N
     vec3 T1, T2;
@@ -149,7 +154,7 @@ vec3 LTC_Evaluate(vec3 N, vec3 V, vec3 P, mat3 Minv, vec3 points[4], bool twoSid
 
     // use tabulated horizon-clipped sphere
     // check if the shading point is behind the light
-    vec3 dir = points[0] - P; // LTC space
+    vec3 dir = points[0].xyz - P; // LTC space
     vec3 lightNormal = cross(points[1] - points[0], points[3] - points[0]);
     bool behind = (dot(dir, lightNormal) < 0.0);
 
@@ -180,7 +185,7 @@ vec3 LTC_Evaluate(vec3 N, vec3 V, vec3 P, mat3 Minv, vec3 points[4], bool twoSid
     float scale = texture(LTC2, uv).w;
 
     float sum = len * scale;
-    if (!behind && !twoSided)
+    if (!behind && twoSided == 0)
         sum = 0.0;
 
     // Outgoing radiance (solid angle) for the entire polygon
@@ -237,10 +242,10 @@ void main()
 
     // translate light source for testing
     vec3 translatedPoints[4];
-    translatedPoints[0] = PC.AreaLight.Points[0] + PC.AreaLight.Translation;
-    translatedPoints[1] = PC.AreaLight.Points[1] + PC.AreaLight.Translation;
-    translatedPoints[2] = PC.AreaLight.Points[2] + PC.AreaLight.Translation;
-    translatedPoints[3] = PC.AreaLight.Points[3] + PC.AreaLight.Translation;
+    translatedPoints[0] = PC.AreaLight.Points0.xyz + PC.AreaLight.Translation;
+    translatedPoints[1] = PC.AreaLight.Points1.xyz + PC.AreaLight.Translation;
+    translatedPoints[2] = PC.AreaLight.Points2.xyz + PC.AreaLight.Translation;
+    translatedPoints[3] = PC.AreaLight.Points3.xyz + PC.AreaLight.Translation;
 
     // Evaluate LTC shading
 
@@ -254,7 +259,9 @@ void main()
 
     result = PC.AreaLight.Color * PC.AreaLight.Intensity * (LTC_Specular + Diffuse * LTC_Diffuse);
 
-    FragColor = vec4(ToSRGB(result), 1.0f);
+    //FragColor = vec4(ToSRGB(result), 1.0f);
+
+    FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 }
 
 

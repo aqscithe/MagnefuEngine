@@ -23,13 +23,11 @@ public:
 		m_PushConstants.ALight.Intensity = 4.f;
 		m_PushConstants.ALight.Color = Maths::vec3(1.f);
 		m_PushConstants.ALight.Translation = Maths::vec3(0.f);
-		m_PushConstants.ALight.Points[0] = { -8.0f, 2.4f, -1.0f, 0.f };
-		m_PushConstants.ALight.Points[1] = { -8.0f, 2.4f,  1.0f, 0.f };
-		m_PushConstants.ALight.Points[2] = { -8.0f, 0.4f,  1.0f, 0.f };
-		m_PushConstants.ALight.Points[3] = { -8.0f, 0.4f, -1.0f, 0.f };
-		m_PushConstants.ALight.TwoSided = true;
-
-
+		m_PushConstants.ALight.Points0 = { -8.0f, 2.4f, -1.0f, 0.f };
+		m_PushConstants.ALight.Points1 = { -8.0f, 2.4f,  1.0f, 0.f };
+		m_PushConstants.ALight.Points2 = { -8.0f, 0.4f,  1.0f, 0.f };
+		m_PushConstants.ALight.Points3 = { -8.0f, 0.4f, -1.0f, 0.f };
+		m_PushConstants.ALight.TwoSided = 1;
 	}
 
 	void OnAttach() override
@@ -107,7 +105,7 @@ public:
 				ImGui::SliderFloat("Area Light Intensity", &m_PushConstants.ALight.Intensity, 0.0f, 10.f, "%.1f");
 				ImGui::ColorEdit3("Area Light Color", m_PushConstants.ALight.Color.e);
 				ImGui::SliderFloat3("Area Light Translation", m_PushConstants.ALight.Translation.e, -500.f, 500.f, "%.1f");
-				ImGui::Checkbox("Area Light Two-sided", &m_PushConstants.ALight.TwoSided);
+				ImGui::SliderInt("Area Light Two-sided", &m_PushConstants.ALight.TwoSided, 0, 1);
 
 				// Now I need to ensure the shader knows it is receiving a push constant (either descriptor set stuff or
 				// and I need to go to VulkanContext to ensure that is configured to properly send uniform data, push

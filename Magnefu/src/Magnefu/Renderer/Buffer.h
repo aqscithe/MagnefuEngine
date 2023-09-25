@@ -61,8 +61,8 @@ namespace Magnefu
         float padding1;
 
         // Light Info
-        PointLight PointLights[3];
-        int   LightCount;
+        /*PointLight PointLights[3];
+        int   LightCount;*/
     };
 
     struct alignas(16) RenderPassUniformBufferObjectLTC
