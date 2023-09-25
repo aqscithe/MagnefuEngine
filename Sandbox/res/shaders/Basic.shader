@@ -58,7 +58,7 @@ layout(location = 0) out vec2 FragTexCoord;
 layout(location = 1) out vec3 TangentCameraPos;
 layout(location = 2) out vec3 TangentFragPos;
 layout(location = 3) out vec3 TangentLightPos[MAX_POINT_LIGHTS];
-//layout(location = 3) out vec3 TangentLightPos;
+
 
 
 void main()

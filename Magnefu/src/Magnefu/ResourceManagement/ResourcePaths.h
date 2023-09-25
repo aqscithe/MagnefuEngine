@@ -25,7 +25,8 @@ namespace Magnefu
 		"res/meshes/Victorian_Painting.obj",*/
 
 		{
-			{true, "res/meshes/primitives/3D/plane.obj", "res/shaders/PolygonalLight.shader"},
+			{true, "res/meshes/primitives/3D/plane.obj", "res/shaders/AreaLightLTC.shader"},
+			//{false, "res/meshes/area_lights/square_light.obj", "res/shaders/AreaLight.shader"}
 		}
 	};
 

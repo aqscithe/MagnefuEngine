@@ -17,7 +17,7 @@ layout(location = 1) out vec3 FragNormal;
 layout(location = 2) out vec2 FragTexCoord;
 
 // -- Set 0 -- //
-layout(set = 0, binding = 0) uniform RenderPassLTCUBO
+layout(set = 0, binding = 0) uniform RenderPassUBO
 {
     mat4 View;
     mat4 Proj;
