@@ -24,12 +24,21 @@ layout(set = 0, binding = 0) uniform RenderPassUBO
     vec3 CameraPos;
 } globals_ubo;
 
+// -- Set 1 -- //
+layout(set = 1, binding = 0) uniform MaterialUBO
+{
+    mat4 Model;
+    vec3 Tint;
+    float Reflectance;
+    float Opacity;
+} mat_ubo;
+
 
 void main()
 {
     gl_Position = globals_ubo.Proj * globals_ubo.View * mat_ubo.Model * vec4(InPosition, 1.0);
-    FragNormal = InNormal
-        FragTexCoord = InTexCoord;
+    FragNormal = InNormal;
+    FragTexCoord = InTexCoord;
     FragPosition = vec3(mat_ubo.Model * vec4(InPosition, 1.0));
 }
 
@@ -77,6 +86,9 @@ layout(set = 0, binding = 0) uniform RenderPassUBO
     vec3 CameraPos;
 } globals_ubo;
 
+layout(set = 0, binding = 1) uniform sampler2D LTC1;
+layout(set = 0, binding = 2) uniform sampler2D LTC2;
+
 
 // -- Set 1 -- //
 layout(set = 1, binding = 0) uniform MaterialUBO
@@ -102,7 +114,7 @@ void main()
 
     // Set Final Fragment Color
     //OutColor = vec4(color, mat_ubo.Opacity);
-    OutColor = vec4(color, 1.0);
+    FragColor = vec4(color, 1.0);
 
 }
 

@@ -21,14 +21,14 @@ namespace Magnefu
 		ModelType   ModelType;
 	};
 
-	static std::array<ResourceInfo, 1> RESOURCE_PATHS = {
+	static std::array<ResourceInfo, 2> RESOURCE_PATHS = {
 		/*"res/meshes/corridor.obj",
 		"res/meshes/Bronze_shield.obj",
 		"res/meshes/Victorian_Painting.obj",*/
 
 		{
 			{true, "res/meshes/primitives/3D/plane.obj", "res/shaders/AreaLightLTC.shader", ModelType::MODEL_DEFAULT},
-			//{false, "res/meshes/area_lights/square_light.obj", "res/shaders/AreaLight.shader"}
+			{false, "res/meshes/area_lights/square_light.obj", "res/shaders/AreaLight.shader", ModelType::MODEL_AREA_LIGHT}
 		}
 	};
 

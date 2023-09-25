@@ -66,7 +66,7 @@ namespace Magnefu
         // MODEL_PATHS
 
         for (size_t i = 0; i < m_SceneObjects.size(); i++)
-            m_SceneObjects[i].Init(i, ModelType::MODEL_DEFAULT);
+            m_SceneObjects[i].Init(i);
 
 
         // NON AREA LIGHTS

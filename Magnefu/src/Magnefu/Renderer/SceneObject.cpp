@@ -13,7 +13,7 @@ namespace Magnefu
 
     }
 
-    void SceneObject::Init(uint32_t index, ModelType modelType)
+    void SceneObject::Init(uint32_t index)
 	{
         ResourceInfo resourceInfo = RESOURCE_PATHS[index];
         Application& app = Application::Get();

@@ -15,7 +15,7 @@ namespace Magnefu
 		SceneObject() = default;
 		~SceneObject();
 
-		void Init(uint32_t index, ModelType modelType);
+		void Init(uint32_t index);
 
 		inline Handle<Shader>& GetGraphicsPipelineShaderHandle() { return m_GraphicsPipelineShader; }
 		inline Handle<BindGroup>& GetMaterialBindGroup() { return m_Material; }
