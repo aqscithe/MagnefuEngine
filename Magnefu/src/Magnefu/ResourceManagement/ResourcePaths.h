@@ -28,7 +28,8 @@ namespace Magnefu
 
 		{
 			{true, "res/meshes/primitives/3D/plane.obj", "res/shaders/AreaLightLTC.shader", ModelType::MODEL_DEFAULT},
-			{false, "res/meshes/area_lights/square_light.obj", "res/shaders/AreaLight.shader", ModelType::MODEL_AREA_LIGHT}
+			{false, "res/meshes/area_lights/square_light.obj", "res/shaders/AreaLight.shader", ModelType::MODEL_AREA_LIGHT},
+			
 		}
 	};
 
@@ -36,6 +37,7 @@ namespace Magnefu
 
 	struct TexturePaths
 	{
+		int ModelIndex;
 		const char* Paths[3];
 	};
 
@@ -54,6 +56,7 @@ namespace Magnefu
 		"res/textures/Victorian_Painting/VictorianPaintings_ARM_Utility-sRGB-Texture.png",
 		"res/textures/Victorian_Painting/VictorianPaintings_Normal_Utility-Raw.png"*/
 
+		0,
 		"res/textures/surfaces/snow_01/snow_01_diff_2k.png",
 		"res/textures/surfaces/snow_01/snow_01_arm_2k.png",
 		"res/textures/surfaces/snow_01/snow_01_nor_dx_2k.png",
@@ -61,7 +64,5 @@ namespace Magnefu
 	};
 
 	// -- SHADERS -- //
-	//static const char* SHADER_PATH = "res/shaders/Basic.shader";
-	static const char* SHADER_PATH = "res/shaders/PolygonalLight.shader";
 	static const char* PARTICLE_SHADER_PATH = "res/shaders/Particles.shader";
 }

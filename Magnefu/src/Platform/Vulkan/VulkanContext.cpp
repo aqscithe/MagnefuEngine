@@ -1313,7 +1313,7 @@ namespace Magnefu
 			//auto& sceneObj = sceneObjs[i];
 			for (int j = 0; j < 3; j++)
 			{
-				threads[i * 3 + j] = std::thread(&VulkanContext::LoadSingleTexture, this, i, TEXTURE_PATHS[i].Paths[j], j);
+				threads[i * 3 + j] = std::thread(&VulkanContext::LoadSingleTexture, this, TEXTURE_PATHS[i].ModelIndex, TEXTURE_PATHS[i].Paths[j], j);
 			}
 			
 		}
@@ -1923,11 +1923,7 @@ namespace Magnefu
 		
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		auto& sceneObjects = app.GetSceneObjects();
-		VulkanShader& shader = static_cast<VulkanShader&>(rm.GetShader(sceneObjects[0].GetGraphicsPipelineShaderHandle()));
-
-		// MODEL PIPELINE
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader.GetPipeline());
+		
 
 		VkViewport viewport{};
 		viewport.x = 0.0f;
@@ -1943,14 +1939,14 @@ namespace Magnefu
 		scissor.extent = m_SwapChainExtent;
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+		// TODO: Order draw calls by shader to limit pipeline switching
+
+		auto& sceneObjects = app.GetSceneObjects();		
+
 		for (auto& sceneObject : sceneObjects)
 		{
-			VulkanShader& objShader = static_cast<VulkanShader&>(rm.GetShader(sceneObject.GetGraphicsPipelineShaderHandle()));
-			if (objShader.GetPipeline() != shader.GetPipeline())
-			{
-				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, objShader.GetPipeline());
-				shader = objShader;
-			}
+			VulkanShader& shader = static_cast<VulkanShader&>(rm.GetShader(sceneObject.GetGraphicsPipelineShaderHandle()));
+			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader.GetPipeline());
 
 			VulkanBindGroup& material = static_cast<VulkanBindGroup&>(rm.GetBindGroup(sceneObject.GetMaterialBindGroup()));
 
@@ -1974,6 +1970,7 @@ namespace Magnefu
 			vkCmdPushConstants(commandBuffer, shader.GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &m_PushConstants);
 
 			vkCmdDrawIndexed(commandBuffer, sceneObject.GetIndexCount(), 1, 0, 0, 0);
+			
 		}
 			
 
