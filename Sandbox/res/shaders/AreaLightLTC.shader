@@ -210,6 +210,8 @@ void main()
     vec3 ARM = texture(ARMSampler, FragTexCoord).rgb;
     vec3 Diffuse = texture(DiffuseSampler, FragTexCoord).xyz;// * vec3(0.7f, 0.8f, 0.96f);
 
+    float AO = ARM.r;
+
     // gamma correction
     float Metallic = ARM.b;
     vec3 Specular = mix(ToLinear(vec3(0.23f)), Diffuse, Metallic); // Blend based on metallic
@@ -258,6 +260,8 @@ void main()
     LTC_Specular *= Specular * t2.x + (1.0f - Specular) * t2.y;
 
     result = PC.AreaLight.Color * PC.AreaLight.Intensity * (LTC_Specular + Diffuse * LTC_Diffuse);
+
+    result *= AO;
 
     FragColor = vec4(ToSRGB(result), 1.0f);
 

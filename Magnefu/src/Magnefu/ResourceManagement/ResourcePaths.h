@@ -57,9 +57,17 @@ namespace Magnefu
 		"res/textures/Victorian_Painting/VictorianPaintings_Normal_Utility-Raw.png"*/
 
 		0,
-		"res/textures/surfaces/snow_01/snow_01_diff_2k.png",
+		/*"res/textures/surfaces/snow_01/snow_01_diff_2k.png",
 		"res/textures/surfaces/snow_01/snow_01_arm_2k.png",
-		"res/textures/surfaces/snow_01/snow_01_nor_dx_2k.png",
+		"res/textures/surfaces/snow_01/snow_01_nor_dx_2k.png",*/
+
+		/*"res/textures/surfaces/metal_plate/metal_plate_diff_2k.png",
+		"res/textures/surfaces/metal_plate/metal_plate_arm_2k.png",
+		"res/textures/surfaces/metal_plate/metal_plate_nor_dx_2k.png",*/
+
+		"res/textures/surfaces/plank_flooring/plank_flooring_diff_2k.png",
+		"res/textures/surfaces/plank_flooring/plank_flooring_arm_2k.png",
+		"res/textures/surfaces/plank_flooring/plank_flooring_nor_dx_2k.png",	
 			
 	};
 
