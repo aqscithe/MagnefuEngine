@@ -1,7 +1,18 @@
 #shader vertex
 #version 460 core
 
-
+struct AreaLight {
+    vec4  Points0;
+    vec4  Points1;
+    vec4  Points2;
+    vec4  Points3;
+    vec3  Color;
+    float padding1;
+    vec3  Translation;
+    float padding2;
+    float Intensity;
+    int   TwoSided;
+};
 
 // -- In -- //
 layout(location = 0) in vec3 InPosition;
@@ -15,6 +26,14 @@ layout(location = 5) in vec2 InTexCoord;
 layout(location = 0) out vec3 FragPosition;
 layout(location = 1) out vec3 FragNormal;
 layout(location = 2) out vec2 FragTexCoord;
+
+// --Push Constants -- //
+layout(push_constant) uniform PushConstants
+{
+    AreaLight AreaLight;
+    float     Roughness;
+
+} PC;
 
 // -- Set 0 -- //
 layout(set = 0, binding = 0) uniform RenderPassUBO
@@ -75,6 +94,7 @@ layout(location = 0) out vec4 FragColor;
 layout(push_constant) uniform PushConstants
 {
     AreaLight AreaLight;
+    float     Roughness;
 
 } PC;
 
@@ -215,7 +235,7 @@ void main()
     // gamma correction
     float Metallic = ARM.b;
     vec3 Specular = mix(ToLinear(vec3(0.23f)), Diffuse, Metallic); // Blend based on metallic
-    //vec3 Specular = ToLinear(vec3(0.23f, 0.23f, 0.23f)); // Diffuse
+    ///vec3 Specular = ToLinear(vec3(0.23f, 0.23f, 0.23f)); // Diffuse
 
     vec3 result = vec3(0.0f);
 
@@ -228,6 +248,7 @@ void main()
     // use roughness and sqrt(1-cos_theta) to sample M_texture
     float Roughness = ARM.g;
     vec2 uv = vec2(Roughness, sqrt(1.0f - dotNV));
+    //vec2 uv = vec2(PC.Roughness, sqrt(1.0f - dotNV));
     uv = uv * LUT_SCALE + LUT_BIAS;
 
     // get 4 parameters for inverse_M
@@ -257,7 +278,9 @@ void main()
     // GGX BRDF shadowing and Fresnel
     // t2.x: shadowedF90 (F90 normally it should be 1.0)
     // t2.y: Smith function for Geometric Attenuation Term, it is dot(V or L, H).
+    
     LTC_Specular *= Specular * t2.x + (1.0f - Specular) * t2.y;
+
 
     result = PC.AreaLight.Color * PC.AreaLight.Intensity * (LTC_Specular + Diffuse * LTC_Diffuse);
 

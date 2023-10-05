@@ -110,7 +110,7 @@ namespace Magnefu
 			width = 64;
 			height = 64;
 
-			VkDeviceSize imageSize = 65536;  // Image Size with this texture is still a question marke for me...
+			VkDeviceSize imageSize = 65536;  
 
 			VkBuffer stagingBuffer;
 			VmaAllocation stagingAllocation;

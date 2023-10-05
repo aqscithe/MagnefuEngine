@@ -28,6 +28,8 @@ public:
 		m_PushConstants.ALight.Points2 = { -8.0f, 0.4f,  1.0f, 0.f };
 		m_PushConstants.ALight.Points3 = { -8.0f, 0.4f, -1.0f, 0.f };
 		m_PushConstants.ALight.TwoSided = 1;
+
+		m_PushConstants.Roughness = 1.f;
 	}
 
 	void OnAttach() override
@@ -44,6 +46,9 @@ public:
 	{
 		m_Camera->ProcessInput(deltaTime);
 		m_GraphicsContext->SetPushConstants(m_PushConstants);
+
+		auto& material = m_SceneObjects[1].GetMaterialData();
+		material.Translation = m_PushConstants.ALight.Translation;
 	}
 
 	void OnRender() override
@@ -64,9 +69,13 @@ public:
 					auto& material = m_SceneObjects[i].GetMaterialData();
 
 					char label[32];
-					snprintf(label, sizeof(label), "Object %d Pos", i);
-					ImGui::SliderFloat3(label, material.Translation.e, -500.f, 500.f);
-
+					if (i != 1)
+					{
+						snprintf(label, sizeof(label), "Object %d Pos", i);
+						ImGui::SliderFloat3(label, material.Translation.e, -500.f, 500.f);
+						
+					}
+					
 					snprintf(label, sizeof(label), "Object %d Rot", i);
 					ImGui::SliderFloat3(label, material.Rotation.e, 0.f, 1.f);
 
@@ -106,6 +115,8 @@ public:
 				ImGui::ColorEdit3("Area Light Color", m_PushConstants.ALight.Color.e);
 				ImGui::SliderFloat3("Area Light Translation", m_PushConstants.ALight.Translation.e, -500.f, 500.f, "%.1f");
 				ImGui::SliderInt("Area Light Two-sided", &m_PushConstants.ALight.TwoSided, 0, 1);
+				
+				ImGui::SliderFloat("Temp Roughness", &m_PushConstants.Roughness, 0.f, 1.f, "%.1f");
 
 				// Now I need to ensure the shader knows it is receiving a push constant (either descriptor set stuff or
 				// and I need to go to VulkanContext to ensure that is configured to properly send uniform data, push

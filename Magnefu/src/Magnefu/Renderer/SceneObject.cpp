@@ -94,7 +94,7 @@ namespace Magnefu
                 },
                 .PushConstantInfo = {
                     .Enabled = true,
-                    .Stages = ShaderStage::SHADER_STAGE_FRAGMENT,
+                    .Stages = ShaderStage::SHADER_STAGE_VERTEX_AND_FRAGMENT,
                     .Offset = 0,
                     .ByteSize = sizeof(PushConstants)
                 }

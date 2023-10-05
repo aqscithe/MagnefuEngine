@@ -1,7 +1,18 @@
 #shader vertex
 #version 460 core
 
-
+struct AreaLight {
+    vec4  Points0;
+    vec4  Points1;
+    vec4  Points2;
+    vec4  Points3;
+    vec3  Color;
+    float padding1;
+    vec3  Translation;
+    float padding2;
+    float Intensity;
+    int   TwoSided;
+};
 
 // -- In -- //
 layout(location = 0) in vec3 InPosition;
@@ -15,6 +26,15 @@ layout(location = 5) in vec2 InTexCoord;
 layout(location = 0) out vec3 FragPosition;
 layout(location = 1) out vec3 FragNormal;
 layout(location = 2) out vec2 FragTexCoord;
+
+// --Push Constants -- //
+layout(push_constant) uniform PushConstants
+{
+    AreaLight AreaLight;
+    float     Roughness;
+
+} PC;
+
 
 // -- Set 0 -- //
 layout(set = 0, binding = 0) uniform RenderPassUBO
@@ -36,6 +56,7 @@ layout(set = 1, binding = 0) uniform MaterialUBO
 
 void main()
 {
+    //gl_Position = globals_ubo.Proj * globals_ubo.View * mat_ubo.Model * vec4(InPosition, 1.0);
     gl_Position = globals_ubo.Proj * globals_ubo.View * mat_ubo.Model * vec4(InPosition, 1.0);
     FragNormal = InNormal;
     FragTexCoord = InTexCoord;
@@ -76,6 +97,7 @@ layout(location = 0) out vec4 FragColor;
 layout(push_constant) uniform PushConstants
 {
     AreaLight AreaLight;
+    float     Roughness;
 } PC;
 
 // -- Set 0 -- //

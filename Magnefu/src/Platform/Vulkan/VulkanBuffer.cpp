@@ -164,7 +164,6 @@ namespace Magnefu
 
 				assert(sizeof(ubo) == m_Range);
 				void* data = static_cast<char*>(vulkanMem.UniformBuffersMapped[context.GetCurrentFrame()]) + m_Offset;
-				//memcpy(m_BuffersMapped[context.GetCurrentFrame()], &ubo, sizeof(ubo));
 				memcpy(data, &ubo, m_Range);
 
 				break;

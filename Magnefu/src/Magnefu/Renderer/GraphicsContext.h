@@ -10,6 +10,7 @@ namespace Magnefu
 	struct PushConstants
 	{
 		AreaLight ALight;
+		float Roughness;
 	};
 
 	struct RendererInfo
