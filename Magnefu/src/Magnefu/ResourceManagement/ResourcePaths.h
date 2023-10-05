@@ -27,8 +27,8 @@ namespace Magnefu
 		"res/meshes/Victorian_Painting.obj",*/
 
 		{
-			{true, "res/meshes/primitives/3D/plane.obj", "res/shaders/AreaLightLTC.shader", ModelType::MODEL_DEFAULT},
-			//{true, "res/meshes/corridor.obj", "res/shaders/AreaLightLTC.shader", ModelType::MODEL_DEFAULT},
+			//{true, "res/meshes/primitives/3D/plane.obj", "res/shaders/AreaLightLTC.shader", ModelType::MODEL_DEFAULT},
+			{true, "res/meshes/corridor.obj", "res/shaders/AreaLightLTC.shader", ModelType::MODEL_DEFAULT},
 			{false, "res/meshes/area_lights/square_light.obj", "res/shaders/AreaLight.shader", ModelType::MODEL_AREA_LIGHT},
 			
 		}
@@ -82,13 +82,13 @@ namespace Magnefu
 		"res/textures/surfaces/painted_concrete/painted_concrete_arm_2k.png",
 		"res/textures/surfaces/painted_concrete/painted_concrete_nor_dx_2k.png",*/
 
-		"res/textures/surfaces/aerial_rocks_02/aerial_rocks_02_diff_2k.png",
+		/*"res/textures/surfaces/aerial_rocks_02/aerial_rocks_02_diff_2k.png",
 		"res/textures/surfaces/aerial_rocks_02/aerial_rocks_02_arm_2k.png",
-		"res/textures/surfaces/aerial_rocks_02/aerial_rocks_02_nor_dx_2k.png",
+		"res/textures/surfaces/aerial_rocks_02/aerial_rocks_02_nor_dx_2k.png",*/
 
-		/*"res/textures/scificorridor/scene_1001_BaseColor.png",
+		"res/textures/scificorridor/scene_1001_BaseColor.png",
 		"res/textures/scificorridor/scene_1001_ARM.png",
-		"res/textures/scificorridor/scene_1001_Normal.png",*/
+		"res/textures/scificorridor/scene_1001_Normal.png",
 			
 	};
 

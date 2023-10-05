@@ -23,9 +23,14 @@ layout(location = 4) in vec3 InBitangent;
 layout(location = 5) in vec2 InTexCoord;
 
 // -- Out -- //
-layout(location = 0) out vec3 FragPosition;
-layout(location = 1) out vec3 FragNormal;
-layout(location = 2) out vec2 FragTexCoord;
+//layout(location = 0) out vec3 FragPosition;
+//layout(location = 1) out vec3 FragNormal;
+//layout(location = 2) out vec2 FragTexCoord;
+
+layout(location = 0) out vec2 FragTexCoord;
+layout(location = 1) out vec3 TangentCameraPos;
+layout(location = 2) out vec3 TangentFragPos;
+//layout(location = 3) out vec3 TangentLightPos;
 
 // --Push Constants -- //
 layout(push_constant) uniform PushConstants
@@ -57,9 +62,22 @@ layout(set = 1, binding = 0) uniform MaterialUBO
 void main()
 {
     gl_Position = globals_ubo.Proj * globals_ubo.View * mat_ubo.Model * vec4(InPosition, 1.0);
-    FragNormal = InNormal;
+    //FragNormal = InNormal;
     FragTexCoord = InTexCoord;
-    FragPosition = vec3(mat_ubo.Model * vec4(InPosition, 1.0));
+    //FragPosition = vec3(mat_ubo.Model * vec4(InPosition, 1.0));
+
+    // Creating TBN for Normal Map Calculations
+    vec3 T = normalize(vec3(mat_ubo.Model * vec4(InTangent, 0.0)));
+    vec3 B = normalize(vec3(mat_ubo.Model * vec4(InBitangent, 0.0)));
+    vec3 N = normalize(vec3(mat_ubo.Model * vec4(InNormal, 0.0)));
+    mat3 TBN = transpose(mat3(T, B, N));
+
+    // Move Light and Camera Pos to Tangent Space
+    // NOT SURE HOW TO DO THIS. THE LIGHT IS NOT 1 POINT
+    //TangentLightPos = TBN * PC.AreaLight.Translation;
+    
+    TangentCameraPos = TBN * globals_ubo.CameraPos;
+    TangentFragPos = TBN * vec3(mat_ubo.Model * vec4(InPosition, 1.0));
 }
 
 #shader fragment
@@ -81,9 +99,14 @@ struct AreaLight {
 
 
 // -- In -- //
-layout(location = 0) in vec3 FragPosition;
-layout(location = 1) in vec3 FragNormal;
-layout(location = 2) in vec2 FragTexCoord;
+//layout(location = 0) in vec3 FragPosition;
+//layout(location = 1) in vec3 FragNormal;
+//layout(location = 2) in vec2 FragTexCoord;
+
+layout(location = 0) in vec2 FragTexCoord;
+layout(location = 1) in vec3 TangentCameraPos;
+layout(location = 2) in vec3 TangentFragPos;
+//layout(location = 3) in vec3 TangentLightPos;
 
 // -- Out -- //
 layout(location = 0) out vec4 FragColor;
@@ -242,7 +265,8 @@ void main()
     // Sample Normal Map
     vec3 Normal = texture(NormalSampler, FragTexCoord).rgb;
 
-    vec3 ViewVector = normalize(globals_ubo.CameraPos - FragPosition);
+    //vec3 ViewVector = normalize(globals_ubo.CameraPos - FragPosition);
+    vec3 ViewVector = normalize(TangentCameraPos - TangentFragPos);
     float dotNV = clamp(dot(Normal, ViewVector), 0.0f, 1.0f);
 
     // use roughness and sqrt(1-cos_theta) to sample M_texture
@@ -272,8 +296,10 @@ void main()
 
     // Evaluate LTC shading
 
-    vec3 LTC_Diffuse = LTC_Evaluate(Normal, ViewVector, FragPosition, mat3(1), translatedPoints, PC.AreaLight.TwoSided);
-    vec3 LTC_Specular = LTC_Evaluate(Normal, ViewVector, FragPosition, Minv, translatedPoints, PC.AreaLight.TwoSided);
+    //vec3 LTC_Diffuse = LTC_Evaluate(Normal, ViewVector, FragPosition, mat3(1), translatedPoints, PC.AreaLight.TwoSided);
+    vec3 LTC_Diffuse = LTC_Evaluate(Normal, ViewVector, TangentFragPos, mat3(1), translatedPoints, PC.AreaLight.TwoSided);
+    //vec3 LTC_Specular = LTC_Evaluate(Normal, ViewVector, FragPosition, Minv, translatedPoints, PC.AreaLight.TwoSided);
+    vec3 LTC_Specular = LTC_Evaluate(Normal, ViewVector, TangentFragPos, Minv, translatedPoints, PC.AreaLight.TwoSided);
 
     // GGX BRDF shadowing and Fresnel
     // t2.x: shadowedF90 (F90 normally it should be 1.0)
