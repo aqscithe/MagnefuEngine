@@ -23,20 +23,20 @@ layout(location = 4) in vec3 InBitangent;
 layout(location = 5) in vec2 InTexCoord;
 
 // -- Out -- //
-//layout(location = 0) out vec3 FragPosition;
-//layout(location = 1) out vec3 FragNormal;
-//layout(location = 2) out vec2 FragTexCoord;
-
 layout(location = 0) out vec2 FragTexCoord;
 layout(location = 1) out vec3 TangentCameraPos;
 layout(location = 2) out vec3 TangentFragPos;
-//layout(location = 3) out vec3 TangentLightPos;
+layout(location = 3) out vec3 TangentLightTrans0;
+layout(location = 4) out vec3 TangentLightTrans1;
+layout(location = 5) out mat4 TangentPoints0;
+layout(location = 9) out mat4 TangentPoints1;
 
 // --Push Constants -- //
 layout(push_constant) uniform PushConstants
 {
-    AreaLight AreaLight;
-    float     Roughness;
+    AreaLight AreaLight[2];
+    int AreaLightCount;
+    float Roughness;
 
 } PC;
 
@@ -62,9 +62,7 @@ layout(set = 1, binding = 0) uniform MaterialUBO
 void main()
 {
     gl_Position = globals_ubo.Proj * globals_ubo.View * mat_ubo.Model * vec4(InPosition, 1.0);
-    //FragNormal = InNormal;
     FragTexCoord = InTexCoord;
-    //FragPosition = vec3(mat_ubo.Model * vec4(InPosition, 1.0));
 
     // Creating TBN for Normal Map Calculations
     vec3 T = normalize(vec3(mat_ubo.Model * vec4(InTangent, 0.0)));
@@ -73,11 +71,28 @@ void main()
     mat3 TBN = transpose(mat3(T, B, N));
 
     // Move Light and Camera Pos to Tangent Space
-    // NOT SURE HOW TO DO THIS. THE LIGHT IS NOT 1 POINT
-    //TangentLightPos = TBN * PC.AreaLight.Translation;
-    
     TangentCameraPos = TBN * globals_ubo.CameraPos;
     TangentFragPos = TBN * vec3(mat_ubo.Model * vec4(InPosition, 1.0));
+
+    // NOT SURE HOW TO DO THIS. THE LIGHT IS NOT 1 POINT
+
+    TangentLightTrans0 = TBN * PC.AreaLight[0].Translation;
+    TangentLightTrans1 = TBN * PC.AreaLight[1].Translation;
+
+
+    TangentPoints0 = mat4(
+        vec4(TBN * PC.AreaLight[0].Points0.xyz, 1.0),
+        vec4(TBN * PC.AreaLight[0].Points1.xyz, 1.0),
+        vec4(TBN * PC.AreaLight[0].Points2.xyz, 1.0),
+        vec4(TBN * PC.AreaLight[0].Points3.xyz, 1.0)
+    );
+
+    TangentPoints1 = mat4(
+        vec4(TBN * PC.AreaLight[1].Points0.xyz, 1.0),
+        vec4(TBN * PC.AreaLight[1].Points1.xyz, 1.0),
+        vec4(TBN * PC.AreaLight[1].Points2.xyz, 1.0),
+        vec4(TBN * PC.AreaLight[1].Points3.xyz, 1.0)
+    );
 }
 
 #shader fragment
@@ -99,14 +114,13 @@ struct AreaLight {
 
 
 // -- In -- //
-//layout(location = 0) in vec3 FragPosition;
-//layout(location = 1) in vec3 FragNormal;
-//layout(location = 2) in vec2 FragTexCoord;
-
 layout(location = 0) in vec2 FragTexCoord;
 layout(location = 1) in vec3 TangentCameraPos;
 layout(location = 2) in vec3 TangentFragPos;
-//layout(location = 3) in vec3 TangentLightPos;
+layout(location = 3) in vec3 TangentLightTrans0;
+layout(location = 4) in vec3 TangentLightTrans1;
+layout(location = 5) in mat4 TangentPoints0;
+layout(location = 9) in mat4 TangentPoints1;
 
 // -- Out -- //
 layout(location = 0) out vec4 FragColor;
@@ -116,9 +130,9 @@ layout(location = 0) out vec4 FragColor;
 // -- Push Constants -- //
 layout(push_constant) uniform PushConstants
 {
-    AreaLight AreaLight;
-    float     Roughness;
-
+    AreaLight AreaLight[2];
+    int AreaLightCount;
+    float Roughness;
 } PC;
 
 // -- Set 0 -- //
@@ -271,8 +285,8 @@ void main()
 
     // use roughness and sqrt(1-cos_theta) to sample M_texture
     float Roughness = ARM.g;
-    vec2 uv = vec2(Roughness, sqrt(1.0f - dotNV));
-    //vec2 uv = vec2(PC.Roughness, sqrt(1.0f - dotNV));
+    //vec2 uv = vec2(Roughness, sqrt(1.0f - dotNV));
+    vec2 uv = vec2(PC.Roughness, sqrt(1.0f - dotNV));
     uv = uv * LUT_SCALE + LUT_BIAS;
 
     // get 4 parameters for inverse_M
@@ -287,28 +301,53 @@ void main()
         vec3(t1.z, 0, t1.w)
     );
 
-    // translate light source for testing
-    vec3 translatedPoints[4];
-    translatedPoints[0] = PC.AreaLight.Points0.xyz + PC.AreaLight.Translation;
-    translatedPoints[1] = PC.AreaLight.Points1.xyz + PC.AreaLight.Translation;
-    translatedPoints[2] = PC.AreaLight.Points2.xyz + PC.AreaLight.Translation;
-    translatedPoints[3] = PC.AreaLight.Points3.xyz + PC.AreaLight.Translation;
-
-    // Evaluate LTC shading
-
-    //vec3 LTC_Diffuse = LTC_Evaluate(Normal, ViewVector, FragPosition, mat3(1), translatedPoints, PC.AreaLight.TwoSided);
-    vec3 LTC_Diffuse = LTC_Evaluate(Normal, ViewVector, TangentFragPos, mat3(1), translatedPoints, PC.AreaLight.TwoSided);
-    //vec3 LTC_Specular = LTC_Evaluate(Normal, ViewVector, FragPosition, Minv, translatedPoints, PC.AreaLight.TwoSided);
-    vec3 LTC_Specular = LTC_Evaluate(Normal, ViewVector, TangentFragPos, Minv, translatedPoints, PC.AreaLight.TwoSided);
-
-    // GGX BRDF shadowing and Fresnel
-    // t2.x: shadowedF90 (F90 normally it should be 1.0)
-    // t2.y: Smith function for Geometric Attenuation Term, it is dot(V or L, H).
     
-    LTC_Specular *= Specular * t2.x + (1.0f - Specular) * t2.y;
+
+    {
+        // translate light source for testing
+        vec3 translatedPoints[4];
+        translatedPoints[0] = TangentPoints0[0].xyz + TangentLightTrans0;
+        translatedPoints[1] = TangentPoints0[1].xyz + TangentLightTrans0;
+        translatedPoints[2] = TangentPoints0[2].xyz + TangentLightTrans0;
+        translatedPoints[3] = TangentPoints0[3].xyz + TangentLightTrans0;
+
+        // Evaluate LTC shading
+
+        vec3 LTC_Diffuse = LTC_Evaluate(Normal, ViewVector, TangentFragPos, mat3(1), translatedPoints, PC.AreaLight[0].TwoSided);
+        vec3 LTC_Specular = LTC_Evaluate(Normal, ViewVector, TangentFragPos, Minv, translatedPoints, PC.AreaLight[0].TwoSided);
+
+        // GGX BRDF shadowing and Fresnel
+        // t2.x: shadowedF90 (F90 normally it should be 1.0)
+        // t2.y: Smith function for Geometric Attenuation Term, it is dot(V or L, H).
+
+        LTC_Specular *= Specular * t2.x + (1.0f - Specular) * t2.y;
 
 
-    result = PC.AreaLight.Color * PC.AreaLight.Intensity * (LTC_Specular + Diffuse * LTC_Diffuse);
+        result += PC.AreaLight[0].Color * PC.AreaLight[0].Intensity * (LTC_Specular + Diffuse * LTC_Diffuse);
+    }
+
+    {
+        // translate light source for testing
+        vec3 translatedPoints[4];
+        translatedPoints[0] = TangentPoints1[0].xyz + TangentLightTrans1;
+        translatedPoints[1] = TangentPoints1[1].xyz + TangentLightTrans1;
+        translatedPoints[2] = TangentPoints1[2].xyz + TangentLightTrans1;
+        translatedPoints[3] = TangentPoints1[3].xyz + TangentLightTrans1;
+
+        // Evaluate LTC shading
+
+        vec3 LTC_Diffuse = LTC_Evaluate(Normal, ViewVector, TangentFragPos, mat3(1), translatedPoints, PC.AreaLight[1].TwoSided);
+        vec3 LTC_Specular = LTC_Evaluate(Normal, ViewVector, TangentFragPos, Minv, translatedPoints, PC.AreaLight[1].TwoSided);
+
+        // GGX BRDF shadowing and Fresnel
+        // t2.x: shadowedF90 (F90 normally it should be 1.0)
+        // t2.y: Smith function for Geometric Attenuation Term, it is dot(V or L, H).
+
+        LTC_Specular *= Specular * t2.x + (1.0f - Specular) * t2.y;
+
+
+        result += PC.AreaLight[1].Color * PC.AreaLight[1].Intensity * (LTC_Specular + Diffuse * LTC_Diffuse);
+    }
 
     result *= AO;
 

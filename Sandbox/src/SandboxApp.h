@@ -20,16 +20,23 @@ public:
 	{
 		m_GraphicsContext = Magnefu::Application::Get().GetWindow().GetGraphicsContext();
 
-		m_PushConstants.ALight.Intensity = 4.f;
-		m_PushConstants.ALight.Color = Maths::vec3(1.f);
-		m_PushConstants.ALight.Translation = Maths::vec3(0.f);
-		m_PushConstants.ALight.Points0 = { -8.0f, 2.4f, -1.0f, 0.f };
-		m_PushConstants.ALight.Points1 = { -8.0f, 2.4f,  1.0f, 0.f };
-		m_PushConstants.ALight.Points2 = { -8.0f, 0.4f,  1.0f, 0.f };
-		m_PushConstants.ALight.Points3 = { -8.0f, 0.4f, -1.0f, 0.f };
-		m_PushConstants.ALight.TwoSided = 1;
+		m_PushConstants.ALightCount = 2;
 
-		m_PushConstants.Roughness = 1.f;
+		for (int i = 0; i < m_PushConstants.ALightCount; i++)
+		{
+			m_PushConstants.ALight[i].Intensity = 4.f;
+			m_PushConstants.ALight[i].Color = Maths::vec3(1.f);
+			m_PushConstants.ALight[i].Translation = Maths::vec3(0.f);
+			m_PushConstants.ALight[i].Points0 = { -8.0f, 2.4f, -1.0f, 0.f };
+			m_PushConstants.ALight[i].Points1 = { -8.0f, 2.4f,  1.0f, 0.f };
+			m_PushConstants.ALight[i].Points2 = { -8.0f, 0.4f,  1.0f, 0.f };
+			m_PushConstants.ALight[i].Points3 = { -8.0f, 0.4f, -1.0f, 0.f };
+			m_PushConstants.ALight[i].TwoSided = 1;
+		}
+
+		m_PushConstants.Roughness = 0.7f;
+		
+
 	}
 
 	void OnAttach() override
@@ -47,8 +54,9 @@ public:
 		m_Camera->ProcessInput(deltaTime);
 		m_GraphicsContext->SetPushConstants(m_PushConstants);
 
+
 		auto& material = m_SceneObjects[1].GetMaterialData();
-		material.Translation = m_PushConstants.ALight.Translation;
+		material.Translation = m_PushConstants.ALight[0].Translation;
 	}
 
 	void OnRender() override
@@ -111,12 +119,27 @@ public:
 				ImGui::Text("Area Light");
 				ImGui::Separator();
 
-				ImGui::SliderFloat("Area Light Intensity", &m_PushConstants.ALight.Intensity, 0.0f, 10.f, "%.1f");
-				ImGui::ColorEdit3("Area Light Color", m_PushConstants.ALight.Color.e);
-				ImGui::SliderFloat3("Area Light Translation", m_PushConstants.ALight.Translation.e, -500.f, 500.f, "%.1f");
-				ImGui::SliderInt("Area Light Two-sided", &m_PushConstants.ALight.TwoSided, 0, 1);
+				for (int i = 0; i < m_PushConstants.ALightCount; i++)
+				{
+					char label[32];
+					snprintf(label, sizeof(label), "Area Light %d Intensity", i);
+					ImGui::SliderFloat(label, &m_PushConstants.ALight[i].Intensity, 0.0f, 10.f, "%.1f");
+
+					snprintf(label, sizeof(label), "Area Light %d Color", i);
+					ImGui::ColorEdit3(label, m_PushConstants.ALight[i].Color.e);
+
+					snprintf(label, sizeof(label), "Area Light %d Translation", i);
+					ImGui::SliderFloat3(label, m_PushConstants.ALight[i].Translation.e, -500.f, 500.f, "%.1f");
+
+					snprintf(label, sizeof(label), "Area Light %d Two-sided", i);
+					ImGui::SliderInt(label, &m_PushConstants.ALight[i].TwoSided, 0, 1);
+				}
+
+				ImGui::SliderFloat("Test Roughness", &m_PushConstants.Roughness, 0.f, 1.f);
+
 				
-				ImGui::SliderFloat("Temp Roughness", &m_PushConstants.Roughness, 0.f, 1.f, "%.1f");
+				
+				
 
 				// Now I need to ensure the shader knows it is receiving a push constant (either descriptor set stuff or
 				// and I need to go to VulkanContext to ensure that is configured to properly send uniform data, push
