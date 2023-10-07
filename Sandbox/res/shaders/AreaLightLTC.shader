@@ -1,6 +1,8 @@
 #shader vertex
 #version 460 core
 
+const int MAX_LIGHTS = 2;
+
 struct AreaLight {
     vec4  Points0;
     vec4  Points1;
@@ -26,15 +28,13 @@ layout(location = 5) in vec2 InTexCoord;
 layout(location = 0) out vec2 FragTexCoord;
 layout(location = 1) out vec3 TangentCameraPos;
 layout(location = 2) out vec3 TangentFragPos;
-layout(location = 3) out vec3 TangentLightTrans0;
-layout(location = 4) out vec3 TangentLightTrans1;
-layout(location = 5) out mat4 TangentPoints0;
-layout(location = 9) out mat4 TangentPoints1;
+layout(location = 3) out vec3 TangentLightTrans[MAX_LIGHTS];
+layout(location = 7) out mat4 TangentPoints[MAX_LIGHTS];
 
 // --Push Constants -- //
 layout(push_constant) uniform PushConstants
 {
-    AreaLight AreaLight[2];
+    AreaLight AreaLight[MAX_LIGHTS];
     int AreaLightCount;
     float Roughness;
 
@@ -76,27 +76,28 @@ void main()
 
     // NOT SURE HOW TO DO THIS. THE LIGHT IS NOT 1 POINT
 
-    TangentLightTrans0 = TBN * PC.AreaLight[0].Translation;
-    TangentLightTrans1 = TBN * PC.AreaLight[1].Translation;
+    // I think MAX_LIGHTS should actually be the max number of area lights that could be used
+    // while PC.AreaLightCount(which is set host side) is what the loop is based on.
+    // MAX_LIGHTS will be here to ensure the limit is not exceeded.
+    for (int i = 0; i < MAX_LIGHTS; i++)
+    {
+        TangentLightTrans[i] = TBN * PC.AreaLight[i].Translation;
 
+        TangentPoints[i] = mat4(
+            vec4(TBN * PC.AreaLight[i].Points0.xyz, 1.0),
+            vec4(TBN * PC.AreaLight[i].Points1.xyz, 1.0),
+            vec4(TBN * PC.AreaLight[i].Points2.xyz, 1.0),
+            vec4(TBN * PC.AreaLight[i].Points3.xyz, 1.0)
+        );
+    }
 
-    TangentPoints0 = mat4(
-        vec4(TBN * PC.AreaLight[0].Points0.xyz, 1.0),
-        vec4(TBN * PC.AreaLight[0].Points1.xyz, 1.0),
-        vec4(TBN * PC.AreaLight[0].Points2.xyz, 1.0),
-        vec4(TBN * PC.AreaLight[0].Points3.xyz, 1.0)
-    );
-
-    TangentPoints1 = mat4(
-        vec4(TBN * PC.AreaLight[1].Points0.xyz, 1.0),
-        vec4(TBN * PC.AreaLight[1].Points1.xyz, 1.0),
-        vec4(TBN * PC.AreaLight[1].Points2.xyz, 1.0),
-        vec4(TBN * PC.AreaLight[1].Points3.xyz, 1.0)
-    );
 }
+
 
 #shader fragment
 #version 460 core
+
+const int MAX_LIGHTS = 2;
 
 // Just create this in sandbox for now
 struct AreaLight {
@@ -117,10 +118,8 @@ struct AreaLight {
 layout(location = 0) in vec2 FragTexCoord;
 layout(location = 1) in vec3 TangentCameraPos;
 layout(location = 2) in vec3 TangentFragPos;
-layout(location = 3) in vec3 TangentLightTrans0;
-layout(location = 4) in vec3 TangentLightTrans1;
-layout(location = 5) in mat4 TangentPoints0;
-layout(location = 9) in mat4 TangentPoints1;
+layout(location = 3) in vec3 TangentLightTrans[MAX_LIGHTS];
+layout(location = 7) in mat4 TangentPoints[MAX_LIGHTS];
 
 // -- Out -- //
 layout(location = 0) out vec4 FragColor;
@@ -130,9 +129,10 @@ layout(location = 0) out vec4 FragColor;
 // -- Push Constants -- //
 layout(push_constant) uniform PushConstants
 {
-    AreaLight AreaLight[2];
+    AreaLight AreaLight[MAX_LIGHTS];
     int AreaLightCount;
     float Roughness;
+
 } PC;
 
 // -- Set 0 -- //
@@ -302,19 +302,19 @@ void main()
     );
 
     
-
+    for (int i = 0; i < MAX_LIGHTS; i++)
     {
         // translate light source for testing
         vec3 translatedPoints[4];
-        translatedPoints[0] = TangentPoints0[0].xyz + TangentLightTrans0;
-        translatedPoints[1] = TangentPoints0[1].xyz + TangentLightTrans0;
-        translatedPoints[2] = TangentPoints0[2].xyz + TangentLightTrans0;
-        translatedPoints[3] = TangentPoints0[3].xyz + TangentLightTrans0;
+        translatedPoints[0] = TangentPoints[i][0].xyz + TangentLightTrans[i];
+        translatedPoints[1] = TangentPoints[i][1].xyz + TangentLightTrans[i];
+        translatedPoints[2] = TangentPoints[i][2].xyz + TangentLightTrans[i];
+        translatedPoints[3] = TangentPoints[i][3].xyz + TangentLightTrans[i];
 
         // Evaluate LTC shading
 
-        vec3 LTC_Diffuse = LTC_Evaluate(Normal, ViewVector, TangentFragPos, mat3(1), translatedPoints, PC.AreaLight[0].TwoSided);
-        vec3 LTC_Specular = LTC_Evaluate(Normal, ViewVector, TangentFragPos, Minv, translatedPoints, PC.AreaLight[0].TwoSided);
+        vec3 LTC_Diffuse = LTC_Evaluate(Normal, ViewVector, TangentFragPos, mat3(1), translatedPoints, PC.AreaLight[i].TwoSided);
+        vec3 LTC_Specular = LTC_Evaluate(Normal, ViewVector, TangentFragPos, Minv, translatedPoints, PC.AreaLight[i].TwoSided);
 
         // GGX BRDF shadowing and Fresnel
         // t2.x: shadowedF90 (F90 normally it should be 1.0)
@@ -323,30 +323,7 @@ void main()
         LTC_Specular *= Specular * t2.x + (1.0f - Specular) * t2.y;
 
 
-        result += PC.AreaLight[0].Color * PC.AreaLight[0].Intensity * (LTC_Specular + Diffuse * LTC_Diffuse);
-    }
-
-    {
-        // translate light source for testing
-        vec3 translatedPoints[4];
-        translatedPoints[0] = TangentPoints1[0].xyz + TangentLightTrans1;
-        translatedPoints[1] = TangentPoints1[1].xyz + TangentLightTrans1;
-        translatedPoints[2] = TangentPoints1[2].xyz + TangentLightTrans1;
-        translatedPoints[3] = TangentPoints1[3].xyz + TangentLightTrans1;
-
-        // Evaluate LTC shading
-
-        vec3 LTC_Diffuse = LTC_Evaluate(Normal, ViewVector, TangentFragPos, mat3(1), translatedPoints, PC.AreaLight[1].TwoSided);
-        vec3 LTC_Specular = LTC_Evaluate(Normal, ViewVector, TangentFragPos, Minv, translatedPoints, PC.AreaLight[1].TwoSided);
-
-        // GGX BRDF shadowing and Fresnel
-        // t2.x: shadowedF90 (F90 normally it should be 1.0)
-        // t2.y: Smith function for Geometric Attenuation Term, it is dot(V or L, H).
-
-        LTC_Specular *= Specular * t2.x + (1.0f - Specular) * t2.y;
-
-
-        result += PC.AreaLight[1].Color * PC.AreaLight[1].Intensity * (LTC_Specular + Diffuse * LTC_Diffuse);
+        result += PC.AreaLight[i].Color * PC.AreaLight[i].Intensity * (LTC_Specular + Diffuse * LTC_Diffuse);
     }
 
     result *= AO;
