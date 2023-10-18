@@ -1969,7 +1969,15 @@ namespace Magnefu
 
 			vkCmdPushConstants(commandBuffer, shader.GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &m_PushConstants);
 
-			vkCmdDrawIndexed(commandBuffer, sceneObject.GetIndexCount(), 1, 0, 0, 0);
+			if (sceneObject.IsInstanced())
+			{
+				vkCmdDrawIndexed(commandBuffer, sceneObject.GetIndexCount(), sceneObject.GetInstanceCount(), 0, 0, 0);
+			}
+			else
+			{
+				vkCmdDrawIndexed(commandBuffer, sceneObject.GetIndexCount(), 1, 0, 0, 0);
+			}
+			
 			
 		}
 			
@@ -2005,13 +2013,21 @@ namespace Magnefu
 
 		// -- Update Uniform Buffers -- //
 
-		renderpassUniformBuffer.UpdateUniformBuffer({});
+		renderpassUniformBuffer.UpdateUniformBuffer(Material{});
 
 		for (auto& sceneObject : sceneObjects)
 		{
 			VulkanBindGroup& material = static_cast<VulkanBindGroup&>(rm.GetBindGroup(sceneObject.GetMaterialBindGroup()));
 			VulkanUniformBuffer& materialUniformBuffer = static_cast<VulkanUniformBuffer&>(rm.GetBuffer(material.GetUniformsHandle()));
-			materialUniformBuffer.UpdateUniformBuffer(sceneObject.GetMaterialData());
+
+			if (sceneObject.IsInstanced())
+			{
+				materialUniformBuffer.UpdateUniformBuffer(sceneObject.GetMaterialDataInstanced(), sceneObject.GetInstanceCount());
+			}
+			else
+			{
+				materialUniformBuffer.UpdateUniformBuffer(sceneObject.GetMaterialData());
+			}
 		}
 		
 	}

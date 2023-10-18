@@ -45,6 +45,7 @@ namespace Magnefu
 		~VulkanUniformBuffer();
 
 		void UpdateUniformBuffer(const Material& mat);
+		void UpdateUniformBuffer(const MaterialInstanced& mat, uint32_t instanceCount);
 
 		std::vector<VkBuffer>& GetBuffers() { return m_Buffers; }
 		

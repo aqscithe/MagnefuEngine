@@ -1,6 +1,8 @@
 #shader vertex
 #version 460 core
 
+const int MAX_LIGHTS = 2;
+
 struct AreaLight {
     vec4  Points0;
     vec4  Points1;
@@ -47,26 +49,27 @@ layout(set = 0, binding = 0) uniform RenderPassUBO
 // -- Set 1 -- //
 layout(set = 1, binding = 0) uniform MaterialUBO
 {
-    mat4 Model;
-    vec3 Tint;
-    float Reflectance;
-    float Opacity;
+    mat4 Model[MAX_LIGHTS];
+    vec4 Tint[MAX_LIGHTS];
+    float Reflectance[MAX_LIGHTS];
+    float Opacity[MAX_LIGHTS];
 } mat_ubo;
 
 
 void main()
 {
-    //gl_Position = globals_ubo.Proj * globals_ubo.View * mat_ubo.Model * vec4(InPosition, 1.0);
-    gl_Position = globals_ubo.Proj * globals_ubo.View * mat_ubo.Model * vec4(InPosition, 1.0);
+    gl_Position = globals_ubo.Proj * globals_ubo.View * mat_ubo.Model[gl_InstanceIndex] * vec4(InPosition, 1.0);
     FragNormal = InNormal;
     FragTexCoord = InTexCoord;
-    FragPosition = vec3(mat_ubo.Model * vec4(InPosition, 1.0));
+    FragPosition = vec3(mat_ubo.Model[gl_InstanceIndex] * vec4(InPosition, 1.0));
 }
 
 // END OF VERTEX SHADER
 
 #shader fragment
 #version 460 core
+
+const int MAX_LIGHTS = 2;
 
 
 struct AreaLight {
@@ -115,10 +118,10 @@ layout(set = 0, binding = 2) uniform sampler2D LTC2;
 // -- Set 1 -- //
 layout(set = 1, binding = 0) uniform MaterialUBO
 {
-    mat4 Model;
-    vec3 Tint;
-    float Reflectance;
-    float Opacity;
+    mat4 Model[MAX_LIGHTS];
+    vec4 Tint[MAX_LIGHTS];
+    float Reflectance[MAX_LIGHTS];
+    float Opacity[MAX_LIGHTS];
 } mat_ubo;
 
 //layout(set = 1, binding = 1) uniform sampler2D DiffuseSampler;
@@ -128,7 +131,7 @@ layout(set = 1, binding = 0) uniform MaterialUBO
 void main()
 {
     vec3 color = PC.AreaLight.Color;
-    color *= mat_ubo.Tint;
+    color *= mat_ubo.Tint[gl_InstanceIndex].xyz;
 
     // Gamma Correction
     color = color / (color + vec3(1.0));

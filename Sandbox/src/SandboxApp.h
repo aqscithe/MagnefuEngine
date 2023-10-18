@@ -20,7 +20,7 @@ public:
 	{
 		m_GraphicsContext = Magnefu::Application::Get().GetWindow().GetGraphicsContext();
 
-		m_PushConstants.ALightCount = 2;
+		m_PushConstants.ALightCount = m_SceneObjects[1].GetInstanceCount();
 
 		for (int i = 0; i < m_PushConstants.ALightCount; i++)
 		{
@@ -55,8 +55,14 @@ public:
 		m_GraphicsContext->SetPushConstants(m_PushConstants);
 
 
-		auto& material = m_SceneObjects[1].GetMaterialData();
-		material.Translation = m_PushConstants.ALight[0].Translation;
+		auto& material = m_SceneObjects[1].GetMaterialDataInstanced();
+		int instanceCount = m_SceneObjects[1].GetInstanceCount();
+
+		for (int instance = 0; instance < instanceCount; instance++)
+		{
+			material.Translation[instance] = m_PushConstants.ALight[instance].Translation;
+		}
+		
 	}
 
 	void OnRender() override
@@ -72,35 +78,69 @@ public:
 		{
 			if (ImGui::BeginTabItem("Objects"))
 			{
-				for (int i = 0;i < m_SceneObjects.size(); i++)
+				for (int object = 0; object < m_SceneObjects.size(); object++)
 				{
-					auto& material = m_SceneObjects[i].GetMaterialData();
 
-					char label[32];
-					if (i != 1)
+					// -- TODO: DETERMINE IF OBJECT IS INSTANCED -- //
+					if (m_SceneObjects[object].IsInstanced())
 					{
-						snprintf(label, sizeof(label), "Object %d Pos", i);
+						int instanceCount = m_SceneObjects[object].GetInstanceCount();
+						auto& material = m_SceneObjects[object].GetMaterialDataInstanced();
+
+						for (int instance = 0; instance < instanceCount; instance++)
+						{
+							char label_i[32];
+							snprintf(label_i, sizeof(label_i), "Object %d Instance %d Pos", object, instance);
+							ImGui::SliderFloat3(label_i, material.Translation[instance].e, -500.f, 500.f);
+
+							snprintf(label_i, sizeof(label_i), "Object %d Instance %d Rotation", object, instance);
+							ImGui::SliderFloat3(label_i, material.Rotation[instance].e, 0.f, 1.f);
+
+							snprintf(label_i, sizeof(label_i), "Object %d Instance %d Rot Angle", object, instance);
+							ImGui::SliderFloat3(label_i, &material.AngleOfRot[instance], -360.f, 360.f);
+
+							snprintf(label_i, sizeof(label_i), "Object %d Instance %d Scale", object, instance);
+							ImGui::SliderFloat3(label_i, material.Scale[instance].e, 0.f, 1.f);
+
+							snprintf(label_i, sizeof(label_i), "Object %d Instance %d Tint", object, instance);
+							ImGui::ColorEdit3(label_i, material.Tint[instance].e);
+
+							snprintf(label_i, sizeof(label_i), "Object %d Instance %d Opacity", object, instance);
+							ImGui::SliderFloat3(label_i, &material.Opacity[instance], 0.f, 1.f);
+
+							snprintf(label_i, sizeof(label_i), "Object %d Instance %d Reflectance", object, instance);
+							ImGui::SliderFloat3(label_i, &material.Reflectance[instance], 0.f, 5.f);
+						}
+					}
+					else
+					{
+						auto& material = m_SceneObjects[object].GetMaterialData();
+
+						char label[32];
+
+						snprintf(label, sizeof(label), "Object %d Pos", object);
 						ImGui::SliderFloat3(label, material.Translation.e, -500.f, 500.f);
-						
+
+						snprintf(label, sizeof(label), "Object %d Rot", object);
+						ImGui::SliderFloat3(label, material.Rotation.e, 0.f, 1.f);
+
+						snprintf(label, sizeof(label), "Object %d Angle", object);
+						ImGui::SliderFloat(label, &material.AngleOfRot, -360.f, 360.f);
+
+						snprintf(label, sizeof(label), "Object %d Scale", object);
+						ImGui::SliderFloat3(label, material.Scale.e, 0.f, 1.f);
+
+						snprintf(label, sizeof(label), "Object %d Tint", object);
+						ImGui::ColorEdit3(label, material.Tint.e);
+
+						snprintf(label, sizeof(label), "Object %d Opacity", object);
+						ImGui::SliderFloat(label, &material.Opacity, 0.f, 1.f);
+
+						snprintf(label, sizeof(label), "Object %d Reflectance", object);
+						ImGui::SliderFloat(label, &material.Reflectance, 0.f, 5.f, "%.2f");
 					}
 					
-					snprintf(label, sizeof(label), "Object %d Rot", i);
-					ImGui::SliderFloat3(label, material.Rotation.e, 0.f, 1.f);
-
-					snprintf(label, sizeof(label), "Object %d Angle", i);
-					ImGui::SliderFloat(label, &material.AngleOfRot, -360.f, 360.f);
-
-					snprintf(label, sizeof(label), "Object %d Scale", i);
-					ImGui::SliderFloat3(label, material.Scale.e, 0.f, 1.f);
-
-					snprintf(label, sizeof(label), "Object %d Tint", i);
-					ImGui::ColorEdit3(label, material.Tint.e);
-
-					snprintf(label, sizeof(label), "Object %d Opacity", i);
-					ImGui::SliderFloat(label, &material.Opacity, 0.f, 1.f);
-
-					snprintf(label, sizeof(label), "Object %d Reflectance", i);
-					ImGui::SliderFloat(label, &material.Reflectance, 0.f, 5.f, "%.2f");
+					
 
 					ImGui::Separator();
 				}

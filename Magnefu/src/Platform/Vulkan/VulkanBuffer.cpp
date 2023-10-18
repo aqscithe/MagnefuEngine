@@ -76,8 +76,6 @@ namespace Magnefu
 		m_Buffer = vulkanMem.IBuffer;
 		m_Range = desc.ByteSize;
 		m_Offset = static_cast<VkDeviceSize>(desc.Offset);
-
-		
 	}
 
 
@@ -166,6 +164,8 @@ namespace Magnefu
 				void* data = static_cast<char*>(vulkanMem.UniformBuffersMapped[context.GetCurrentFrame()]) + m_Offset;
 				memcpy(data, &ubo, m_Range);
 
+				
+
 				break;
 			}
 			
@@ -179,6 +179,32 @@ namespace Magnefu
 				break;
 			}
 		}		
+	}
+
+	void VulkanUniformBuffer::UpdateUniformBuffer(const MaterialInstanced& mat, uint32_t instanceCount)
+	{
+		VulkanContext& context = VulkanContext::Get();
+		VulkanMemory& vulkanMem = context.GetVulkanMemory();
+		VkExtent2D swapChainExtent = context.GetSwapChainExtent();
+
+		Application& app = Application::Get();
+
+		MaterialUniformBufferObjectInstanced ubo;
+
+		for (int instance = 0; instance < instanceCount; instance++)
+		{
+			ubo.ModelMatrix[instance] = Maths::translate(mat.Translation[instance]) * 
+				Maths::Quaternion::CalculateRotationMatrix(mat.AngleOfRot[instance], mat.Rotation[instance]) * 
+				Maths::scale(mat.Scale[instance]);
+
+			ubo.Tint[instance] = mat.Tint[instance];
+			ubo.Reflectance[instance] = mat.Reflectance[instance];
+			ubo.Opacity[instance] = mat.Opacity[instance];
+		}
+
+		assert(sizeof(ubo) == m_Range);
+		void* data = static_cast<char*>(vulkanMem.UniformBuffersMapped[context.GetCurrentFrame()]) + m_Offset;
+		memcpy(data, &ubo, m_Range);
 	}
 }
 

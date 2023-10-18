@@ -86,11 +86,20 @@ namespace Magnefu
 
     struct alignas(16) MaterialUniformBufferObject
     {
-        Maths::mat4 ModelMatrix;
+        Maths::mat4             ModelMatrix;
         alignas(16) Maths::vec3 Tint;
         float                   Reflectance; // fresnel reflectance for dielectrics [0.0, 1.0]
         float                   Opacity;
         bool                    IsTextured;
+    };
+
+    struct alignas(16) MaterialUniformBufferObjectInstanced
+    {
+        Maths::mat4             ModelMatrix[2];
+        alignas(16) Maths::vec4             Tint[2];
+        float                   Reflectance[2]; // fresnel reflectance for dielectrics [0.0, 1.0]
+        float                   Opacity[2];
+        bool                    IsTextured[2];
     };
 
 
@@ -132,6 +141,15 @@ namespace Magnefu
         "Material Uniform Buffer",
         0,
         sizeof(MaterialUniformBufferObject),
+        BufferUsage::USAGE_UNIFORM,
+        UniformBufferType::UNIFORM_MATERIAL,
+        {0}
+    };
+
+    const BufferDesc MaterialUniformBufferDescInstanced = {
+        "Material Uniform Buffer",
+        0,
+        sizeof(MaterialUniformBufferObjectInstanced),
         BufferUsage::USAGE_UNIFORM,
         UniformBufferType::UNIFORM_MATERIAL,
         {0}

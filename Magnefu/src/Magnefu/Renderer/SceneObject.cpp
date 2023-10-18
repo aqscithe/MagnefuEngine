@@ -20,6 +20,8 @@ namespace Magnefu
         ResourceManager& rm = app.GetResourceManager();
         GraphicsContext* context = app.GetWindow().GetGraphicsContext();
 
+        m_InstanceCount = resourceInfo.InstanceCount;
+        m_IsInstanced = resourceInfo.IsInstanced;
 
         m_Material = rm.CreateBindGroup({
             .DebugName = "SciFi Corridor",
@@ -52,7 +54,7 @@ namespace Magnefu
                     //TextureChannels::CHANNELS_RGB_ALPHA
                 }
             },
-            .Buffers = MaterialUniformBufferDesc
+            .Buffers = resourceInfo.IsInstanced ? MaterialUniformBufferDescInstanced : MaterialUniformBufferDesc,
         });
 
         m_GraphicsPipelineShader = rm.CreateShader({   // shader will be set by the object. Ex: drawStream.SetShader(sceneObject.shader);

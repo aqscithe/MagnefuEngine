@@ -15,10 +15,12 @@ namespace Magnefu
 
 	struct ResourceInfo
 	{
-		bool        IsTextured;
 		const char* ModelPath;
 		const char* ShaderPath;
 		ModelType   ModelType;
+		bool        IsTextured;
+		bool        IsInstanced;
+		uint32_t    InstanceCount;
 	};
 
 	static std::array<ResourceInfo, 2> RESOURCE_PATHS = {
@@ -27,9 +29,9 @@ namespace Magnefu
 		"res/meshes/Victorian_Painting.obj",*/
 
 		{
-			//{true, "res/meshes/primitives/3D/plane.obj", "res/shaders/AreaLightLTC.shader", ModelType::MODEL_DEFAULT},
-			{true, "res/meshes/corridor.obj", "res/shaders/AreaLightLTC.shader", ModelType::MODEL_DEFAULT},
-			{false, "res/meshes/area_lights/square_light.obj", "res/shaders/AreaLight.shader", ModelType::MODEL_AREA_LIGHT},
+			//{"res/meshes/primitives/3D/plane.obj", "res/shaders/AreaLightLTC.shader", ModelType::MODEL_DEFAULT, true, false, 0},
+			{"res/meshes/corridor.obj", "res/shaders/AreaLightLTC.shader", ModelType::MODEL_DEFAULT, true, false, 0},
+			{"res/meshes/area_lights/square_light.obj", "res/shaders/AreaLight.shader", ModelType::MODEL_AREA_LIGHT,false, true, 2},
 			
 		}
 	};
