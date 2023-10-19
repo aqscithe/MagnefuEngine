@@ -739,9 +739,22 @@ namespace Magnefu
 
 		totalSize = offset + size;
 
-		for (int i = 0; i < sceneObjCount; i++)
+		
+		for (int index = 0; index < sceneObjCount; index++)
 		{
-			size = sizeof(MaterialUniformBufferObject);
+			ResourceInfo resourceInfo = RESOURCE_PATHS[index];
+
+			// If the sceneobject is instanced, the size of its uniform buffer
+			// will be different
+			if (resourceInfo.IsInstanced)
+			{
+				size = sizeof(MaterialUniformBufferObjectInstanced);
+			}
+			else
+			{
+				size = sizeof(MaterialUniformBufferObject);
+			}
+			
 			offset = (totalSize + m_VulkanMemory.UniformAlignment - 1) & ~(m_VulkanMemory.UniformAlignment - 1);
 			totalSize = offset + size;
 		}
@@ -1971,7 +1984,7 @@ namespace Magnefu
 
 			if (sceneObject.IsInstanced())
 			{
-				vkCmdDrawIndexed(commandBuffer, sceneObject.GetIndexCount(), sceneObject.GetInstanceCount(), 0, 0, 0);
+					vkCmdDrawIndexed(commandBuffer, sceneObject.GetIndexCount(), sceneObject.GetInstanceCount(), 0, 0, 0);
 			}
 			else
 			{

@@ -91,6 +91,7 @@ namespace Magnefu
 
 		m_Offset = (vulkanMem.UniformOffset + vulkanMem.UniformAlignment - 1) & ~(vulkanMem.UniformAlignment - 1);
 
+		// TODO: Rename UniformOffset to UniformTotalSize
 		vulkanMem.UniformOffset = m_Offset + m_Range;
 	}
 
@@ -189,7 +190,7 @@ namespace Magnefu
 
 		Application& app = Application::Get();
 
-		MaterialUniformBufferObjectInstanced ubo;
+		MaterialUniformBufferObjectInstanced ubo{};
 
 		for (int instance = 0; instance < instanceCount; instance++)
 		{

@@ -28,6 +28,8 @@ layout(location = 5) in vec2 InTexCoord;
 layout(location = 0) out vec3 FragPosition;
 layout(location = 1) out vec3 FragNormal;
 layout(location = 2) out vec2 FragTexCoord;
+layout(location = 3) out flat int InstanceIndex;
+
 
 // --Push Constants -- //
 layout(push_constant) uniform PushConstants
@@ -58,10 +60,12 @@ layout(set = 1, binding = 0) uniform MaterialUBO
 
 void main()
 {
-    gl_Position = globals_ubo.Proj * globals_ubo.View * mat_ubo.Model[gl_InstanceIndex] * vec4(InPosition, 1.0);
+    InstanceIndex = gl_InstanceIndex;
+    gl_Position = globals_ubo.Proj * globals_ubo.View * mat_ubo.Model[InstanceIndex] * vec4(InPosition, 1.0);
     FragNormal = InNormal;
     FragTexCoord = InTexCoord;
-    FragPosition = vec3(mat_ubo.Model[gl_InstanceIndex] * vec4(InPosition, 1.0));
+    FragPosition = vec3(mat_ubo.Model[InstanceIndex] * vec4(InPosition, 1.0));
+    
 }
 
 // END OF VERTEX SHADER
@@ -90,6 +94,7 @@ struct AreaLight {
 layout(location = 0) in vec3 FragPosition;
 layout(location = 1) in vec3 FragNormal;
 layout(location = 2) in vec2 FragTexCoord;
+layout(location = 3) in flat int InstanceIndex;
 
 // -- Out -- //
 layout(location = 0) out vec4 FragColor;
@@ -131,7 +136,7 @@ layout(set = 1, binding = 0) uniform MaterialUBO
 void main()
 {
     vec3 color = PC.AreaLight.Color;
-    color *= mat_ubo.Tint[gl_InstanceIndex].xyz;
+    color *= mat_ubo.Tint[InstanceIndex].xyz;
 
     // Gamma Correction
     color = color / (color + vec3(1.0));
