@@ -1,13 +1,9 @@
 #shader vertex
 #version 460 core
 
-const int MAX_LIGHTS = 2;
+const int MAX_LIGHTS = 3;
 
 struct AreaLight {
-    vec4  Points0;
-    vec4  Points1;
-    vec4  Points2;
-    vec4  Points3;
     vec3  Color;
     float padding1;
     vec3  Translation;
@@ -28,13 +24,15 @@ layout(location = 5) in vec2 InTexCoord;
 layout(location = 0) out vec2 FragTexCoord;
 layout(location = 1) out vec3 TangentCameraPos;
 layout(location = 2) out vec3 TangentFragPos;
-layout(location = 3) out vec3 TangentLightTrans[MAX_LIGHTS];
-layout(location = 7) out mat4 TangentPoints[MAX_LIGHTS];
+layout(location = 3) out mat4 TangentPoints;
+layout(location = 7) out vec3 TangentLightTrans[MAX_LIGHTS];
+
 
 // --Push Constants -- //
 layout(push_constant) uniform PushConstants
 {
     AreaLight AreaLight[MAX_LIGHTS];
+    mat4 AreaLightPoints;
     int AreaLightCount;
     float Roughness;
 
@@ -82,14 +80,14 @@ void main()
     for (int i = 0; i < MAX_LIGHTS; i++)
     {
         TangentLightTrans[i] = TBN * PC.AreaLight[i].Translation;
-
-        TangentPoints[i] = mat4(
-            vec4(TBN * PC.AreaLight[i].Points0.xyz, 1.0),
-            vec4(TBN * PC.AreaLight[i].Points1.xyz, 1.0),
-            vec4(TBN * PC.AreaLight[i].Points2.xyz, 1.0),
-            vec4(TBN * PC.AreaLight[i].Points3.xyz, 1.0)
-        );
     }
+
+    TangentPoints = mat4(
+        vec4(TBN * PC.AreaLightPoints[0].xyz, 1.0),
+        vec4(TBN * PC.AreaLightPoints[1].xyz, 1.0),
+        vec4(TBN * PC.AreaLightPoints[2].xyz, 1.0),
+        vec4(TBN * PC.AreaLightPoints[3].xyz, 1.0)
+    );
 
 }
 
@@ -97,14 +95,10 @@ void main()
 #shader fragment
 #version 460 core
 
-const int MAX_LIGHTS = 2;
+const int MAX_LIGHTS = 3;
 
 // Just create this in sandbox for now
 struct AreaLight {
-    vec4  Points0;
-    vec4  Points1;
-    vec4  Points2;
-    vec4  Points3;
     vec3  Color;
     float padding1;
     vec3  Translation;
@@ -118,8 +112,8 @@ struct AreaLight {
 layout(location = 0) in vec2 FragTexCoord;
 layout(location = 1) in vec3 TangentCameraPos;
 layout(location = 2) in vec3 TangentFragPos;
-layout(location = 3) in vec3 TangentLightTrans[MAX_LIGHTS];
-layout(location = 7) in mat4 TangentPoints[MAX_LIGHTS];
+layout(location = 3) in mat4 TangentPoints;
+layout(location = 7) in vec3 TangentLightTrans[MAX_LIGHTS];
 
 // -- Out -- //
 layout(location = 0) out vec4 FragColor;
@@ -130,6 +124,7 @@ layout(location = 0) out vec4 FragColor;
 layout(push_constant) uniform PushConstants
 {
     AreaLight AreaLight[MAX_LIGHTS];
+    mat4 AreaLightPoints;
     int AreaLightCount;
     float Roughness;
 
@@ -284,7 +279,7 @@ void main()
     float dotNV = clamp(dot(Normal, ViewVector), 0.0f, 1.0f);
 
     // use roughness and sqrt(1-cos_theta) to sample M_texture
-    float Roughness = ARM.g;
+    //float Roughness = ARM.g;
     //vec2 uv = vec2(Roughness, sqrt(1.0f - dotNV));
     vec2 uv = vec2(PC.Roughness, sqrt(1.0f - dotNV));
     uv = uv * LUT_SCALE + LUT_BIAS;
@@ -306,10 +301,10 @@ void main()
     {
         // translate light source for testing
         vec3 translatedPoints[4];
-        translatedPoints[0] = TangentPoints[i][0].xyz + TangentLightTrans[i];
-        translatedPoints[1] = TangentPoints[i][1].xyz + TangentLightTrans[i];
-        translatedPoints[2] = TangentPoints[i][2].xyz + TangentLightTrans[i];
-        translatedPoints[3] = TangentPoints[i][3].xyz + TangentLightTrans[i];
+        translatedPoints[0] = TangentPoints[0].xyz + TangentLightTrans[i];
+        translatedPoints[1] = TangentPoints[1].xyz + TangentLightTrans[i];
+        translatedPoints[2] = TangentPoints[2].xyz + TangentLightTrans[i];
+        translatedPoints[3] = TangentPoints[3].xyz + TangentLightTrans[i];
 
         // Evaluate LTC shading
 

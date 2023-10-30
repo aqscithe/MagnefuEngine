@@ -1,5 +1,9 @@
 #pragma once
+
+#include "Magnefu/Renderer/RenderConstants.h"
+
 #include <array>
+
 
 namespace Magnefu
 {
@@ -31,7 +35,7 @@ namespace Magnefu
 		{
 			//{"res/meshes/primitives/3D/plane.obj", "res/shaders/AreaLightLTC.shader", ModelType::MODEL_DEFAULT, true, false, 0},
 			{"res/meshes/corridor.obj", "res/shaders/AreaLightLTC.shader", ModelType::MODEL_DEFAULT, true, false, 0},
-			{"res/meshes/area_lights/square_light.obj", "res/shaders/AreaLight.shader", ModelType::MODEL_AREA_LIGHT,false, true, 2},
+			{"res/meshes/area_lights/square_light.obj", "res/shaders/AreaLight.shader", ModelType::MODEL_AREA_LIGHT,false, true, MAX_AREA_LIGHTS},
 			
 		}
 	};

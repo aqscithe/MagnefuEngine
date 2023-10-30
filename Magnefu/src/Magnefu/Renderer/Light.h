@@ -17,10 +17,6 @@ namespace Magnefu
 
     struct alignas(16) AreaLight
     {
-        Maths::vec4  Points0;
-        Maths::vec4  Points1;
-        Maths::vec4  Points2;
-        Maths::vec4  Points3;
         Maths::vec3  Color;
         float        padding1;
         Maths::vec3  Translation;

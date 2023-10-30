@@ -73,20 +73,11 @@ namespace Magnefu
         Maths::vec3 CameraPos;
     };
 
-    /*struct alignas(16) LightUniformBufferObject
-    {
-        Maths::vec3 LightPos;
-        Maths::vec3 LightColor;
-        float MaxLightDist;
-        float RadiantFlux;
-        int LightCount;
-        int LightEnabled;
-    };*/
-
 
     struct alignas(16) MaterialUniformBufferObject
     {
         Maths::mat4             ModelMatrix;
+        //AreaLight               AreaLights[]
         alignas(16) Maths::vec3 Tint;
         float                   Reflectance; // fresnel reflectance for dielectrics [0.0, 1.0]
         float                   Opacity;
@@ -95,11 +86,11 @@ namespace Magnefu
 
     struct alignas(16) MaterialUniformBufferObjectInstanced
     {
-        Maths::mat4             ModelMatrix[2];
-        alignas(16) Maths::vec4             Tint[2];
-        float                   Reflectance[2]; // fresnel reflectance for dielectrics [0.0, 1.0]
-        float                   Opacity[2];
-        bool                    IsTextured[2];
+        Maths::mat4             ModelMatrix[3];
+        alignas(16) Maths::vec4 Tint[3];
+        float                   Reflectance[3]; // fresnel reflectance for dielectrics [0.0, 1.0]
+        float                   Opacity[3];
+        bool                    IsTextured[3];
     };
 
 

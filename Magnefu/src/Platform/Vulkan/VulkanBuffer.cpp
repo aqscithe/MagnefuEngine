@@ -197,10 +197,6 @@ namespace Magnefu
 			ubo.ModelMatrix[instance] = Maths::translate(mat.Translation[instance]) * 
 				Maths::Quaternion::CalculateRotationMatrix(mat.AngleOfRot[instance], mat.Rotation[instance]) * 
 				Maths::scale(mat.Scale[instance]);
-
-			ubo.Tint[instance] = mat.Tint[instance];
-			ubo.Reflectance[instance] = mat.Reflectance[instance];
-			ubo.Opacity[instance] = mat.Opacity[instance];
 		}
 
 		assert(sizeof(ubo) == m_Range);

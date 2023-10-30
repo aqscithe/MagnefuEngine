@@ -1,13 +1,9 @@
 #shader vertex
 #version 460 core
 
-const int MAX_LIGHTS = 2;
+const int MAX_LIGHTS = 3;
 
 struct AreaLight {
-    vec4  Points0;
-    vec4  Points1;
-    vec4  Points2;
-    vec4  Points3;
     vec3  Color;
     float padding1;
     vec3  Translation;
@@ -34,8 +30,10 @@ layout(location = 3) out flat int InstanceIndex;
 // --Push Constants -- //
 layout(push_constant) uniform PushConstants
 {
-    AreaLight AreaLight;
-    float     Roughness;
+    AreaLight AreaLight[MAX_LIGHTS];
+    mat4 AreaLightPoints;
+    int AreaLightCount;
+    float Roughness;
 
 } PC;
 
@@ -52,9 +50,6 @@ layout(set = 0, binding = 0) uniform RenderPassUBO
 layout(set = 1, binding = 0) uniform MaterialUBO
 {
     mat4 Model[MAX_LIGHTS];
-    vec4 Tint[MAX_LIGHTS];
-    float Reflectance[MAX_LIGHTS];
-    float Opacity[MAX_LIGHTS];
 } mat_ubo;
 
 
@@ -73,14 +68,10 @@ void main()
 #shader fragment
 #version 460 core
 
-const int MAX_LIGHTS = 2;
+const int MAX_LIGHTS = 3;
 
 
 struct AreaLight {
-    vec4  Points0;
-    vec4  Points1;
-    vec4  Points2;
-    vec4  Points3;
     vec3  Color;
     float padding1;
     vec3  Translation;
@@ -104,8 +95,11 @@ layout(location = 0) out vec4 FragColor;
 // -- Push Constants -- //
 layout(push_constant) uniform PushConstants
 {
-    AreaLight AreaLight;
-    float     Roughness;
+    AreaLight AreaLight[MAX_LIGHTS];
+    mat4 AreaLightPoints;
+    int AreaLightCount;
+    float Roughness;
+
 } PC;
 
 // -- Set 0 -- //
@@ -124,9 +118,6 @@ layout(set = 0, binding = 2) uniform sampler2D LTC2;
 layout(set = 1, binding = 0) uniform MaterialUBO
 {
     mat4 Model[MAX_LIGHTS];
-    vec4 Tint[MAX_LIGHTS];
-    float Reflectance[MAX_LIGHTS];
-    float Opacity[MAX_LIGHTS];
 } mat_ubo;
 
 //layout(set = 1, binding = 1) uniform sampler2D DiffuseSampler;
@@ -135,8 +126,8 @@ layout(set = 1, binding = 0) uniform MaterialUBO
 
 void main()
 {
-    vec3 color = PC.AreaLight.Color;
-    color *= mat_ubo.Tint[InstanceIndex].xyz;
+    // Each instance needs to know which color it should be
+    vec3 color = { 1.0, 1.0, 1.0 };
 
     // Gamma Correction
     color = color / (color + vec3(1.0));

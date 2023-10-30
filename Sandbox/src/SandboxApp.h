@@ -22,19 +22,45 @@ public:
 
 		m_PushConstants.ALightCount = m_SceneObjects[1].GetInstanceCount();
 
+		m_PushConstants.ALightPoints = { 
+			-8.0f, 2.4f, -1.0f, 0.f ,
+			-8.0f, 2.4f,  1.0f, 0.f ,
+			-8.0f, 0.4f,  1.0f, 0.f ,
+			-8.0f, 0.4f, -1.0f, 0.f  
+		};
+
 		for (int i = 0; i < m_PushConstants.ALightCount; i++)
 		{
 			m_PushConstants.ALight[i].Intensity = 4.f;
 			m_PushConstants.ALight[i].Color = Maths::vec3(1.f);
 			m_PushConstants.ALight[i].Translation = Maths::vec3(0.f);
-			m_PushConstants.ALight[i].Points0 = { -8.0f, 2.4f, -1.0f, 0.f };
-			m_PushConstants.ALight[i].Points1 = { -8.0f, 2.4f,  1.0f, 0.f };
-			m_PushConstants.ALight[i].Points2 = { -8.0f, 0.4f,  1.0f, 0.f };
-			m_PushConstants.ALight[i].Points3 = { -8.0f, 0.4f, -1.0f, 0.f };
 			m_PushConstants.ALight[i].TwoSided = 1;
 		}
 
 		m_PushConstants.Roughness = 0.7f;
+
+
+		// -- Initialize Instanced Materials -- //
+		for (int object = 0; object < m_SceneObjects.size(); object++)
+		{
+
+			// -- TODO: DETERMINE IF OBJECT IS INSTANCED -- //
+			if (m_SceneObjects[object].IsInstanced())
+			{
+				int instanceCount = m_SceneObjects[object].GetInstanceCount();
+				auto& material = m_SceneObjects[object].GetMaterialDataInstanced();
+
+				for (int instance = 0; instance < instanceCount; instance++)
+				{
+					material.Translation[instance] = Maths::vec3(0.0);
+					material.Rotation[instance] = Maths::vec3(0.0);
+					material.Scale[instance] = Maths::vec3(1.0);
+					material.AngleOfRot[instance] = 0.f;
+				}
+
+			}
+
+		}
 		
 
 	}
@@ -101,15 +127,6 @@ public:
 
 							snprintf(label_i, sizeof(label_i), "Object %d Instance %d Scale", object, instance);
 							ImGui::SliderFloat3(label_i, material.Scale[instance].e, 0.f, 1.f);
-
-							snprintf(label_i, sizeof(label_i), "Object %d Instance %d Tint", object, instance);
-							ImGui::ColorEdit3(label_i, material.Tint[instance].e);
-
-							snprintf(label_i, sizeof(label_i), "Object %d Instance %d Opacity", object, instance);
-							ImGui::SliderFloat3(label_i, &material.Opacity[instance], 0.f, 1.f);
-
-							snprintf(label_i, sizeof(label_i), "Object %d Instance %d Reflectance", object, instance);
-							ImGui::SliderFloat3(label_i, &material.Reflectance[instance], 0.f, 5.f);
 						}
 					}
 					else
