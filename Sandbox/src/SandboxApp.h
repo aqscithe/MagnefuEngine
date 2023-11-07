@@ -44,7 +44,6 @@ public:
 		for (int object = 0; object < m_SceneObjects.size(); object++)
 		{
 
-			// -- TODO: DETERMINE IF OBJECT IS INSTANCED -- //
 			if (m_SceneObjects[object].IsInstanced())
 			{
 				int instanceCount = m_SceneObjects[object].GetInstanceCount();
@@ -61,7 +60,6 @@ public:
 			}
 
 		}
-		
 
 	}
 
@@ -176,21 +174,6 @@ public:
 				ImGui::Text("Area Light");
 				ImGui::Separator();
 
-				for (int i = 0; i < m_PushConstants.ALightCount; i++)
-				{
-					char label[32];
-					snprintf(label, sizeof(label), "Area Light %d Intensity", i);
-					ImGui::SliderFloat(label, &m_PushConstants.ALight[i].Intensity, 0.0f, 10.f, "%.1f");
-
-					snprintf(label, sizeof(label), "Area Light %d Color", i);
-					ImGui::ColorEdit3(label, m_PushConstants.ALight[i].Color.e);
-
-					snprintf(label, sizeof(label), "Area Light %d Translation", i);
-					ImGui::SliderFloat3(label, m_PushConstants.ALight[i].Translation.e, -500.f, 500.f, "%.1f");
-
-					snprintf(label, sizeof(label), "Area Light %d Two-sided", i);
-					ImGui::SliderInt(label, &m_PushConstants.ALight[i].TwoSided, 0, 1);
-				}
 
 				ImGui::SliderFloat("Test Roughness", &m_PushConstants.Roughness, 0.f, 1.f);
 

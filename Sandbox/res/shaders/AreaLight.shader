@@ -87,6 +87,7 @@ layout(location = 1) in vec3 FragNormal;
 layout(location = 2) in vec2 FragTexCoord;
 layout(location = 3) in flat int InstanceIndex;
 
+
 // -- Out -- //
 layout(location = 0) out vec4 FragColor;
 

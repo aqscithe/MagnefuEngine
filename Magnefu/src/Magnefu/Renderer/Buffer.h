@@ -61,16 +61,10 @@ namespace Magnefu
         float padding1;
 
         // Light Info
-        /*PointLight PointLights[3];
-        int   LightCount;*/
-    };
-
-    struct alignas(16) RenderPassUniformBufferObjectLTC
-    {
-        // Camera Info
-        Maths::mat4 ViewMatrix;
-        Maths::mat4 ProjMatrix;
-        Maths::vec3 CameraPos;
+        AreaLight   AreaLights[MAX_AREA_LIGHTS];
+        Maths::mat4 AreaLightVertices;
+        int         AreaLightCount;
+        
     };
 
 
@@ -114,15 +108,6 @@ namespace Magnefu
         "Renderpass Uniform Buffer",
         0,
         sizeof(RenderPassUniformBufferObject),
-        BufferUsage::USAGE_UNIFORM,
-        UniformBufferType::UNIFORM_RENDERPASS,
-        {0}
-    };
-
-    const BufferDesc RenderPassUniformBufferDescLTC = {
-        "Renderpass Uniform Buffer",
-        0,
-        sizeof(RenderPassUniformBufferObjectLTC),
         BufferUsage::USAGE_UNIFORM,
         UniformBufferType::UNIFORM_RENDERPASS,
         {0}

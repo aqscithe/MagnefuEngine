@@ -57,7 +57,7 @@ namespace Magnefu
                     TextureTiling::IMAGE_TILING_OPTIMAL,
                     TextureFormat::FORMAT_R32G32B32A32_SFLOAT,
                 }},
-            .Buffers    = RenderPassUniformBufferDescLTC
+            .Buffers    = RenderPassUniformBufferDesc
         });
 
         // -- Scene Objects -- //

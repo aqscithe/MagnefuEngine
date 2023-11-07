@@ -60,7 +60,8 @@ namespace Magnefu
 		inline ResourceManager& GetResourceManager() { return *m_RM; }
 
 		inline Handle<BindGroup>& GetRenderPassBindGroup() { return m_RenderPassGlobals; }
-		inline std::array<PointLight, 3>& GetPointLightData() { return m_PointLights; }
+		//inline std::array<PointLight, 3>& GetPointLightData() { return m_PointLights; }
+		inline std::array<AreaLight, MAX_AREA_LIGHTS>& GetAreaLightData() { return m_AreaLights; }
 		
 		inline std::thread& GetBufferThread() { return m_BufferResourceThread; }
 		inline std::thread& GetImageThread() { return m_ImageResourceThread; }
@@ -101,7 +102,8 @@ namespace Magnefu
 		std::vector<SceneObject> m_SceneObjects;
 		std::vector<SceneObject> m_LightObjects;
 
-		std::array<PointLight, 3> m_PointLights;
+		//std::array<PointLight, 3> m_PointLights;
+		std::array<AreaLight, MAX_AREA_LIGHTS> m_AreaLights;
 
 		//std::vector<std::thread> m_ThreadPool;
 		std::thread m_BufferResourceThread;

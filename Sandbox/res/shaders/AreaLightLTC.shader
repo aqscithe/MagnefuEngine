@@ -279,9 +279,9 @@ void main()
     float dotNV = clamp(dot(Normal, ViewVector), 0.0f, 1.0f);
 
     // use roughness and sqrt(1-cos_theta) to sample M_texture
-    //float Roughness = ARM.g;
-    //vec2 uv = vec2(Roughness, sqrt(1.0f - dotNV));
-    vec2 uv = vec2(PC.Roughness, sqrt(1.0f - dotNV));
+    float Roughness = ARM.g;
+    vec2 uv = vec2(Roughness, sqrt(1.0f - dotNV));
+    //vec2 uv = vec2(PC.Roughness, sqrt(1.0f - dotNV));
     uv = uv * LUT_SCALE + LUT_BIAS;
 
     // get 4 parameters for inverse_M
