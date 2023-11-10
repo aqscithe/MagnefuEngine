@@ -130,7 +130,8 @@ layout(set = 1, binding = 0) uniform MaterialUBO
 void main()
 {
     // Each instance needs to know which color it should be
-    vec3 color = { 1.0, 1.0, 1.0 };
+    //vec3 color = { 1.0, 1.0, 1.0 };
+    vec3 color = globals_ubo.AreaLight[InstanceIndex].Color;
 
     // Gamma Correction
     color = color / (color + vec3(1.0));
