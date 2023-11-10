@@ -3,6 +3,7 @@
 #include "Magnefu/Core/Span.h"
 #include "Magnefu/Renderer/BindGroup.h"
 #include "Magnefu/Renderer/Material.h"
+#include "Magnefu/ResourceManagement/ResourcePaths.h"
 
 
 
@@ -26,15 +27,18 @@ namespace Magnefu
 		inline const uint8_t* GetVerticesData() { return m_Vertices.span.GetData(); }
 		inline const uint8_t* GetIndicesData() { return m_Indices.span.GetData(); }
 		TextureDataBlock& GetTextureData(TextureType type);
+		inline bool IsInstanced() { return m_IsInstanced; }
+		inline uint32_t GetInstanceCount() { return m_InstanceCount; }
 
 		inline Material& GetMaterialData() { return m_MaterialData; }
+		inline MaterialInstanced& GetMaterialDataInstanced() { return m_MaterialDataInstanced; }
 
 		inline void SetVertexBlock(DataBlock&& vertexBlock) { m_Vertices = std::move(vertexBlock); }
 		inline void SetIndexBlock(DataBlock&& indexBlock) { m_Indices = std::move(indexBlock); m_IndexCount = static_cast<uint32_t>(m_Indices.data.size()) / sizeof(uint32_t); }
 
 		void SetTextureBlock(TextureType type, DataBlock&& dataBlock, int width, int height, int channels);
 
-		inline void SetMaterialData(Material& materialData) { m_MaterialData = materialData; }
+		//inline void SetMaterialData(Material& materialData) { m_MaterialData = materialData; }
 
 		inline void ClearIndexDataBlock() { m_Indices.data.clear(); m_Indices.data.shrink_to_fit(); }
 		inline void ClearVertexDataBlock() { m_Vertices.data.clear(); m_Vertices.data.shrink_to_fit(); }
@@ -51,12 +55,16 @@ namespace Magnefu
 		DataBlock         m_Indices;
 		uint32_t          m_IndexCount;         
 
-		Material m_MaterialData;
+		Material          m_MaterialData;
+		MaterialInstanced m_MaterialDataInstanced;
 
 
 		TextureDataBlock    m_DiffuseTextureBlock;
 		TextureDataBlock    m_ARMTextureBlock;
 		TextureDataBlock    m_NormalTextureBlock;
+
+		bool m_IsInstanced;
+		uint32_t m_InstanceCount;
 
 	};
 }

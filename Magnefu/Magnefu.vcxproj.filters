@@ -79,6 +79,15 @@
     <Filter Include="vendor\GLFW\src">
       <UniqueIdentifier>{E94D2683-55D9-9347-5EEA-163CCAF4EF47}</UniqueIdentifier>
     </Filter>
+    <Filter Include="vendor\SOIL2">
+      <UniqueIdentifier>{CB2731EF-B78A-C093-6010-F9494C528C16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\SOIL2\include">
+      <UniqueIdentifier>{3EEAA2DE-2A79-2CA8-D397-40A3BF053D4E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\SOIL2\include\SOIL2">
+      <UniqueIdentifier>{961AF2A3-822A-9E74-EBE3-0293D7128D0D}</UniqueIdentifier>
+    </Filter>
     <Filter Include="vendor\glm">
       <UniqueIdentifier>{829FC5A8-6E57-07F6-D75E-E051C335A2E6}</UniqueIdentifier>
     </Filter>
@@ -479,6 +488,9 @@
     </ClInclude>
     <ClInclude Include="vendor\GLFW\src\xkb_unicode.h">
       <Filter>vendor\GLFW\src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\SOIL2\include\SOIL2\SOIL2.h">
+      <Filter>vendor\SOIL2\include\SOIL2</Filter>
     </ClInclude>
     <ClInclude Include="vendor\glm\simd\common.h">
       <Filter>vendor\glm\simd</Filter>
@@ -1299,6 +1311,7 @@
     <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_xlib_xrandr.h">
       <Filter>vendor\vulkan\include\vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\LTCMatrix.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application.cpp">

@@ -77,7 +77,7 @@
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -89,8 +89,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;shaderc_shared.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;shaderc_shared.lib;soil2.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;vendor\SOIL2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -99,7 +99,7 @@
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -115,8 +115,8 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;shaderc_shared.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;shaderc_shared.lib;soil2.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;vendor\SOIL2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
@@ -125,7 +125,7 @@
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -141,8 +141,8 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;shaderc_shared.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;shaderc_shared.lib;soil2.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;vendor\SOIL2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -184,6 +184,7 @@
     <ClInclude Include="src\Magnefu\Renderer\Camera.h" />
     <ClInclude Include="src\Magnefu\Renderer\GraphicsContext.h" />
     <ClInclude Include="src\Magnefu\Renderer\Light.h" />
+    <ClInclude Include="src\Magnefu\Renderer\LTCMatrix.h" />
     <ClInclude Include="src\Magnefu\Renderer\Material.h" />
     <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h" />
     <ClInclude Include="src\Magnefu\Renderer\RenderConstants.h" />
@@ -245,6 +246,7 @@
     <ClInclude Include="vendor\GLFW\src\wl_platform.h" />
     <ClInclude Include="vendor\GLFW\src\x11_platform.h" />
     <ClInclude Include="vendor\GLFW\src\xkb_unicode.h" />
+    <ClInclude Include="vendor\SOIL2\include\SOIL2\SOIL2.h" />
     <ClInclude Include="vendor\glm\simd\common.h" />
     <ClInclude Include="vendor\glm\simd\exponential.h" />
     <ClInclude Include="vendor\glm\simd\geometric.h" />

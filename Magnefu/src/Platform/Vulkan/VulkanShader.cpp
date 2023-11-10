@@ -170,11 +170,11 @@ namespace Magnefu
 			pushConstantRange.offset = desc.GraphicsPipeline.PushConstantInfo.Offset;
 			pushConstantRange.size = desc.GraphicsPipeline.PushConstantInfo.ByteSize;
 			MF_CORE_DEBUG("Size of Push Constants: {}", sizeof(PushConstants));
+			MF_CORE_DEBUG("Size of Area Light: {}", sizeof(AreaLight));
 		}
 
-
+		VulkanBindGroup& renderpassGlobals = static_cast<VulkanBindGroup&>(rm.GetBindGroup(desc.BindGroups[0]));
 		VulkanBindGroup& material = static_cast<VulkanBindGroup&>(rm.GetBindGroup(desc.BindGroups[1]));
-		VulkanBindGroup& renderpassGlobals = static_cast<VulkanBindGroup&>(rm.GetBindGroup(app.GetRenderPassBindGroup()));
 
 		std::vector<VkDescriptorSetLayout> layouts = {
 			renderpassGlobals.GetDescriptorSetLayout(),

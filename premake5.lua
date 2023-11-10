@@ -14,10 +14,12 @@ IncludeDir["GLFW"] = "Magnefu/vendor/GLFW/include"
 IncludeDir["GLAD"] = "Magnefu/vendor/GLAD/include"
 IncludeDir["ImGui"] = "Magnefu/vendor/imgui"
 IncludeDir["Vulkan"] = "Magnefu/vendor/vulkan/include"
+IncludeDir["SOIL2"] = "Magnefu/vendor/SOIL2/include"
 
 LibDir = {}
 LibDir["GLFW"] = "Magnefu/vendor/GLAD/lib"
 LibDir["Vulkan"] = "Magnefu/vendor/vulkan/lib"
+LibDir["SOIL2"] = "Magnefu/vendor/SOIL2/lib"
 
 -- Includes Premake files
 include "Magnefu/vendor/GLFW"
@@ -73,12 +75,14 @@ project "Magnefu"
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.GLAD}",
         "%{IncludeDir.ImGui}",
+        "%{IncludeDir.SOIL2}",
         
     }
 
     libdirs {
         "%{LibDir.Vulkan}",
         "%{LibDir.GLFW}",
+        "%{LibDir.SOIL2}",
         
     }
 
@@ -88,7 +92,9 @@ project "Magnefu"
         "ImGui",
         "glfw3_mt",
         "vulkan-1",
-        "shaderc_shared"
+        "shaderc_shared",
+        "soil2",
+        "opengl32"
     }
 
     filter "system:windows"
@@ -156,7 +162,7 @@ project "Sandbox"
         systemversion "latest"
 
         defines {
-            "MF_PLATFORM_WINDOWS"
+            "MF_PLATFORM_WINDOWS",
         }
 
     postbuildcommands {

@@ -14,11 +14,65 @@ public:
 		Layer("3D Primitives"), 
 		m_SceneObjects(Magnefu::Application::Get().GetSceneObjects()), 
 		m_Camera(std::static_pointer_cast<Magnefu::SceneCamera>(Magnefu::Application::Get().GetWindow().GetSceneCamera())),
-		m_Lights(Magnefu::Application::Get().GetLightData())
-		//m_Light(Magnefu::Application::Get().GetLightData())
+		m_PushConstants(),
+		m_AreaLightPoints(),
+		m_AreaLights()
 	{
-		m_GraphicsContext = Magnefu::Application::Get().GetWindow().GetGraphicsContext();
+		Magnefu::Application& app = Magnefu::Application::Get();
 
+		m_GraphicsContext = app.GetWindow().GetGraphicsContext();
+		
+		// -- Set Area Light Info -- //
+
+		app.SetAreaLightVertices(
+			{
+				-8.0f, 2.4f, -1.0f, 0.f ,
+				-8.0f, 2.4f,  1.0f, 0.f ,
+				-8.0f, 0.4f,  1.0f, 0.f ,
+				-8.0f, 0.4f, -1.0f, 0.f
+			});
+
+		// Get number of area light instances in the scene
+		// Area Lights are currently at index 1
+		m_AreaLightCount = m_SceneObjects[1].GetInstanceCount();
+
+		app.SetAreaLightCount(m_AreaLightCount);
+
+		for (int areaLight = 0; areaLight < m_AreaLightCount; areaLight++)
+		{
+			auto& light = m_AreaLights[areaLight];
+			light.Intensity = 4.f;
+			light.Color = Maths::vec3(1.f);
+			light.Translation = Maths::vec3(0.f);
+			light.TwoSided = 1;
+		}
+
+		// ------------------------------ //
+
+		m_PushConstants.Roughness = 0.7f;
+
+
+		// -- Initialize Instanced Materials -- //
+		for (int object = 0; object < m_SceneObjects.size(); object++)
+		{
+
+			if (m_SceneObjects[object].IsInstanced())
+			{
+				int instanceCount = m_SceneObjects[object].GetInstanceCount();
+				auto& material = m_SceneObjects[object].GetMaterialDataInstanced();
+
+				for (int instance = 0; instance < instanceCount; instance++)
+				{
+					material.Translation[instance] = Maths::vec3(0.0);
+					material.Rotation[instance] = Maths::vec3(0.0);
+					material.Scale[instance] = Maths::vec3(1.0);
+					material.AngleOfRot[instance] = 0.f;
+
+				}
+
+			}
+
+		}
 
 	}
 
@@ -35,7 +89,19 @@ public:
 	void OnUpdate(float deltaTime) override
 	{
 		m_Camera->ProcessInput(deltaTime);
-		//m_GraphicsContext->SetPushConstants(m_PushConstants);
+		m_GraphicsContext->SetPushConstants(m_PushConstants);
+		Magnefu::Application::Get().SetAreaLightData(m_AreaLights);
+
+
+		// Getting material applied to area light geometry
+		auto& material = m_SceneObjects[1].GetMaterialDataInstanced();
+		int instanceCount = m_SceneObjects[1].GetInstanceCount();
+
+		for (int instance = 0; instance < instanceCount; instance++)
+		{
+			material.Translation[instance] = m_AreaLights[instance].Translation;
+		}
+		
 	}
 
 	void OnRender() override
@@ -51,34 +117,87 @@ public:
 		{
 			if (ImGui::BeginTabItem("Objects"))
 			{
-				for (int i = 0;i < m_SceneObjects.size(); i++)
+				for (int object = 0; object < m_SceneObjects.size(); object++)
 				{
-					auto& material = m_SceneObjects[i].GetMaterialData();
 
-					char label[32];
-					snprintf(label, sizeof(label), "Object %d Pos", i);
-					ImGui::SliderFloat3(label, material.Translation.e, -500.f, 500.f);
+					// -- TODO: DETERMINE IF OBJECT IS INSTANCED -- //
+					if (m_SceneObjects[object].IsInstanced())
+					{
+						int instanceCount = m_SceneObjects[object].GetInstanceCount();
+						auto& material = m_SceneObjects[object].GetMaterialDataInstanced();
 
-					snprintf(label, sizeof(label), "Object %d Rot", i);
-					ImGui::SliderFloat3(label, material.Rotation.e, 0.f, 1.f);
+						for (int instance = 0; instance < instanceCount; instance++)
+						{
+							char label_i[32];
+							snprintf(label_i, sizeof(label_i), "Object %d Instance %d Pos", object, instance);
+							ImGui::SliderFloat3(label_i, material.Translation[instance].e, -500.f, 500.f);
 
-					snprintf(label, sizeof(label), "Object %d Angle", i);
-					ImGui::SliderFloat(label, &material.AngleOfRot, -360.f, 360.f);
+							snprintf(label_i, sizeof(label_i), "Object %d Instance %d Rotation", object, instance);
+							ImGui::SliderFloat3(label_i, material.Rotation[instance].e, 0.f, 1.f);
 
-					snprintf(label, sizeof(label), "Object %d Scale", i);
-					ImGui::SliderFloat3(label, material.Scale.e, 0.f, 1.f);
+							snprintf(label_i, sizeof(label_i), "Object %d Instance %d Rot Angle", object, instance);
+							ImGui::SliderFloat3(label_i, &material.AngleOfRot[instance], -360.f, 360.f);
 
-					snprintf(label, sizeof(label), "Object %d Tint", i);
-					ImGui::ColorEdit3(label, material.Tint.e);
+							snprintf(label_i, sizeof(label_i), "Object %d Instance %d Scale", object, instance);
+							ImGui::SliderFloat3(label_i, material.Scale[instance].e, 0.f, 1.f);
+						}
+					}
+					else
+					{
+						auto& material = m_SceneObjects[object].GetMaterialData();
 
-					snprintf(label, sizeof(label), "Object %d Opacity", i);
-					ImGui::SliderFloat(label, &material.Opacity, 0.f, 1.f);
+						char label[32];
 
-					snprintf(label, sizeof(label), "Object %d Reflectance", i);
-					ImGui::SliderFloat(label, &material.Reflectance, 0.f, 5.f, "%.2f");
+						snprintf(label, sizeof(label), "Object %d Pos", object);
+						ImGui::SliderFloat3(label, material.Translation.e, -500.f, 500.f);
+
+						snprintf(label, sizeof(label), "Object %d Rot", object);
+						ImGui::SliderFloat3(label, material.Rotation.e, 0.f, 1.f);
+
+						snprintf(label, sizeof(label), "Object %d Angle", object);
+						ImGui::SliderFloat(label, &material.AngleOfRot, -360.f, 360.f);
+
+						snprintf(label, sizeof(label), "Object %d Scale", object);
+						ImGui::SliderFloat3(label, material.Scale.e, 0.f, 1.f);
+
+						snprintf(label, sizeof(label), "Object %d Tint", object);
+						ImGui::ColorEdit3(label, material.Tint.e);
+
+						snprintf(label, sizeof(label), "Object %d Opacity", object);
+						ImGui::SliderFloat(label, &material.Opacity, 0.f, 1.f);
+
+						snprintf(label, sizeof(label), "Object %d Reflectance", object);
+						ImGui::SliderFloat(label, &material.Reflectance, 0.f, 5.f, "%.2f");
+					}
+					
+					
 
 					ImGui::Separator();
 				}
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("Area Lights"))
+			{
+				for (int areaLight = 0; areaLight < m_AreaLightCount; areaLight++)
+				{
+					char label[32];
+
+					auto& light = m_AreaLights[areaLight];
+
+					snprintf(label, sizeof(label), "AreaLight %d Color", areaLight);
+					ImGui::ColorEdit3(label, light.Color.e);
+
+					snprintf(label, sizeof(label), "AreaLight %d Translation", areaLight);
+					ImGui::SliderFloat3(label, light.Translation.e, -1000, 1000, "%.2f");
+
+					snprintf(label, sizeof(label), "AreaLight %d Intensity", areaLight);
+					ImGui::SliderFloat(label, &light.Intensity, 0.f, 20.f, "%.2f");
+
+					snprintf(label, sizeof(label), "AreaLight %d Two-Sided", areaLight);
+					ImGui::SliderInt(label, &light.TwoSided, 0, 1);
+				}
+
 				ImGui::EndTabItem();
 			}
 
@@ -91,26 +210,11 @@ public:
 				ImGui::Text("LIGHT DATA");
 				ImGui::Separator();
 
-				for (int i = 0; i < m_Lights.size(); i++)
-				{
-					char label[32];
-					snprintf(label, sizeof(label), "Light %d Enabled", i);
-					ImGui::SliderInt(label, &m_Lights[i].LightEnabled, 0, 1);
+				ImGui::Text("Area Light");
+				ImGui::Separator();
 
-					snprintf(label, sizeof(label), "Light %d Position", i);
-					ImGui::SliderFloat3(label, m_Lights[i].LightPos.e, -500.f, 500.f);
 
-					snprintf(label, sizeof(label), "Light %d Color", i);
-					ImGui::ColorEdit3(label, m_Lights[i].LightColor.e);
-
-					snprintf(label, sizeof(label), "Max Light Distance %d", i);
-					ImGui::SliderFloat(label, &m_Lights[i].MaxLightDist, 0.f, 1000.f, "%.2f");
-
-					snprintf(label, sizeof(label), "Light %d Radiant Flux", i);
-					ImGui::SliderFloat(label, &m_Lights[i].RadiantFlux, 0.f, 100.f, "%.2f");
-
-					ImGui::Separator();
-				}
+				ImGui::SliderFloat("Test Roughness", &m_PushConstants.Roughness, 0.f, 1.f);
 				
 
 				ImGui::EndTabItem();
@@ -126,11 +230,13 @@ public:
 	}
 
 private:
-	Magnefu::Ref<Magnefu::SceneCamera> m_Camera;
-	Magnefu::GraphicsContext* m_GraphicsContext;
-	//Magnefu::PushConstants m_PushConstants;
-	std::vector<Magnefu::SceneObject>& m_SceneObjects;
-	std::array<Magnefu::Light, 3>&     m_Lights;
+	Magnefu::Ref<Magnefu::SceneCamera>                  m_Camera;
+	Magnefu::GraphicsContext*                           m_GraphicsContext;
+	Magnefu::PushConstants                              m_PushConstants;
+	std::vector<Magnefu::SceneObject>&                  m_SceneObjects;
+	int                                                 m_AreaLightCount;
+	Maths::mat4                                         m_AreaLightPoints;
+	std::array<Magnefu::AreaLight, Magnefu::MAX_AREA_LIGHTS>  m_AreaLights;
 	//Magnefu::Light&     m_Light;
 };
 

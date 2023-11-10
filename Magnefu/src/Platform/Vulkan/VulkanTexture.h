@@ -5,6 +5,12 @@
 
 namespace Magnefu
 {
+	struct SamplerInfo
+	{
+		VkSampler Sampler;
+		uint32_t  UseCount;
+	};
+
 	class VulkanTexture : public Texture
 	{
 	public:
@@ -13,12 +19,12 @@ namespace Magnefu
 
 		inline const VkImageView& GetImageView() const { return m_ImageView; }
 
-		static inline VkSampler& GetSampler() { return *s_TextureSampler.get(); }
+		inline const VkSampler& GetSampler() const { return m_TextureSampler; }
 
 	private:
 		void CreateTextureImage(const TextureDesc& desc);
 		void CreateTextureImageView(const TextureDesc& desc);
-		void CreateTextureSampler();
+		void CreateTextureSampler(const TextureDesc& desc);
 
 		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
 		void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
@@ -30,10 +36,12 @@ namespace Magnefu
 		VkImage            m_Image;
 		VkImageView        m_ImageView;
 		VkDeviceMemory     m_BufferMemory;
-		static Ref<VkSampler>  s_TextureSampler;
-		static bool s_SamplerCreated;
+		VkSampler          m_TextureSampler;
 
 		VmaAllocation     m_Allocation;
 		VmaAllocationInfo m_AllocInfo;
+
+		static SamplerInfo s_ImageTexSamplerInfo;
+		static SamplerInfo s_DataTexSamplerInfo;
 	};
 }

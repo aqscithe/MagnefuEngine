@@ -175,7 +175,10 @@
     <None Include="res\shaders\Particles.shader">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\Plane.shader">
+    <None Include="res\shaders\AreaLight.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\AreaLightLTC.shader">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\Primitive.shader">

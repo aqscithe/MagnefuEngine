@@ -1,5 +1,7 @@
 #pragma once
+
 #include "Magnefu/Renderer/Light.h"
+#include "Magnefu/Renderer/RenderConstants.h"
 
 namespace Magnefu
 {
@@ -61,27 +63,29 @@ namespace Magnefu
         float padding1;
 
         // Light Info
-        Light Lights[3];
-        int   LightCount;
+        AreaLight   AreaLights[MAX_AREA_LIGHTS];
+        Maths::mat4 AreaLightVertices;
+        int         AreaLightCount;
+        
     };
-
-    /*struct alignas(16) LightUniformBufferObject
-    {
-        Maths::vec3 LightPos;
-        Maths::vec3 LightColor;
-        float MaxLightDist;
-        float RadiantFlux;
-        int LightCount;
-        int LightEnabled;
-    };*/
 
 
     struct alignas(16) MaterialUniformBufferObject
     {
-        Maths::mat4 ModelMatrix;
+        Maths::mat4             ModelMatrix;
         alignas(16) Maths::vec3 Tint;
         float                   Reflectance; // fresnel reflectance for dielectrics [0.0, 1.0]
         float                   Opacity;
+        bool                    IsTextured;
+    };
+
+    struct alignas(16) MaterialUniformBufferObjectInstanced
+    {
+        Maths::mat4             ModelMatrix[3];
+        alignas(16) Maths::vec4 Tint[3];
+        float                   Reflectance[3]; // fresnel reflectance for dielectrics [0.0, 1.0]
+        float                   Opacity[3];
+        bool                    IsTextured[3];
     };
 
 
@@ -114,6 +118,15 @@ namespace Magnefu
         "Material Uniform Buffer",
         0,
         sizeof(MaterialUniformBufferObject),
+        BufferUsage::USAGE_UNIFORM,
+        UniformBufferType::UNIFORM_MATERIAL,
+        {0}
+    };
+
+    const BufferDesc MaterialUniformBufferDescInstanced = {
+        "Material Uniform Buffer",
+        0,
+        sizeof(MaterialUniformBufferObjectInstanced),
         BufferUsage::USAGE_UNIFORM,
         UniformBufferType::UNIFORM_MATERIAL,
         {0}

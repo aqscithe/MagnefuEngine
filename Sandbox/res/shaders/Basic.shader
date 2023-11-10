@@ -1,9 +1,9 @@
 #shader vertex
 #version 460 core
 
-const int MAX_LIGHTS = 3;
+const int MAX_POINT_LIGHTS = 3;
 
-struct Light 
+struct PointLight 
 {
     vec3 LightPos; // Use vec4 to include the padding
     float padding1;
@@ -30,23 +30,10 @@ layout(set = 0, binding = 0) uniform RenderPassGlobalsUBO
     vec3 CameraPos;
     float padding1;
 
-    Light Lights[MAX_LIGHTS];
+    PointLight PointLights[MAX_POINT_LIGHTS];
     int   LightCount;
 
 } globals_ubo;
-
-//layout(set = 0, binding = 0) uniform RenderPassGlobalsUBO
-//{
-//    mat4 View;
-//    mat4 Proj;
-//    vec3 CameraPos;
-//    vec3 LightPos;
-//    vec3 LightColor;
-//    float MaxLightDist;
-//    float RadiantFlux;
-//    int LightEnabled;
-//    int LightCount;
-//} globals_ubo;
 
 // -- Set 1 -- //
 layout(set = 1, binding = 0) uniform MaterialUBO
@@ -55,6 +42,7 @@ layout(set = 1, binding = 0) uniform MaterialUBO
     vec3 Tint;
     float Reflectance;
     float Opacity;
+    bool  IsTextured;
 } mat_ubo;
 
 // -- In -- //
@@ -69,8 +57,8 @@ layout(location = 5) in vec2 InTexCoord;
 layout(location = 0) out vec2 FragTexCoord;
 layout(location = 1) out vec3 TangentCameraPos;
 layout(location = 2) out vec3 TangentFragPos;
-layout(location = 3) out vec3 TangentLightPos[MAX_LIGHTS];
-//layout(location = 3) out vec3 TangentLightPos;
+layout(location = 3) out vec3 TangentLightPos[MAX_POINT_LIGHTS];
+
 
 
 void main()
@@ -87,7 +75,7 @@ void main()
     // Move Light and Camera Pos to Tangent Space
     for (int i = 0; i < globals_ubo.LightCount; i++)
     {
-        TangentLightPos[i] = TBN * globals_ubo.Lights[i].LightPos;
+        TangentLightPos[i] = TBN * globals_ubo.PointLights[i].LightPos;
     }
     //TangentLightPos = TBN * globals_ubo.LightPos;
     TangentCameraPos = TBN * globals_ubo.CameraPos;
@@ -99,10 +87,11 @@ void main()
 #shader fragment
 #version 460 core
 
-const float PI = 3.1415926535897932384626;
-const int MAX_LIGHTS = 3;
 
-struct Light
+const float PI = 3.1415926535897932384626;
+const int MAX_POINT_LIGHTS = 3;
+
+struct PointLight
 {
     vec3 LightPos; // Use vec4 to include the padding
     float padding1;
@@ -115,6 +104,8 @@ struct Light
     int LightEnabled;
     int padding3;
 };
+
+
 
 // -- Push Constants -- //
 //layout(push_constant) uniform PushConstants
@@ -130,23 +121,11 @@ layout(set = 0, binding = 0) uniform RenderPassGlobalsUBO
     vec3 CameraPos;
     float padding1;
 
-    Light Lights[MAX_LIGHTS];
+    PointLight PointLights[MAX_POINT_LIGHTS];
     int   LightCount;
 
 } globals_ubo;
 
-//layout(set = 0, binding = 0) uniform RenderPassGlobalsUBO
-//{
-//    mat4 View;
-//    mat4 Proj;
-//    vec3 CameraPos;
-//    vec3 LightPos;
-//    vec3 LightColor;
-//    float MaxLightDist;
-//    float RadiantFlux;
-//    int LightEnabled;
-//    int LightCount;
-//} globals_ubo;
 
 // TODO: 
     /*
@@ -163,6 +142,7 @@ layout(set = 1, binding = 0) uniform MaterialUBO
     vec3 Tint;
     float Reflectance;
     float Opacity;
+    bool  IsTextured;
 } mat_ubo;
 
 layout(set = 1, binding = 1) uniform sampler2D DiffuseSampler;
@@ -174,7 +154,7 @@ layout(set = 1, binding = 3) uniform sampler2D NormalSampler;
 layout(location = 0) in vec2 TexCoord;
 layout(location = 1) in vec3 TangentCameraPos;
 layout(location = 2) in vec3 TangentFragPos;
-layout(location = 3) in vec3 TangentLightPos[MAX_LIGHTS];
+layout(location = 3) in vec3 TangentLightPos[MAX_POINT_LIGHTS];
 //layout(location = 3) in vec3 TangentLightPos;
 
 
@@ -208,12 +188,11 @@ float G_Smith(float roughness, float NoL, float NoV)
 
 void main()
 {
+    
     vec3 BRDF = vec3(0.0);
     vec3 BaseColor = vec3(texture(DiffuseSampler, TexCoord));
     vec3 ARM = texture(ARMSampler, TexCoord).rgb;
 
-    //OutColor = vec4(BaseColor, 1.0);
-    //return;
 
     float AO = ARM.r;
     float Roughness = ARM.g;
@@ -221,24 +200,8 @@ void main()
 
     for (int i = 0; i < globals_ubo.LightCount; i++)
     {
-        if (globals_ubo.Lights[i].LightEnabled == 1)
+        if (globals_ubo.PointLights[i].LightEnabled == 1)
         {
-            /*if (i == 0)
-            {
-                BRDF += vec3(1.0, 0.0, 0.0);
-                continue;
-            }
-            else if (i == 1)
-            {
-                BRDF += vec3(0.0, 1.0, 0.0);
-                continue;
-            }
-            else if (i == 2)
-            {
-                BRDF += vec3(0.0, 0.0, 1.0);
-                continue;
-            }
-            continue;*/
 
             // Sample Normal Map
             vec3 Normal = texture(NormalSampler, TexCoord).rgb;
@@ -253,7 +216,7 @@ void main()
             // --- Getting Attenuation --- //
 
             float distance = length(LightPosMinusFragPos);
-            float lightIntensity = globals_ubo.Lights[i].RadiantFlux;
+            float lightIntensity = globals_ubo.PointLights[i].RadiantFlux;
 
             // Basic Approach
             /*if (distance > PC.MaxLightDist)
@@ -263,11 +226,11 @@ void main()
             }*/
 
             // Smoothstep Function Approach
-            float smoothRadius = globals_ubo.Lights[i].MaxLightDist * 0.8;
+            float smoothRadius = globals_ubo.PointLights[i].MaxLightDist * 0.8;
 
             if (distance > smoothRadius)
             {
-                float t = (distance - smoothRadius) / (globals_ubo.Lights[i].MaxLightDist - smoothRadius);
+                float t = (distance - smoothRadius) / (globals_ubo.PointLights[i].MaxLightDist - smoothRadius);
                 if (t == 1.0)
                 {
                     OutColor = vec4(vec3(0.0), mat_ubo.Opacity);
@@ -281,7 +244,7 @@ void main()
             //float attenuation = 1.0 / distance
             float attenuation = 1.0 / (distance * distance);
             //float attenuation = 1.0 / (constant + linear * distance + quadratic * distance * distance);
-            vec3 Radiance = globals_ubo.Lights[i].LightColor * lightIntensity * attenuation;
+            vec3 Radiance = globals_ubo.PointLights[i].LightColor * lightIntensity * attenuation;
 
 
             // ---Microfacet BRDF--- //
@@ -318,11 +281,6 @@ void main()
             float NdotL = max(NormDotLight, 0.0);
             BRDF += (Kd * BaseColor / PI + spec) * Radiance * NdotL;
         }
-        /*else
-        {
-            OutColor = vec4(BaseColor, 1.0);
-            return;
-        }*/
     }
 
     vec3 color = BRDF * AO;

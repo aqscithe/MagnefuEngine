@@ -3,7 +3,7 @@
 #include "Magnefu/Application.h"
 #include "GraphicsContext.h"
 #include "Magnefu/ResourceManagement/ResourceManager.h"
-#include "Magnefu/ResourceManagement/ResourcePaths.h"
+
 
 
 namespace Magnefu
@@ -15,14 +15,19 @@ namespace Magnefu
 
     void SceneObject::Init(uint32_t index)
 	{
+        ResourceInfo resourceInfo = RESOURCE_PATHS[index];
         Application& app = Application::Get();
         ResourceManager& rm = app.GetResourceManager();
         GraphicsContext* context = app.GetWindow().GetGraphicsContext();
 
+        m_InstanceCount = resourceInfo.InstanceCount;
+        m_IsInstanced = resourceInfo.IsInstanced;
+
         m_Material = rm.CreateBindGroup({
             .DebugName = "SciFi Corridor",
-            .LayoutType = BindingLayoutType::LAYOUT_MATERIAL,
+            .LayoutType = BindingLayoutType::LAYOUT_MATERIAL_DEFAULT,
             .Layout = DEFAULT_MATERIAL_BINDING_LAYOUT,
+            .IsTextured = resourceInfo.IsTextured,
             .Textures = {
                 .Diffuse = {
                     "DiffuseTexture",
@@ -49,12 +54,12 @@ namespace Magnefu
                     //TextureChannels::CHANNELS_RGB_ALPHA
                 }
             },
-            .Buffers = MaterialUniformBufferDesc
+            .Buffers = resourceInfo.IsInstanced ? MaterialUniformBufferDescInstanced : MaterialUniformBufferDesc,
         });
 
         m_GraphicsPipelineShader = rm.CreateShader({   // shader will be set by the object. Ex: drawStream.SetShader(sceneObject.shader);
             .DebugName = "Basic Shader",
-            .Path = SHADER_PATH,
+            .Path = resourceInfo.ShaderPath,
             .StageDescriptions = {
                 .VS = DefaultVertexShaderDesc,
                 .FS = DefaultFragmentShaderDesc
@@ -75,7 +80,7 @@ namespace Magnefu
                 .RasterizerInfo = {
                     .PolygonMode = PolygonMode::POLYGON_MODE_FILL,
                     .LineWidth = 1.f,
-                    .CullMode = CullMode::CULL_MODE_BACK,
+                    .CullMode = resourceInfo.ModelType == ModelType::MODEL_AREA_LIGHT ? CullMode::CULL_MODE_NONE : CullMode::CULL_MODE_BACK,  // Should distinguish between 2D and 3D area lights
                 },
                 .MSAAInfo = {
                 //.SampleCount         = MSAASampleCountFlag::SAMPLE_COUNT_8_BIT, // Should be a parameter for when I create the graphics context as that is when this value is found
@@ -90,10 +95,10 @@ namespace Magnefu
                     .StencilTestEnable = false
                 },
                 .PushConstantInfo = {
-                    .Enabled = false,
+                    .Enabled = true,
                     .Stages = ShaderStage::SHADER_STAGE_VERTEX_AND_FRAGMENT,
                     .Offset = 0,
-                    .ByteSize = 0
+                    .ByteSize = sizeof(PushConstants)
                 }
             }
         });

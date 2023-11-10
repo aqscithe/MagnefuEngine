@@ -172,7 +172,8 @@
     <None Include="res\shaders\Cube.shader" />
     <None Include="res\shaders\LightCube.shader" />
     <None Include="res\shaders\Particles.shader" />
-    <None Include="res\shaders\Plane.shader" />
+    <None Include="res\shaders\AreaLight.shader" />
+    <None Include="res\shaders\AreaLightLTC.shader" />
     <None Include="res\shaders\Primitive.shader" />
     <None Include="res\shaders\RecPrism.shader" />
     <None Include="res\shaders\Skybox.shader" />

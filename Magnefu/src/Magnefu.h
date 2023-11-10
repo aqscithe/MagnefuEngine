@@ -24,6 +24,7 @@
 
 
 //----Renderer----------------------------
+#include "Magnefu/Renderer/RenderConstants.h"
 #include "Magnefu/Renderer/RenderCommand.h"
 #include "Magnefu/Renderer/Renderer.h"
 #include "Magnefu/Renderer/Light.h"

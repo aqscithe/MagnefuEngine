@@ -76,8 +76,6 @@ namespace Magnefu
 		m_Buffer = vulkanMem.IBuffer;
 		m_Range = desc.ByteSize;
 		m_Offset = static_cast<VkDeviceSize>(desc.Offset);
-
-		
 	}
 
 
@@ -93,6 +91,7 @@ namespace Magnefu
 
 		m_Offset = (vulkanMem.UniformOffset + vulkanMem.UniformAlignment - 1) & ~(vulkanMem.UniformAlignment - 1);
 
+		// TODO: Rename UniformOffset to UniformTotalSize
 		vulkanMem.UniformOffset = m_Offset + m_Range;
 	}
 
@@ -123,7 +122,9 @@ namespace Magnefu
 				auto& camera = app.GetWindow().GetSceneCamera();
 				camera->SetAspectRatio((float)swapChainExtent.width / (float)swapChainExtent.height);
 				
-				auto& lights = app.GetLightData();
+				auto& areaLights = app.GetAreaLightData();
+				auto& areaLightVertices = app.GetAreaLightVertices();
+				int aCount = app.GetAreaLightCount();
 
 				RenderPassUniformBufferObject ubo{};
 				ubo.ViewMatrix = camera->CalculateView();
@@ -132,11 +133,15 @@ namespace Magnefu
 				ubo.ProjMatrix.c[1].e[1] *= -1; // I don't remember why I am doing this.... :(
 
 				ubo.CameraPos = camera->GetData().Position;
-				for (size_t i = 0; i < lights.size(); i++)
+				
+				// Copy area light data into UBO
+
+				for (size_t i = 0; i < areaLights.size(); i++)
 				{
-					ubo.Lights[i] = lights[i];
+					ubo.AreaLights[i] = areaLights[i];
 				}
-				ubo.LightCount = lights.size();
+				ubo.AreaLightCount = areaLights.size();
+				ubo.AreaLightVertices = areaLightVertices;
 
 				
 				assert(sizeof(ubo) == m_Range);
@@ -164,8 +169,9 @@ namespace Magnefu
 
 				assert(sizeof(ubo) == m_Range);
 				void* data = static_cast<char*>(vulkanMem.UniformBuffersMapped[context.GetCurrentFrame()]) + m_Offset;
-				//memcpy(m_BuffersMapped[context.GetCurrentFrame()], &ubo, sizeof(ubo));
 				memcpy(data, &ubo, m_Range);
+
+				
 
 				break;
 			}
@@ -180,6 +186,28 @@ namespace Magnefu
 				break;
 			}
 		}		
+	}
+
+	void VulkanUniformBuffer::UpdateUniformBuffer(const MaterialInstanced& mat, uint32_t instanceCount)
+	{
+		VulkanContext& context = VulkanContext::Get();
+		VulkanMemory& vulkanMem = context.GetVulkanMemory();
+		VkExtent2D swapChainExtent = context.GetSwapChainExtent();
+
+		Application& app = Application::Get();
+
+		MaterialUniformBufferObjectInstanced ubo{};
+
+		for (int instance = 0; instance < instanceCount; instance++)
+		{
+			ubo.ModelMatrix[instance] = Maths::translate(mat.Translation[instance]) * 
+				Maths::Quaternion::CalculateRotationMatrix(mat.AngleOfRot[instance], mat.Rotation[instance]) * 
+				Maths::scale(mat.Scale[instance]);
+		}
+
+		assert(sizeof(ubo) == m_Range);
+		void* data = static_cast<char*>(vulkanMem.UniformBuffersMapped[context.GetCurrentFrame()]) + m_Offset;
+		memcpy(data, &ubo, m_Range);
 	}
 }
 

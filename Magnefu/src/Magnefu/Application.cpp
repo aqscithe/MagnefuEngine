@@ -2,7 +2,6 @@
 
 #include "Application.h"
 #include "Renderer/GraphicsContext.h"
-#include "Magnefu/ResourceManagement/ResourcePaths.h"
 #include "Magnefu/Core/MemoryAllocation/OffsetAllocator.h"
 
 //TEMP
@@ -13,6 +12,8 @@ namespace Magnefu
 {
 #define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
 
+    //static const int THREAD_POOL_WORKERS = 2;
+
     Application* Application::s_Instance = nullptr;
 
 
@@ -21,6 +22,7 @@ namespace Magnefu
         MF_PROFILE_FUNCTION();
         MF_CORE_ASSERT(!s_Instance, "Application instance already exists.");
         s_Instance = this;
+
 
         {
             MF_PROFILE_SCOPE("Window Creation");
@@ -32,45 +34,50 @@ namespace Magnefu
 
         m_RM = Scope<ResourceManager>(ResourceManager::Create());
 
-        // -- The corresponding graphics api context will store the memory objects.
 
-        // -- Initial Memory Allocations -- //
-
-        //  m_Window->GetGraphicsContext()->AllocateMemory();
-            // Vertex Buffers
-            
-            // Index buffers
-            
-            // Uniforms - # of allocations equals MAX_FRAMES_IN_FLIGHT
-            
-            // Textures
-            
-            // Framebuffer Resources
-
-
+        m_BufferResourceThread.join();
 
         // -- Global RenderPass -- //
         m_RenderPassGlobals = m_RM->CreateBindGroup({
             .DebugName  = "Render Pass Globals",
             .LayoutType = BindingLayoutType::LAYOUT_RENDERPASS,
             .Layout     = DEFAULT_RENDERPASS_BINDING_LAYOUT,
-            .Textures   = {},
+            .Textures   = {
+                .LTC1 = {
+                    "LTC1Texture",
+                    0,
+                    TextureType::LTC1,
+                    TextureTiling::IMAGE_TILING_OPTIMAL,
+                    TextureFormat::FORMAT_R32G32B32A32_SFLOAT,
+                },
+                .LTC2 = {
+                    "LTC2Texture",
+                    0,
+                    TextureType::LTC2,
+                    TextureTiling::IMAGE_TILING_OPTIMAL,
+                    TextureFormat::FORMAT_R32G32B32A32_SFLOAT,
+                }},
             .Buffers    = RenderPassUniformBufferDesc
         });
 
         // -- Scene Objects -- //
 
+        // need to get info on whether the object is textured from
+        // MODEL_PATHS
+
         for (size_t i = 0; i < m_SceneObjects.size(); i++)
             m_SceneObjects[i].Init(i);
 
-        for (auto& light : m_Lights)
+
+        // NON AREA LIGHTS
+        /*for (auto& light : m_PointLights)
         {
             light.LightEnabled = 1;
             light.MaxLightDist = 200.f;
             light.RadiantFlux = 10.f;
             light.LightPos = { 235.f, 65.f, 20.f };
             light.LightColor = Maths::vec3(1.0f);
-        }
+        }*/
 
 
         m_Window->GetGraphicsContext()->TempSecondaryInit();
@@ -84,13 +91,40 @@ namespace Magnefu
         
 	}
 
-    void Application::SetVertexBlock(DataBlock&& vertexBlock, size_t objPos)
+    void Application::SetVertexBlock(DataBlock&& vertexBlock, size_t objPos, ModelType modelType)
     {
-        //DataBlock&& tempBlock = std::move(vertexBlock);
+        switch (modelType)
+        {
+            case Magnefu::MODEL_DEFAULT:
+            {
+                m_SceneObjects[objPos].SetVertexBlock(std::move(vertexBlock));
+                break;
+            }
+            default:
+            {
+                MF_CORE_ASSERT(false, "Invalid Model Type -- Application::SetVertexBlock");
+                break;
+            }
+        }
+        
+    }
 
-        m_SceneObjects[objPos].SetVertexBlock(std::move(vertexBlock));
-        //m_SceneObjects[objPos].m_Vertices = std::move(vertexBlock);
-        //m_Vertices = std::move(vertexBlock);
+    void Application::SetIndexBlock(DataBlock&& indexBlock, size_t objPos, ModelType modelType)
+    {
+        switch (modelType)
+        {
+            case Magnefu::MODEL_DEFAULT:
+            {
+                m_SceneObjects[objPos].SetIndexBlock(std::move(indexBlock));
+                break;
+            }
+            default:
+            {
+                MF_CORE_ASSERT(false, "Invalid Model Type -- Application::SetIndexBlock");
+                break;
+            }
+        }
+        
     }
 
     bool Application::OnWindowClose(WindowCloseEvent& e)
@@ -156,6 +190,8 @@ namespace Magnefu
 
         // TODO: Create setting to switch between locked and unlocked frame rate
         m_TimeStep.Init();
+
+       MF_CORE_INFO("STARTING FIRST LOOP");
 
         while (m_Running)
         {

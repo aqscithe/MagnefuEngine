@@ -8,8 +8,9 @@
 #include "Magnefu/Application.h"
 #include "Magnefu/Core/Maths/Quaternion.h"
 #include "Magnefu/Renderer/RenderConstants.h"
+#include "Magnefu/Renderer/LTCMatrix.h"
 #include "Magnefu/ResourceManagement/ResourceManager.h"
-#include "Magnefu/ResourceManagement/ResourcePaths.h"
+
 
 
 #define GLFW_INCLUDE_VULKAN
@@ -20,8 +21,10 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader/tiny_obj_loader.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image/stb_image.h"
+//#define STB_IMAGE_IMPLEMENTATION
+//#include "stb_image/stb_image.h"
+
+#include "SOIL2/SOIL2.h"
 
 #include <set>
 #include <unordered_map>
@@ -110,7 +113,7 @@ namespace Magnefu
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 		VK_EXT_MEMORY_BUDGET_EXTENSION_NAME,
 		VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME
-
+		//VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME
 	};
 
 	bool operator==(const Vertex& a, const Vertex& b)
@@ -156,6 +159,8 @@ namespace Magnefu
 		MF_CORE_ASSERT(!s_Instance, "VulkanContext instance already exists.");
 
 		s_Instance = this;
+
+		MF_CORE_DEBUG("Size of LTC1: {0}  | Size of LTC2 : {1}", sizeof(LTC1_Matrix), sizeof(LTC2_Matrix));
 	}
 
 	VulkanContext::~VulkanContext()
@@ -232,7 +237,9 @@ namespace Magnefu
 		// The Application should tell Context how much memory is needed à la m_GraphicsContext->AllocateResourceMemory(BytesStruct)
 		// For now, I will explicitly state within the function what is needed.
 		CreateVmaAllocator();
-		AllocateBufferMemory();
+
+		std::thread& bufferThread = Application::Get().GetBufferThread();
+		bufferThread = std::thread(&VulkanContext::AllocateBufferMemory, this);
 
 	}
 
@@ -594,13 +601,23 @@ namespace Magnefu
 		auto sceneObjs = app.GetSceneObjects();
 		uint32_t sceneObjCount = sceneObjs.size();
 
+		VkCommandPool commandPool;
+
+		VkCommandPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+		poolInfo.queueFamilyIndex = m_QueueFamilyIndices.GraphicsFamily.value();
+
+		if (vkCreateCommandPool(m_VkDevice, &poolInfo, s_Allocs, &commandPool) != VK_SUCCESS)
+			MF_CORE_ASSERT(false, "failed to create command pool!");
+
 
 		AllocateUniformBuffers(sceneObjCount);
-		AllocateVertexBuffers(sceneObjCount, sceneObjs);
-		AllocateIndexBuffers(sceneObjCount, sceneObjs);
+		AllocateVertexBuffers(sceneObjCount, sceneObjs, commandPool);
+		AllocateIndexBuffers(sceneObjCount, sceneObjs, commandPool);
 	}
 
-	void VulkanContext::AllocateIndexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs)
+	void VulkanContext::AllocateIndexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool)
 	{
 		VkDeviceSize totalSize = 0;
 		VkDeviceSize size = 0;
@@ -652,12 +669,12 @@ namespace Magnefu
 			m_VulkanMemory.IBufferAllocInfo
 		);
 
-		VulkanCommon::CopyBuffer(stagingBuffer, m_VulkanMemory.IBuffer, totalSize);
+		VulkanCommon::CopyBuffer(stagingBuffer, m_VulkanMemory.IBuffer, totalSize, commandPool);
 
 		vmaDestroyBuffer(m_VmaAllocator, stagingBuffer, stagingAllocation);
 	}
 
-	void VulkanContext::AllocateVertexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs)
+	void VulkanContext::AllocateVertexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool)
 	{
 		VkDeviceSize totalSize = 0;
 		VkDeviceSize size = 0;
@@ -709,7 +726,7 @@ namespace Magnefu
 			m_VulkanMemory.VBufferAllocInfo
 		);
 
-		VulkanCommon::CopyBuffer(stagingBuffer, m_VulkanMemory.VBuffer, totalSize);
+		VulkanCommon::CopyBuffer(stagingBuffer, m_VulkanMemory.VBuffer, totalSize, commandPool);
 
 		vmaDestroyBuffer(m_VmaAllocator, stagingBuffer, stagingAllocation);
 	}
@@ -722,9 +739,22 @@ namespace Magnefu
 
 		totalSize = offset + size;
 
-		for (int i = 0; i < sceneObjCount; i++)
+		
+		for (int index = 0; index < sceneObjCount; index++)
 		{
-			size = sizeof(MaterialUniformBufferObject);
+			ResourceInfo resourceInfo = RESOURCE_PATHS[index];
+
+			// If the sceneobject is instanced, the size of its uniform buffer
+			// will be different
+			if (resourceInfo.IsInstanced)
+			{
+				size = sizeof(MaterialUniformBufferObjectInstanced);
+			}
+			else
+			{
+				size = sizeof(MaterialUniformBufferObject);
+			}
+			
 			offset = (totalSize + m_VulkanMemory.UniformAlignment - 1) & ~(m_VulkanMemory.UniformAlignment - 1);
 			totalSize = offset + size;
 		}
@@ -1122,7 +1152,7 @@ namespace Magnefu
 			);
 
 			// Copy data from the staging buffer (host) to the shader storage buffer (GPU)
-			VulkanCommon::CopyBuffer(stagingBuffer, m_ShaderStorageBuffers[i], bufferSize);
+			VulkanCommon::CopyBuffer(stagingBuffer, m_ShaderStorageBuffers[i], bufferSize, VK_NULL_HANDLE);
 		}
 
 		std::array<VkDescriptorSetLayoutBinding, 3> layoutBindings{};
@@ -1267,14 +1297,13 @@ namespace Magnefu
 
 	void VulkanContext::LoadModels()
 	{
-		Application::Get().ResizeSceneObjects(MODEL_PATHS.size());
+		Application::Get().ResizeSceneObjects(RESOURCE_PATHS.size());
 
 		std::vector<std::thread> threads;
-		threads.resize(MODEL_PATHS.size());  // TODO: I need to do some testing to programmatically determine max number of threads
+		threads.resize(RESOURCE_PATHS.size());  // TODO: I need to do some testing to programmatically determine max number of threads
 
-		for (size_t i = 0; i < MODEL_PATHS.size(); i++)
-			threads[i] = std::thread(&VulkanContext::LoadSingleModel, this, MODEL_PATHS[i], i);
-	
+		for (size_t i = 0; i < RESOURCE_PATHS.size(); i++)
+			threads[i] = std::thread(&VulkanContext::LoadSingleModel, this, RESOURCE_PATHS[i].ModelPath, i, ModelType::MODEL_DEFAULT);
 
 		// Join all threads
 		for (auto& t : threads)
@@ -1284,9 +1313,6 @@ namespace Magnefu
 
 	void VulkanContext::LoadTextures()
 	{
-		
-		//auto& sceneObjs = app.GetSceneObjects();
-
 		MF_CORE_ASSERT(
 			Application::Get().GetSceneObjects().size() == TEXTURE_PATHS.size(),
 			"Texture path count does not match number of scene objects"
@@ -1300,7 +1326,7 @@ namespace Magnefu
 			//auto& sceneObj = sceneObjs[i];
 			for (int j = 0; j < 3; j++)
 			{
-				threads[i * 3 + j] = std::thread(&VulkanContext::LoadSingleTexture, this, i, TEXTURE_PATHS[i].Paths[j], j);
+				threads[i * 3 + j] = std::thread(&VulkanContext::LoadSingleTexture, this, TEXTURE_PATHS[i].ModelIndex, TEXTURE_PATHS[i].Paths[j], j);
 			}
 			
 		}
@@ -1310,7 +1336,7 @@ namespace Magnefu
 			t.join();
 	}
 
-	void VulkanContext::LoadSingleModel(const char* modelPath, size_t objIndex)
+	void VulkanContext::LoadSingleModel(const char* modelPath, size_t objIndex, ModelType modelType)
 	{
 		Application& app = Application::Get();
 
@@ -1433,21 +1459,14 @@ namespace Magnefu
 
 			void* alignedPtr = std::align(alignment, bufferSize, ptr, space);
 
-
 			if (alignedPtr != nullptr)
 			{
 				// Copy the vertex data to the aligned memory
 				std::memcpy(alignedPtr, vertices.data(), bufferSize);
 
 				// Create the Span from the aligned memory
-				//Span<const uint8_t> vertexDataSpan(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
 				DataBlock vertexBlock(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
-
-				// Now you can set InitData in BufferDesc with vertexDataSpan
-				// Note: Make sure original is not destroyed until you're done with vertexDataSpan
-				//app.SetVertices(std::move(vertexDataSpan));
-				//app.SetVertexData(std::move(vertexData));
-				app.SetVertexBlock(std::move(vertexBlock), objIndex);
+				app.SetVertexBlock(std::move(vertexBlock), objIndex, modelType);
 			}
 			else
 			{
@@ -1456,18 +1475,18 @@ namespace Magnefu
 		}
 
 		DataBlock indexBlock(reinterpret_cast<const uint8_t*>(indices.data()), indices.size() * sizeof(uint32_t));
-		app.SetIndexBlock(std::move(indexBlock), objIndex);
+		app.SetIndexBlock(std::move(indexBlock), objIndex, modelType);
 	}
+
 
 	void VulkanContext::LoadSingleTexture(int sceneObjIndex, const char* texturePath, int textureType)
 	{
 		int width, height, channels;
-		stbi_set_flip_vertically_on_load(0);
 
-		stbi_uc* pixels = stbi_load(
-			texturePath,
-			&width, &height, &channels,
-			TextureChannels::CHANNELS_RGB_ALPHA // For now all textures have 4 channels
+		unsigned char* pixels = SOIL_load_image(
+			texturePath, 
+			&width, &height, &channels, 
+			TextureChannels::CHANNELS_RGB_ALPHA
 		);
 
 		if (!pixels)
@@ -1477,7 +1496,7 @@ namespace Magnefu
 
 		DataBlock textureBlock(reinterpret_cast<const uint8_t*>(pixels), width * height * TextureChannels::CHANNELS_RGB_ALPHA);
 		Application::Get().GetSceneObjects()[sceneObjIndex].SetTextureBlock(static_cast<TextureType>(textureType), std::move(textureBlock), width, height, channels);
-		stbi_image_free(pixels); // this seems unnecessary as I have moved pixels into the data block.
+		SOIL_free_image_data(pixels);
 	}
 
 	void VulkanContext::CreateComputeUniformBuffers()
@@ -1917,11 +1936,7 @@ namespace Magnefu
 		
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		auto& sceneObjects = app.GetSceneObjects();
-		VulkanShader& shader = static_cast<VulkanShader&>(rm.GetShader(sceneObjects[0].GetGraphicsPipelineShaderHandle()));
-
-		// MODEL PIPELINE
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader.GetPipeline());
+		
 
 		VkViewport viewport{};
 		viewport.x = 0.0f;
@@ -1937,14 +1952,14 @@ namespace Magnefu
 		scissor.extent = m_SwapChainExtent;
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+		// TODO: Order draw calls by shader to limit pipeline switching
+
+		auto& sceneObjects = app.GetSceneObjects();		
+
 		for (auto& sceneObject : sceneObjects)
 		{
-			VulkanShader& objShader = static_cast<VulkanShader&>(rm.GetShader(sceneObject.GetGraphicsPipelineShaderHandle()));
-			if (objShader.GetPipeline() != shader.GetPipeline())
-			{
-				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, objShader.GetPipeline());
-				shader = objShader;
-			}
+			VulkanShader& shader = static_cast<VulkanShader&>(rm.GetShader(sceneObject.GetGraphicsPipelineShaderHandle()));
+			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader.GetPipeline());
 
 			VulkanBindGroup& material = static_cast<VulkanBindGroup&>(rm.GetBindGroup(sceneObject.GetMaterialBindGroup()));
 
@@ -1965,9 +1980,18 @@ namespace Magnefu
 
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader.GetPipelineLayout(), 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
 
-			//vkCmdPushConstants(commandBuffer, m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &m_PushConstants);
+			vkCmdPushConstants(commandBuffer, shader.GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &m_PushConstants);
 
-			vkCmdDrawIndexed(commandBuffer, sceneObject.GetIndexCount(), 1, 0, 0, 0);
+			if (sceneObject.IsInstanced())
+			{
+					vkCmdDrawIndexed(commandBuffer, sceneObject.GetIndexCount(), sceneObject.GetInstanceCount(), 0, 0, 0);
+			}
+			else
+			{
+				vkCmdDrawIndexed(commandBuffer, sceneObject.GetIndexCount(), 1, 0, 0, 0);
+			}
+			
+			
 		}
 			
 
@@ -2002,13 +2026,21 @@ namespace Magnefu
 
 		// -- Update Uniform Buffers -- //
 
-		renderpassUniformBuffer.UpdateUniformBuffer({});
+		renderpassUniformBuffer.UpdateUniformBuffer(Material{});
 
 		for (auto& sceneObject : sceneObjects)
 		{
 			VulkanBindGroup& material = static_cast<VulkanBindGroup&>(rm.GetBindGroup(sceneObject.GetMaterialBindGroup()));
 			VulkanUniformBuffer& materialUniformBuffer = static_cast<VulkanUniformBuffer&>(rm.GetBuffer(material.GetUniformsHandle()));
-			materialUniformBuffer.UpdateUniformBuffer(sceneObject.GetMaterialData());
+
+			if (sceneObject.IsInstanced())
+			{
+				materialUniformBuffer.UpdateUniformBuffer(sceneObject.GetMaterialDataInstanced(), sceneObject.GetInstanceCount());
+			}
+			else
+			{
+				materialUniformBuffer.UpdateUniformBuffer(sceneObject.GetMaterialData());
+			}
 		}
 		
 	}

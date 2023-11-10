@@ -174,6 +174,8 @@ namespace Magnefu
             return *m_Resources[handle.Index];
         }
 
+        uint32_t GetResourceCount() { return m_Resources.size(); }
+
         void Destroy(Handle<T> handle)
         {
             MF_CORE_ASSERT(handle.Index < m_Resources.size() && handle.Generation == m_Generations[handle.Index], "Invalid Handle");

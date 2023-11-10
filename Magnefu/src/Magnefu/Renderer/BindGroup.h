@@ -17,7 +17,7 @@ namespace Magnefu
 	enum BindingLayoutType
 	{
 		LAYOUT_RENDERPASS,
-		LAYOUT_MATERIAL
+		LAYOUT_MATERIAL_DEFAULT,
 	};
 
 	struct Binding
@@ -35,7 +35,10 @@ namespace Magnefu
 	};
 
 	const BindingLayout DEFAULT_RENDERPASS_BINDING_LAYOUT = BindingLayout({
-			{0, 1, BindingType::BINDING_TYPE_UNIFORM_BUFFER, ShaderStage::SHADER_STAGE_VERTEX_AND_FRAGMENT}
+			{0, 1, BindingType::BINDING_TYPE_UNIFORM_BUFFER, ShaderStage::SHADER_STAGE_VERTEX_AND_FRAGMENT},
+			{ 1, 1, BindingType::BINDING_TYPE_COMBINED_IMAGE_SAMPLER, ShaderStage::SHADER_STAGE_FRAGMENT },  // LTC1
+			{ 2, 1, BindingType::BINDING_TYPE_COMBINED_IMAGE_SAMPLER, ShaderStage::SHADER_STAGE_FRAGMENT },   // LTC2
+			{ 3, 1, BindingType::BINDING_TYPE_UNIFORM_BUFFER, ShaderStage::SHADER_STAGE_VERTEX_AND_FRAGMENT} // Area Light Info
 		});
 
 	const BindingLayout DEFAULT_MATERIAL_BINDING_LAYOUT = BindingLayout({
@@ -45,15 +48,21 @@ namespace Magnefu
 			{ 3, 1, BindingType::BINDING_TYPE_COMBINED_IMAGE_SAMPLER, ShaderStage::SHADER_STAGE_FRAGMENT }   // NORMAL
 		});
 
+	const BindingLayout NONTEXTURED_MATERIAL_BINDING_LAYOUT = BindingLayout({
+			{ 0, 1, BindingType::BINDING_TYPE_UNIFORM_BUFFER,         ShaderStage::SHADER_STAGE_VERTEX_AND_FRAGMENT } // UBO
+		});
+
 	const BindingLayout DEFAULT_SHADER_BINDING_LAYOUT = BindingLayout({
 
 		});
 
 	struct BindingTextureDescs
 	{
-		TextureDesc Diffuse = DiffuseTextureDesc;
-		TextureDesc ARM     = ARMTextureDesc;
-		TextureDesc Normal  = NormalTextureDesc;
+		TextureDesc Diffuse = {};
+		TextureDesc ARM = {};
+		TextureDesc Normal = {};
+		TextureDesc LTC1 = {};
+		TextureDesc LTC2 = {};
 	};
 
 	struct BindingBufferDescs
@@ -67,6 +76,7 @@ namespace Magnefu
 		uint32_t            Index;
 		BindingLayoutType   LayoutType;
 		BindingLayout       Layout;
+		bool                IsTextured;
 		BindingTextureDescs Textures;
 		BindingBufferDescs  Buffers;
 	};

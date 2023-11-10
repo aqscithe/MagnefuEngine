@@ -14,6 +14,7 @@
 #include "Magnefu/Renderer/Material.h"
 #include "Magnefu/Renderer/SceneObject.h"
 #include "Magnefu/Core/TimeStep.h"
+#include "Magnefu/ResourceManagement/ResourcePaths.h"
 
 
 
@@ -58,21 +59,29 @@ namespace Magnefu
 
 		inline ResourceManager& GetResourceManager() { return *m_RM; }
 
-		inline size_t GetTextureCount() { return sizeof(BindingTextureDescs) / sizeof(TextureDesc); }
 		inline Handle<BindGroup>& GetRenderPassBindGroup() { return m_RenderPassGlobals; }
-		inline std::array<Light, 3>& GetLightData() { return m_Lights; }
-		//inline Light& GetLightData() { return m_Light; }
+
+		// -- AREA LIGHT INFO -- //
+		inline const std::array<AreaLight, MAX_AREA_LIGHTS>& GetAreaLightData() const { return m_AreaLights; }
+		inline const Maths::mat4& GetAreaLightVertices() const { return m_AreaLightVertices; }
+		inline int GetAreaLightCount() const { return m_AreaLightCount; }
+
+		inline void SetAreaLightData(const std::array<AreaLight, MAX_AREA_LIGHTS>& areaLightData) { m_AreaLights = areaLightData; }
+		inline void SetAreaLightVertices(const Maths::mat4& vertices) { m_AreaLightVertices = vertices; }
+		inline void SetAreaLightCount(int count) { m_AreaLightCount = count; }
+		
+		inline std::thread& GetBufferThread() { return m_BufferResourceThread; }
+		inline std::thread& GetImageThread() { return m_ImageResourceThread; }
 		
 
 		inline static Application& Get() { return *s_Instance; }
 
-		void SetVertexBlock(DataBlock&& vertexBlock, size_t objPos); 
-		inline void SetIndexBlock(DataBlock&& indexBlock, size_t objPos) { m_SceneObjects[objPos].SetIndexBlock(std::move(indexBlock)); }
-
-		//inline void SetLightData(Light& lightData) { m_LightData = lightData; }
+		void SetVertexBlock(DataBlock&& vertexBlock, size_t objPos, ModelType modelType);
+		void SetIndexBlock(DataBlock&& indexBlock, size_t objPos, ModelType modelType);
 		
 
 		inline void ResizeSceneObjects(const size_t size) { m_SceneObjects.resize(size); }
+
 		inline std::vector<SceneObject>& GetSceneObjects() { return m_SceneObjects; }
 
 
@@ -94,9 +103,17 @@ namespace Magnefu
 		bool m_Minimized;
 
 		Handle<BindGroup>        m_RenderPassGlobals;
+
 		std::vector<SceneObject> m_SceneObjects;
 
-		std::array<Light, 3> m_Lights;
+		// -- Area Lights -- //
+		std::array<AreaLight, MAX_AREA_LIGHTS> m_AreaLights;
+		Maths::mat4 m_AreaLightVertices;
+		int m_AreaLightCount;
+
+		//std::vector<std::thread> m_ThreadPool;
+		std::thread m_BufferResourceThread;
+		std::thread m_ImageResourceThread;
 		
 
 	};
