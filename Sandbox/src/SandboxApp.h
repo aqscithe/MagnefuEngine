@@ -14,28 +14,40 @@ public:
 		Layer("3D Primitives"), 
 		m_SceneObjects(Magnefu::Application::Get().GetSceneObjects()), 
 		m_Camera(std::static_pointer_cast<Magnefu::SceneCamera>(Magnefu::Application::Get().GetWindow().GetSceneCamera())),
-		m_PushConstants()
-		//m_PointLights(Magnefu::Application::Get().GetPointLightData())
-		//m_Light(Magnefu::Application::Get().GetLightData())
+		m_PushConstants(),
+		m_AreaLightPoints(),
+		m_AreaLights()
 	{
-		m_GraphicsContext = Magnefu::Application::Get().GetWindow().GetGraphicsContext();
+		Magnefu::Application& app = Magnefu::Application::Get();
 
-		m_PushConstants.ALightCount = m_SceneObjects[1].GetInstanceCount();
+		m_GraphicsContext = app.GetWindow().GetGraphicsContext();
+		
+		// -- Set Area Light Info -- //
 
-		m_PushConstants.ALightPoints = { 
-			-8.0f, 2.4f, -1.0f, 0.f ,
-			-8.0f, 2.4f,  1.0f, 0.f ,
-			-8.0f, 0.4f,  1.0f, 0.f ,
-			-8.0f, 0.4f, -1.0f, 0.f  
-		};
+		app.SetAreaLightVertices(
+			{
+				-8.0f, 2.4f, -1.0f, 0.f ,
+				-8.0f, 2.4f,  1.0f, 0.f ,
+				-8.0f, 0.4f,  1.0f, 0.f ,
+				-8.0f, 0.4f, -1.0f, 0.f
+			});
 
-		for (int i = 0; i < m_PushConstants.ALightCount; i++)
+		// Get number of area light instances in the scene
+		// Area Lights are currently at index 1
+		m_AreaLightCount = m_SceneObjects[1].GetInstanceCount();
+
+		app.SetAreaLightCount(m_AreaLightCount);
+
+		for (int areaLight = 0; areaLight < m_AreaLightCount; areaLight++)
 		{
-			m_PushConstants.ALight[i].Intensity = 4.f;
-			m_PushConstants.ALight[i].Color = Maths::vec3(1.f);
-			m_PushConstants.ALight[i].Translation = Maths::vec3(0.f);
-			m_PushConstants.ALight[i].TwoSided = 1;
+			auto& light = m_AreaLights[areaLight];
+			light.Intensity = 4.f;
+			light.Color = Maths::vec3(1.f);
+			light.Translation = Maths::vec3(0.f);
+			light.TwoSided = 1;
 		}
+
+		// ------------------------------ //
 
 		m_PushConstants.Roughness = 0.7f;
 
@@ -55,6 +67,7 @@ public:
 					material.Rotation[instance] = Maths::vec3(0.0);
 					material.Scale[instance] = Maths::vec3(1.0);
 					material.AngleOfRot[instance] = 0.f;
+
 				}
 
 			}
@@ -77,14 +90,16 @@ public:
 	{
 		m_Camera->ProcessInput(deltaTime);
 		m_GraphicsContext->SetPushConstants(m_PushConstants);
+		Magnefu::Application::Get().SetAreaLightData(m_AreaLights);
 
 
+		// Getting material applied to area light geometry
 		auto& material = m_SceneObjects[1].GetMaterialDataInstanced();
 		int instanceCount = m_SceneObjects[1].GetInstanceCount();
 
 		for (int instance = 0; instance < instanceCount; instance++)
 		{
-			material.Translation[instance] = m_PushConstants.ALight[instance].Translation;
+			material.Translation[instance] = m_AreaLights[instance].Translation;
 		}
 		
 	}
@@ -162,6 +177,30 @@ public:
 				ImGui::EndTabItem();
 			}
 
+			if (ImGui::BeginTabItem("Area Lights"))
+			{
+				for (int areaLight = 0; areaLight < m_AreaLightCount; areaLight++)
+				{
+					char label[32];
+
+					auto& light = m_AreaLights[areaLight];
+
+					snprintf(label, sizeof(label), "AreaLight %d Color", areaLight);
+					ImGui::ColorEdit3(label, light.Color.e);
+
+					snprintf(label, sizeof(label), "AreaLight %d Translation", areaLight);
+					ImGui::SliderFloat3(label, light.Translation.e, -1000, 1000, "%.2f");
+
+					snprintf(label, sizeof(label), "AreaLight %d Intensity", areaLight);
+					ImGui::SliderFloat(label, &light.Intensity, 0.f, 20.f, "%.2f");
+
+					snprintf(label, sizeof(label), "AreaLight %d Two-Sided", areaLight);
+					ImGui::SliderInt(label, &light.TwoSided, 0, 1);
+				}
+
+				ImGui::EndTabItem();
+			}
+
 			if (ImGui::BeginTabItem("Push Constants"))
 			{
 				ImGui::Text("CAMERA");
@@ -176,35 +215,6 @@ public:
 
 
 				ImGui::SliderFloat("Test Roughness", &m_PushConstants.Roughness, 0.f, 1.f);
-
-				
-				
-				
-
-				// Now I need to ensure the shader knows it is receiving a push constant (either descriptor set stuff or
-				// and I need to go to VulkanContext to ensure that is configured to properly send uniform data, push
-				// constant data and is just configured correctly in general.
-
-				/*for (int i = 0; i < m_PointLights.size(); i++)
-				{
-					char label[32];
-					snprintf(label, sizeof(label), "Light %d Enabled", i);
-					ImGui::SliderInt(label, &m_PointLights[i].LightEnabled, 0, 1);
-
-					snprintf(label, sizeof(label), "Light %d Position", i);
-					ImGui::SliderFloat3(label, m_PointLights[i].LightPos.e, -500.f, 500.f);
-
-					snprintf(label, sizeof(label), "Light %d Color", i);
-					ImGui::ColorEdit3(label, m_PointLights[i].LightColor.e);
-
-					snprintf(label, sizeof(label), "Max Light Distance %d", i);
-					ImGui::SliderFloat(label, &m_PointLights[i].MaxLightDist, 0.f, 1000.f, "%.2f");
-
-					snprintf(label, sizeof(label), "Light %d Radiant Flux", i);
-					ImGui::SliderFloat(label, &m_PointLights[i].RadiantFlux, 0.f, 100.f, "%.2f");
-
-					ImGui::Separator();
-				}*/
 				
 
 				ImGui::EndTabItem();
@@ -220,11 +230,13 @@ public:
 	}
 
 private:
-	Magnefu::Ref<Magnefu::SceneCamera> m_Camera;
-	Magnefu::GraphicsContext* m_GraphicsContext;
-	Magnefu::PushConstants m_PushConstants;
-	std::vector<Magnefu::SceneObject>& m_SceneObjects;
-	//std::array<Magnefu::PointLight, 3>&     m_PointLights;
+	Magnefu::Ref<Magnefu::SceneCamera>                  m_Camera;
+	Magnefu::GraphicsContext*                           m_GraphicsContext;
+	Magnefu::PushConstants                              m_PushConstants;
+	std::vector<Magnefu::SceneObject>&                  m_SceneObjects;
+	int                                                 m_AreaLightCount;
+	Maths::mat4                                         m_AreaLightPoints;
+	std::array<Magnefu::AreaLight, Magnefu::MAX_AREA_LIGHTS>  m_AreaLights;
 	//Magnefu::Light&     m_Light;
 };
 

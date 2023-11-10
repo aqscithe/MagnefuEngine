@@ -1,5 +1,7 @@
 #pragma once
+
 #include "Magnefu/Renderer/Light.h"
+#include "Magnefu/Renderer/RenderConstants.h"
 
 namespace Magnefu
 {
@@ -71,7 +73,6 @@ namespace Magnefu
     struct alignas(16) MaterialUniformBufferObject
     {
         Maths::mat4             ModelMatrix;
-        //AreaLight               AreaLights[]
         alignas(16) Maths::vec3 Tint;
         float                   Reflectance; // fresnel reflectance for dielectrics [0.0, 1.0]
         float                   Opacity;

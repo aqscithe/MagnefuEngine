@@ -31,9 +31,6 @@ layout(location = 7) out vec3 TangentLightTrans[MAX_LIGHTS];
 // --Push Constants -- //
 layout(push_constant) uniform PushConstants
 {
-    AreaLight AreaLight[MAX_LIGHTS];
-    mat4 AreaLightPoints;
-    int AreaLightCount;
     float Roughness;
 
 } PC;
@@ -44,6 +41,12 @@ layout(set = 0, binding = 0) uniform RenderPassUBO
     mat4 View;
     mat4 Proj;
     vec3 CameraPos;
+
+    // Area Light Info
+    AreaLight AreaLight[MAX_LIGHTS];
+    mat4 AreaLightPoints;
+    int AreaLightCount;
+
 } globals_ubo;
 
 // -- Set 1 -- //
@@ -79,14 +82,14 @@ void main()
     // MAX_LIGHTS will be here to ensure the limit is not exceeded.
     for (int i = 0; i < MAX_LIGHTS; i++)
     {
-        TangentLightTrans[i] = TBN * PC.AreaLight[i].Translation;
+        TangentLightTrans[i] = TBN * globals_ubo.AreaLight[i].Translation;
     }
 
     TangentPoints = mat4(
-        vec4(TBN * PC.AreaLightPoints[0].xyz, 1.0),
-        vec4(TBN * PC.AreaLightPoints[1].xyz, 1.0),
-        vec4(TBN * PC.AreaLightPoints[2].xyz, 1.0),
-        vec4(TBN * PC.AreaLightPoints[3].xyz, 1.0)
+        vec4(TBN * globals_ubo.AreaLightPoints[0].xyz, 1.0),
+        vec4(TBN * globals_ubo.AreaLightPoints[1].xyz, 1.0),
+        vec4(TBN * globals_ubo.AreaLightPoints[2].xyz, 1.0),
+        vec4(TBN * globals_ubo.AreaLightPoints[3].xyz, 1.0)
     );
 
 }
@@ -123,9 +126,6 @@ layout(location = 0) out vec4 FragColor;
 // -- Push Constants -- //
 layout(push_constant) uniform PushConstants
 {
-    AreaLight AreaLight[MAX_LIGHTS];
-    mat4 AreaLightPoints;
-    int AreaLightCount;
     float Roughness;
 
 } PC;
@@ -136,6 +136,11 @@ layout(set = 0, binding = 0) uniform RenderPassUBO
     mat4 View;
     mat4 Proj;
     vec3 CameraPos;
+
+    // Area Light Info
+    AreaLight AreaLight[MAX_LIGHTS];
+    mat4 AreaLightPoints;
+    int AreaLightCount;
 
 } globals_ubo;
 
@@ -308,8 +313,8 @@ void main()
 
         // Evaluate LTC shading
 
-        vec3 LTC_Diffuse = LTC_Evaluate(Normal, ViewVector, TangentFragPos, mat3(1), translatedPoints, PC.AreaLight[i].TwoSided);
-        vec3 LTC_Specular = LTC_Evaluate(Normal, ViewVector, TangentFragPos, Minv, translatedPoints, PC.AreaLight[i].TwoSided);
+        vec3 LTC_Diffuse = LTC_Evaluate(Normal, ViewVector, TangentFragPos, mat3(1), translatedPoints, globals_ubo.AreaLight[i].TwoSided);
+        vec3 LTC_Specular = LTC_Evaluate(Normal, ViewVector, TangentFragPos, Minv, translatedPoints, globals_ubo.AreaLight[i].TwoSided);
 
         // GGX BRDF shadowing and Fresnel
         // t2.x: shadowedF90 (F90 normally it should be 1.0)
@@ -318,7 +323,7 @@ void main()
         LTC_Specular *= Specular * t2.x + (1.0f - Specular) * t2.y;
 
 
-        result += PC.AreaLight[i].Color * PC.AreaLight[i].Intensity * (LTC_Specular + Diffuse * LTC_Diffuse);
+        result += globals_ubo.AreaLight[i].Color * globals_ubo.AreaLight[i].Intensity * (LTC_Specular + Diffuse * LTC_Diffuse);
     }
 
     result *= AO;

@@ -24,4 +24,6 @@ namespace Magnefu
         float        Intensity;
         int          TwoSided;   // 0 or 1
     };
+
+    
 }

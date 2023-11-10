@@ -30,9 +30,6 @@ layout(location = 3) out flat int InstanceIndex;
 // --Push Constants -- //
 layout(push_constant) uniform PushConstants
 {
-    AreaLight AreaLight[MAX_LIGHTS];
-    mat4 AreaLightPoints;
-    int AreaLightCount;
     float Roughness;
 
 } PC;
@@ -44,6 +41,10 @@ layout(set = 0, binding = 0) uniform RenderPassUBO
     mat4 View;
     mat4 Proj;
     vec3 CameraPos;
+
+    AreaLight AreaLight[MAX_LIGHTS];
+    mat4 AreaLightPoints;
+    int AreaLightCount;
 } globals_ubo;
 
 // -- Set 1 -- //
@@ -96,9 +97,6 @@ layout(location = 0) out vec4 FragColor;
 // -- Push Constants -- //
 layout(push_constant) uniform PushConstants
 {
-    AreaLight AreaLight[MAX_LIGHTS];
-    mat4 AreaLightPoints;
-    int AreaLightCount;
     float Roughness;
 
 } PC;
@@ -109,6 +107,10 @@ layout(set = 0, binding = 0) uniform RenderPassUBO
     mat4 View;
     mat4 Proj;
     vec3 CameraPos;
+
+    AreaLight AreaLight[MAX_LIGHTS];
+    mat4 AreaLightPoints;
+    int AreaLightCount;
 } globals_ubo;
 
 layout(set = 0, binding = 1) uniform sampler2D LTC1;

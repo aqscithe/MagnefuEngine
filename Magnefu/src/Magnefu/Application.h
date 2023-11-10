@@ -60,8 +60,15 @@ namespace Magnefu
 		inline ResourceManager& GetResourceManager() { return *m_RM; }
 
 		inline Handle<BindGroup>& GetRenderPassBindGroup() { return m_RenderPassGlobals; }
-		//inline std::array<PointLight, 3>& GetPointLightData() { return m_PointLights; }
-		inline std::array<AreaLight, MAX_AREA_LIGHTS>& GetAreaLightData() { return m_AreaLights; }
+
+		// -- AREA LIGHT INFO -- //
+		inline const std::array<AreaLight, MAX_AREA_LIGHTS>& GetAreaLightData() const { return m_AreaLights; }
+		inline const Maths::mat4& GetAreaLightVertices() const { return m_AreaLightVertices; }
+		inline int GetAreaLightCount() const { return m_AreaLightCount; }
+
+		inline void SetAreaLightData(const std::array<AreaLight, MAX_AREA_LIGHTS>& areaLightData) { m_AreaLights = areaLightData; }
+		inline void SetAreaLightVertices(const Maths::mat4& vertices) { m_AreaLightVertices = vertices; }
+		inline void SetAreaLightCount(int count) { m_AreaLightCount = count; }
 		
 		inline std::thread& GetBufferThread() { return m_BufferResourceThread; }
 		inline std::thread& GetImageThread() { return m_ImageResourceThread; }
@@ -74,10 +81,8 @@ namespace Magnefu
 		
 
 		inline void ResizeSceneObjects(const size_t size) { m_SceneObjects.resize(size); }
-		inline void ResizeLightObjects(const size_t size) { m_LightObjects.resize(size); }
 
 		inline std::vector<SceneObject>& GetSceneObjects() { return m_SceneObjects; }
-		inline std::vector<SceneObject>& GetLightObjects() { return m_LightObjects; }
 
 
 	private:
@@ -100,10 +105,11 @@ namespace Magnefu
 		Handle<BindGroup>        m_RenderPassGlobals;
 
 		std::vector<SceneObject> m_SceneObjects;
-		std::vector<SceneObject> m_LightObjects;
 
-		//std::array<PointLight, 3> m_PointLights;
+		// -- Area Lights -- //
 		std::array<AreaLight, MAX_AREA_LIGHTS> m_AreaLights;
+		Maths::mat4 m_AreaLightVertices;
+		int m_AreaLightCount;
 
 		//std::vector<std::thread> m_ThreadPool;
 		std::thread m_BufferResourceThread;

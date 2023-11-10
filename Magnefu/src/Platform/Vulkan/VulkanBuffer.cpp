@@ -123,6 +123,8 @@ namespace Magnefu
 				camera->SetAspectRatio((float)swapChainExtent.width / (float)swapChainExtent.height);
 				
 				auto& areaLights = app.GetAreaLightData();
+				auto& areaLightVertices = app.GetAreaLightVertices();
+				int aCount = app.GetAreaLightCount();
 
 				RenderPassUniformBufferObject ubo{};
 				ubo.ViewMatrix = camera->CalculateView();
@@ -131,12 +133,15 @@ namespace Magnefu
 				ubo.ProjMatrix.c[1].e[1] *= -1; // I don't remember why I am doing this.... :(
 
 				ubo.CameraPos = camera->GetData().Position;
-				ubo.AreaLights = areaLights.data();
-				/*for (size_t i = 0; i < areaLights.size(); i++)
+				
+				// Copy area light data into UBO
+
+				for (size_t i = 0; i < areaLights.size(); i++)
 				{
 					ubo.AreaLights[i] = areaLights[i];
-				}*/
+				}
 				ubo.AreaLightCount = areaLights.size();
+				ubo.AreaLightVertices = areaLightVertices;
 
 				
 				assert(sizeof(ubo) == m_Range);
