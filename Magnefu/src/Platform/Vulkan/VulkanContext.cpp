@@ -2079,17 +2079,17 @@ namespace Magnefu
 
 	void VulkanContext::CleanupSwapChain()
 	{
-		vkDestroyImageView(m_VkDevice, m_ColorImageView, s_Allocs);
+		vkDestroyImageView(m_VkDevice, m_ColorImageView, nullptr);
 		vmaDestroyImage(m_VmaAllocator, m_VulkanMemory.ColorImage, m_VulkanMemory.ColorResAllocation);
 
-		vkDestroyImageView(m_VkDevice, m_DepthImageView, s_Allocs);
+		vkDestroyImageView(m_VkDevice, m_DepthImageView, nullptr);
 		vmaDestroyImage(m_VmaAllocator, m_VulkanMemory.DepthImage, m_VulkanMemory.DepthResAllocation);
 
 		for (auto framebuffer : m_SwapChainFramebuffers)
 			vkDestroyFramebuffer(m_VkDevice, framebuffer, s_Allocs);
 
 		for (auto imageView : m_SwapChainImageViews)
-			vkDestroyImageView(m_VkDevice, imageView, s_Allocs);
+			vkDestroyImageView(m_VkDevice, imageView, nullptr);
 
 		vkDestroySwapchainKHR(m_VkDevice, m_SwapChain, s_Allocs);
 	}
