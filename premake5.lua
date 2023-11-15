@@ -15,6 +15,7 @@ IncludeDir["GLAD"] = "Magnefu/vendor/GLAD/include"
 IncludeDir["ImGui"] = "Magnefu/vendor/imgui"
 IncludeDir["Vulkan"] = "Magnefu/vendor/vulkan/include"
 IncludeDir["SOIL2"] = "Magnefu/vendor/SOIL2/include"
+IncludeDir["entt"] = "Magnefu/vendor/entt/include"
 
 LibDir = {}
 LibDir["GLFW"] = "Magnefu/vendor/GLAD/lib"
@@ -76,6 +77,7 @@ project "Magnefu"
         "%{IncludeDir.GLAD}",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.SOIL2}",
+        "%{IncludeDir.entt}",
         
     }
 
@@ -149,6 +151,7 @@ project "Sandbox"
         "Magnefu/src/Maths",
         "%{prj.name}/src",
         "%{IncludeDir.GLAD}",
+        "%{IncludeDir.entt}",
     }
 
     libdirs {

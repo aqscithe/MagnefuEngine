@@ -10,6 +10,9 @@
     <Filter Include="res\meshes">
       <UniqueIdentifier>{C3ACA540-AF64-E78D-186C-C0E90443827E}</UniqueIdentifier>
     </Filter>
+    <Filter Include="res\meshes\area_lights">
+      <UniqueIdentifier>{559CE90F-4196-1262-2A03-A972169C78CE}</UniqueIdentifier>
+    </Filter>
     <Filter Include="res\meshes\primitives">
       <UniqueIdentifier>{DEEE9906-4A5B-5501-134F-ED5E7F7A7769}</UniqueIdentifier>
     </Filter>
@@ -30,6 +33,9 @@
     </Filter>
     <Filter Include="res\textures\Bronze_shield">
       <UniqueIdentifier>{5987231E-4597-CFEE-AE50-340D9A7FBE87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\DDS">
+      <UniqueIdentifier>{4CAD7C77-38A6-9BC9-61D8-804E4D307BD5}</UniqueIdentifier>
     </Filter>
     <Filter Include="res\textures\Lava_03-2K">
       <UniqueIdentifier>{411FBDFF-AD56-0597-B660-69BA22172C90}</UniqueIdentifier>
@@ -88,6 +94,33 @@
     <Filter Include="res\textures\starlights">
       <UniqueIdentifier>{F63C4520-6274-8DB7-6B7E-F1DAD734B4B0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="res\textures\surfaces">
+      <UniqueIdentifier>{4D25712E-B991-2C29-8285-C486EEB04E91}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\surfaces\aerial_rocks_02">
+      <UniqueIdentifier>{8C87457D-F84B-446D-C1B1-74372D35E0A2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\surfaces\metal_plate">
+      <UniqueIdentifier>{8444E105-F0B2-3685-399C-F184A5492C21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\surfaces\painted_concrete">
+      <UniqueIdentifier>{F3B49CC1-DF06-74B1-C825-B1C1B4168D9A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\surfaces\painted_metal_shutter">
+      <UniqueIdentifier>{01FFE400-6D64-7887-F63C-1A6062A16DF6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\surfaces\plank_flooring">
+      <UniqueIdentifier>{11268C4E-FD0C-4E46-A65D-B4639223C7AC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\surfaces\red_laterite_soil_stones">
+      <UniqueIdentifier>{0111583C-ED8E-A8D5-D686-666DC2A3EAFD}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\surfaces\slate_floor">
+      <UniqueIdentifier>{3682710A-A2F0-C689-EBD9-81895787BC25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\surfaces\snow_01">
+      <UniqueIdentifier>{03736612-6F8B-4D3C-3838-DDD5A40FE2D5}</UniqueIdentifier>
+    </Filter>
     <Filter Include="res\textures\wooden_watch_tower2">
       <UniqueIdentifier>{95943AF5-81E5-2537-AA49-14F996F9B8A0}</UniqueIdentifier>
     </Filter>
@@ -136,10 +169,19 @@
     <None Include="res\meshes\Victorian_Painting.obj">
       <Filter>res\meshes</Filter>
     </None>
+    <None Include="res\meshes\area_lights\square_light.obj">
+      <Filter>res\meshes\area_lights</Filter>
+    </None>
     <None Include="res\meshes\corridor.obj">
       <Filter>res\meshes</Filter>
     </None>
     <None Include="res\meshes\primitives\3D\cube.obj">
+      <Filter>res\meshes\primitives\3D</Filter>
+    </None>
+    <None Include="res\meshes\primitives\3D\plane.obj">
+      <Filter>res\meshes\primitives\3D</Filter>
+    </None>
+    <None Include="res\meshes\primitives\3D\plane_template.obj">
       <Filter>res\meshes\primitives\3D</Filter>
     </None>
     <None Include="res\meshes\retrotv0319.obj">
@@ -160,6 +202,12 @@
     <None Include="res\meshes\wooden_watch_tower2.obj">
       <Filter>res\meshes</Filter>
     </None>
+    <None Include="res\shaders\AreaLight.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\AreaLightLTC.shader">
+      <Filter>res\shaders</Filter>
+    </None>
     <None Include="res\shaders\Basic.shader">
       <Filter>res\shaders</Filter>
     </None>
@@ -173,12 +221,6 @@
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\Particles.shader">
-      <Filter>res\shaders</Filter>
-    </None>
-    <None Include="res\shaders\AreaLight.shader">
-      <Filter>res\shaders</Filter>
-    </None>
-    <None Include="res\shaders\AreaLightLTC.shader">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\Primitive.shader">
@@ -207,6 +249,18 @@
     </None>
     <None Include="res\shaders\Texture2D.shader">
       <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\textures\DDS\ltc_amp.dds">
+      <Filter>res\textures\DDS</Filter>
+    </None>
+    <None Include="res\textures\DDS\ltc_mat.dds">
+      <Filter>res\textures\DDS</Filter>
+    </None>
+    <None Include="res\textures\DDS\rgba_dxt1.dds">
+      <Filter>res\textures\DDS</Filter>
+    </None>
+    <None Include="res\textures\DDS\sample.dds">
+      <Filter>res\textures\DDS</Filter>
     </None>
     <None Include="res\textures\create_arm_texture.py">
       <Filter>res\textures</Filter>
@@ -336,7 +390,7 @@
     <Image Include="res\textures\amethyst_texture_1-2K\amethyst-rough.png">
       <Filter>res\textures\amethyst_texture_1-2K</Filter>
     </Image>
-    <Image Include="res\textures\colors\black.jpg">
+    <Image Include="res\textures\colors\black.png">
       <Filter>res\textures\colors</Filter>
     </Image>
     <Image Include="res\textures\container_specular.png">
@@ -560,6 +614,102 @@
     </Image>
     <Image Include="res\textures\starlights\starlights_s.jpg">
       <Filter>res\textures\starlights</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\aerial_rocks_02\aerial_rocks_02_arm_2k.png">
+      <Filter>res\textures\surfaces\aerial_rocks_02</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\aerial_rocks_02\aerial_rocks_02_diff_2k.png">
+      <Filter>res\textures\surfaces\aerial_rocks_02</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\aerial_rocks_02\aerial_rocks_02_disp_2k.png">
+      <Filter>res\textures\surfaces\aerial_rocks_02</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\aerial_rocks_02\aerial_rocks_02_nor_dx_2k.png">
+      <Filter>res\textures\surfaces\aerial_rocks_02</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\metal_plate\metal_plate_arm_2k.png">
+      <Filter>res\textures\surfaces\metal_plate</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\metal_plate\metal_plate_diff_2k.png">
+      <Filter>res\textures\surfaces\metal_plate</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\metal_plate\metal_plate_disp_2k.png">
+      <Filter>res\textures\surfaces\metal_plate</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\metal_plate\metal_plate_nor_dx_2k.png">
+      <Filter>res\textures\surfaces\metal_plate</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\painted_concrete\painted_concrete_arm_2k.png">
+      <Filter>res\textures\surfaces\painted_concrete</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\painted_concrete\painted_concrete_diff_2k.png">
+      <Filter>res\textures\surfaces\painted_concrete</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\painted_concrete\painted_concrete_disp_2k.png">
+      <Filter>res\textures\surfaces\painted_concrete</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\painted_concrete\painted_concrete_nor_dx_2k.png">
+      <Filter>res\textures\surfaces\painted_concrete</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\painted_metal_shutter\painted_metal_shutter_arm_2k.png">
+      <Filter>res\textures\surfaces\painted_metal_shutter</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\painted_metal_shutter\painted_metal_shutter_diff_2k.png">
+      <Filter>res\textures\surfaces\painted_metal_shutter</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\painted_metal_shutter\painted_metal_shutter_disp_2k.png">
+      <Filter>res\textures\surfaces\painted_metal_shutter</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\painted_metal_shutter\painted_metal_shutter_nor_dx_2k.png">
+      <Filter>res\textures\surfaces\painted_metal_shutter</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\plank_flooring\plank_flooring_arm_2k.png">
+      <Filter>res\textures\surfaces\plank_flooring</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\plank_flooring\plank_flooring_diff_2k.png">
+      <Filter>res\textures\surfaces\plank_flooring</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\plank_flooring\plank_flooring_disp_2k.png">
+      <Filter>res\textures\surfaces\plank_flooring</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\plank_flooring\plank_flooring_nor_dx_2k.png">
+      <Filter>res\textures\surfaces\plank_flooring</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\red_laterite_soil_stones\red_laterite_soil_stones_arm_2k.png">
+      <Filter>res\textures\surfaces\red_laterite_soil_stones</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\red_laterite_soil_stones\red_laterite_soil_stones_diff_2k.png">
+      <Filter>res\textures\surfaces\red_laterite_soil_stones</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\red_laterite_soil_stones\red_laterite_soil_stones_disp_2k.png">
+      <Filter>res\textures\surfaces\red_laterite_soil_stones</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\red_laterite_soil_stones\red_laterite_soil_stones_nor_dx_2k.png">
+      <Filter>res\textures\surfaces\red_laterite_soil_stones</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\slate_floor\slate_floor_arm_2k.png">
+      <Filter>res\textures\surfaces\slate_floor</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\slate_floor\slate_floor_diff_2k.png">
+      <Filter>res\textures\surfaces\slate_floor</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\slate_floor\slate_floor_disp_2k.png">
+      <Filter>res\textures\surfaces\slate_floor</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\slate_floor\slate_floor_nor_dx_2k.png">
+      <Filter>res\textures\surfaces\slate_floor</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\snow_01\snow_01_arm_2k.png">
+      <Filter>res\textures\surfaces\snow_01</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\snow_01\snow_01_diff_2k.png">
+      <Filter>res\textures\surfaces\snow_01</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\snow_01\snow_01_disp_2k.png">
+      <Filter>res\textures\surfaces\snow_01</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\snow_01\snow_01_nor_dx_2k.png">
+      <Filter>res\textures\surfaces\snow_01</Filter>
     </Image>
     <Image Include="res\textures\viking_room.png">
       <Filter>res\textures</Filter>

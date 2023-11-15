@@ -23,6 +23,18 @@ namespace Maths
 
 	union mat4
 	{
+		mat4() = default;
+
+		mat4(float d);
+		mat4(
+			float x0, float x1, float x2, float x3,
+			float y0, float y1, float y2, float y3,
+			float z0, float z1, float z2, float z3,
+			float w0, float w1, float w2, float w3
+		);
+		mat4(vec4 v0, vec4 v1, vec4 v2, vec4 v3);
+		mat4(const mat3&);
+
 		static std::type_index getTypeIndex() {
 			return std::type_index(typeid(mat4));
 		}

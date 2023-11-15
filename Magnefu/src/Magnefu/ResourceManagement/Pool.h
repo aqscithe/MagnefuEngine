@@ -233,6 +233,7 @@ namespace Magnefu
         std::vector<int> m_FreeList;  // Stores indices of free slots in the resources vector
         std::vector<int> m_Generations;  // Stores generation counters for each slot in the resources vector
 
+        // A waste of memory as this umap member exists in every pool.
         std::unordered_map<std::size_t, Handle<Shader>> m_ResourceMap;
     };
 }

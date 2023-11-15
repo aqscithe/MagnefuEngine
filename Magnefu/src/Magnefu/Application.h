@@ -15,6 +15,7 @@
 #include "Magnefu/Renderer/SceneObject.h"
 #include "Magnefu/Core/TimeStep.h"
 #include "Magnefu/ResourceManagement/ResourcePaths.h"
+#include "Magnefu/Scene/Scene.h"
 
 
 
@@ -114,8 +115,8 @@ namespace Magnefu
 		//std::vector<std::thread> m_ThreadPool;
 		std::thread m_BufferResourceThread;
 		std::thread m_ImageResourceThread;
-		
 
+		std::array<Scene, 1> m_Scenes;
 	};
 
 	// to be defined in client

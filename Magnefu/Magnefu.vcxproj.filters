@@ -19,6 +19,9 @@
     <Filter Include="src\Magnefu\Core\MemoryAllocation">
       <UniqueIdentifier>{4568BC48-B1D6-11C8-FABF-CCC7666D0764}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Magnefu\Core\Physics">
+      <UniqueIdentifier>{8933B953-7558-08D4-9EA3-ED638A2707F2}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Magnefu\Debug">
       <UniqueIdentifier>{15872F6D-819D-2D03-CA14-B924366AFE8A}</UniqueIdentifier>
     </Filter>
@@ -30,6 +33,9 @@
     </Filter>
     <Filter Include="src\Magnefu\ResourceManagement">
       <UniqueIdentifier>{33EDE1FF-1F13-AC66-0859-3132F41DD132}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Magnefu\Scene">
+      <UniqueIdentifier>{BCE93D6E-2800-3C04-7177-C725DDCC0C8C}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Platform">
       <UniqueIdentifier>{21CA02E5-0D2D-9289-B6B2-CA3FA2F45D0C}</UniqueIdentifier>
@@ -267,6 +273,9 @@
     <ClInclude Include="src\Magnefu\Core\NumGen.h">
       <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Physics\PhysicsCommon.h">
+      <Filter>src\Magnefu\Core\Physics</Filter>
+    </ClInclude>
     <ClInclude Include="src\Magnefu\Core\SmartPointers.h">
       <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
@@ -303,6 +312,9 @@
     <ClInclude Include="src\Magnefu\Renderer\GraphicsContext.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\LTCMatrix.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\Light.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
@@ -319,9 +331,6 @@
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\RendererAPI.h">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\Scene.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\SceneCamera.h">
@@ -347,6 +356,9 @@
     </ClInclude>
     <ClInclude Include="src\Magnefu\ResourceManagement\ResourcePaths.h">
       <Filter>src\Magnefu\ResourceManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Scene\Scene.h">
+      <Filter>src\Magnefu\Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Window.h">
       <Filter>src\Magnefu</Filter>
@@ -1311,7 +1323,6 @@
     <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_xlib_xrandr.h">
       <Filter>vendor\vulkan\include\vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\LTCMatrix.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application.cpp">
@@ -1355,6 +1366,9 @@
     </ClCompile>
     <ClCompile Include="src\Magnefu\Core\NumGen.cpp">
       <Filter>src\Magnefu\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\Physics\PhysicsCommon.cpp">
+      <Filter>src\Magnefu\Core\Physics</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Core\TimeStep.cpp">
       <Filter>src\Magnefu\Core</Filter>
@@ -1415,6 +1429,9 @@
     </ClCompile>
     <ClCompile Include="src\Magnefu\ResourceManagement\ResourceManager.cpp">
       <Filter>src\Magnefu\ResourceManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Scene\Scene.cpp">
+      <Filter>src\Magnefu\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\VulkanBindGroup.cpp">
       <Filter>src\Platform\Vulkan</Filter>
