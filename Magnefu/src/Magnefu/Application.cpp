@@ -23,6 +23,8 @@ namespace Magnefu
         MF_CORE_ASSERT(!s_Instance, "Application instance already exists.");
         s_Instance = this;
 
+        // Number to be determined by saved scene files
+        m_Scenes.reserve(1);
 
         {
             MF_PROFILE_SCOPE("Window Creation");
@@ -61,6 +63,8 @@ namespace Magnefu
         });
 
         // -- Scene Objects -- //
+
+        
 
         // need to get info on whether the object is textured from
         // MODEL_PATHS

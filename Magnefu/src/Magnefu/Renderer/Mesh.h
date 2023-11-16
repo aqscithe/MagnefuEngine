@@ -14,4 +14,9 @@ namespace Magnefu
 		Maths::vec2 texCoord;
 
 	};
+
+	struct Mesh
+	{
+		uint32_t VertexCount;
+	};
 }

@@ -116,7 +116,7 @@ namespace Magnefu
 		//VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME
 	};
 
-	bool operator==(const Vertex& a, const Vertex& b)
+	bool operator==(const VulkanVertex& a, const VulkanVertex& b)
 	{
 		return a.pos == b.pos && a.color == b.color && a.texCoord == b.texCoord;
 	}
@@ -1359,9 +1359,9 @@ namespace Magnefu
 			shapes.size()
 		);
 
-		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+		std::unordered_map<VulkanVertex, uint32_t> uniqueVertices{};
 
-		std::vector<Vertex>    vertices;
+		std::vector<VulkanVertex>    vertices;
 		std::vector<uint32_t>  indices;
 
 		// Note that this code(tangents and bitangents) does not handle mirrored UV sand other special cases, 
@@ -1413,7 +1413,7 @@ namespace Magnefu
 			for (const auto& index : shape.mesh.indices)
 			{
 
-				Vertex vertex{};
+				VulkanVertex vertex{};
 
 				vertex.pos = {
 					attrib.vertices[3 * index.vertex_index + 0],
@@ -1449,7 +1449,7 @@ namespace Magnefu
 		}
 
 		{
-			size_t bufferSize = vertices.size() * sizeof(Vertex); // Buffer size
+			size_t bufferSize = vertices.size() * sizeof(VulkanVertex); // Buffer size
 			constexpr size_t alignment = 32; // Alignment requirement
 
 			// Allocate extra memory to accommodate alignment

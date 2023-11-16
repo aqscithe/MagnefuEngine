@@ -16,7 +16,7 @@ namespace Magnefu
 		MODEL_AREA_LIGHT = 1,
 	};
 
-
+	// Info should come from a text/binary scene file e.g "Level_1.scn"
 	struct ResourceInfo
 	{
 		const char* ModelPath;
@@ -25,6 +25,7 @@ namespace Magnefu
 		bool        IsTextured;
 		bool        IsInstanced;
 		uint32_t    InstanceCount;
+		uint32_t    SceneIndex;
 	};
 
 	static std::array<ResourceInfo, 2> RESOURCE_PATHS = {
@@ -34,8 +35,8 @@ namespace Magnefu
 
 		{
 			//{"res/meshes/primitives/3D/plane.obj", "res/shaders/AreaLightLTC.shader", ModelType::MODEL_DEFAULT, true, false, 0},
-			{"res/meshes/corridor.obj", "res/shaders/AreaLightLTC.shader", ModelType::MODEL_DEFAULT, true, false, 0},
-			{"res/meshes/area_lights/square_light.obj", "res/shaders/AreaLight.shader", ModelType::MODEL_AREA_LIGHT,false, true, MAX_AREA_LIGHTS},
+			{"res/meshes/corridor.obj", "res/shaders/AreaLightLTC.shader", ModelType::MODEL_DEFAULT, true, false, 0, 0},
+			{"res/meshes/area_lights/square_light.obj", "res/shaders/AreaLight.shader", ModelType::MODEL_AREA_LIGHT,false, true, MAX_AREA_LIGHTS, 0},
 			
 		}
 	};

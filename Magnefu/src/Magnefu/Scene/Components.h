@@ -2,6 +2,7 @@
 
 #include "Magnefu/Core/Maths/MathsCommon.h"
 #include "Magnefu/Core/Maths/Matrices.h"
+#include "Magnefu/Renderer/Mesh.h"
 
 namespace Magnefu
 {
@@ -9,13 +10,13 @@ namespace Magnefu
 	{
 		MeshComponent() = default;
 		MeshComponent(const MeshComponent&) = default;
-		MeshComponent(const uint32_t mesh)
-			: Mesh(mesh) {}
+		MeshComponent(const Mesh& mesh)
+			: Mesh_(mesh) {}
 
-		operator uint32_t () { return Mesh; }
-		operator const uint32_t() const { return Mesh; }
+		operator Mesh& () { return Mesh_; }
+		operator const Mesh&() const { return Mesh_; }
 
-		uint32_t Mesh;
+		Mesh Mesh_;
 	};
 
 	struct TransformComponent

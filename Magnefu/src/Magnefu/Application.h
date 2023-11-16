@@ -43,6 +43,8 @@ namespace Magnefu
 	public:
 		Application();
 		Application(const Application&) = delete;
+		Application& operator=(const Application&) = delete;
+
 		virtual ~Application();
 
 		virtual void Run();
@@ -105,7 +107,12 @@ namespace Magnefu
 
 		Handle<BindGroup>        m_RenderPassGlobals;
 
+		// Phasing out SceneObject in favor or scene
+		// objects will be represented as entities using
+		// ECS architecture
 		std::vector<SceneObject> m_SceneObjects;
+
+		std::vector<Scope<Scene>> m_Scenes;
 
 		// -- Area Lights -- //
 		std::array<AreaLight, MAX_AREA_LIGHTS> m_AreaLights;
@@ -116,7 +123,8 @@ namespace Magnefu
 		std::thread m_BufferResourceThread;
 		std::thread m_ImageResourceThread;
 
-		std::array<Scene, 1> m_Scenes;
+
+		
 	};
 
 	// to be defined in client

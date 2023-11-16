@@ -364,8 +364,8 @@ namespace Magnefu
 
 namespace std
 {
-	template<> struct hash<Magnefu::Vertex> {
-		size_t operator()(Magnefu::Vertex const& vertex) const {
+	template<> struct hash<Magnefu::VulkanVertex> {
+		size_t operator()(Magnefu::VulkanVertex const& vertex) const {
 			return ((hash<Maths::vec3>()(vertex.pos) ^
 				(hash<Maths::vec3>()(vertex.color) << 1)) >> 1) ^
 				(hash<Maths::vec2>()(vertex.texCoord) << 1);
