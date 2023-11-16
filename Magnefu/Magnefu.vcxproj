@@ -187,6 +187,7 @@
     <ClInclude Include="src\Magnefu\Renderer\LTCMatrix.h" />
     <ClInclude Include="src\Magnefu\Renderer\Light.h" />
     <ClInclude Include="src\Magnefu\Renderer\Material.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Mesh.h" />
     <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h" />
     <ClInclude Include="src\Magnefu\Renderer\RenderConstants.h" />
     <ClInclude Include="src\Magnefu\Renderer\Renderer.h" />
@@ -199,6 +200,7 @@
     <ClInclude Include="src\Magnefu\ResourceManagement\Pool.h" />
     <ClInclude Include="src\Magnefu\ResourceManagement\ResourceManager.h" />
     <ClInclude Include="src\Magnefu\ResourceManagement\ResourcePaths.h" />
+    <ClInclude Include="src\Magnefu\Scene\Components.h" />
     <ClInclude Include="src\Magnefu\Scene\Scene.h" />
     <ClInclude Include="src\Magnefu\Window.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanBindGroup.h" />

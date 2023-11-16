@@ -1,32 +1,54 @@
 #include "mfpch.h"
 #include "Scene.h"
-#include "Magnefu/Core/Maths/MathsCommon.h"
-#include "Magnefu/Core/Maths/Matrices.h"
+
+#include "Magnefu/Scene/Components.h"
 
 #include <array>
 
 namespace Magnefu
 {
-	struct MeshComponent
-	{
-		MeshComponent() = default;
-	};
 
-	struct TransformComponent
-	{
-		TransformComponent() = default;
-		TransformComponent(const TransformComponent&) = default;
-		TransformComponent(const Maths::mat4& transform) 
-			: Transform(transform) {}
-
-		operator Maths::mat4& () { return Transform; }
-		operator const Maths::mat4& () const { return Transform; }
-
-		Maths::mat4 Transform;
-	};
+	
 
 	Scene::Scene()
 	{
+		// -- Connect Entity Listeners -- //
+
+		m_Registry.on_construct<entt::entity>().connect<&Scene::OnCreateEntity>();
+		m_Registry.on_destroy<entt::entity>().connect<&Scene::OnDestroyEntity>();
+		m_Registry.on_update<entt::entity>().connect<&Scene::OnUpdateEntity>();
+
+		// ---------------------------------- //
+
+		// -- Connect Component Listeners -- //
+
+		// Transform
+		m_Registry.on_construct<TransformComponent>().connect<&Scene::OnAttachTransformComponent>();
+		m_Registry.on_destroy<TransformComponent>().connect<&Scene::OnDetachTransformComponent>();
+		m_Registry.on_update<TransformComponent>().connect<&Scene::OnUpdateTransformComponent>();
+		
+		// Mesh
+		m_Registry.on_construct<MeshComponent>().connect<&Scene::OnAttachMeshComponent>();
+		m_Registry.on_destroy<MeshComponent>().connect<&Scene::OnDetachMeshComponent>();
+		m_Registry.on_update<MeshComponent>().connect<&Scene::OnUpdateMeshComponent>();
+		
+
+		// Another method for connecting listeners
+		/*entt::sigh_helper(m_Registry)
+			.with<TransformComponent>()
+				.on_construct<&Scene::OnAttachTransformComponent>()
+				.on_destroy<&Scene::OnDetachTransformComponent>()
+				.on_update<&Scene::OnUpdateTransformComponent>()
+			.with<MeshComponent>()
+				.on_construct<&Scene::OnAttachMeshComponent>()
+				.on_destroy<&Scene::OnDetachMeshComponent>()
+				.on_update<&Scene::OnUpdateMeshComponent>();*/
+
+		// ---------------------------------- //
+
+		//m_Observer.connect(m_Registry, entt::collector.update<TransformComponent>());
+		m_Observer.connect(m_Registry, entt::collector.group<TransformComponent, MeshComponent>());
+
 		// Create a single entity
 		entt::entity entity = m_Registry.create();
 
@@ -53,26 +75,114 @@ namespace Magnefu
 		m_Registry.insert<MeshComponent>(view.begin(), view.end());
 
 		
-		for (auto& ent : view)
+		for (auto ent : view)
 		{
 			TransformComponent& transform = view.get<TransformComponent>(ent);
 		}
 
 		m_Registry.patch<TransformComponent>(entity, [](auto& trans) {trans.Transform = Maths::identity(); });
-		if (m_Registry.all_of<TransformComponent>(entities[4]))
+		if (m_Registry.all_of<TransformComponent>(entities[2]))
 		{
-			m_Registry.replace<TransformComponent>(entities[4], Maths::mat4(3.f));
+			m_Registry.replace<TransformComponent>(entities[2], Maths::mat4(3.f));
 		}
+
+		/*for (const auto entity : m_Observer)
+		{
+			MF_CORE_ASSERT("Observed entity with updated transform component: {}", (uint32_t)entity);
+		}
+		m_Observer.clear();*/
+
+		// Equivalent to above commented code
+		// This means that the observer is cleared by default when using the each() member function for iteration
+		m_Observer.each([](const auto entity) {
+			MF_CORE_INFO("Observed entity : {}", (uint32_t)entity);
+		});
+
+
 		
 
-		m_Registry.destroy(entity);
+		
+		auto view2 = m_Registry.view<TransformComponent, MeshComponent>();
 
-		m_Registry.destroy(entities.begin(), entities.end());
+		auto group = m_Registry.group<TransformComponent, MeshComponent>();
+
+		// Iterate using for each on group
+		for (auto ent : group)
+		{
+			auto [transform, mesh] = group.get<TransformComponent, MeshComponent>(ent);
+		}
+
+		// Iterate using for each on view
+		for (auto ent : view2)
+		{
+			auto [transform, mesh] = view2.get<TransformComponent, MeshComponent>(ent);
+			mesh = 5;
+			transform = Maths::identity();
+		}
+
+		// Iterate using callback
+		view2.each([](auto entity, auto& transform, auto& mesh) {
+			mesh = 4;
+			transform = Maths::mat4(1.4f);
+				
+		});
+		
+		for (auto&& [entity, transform, mesh] : view2.each())
+		{
+
+		}
+
+		// Remove component from entitiy
+		m_Registry.erase<TransformComponent>(entities[2]);
+		// Safer - checks if component exists first (not sure if less performant)
+		m_Registry.remove<TransformComponent>(entities[2]);
+
+		m_Registry.clear();
+
+		// Calling destroy indiscriminantly is not safe. Must check that entities are still valid
+		if (m_Registry.valid(entity))
+		{
+			m_Registry.destroy(entity);
+		}
+			
+		
+		// Unsafe destruction
+		// m_Registry.destroy(entities.begin(), entities.end());
+
+		// Safe destruction
+		for (auto it = entities.begin(); it != entities.end(); it++)
+		{
+			if (m_Registry.valid(*it))
+			{
+				m_Registry.destroy(*it);
+			}
+		}
 		
 	}
 
 	Scene::~Scene()
 	{
-	
+		m_Registry.clear();
+
+		// -- Disconnect Listeners -- //
+
+		// Entity Listeners
+		m_Registry.on_construct<entt::entity>().disconnect();
+		m_Registry.on_destroy<entt::entity>().disconnect();
+		m_Registry.on_update<entt::entity>().disconnect();
+
+		// Component Listeners
+		m_Registry.on_construct<TransformComponent>().disconnect();
+		m_Registry.on_construct<MeshComponent>().disconnect();
+
+		m_Registry.on_destroy<TransformComponent>().disconnect();
+		m_Registry.on_destroy<MeshComponent>().disconnect();
+
+		
+		m_Registry.on_update<TransformComponent>().disconnect();
+		m_Registry.on_update<MeshComponent>().disconnect();
+
+		// --------------------------- //
 	}
+
 }

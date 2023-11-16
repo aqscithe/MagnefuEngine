@@ -5,6 +5,7 @@
 #include "Magnefu/Core/MemoryAllocation/VmaUsage.h"
 
 
+
 namespace Magnefu
 {
 	static const VkDeviceSize ALIGNMENT_VERTEX_BUFFER = 4;

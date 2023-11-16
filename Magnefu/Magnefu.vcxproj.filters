@@ -1323,6 +1323,8 @@
     <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_xlib_xrandr.h">
       <Filter>vendor\vulkan\include\vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Scene\Components.h" />
+    <ClInclude Include="src\Magnefu\Renderer\Mesh.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application.cpp">
