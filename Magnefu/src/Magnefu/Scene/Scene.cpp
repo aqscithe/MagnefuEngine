@@ -2,6 +2,7 @@
 #include "Scene.h"
 
 #include "Magnefu/Scene/Components.h"
+#include "Magnefu/Scene/Entity.h"
 
 #include <array>
 
@@ -14,23 +15,23 @@ namespace Magnefu
 	{
 		// -- Connect Entity Listeners -- //
 
-		//m_Registry.on_construct<entt::entity>().connect<&Scene::OnCreateEntity>();
-		//m_Registry.on_destroy<entt::entity>().connect<&Scene::OnDestroyEntity>();
-		//m_Registry.on_update<entt::entity>().connect<&Scene::OnUpdateEntity>();
+		m_Registry.on_construct<entt::entity>().connect<&Scene::OnCreateEntity>();
+		m_Registry.on_destroy<entt::entity>().connect<&Scene::OnDestroyEntity>();
+		m_Registry.on_update<entt::entity>().connect<&Scene::OnUpdateEntity>();
 
-		//// ---------------------------------- //
+		// ---------------------------------- //
 
-		//// -- Connect Component Listeners -- //
+		// -- Connect Component Listeners -- //
 
-		//// Transform
-		//m_Registry.on_construct<TransformComponent>().connect<&Scene::OnAttachTransformComponent>();
-		//m_Registry.on_destroy<TransformComponent>().connect<&Scene::OnDetachTransformComponent>();
-		//m_Registry.on_update<TransformComponent>().connect<&Scene::OnUpdateTransformComponent>();
-		//
-		//// Mesh
-		//m_Registry.on_construct<MeshComponent>().connect<&Scene::OnAttachMeshComponent>();
-		//m_Registry.on_destroy<MeshComponent>().connect<&Scene::OnDetachMeshComponent>();
-		//m_Registry.on_update<MeshComponent>().connect<&Scene::OnUpdateMeshComponent>();
+		// Transform
+		m_Registry.on_construct<TransformComponent>().connect<&Scene::OnAttachTransformComponent>();
+		m_Registry.on_destroy<TransformComponent>().connect<&Scene::OnDetachTransformComponent>();
+		m_Registry.on_update<TransformComponent>().connect<&Scene::OnUpdateTransformComponent>();
+		
+		// Mesh
+		m_Registry.on_construct<MeshComponent>().connect<&Scene::OnAttachMeshComponent>();
+		m_Registry.on_destroy<MeshComponent>().connect<&Scene::OnDetachMeshComponent>();
+		m_Registry.on_update<MeshComponent>().connect<&Scene::OnUpdateMeshComponent>();
 		
 
 		// Another method for connecting listeners
@@ -162,27 +163,39 @@ namespace Magnefu
 
 	Scene::~Scene()
 	{
-		//m_Registry.clear();
+		m_Registry.clear();
 
-		//// -- Disconnect Listeners -- //
+		// -- Disconnect Listeners -- //
 
-		//// Entity Listeners
-		//m_Registry.on_construct<entt::entity>().disconnect();
-		//m_Registry.on_destroy<entt::entity>().disconnect();
-		//m_Registry.on_update<entt::entity>().disconnect();
+		// Entity Listeners
+		m_Registry.on_construct<entt::entity>().disconnect();
+		m_Registry.on_destroy<entt::entity>().disconnect();
+		m_Registry.on_update<entt::entity>().disconnect();
 
-		//// Component Listeners
-		//m_Registry.on_construct<TransformComponent>().disconnect();
-		//m_Registry.on_construct<MeshComponent>().disconnect();
+		// Component Listeners
+		m_Registry.on_construct<TransformComponent>().disconnect();
+		m_Registry.on_construct<MeshComponent>().disconnect();
 
-		//m_Registry.on_destroy<TransformComponent>().disconnect();
-		//m_Registry.on_destroy<MeshComponent>().disconnect();
+		m_Registry.on_destroy<TransformComponent>().disconnect();
+		m_Registry.on_destroy<MeshComponent>().disconnect();
 
-		//
-		//m_Registry.on_update<TransformComponent>().disconnect();
-		//m_Registry.on_update<MeshComponent>().disconnect();
+		
+		m_Registry.on_update<TransformComponent>().disconnect();
+		m_Registry.on_update<MeshComponent>().disconnect();
 
 		// --------------------------- //
+	}
+
+	Scene* Scene::Create()
+	{
+		return new Scene();
+	}
+
+	Entity& Scene::CreateEntity()
+	{
+		m_Entities.emplace_back(new Entity(m_Registry.create(), this));
+
+		return *m_Entities.back();
 	}
 
 }

@@ -16,6 +16,8 @@ namespace Magnefu
 		MODEL_AREA_LIGHT = 1,
 	};
 
+	static const uint32_t SCENE_COUNT = 1;
+
 	// Info should come from a text/binary scene file e.g "Level_1.scn"
 	struct ResourceInfo
 	{

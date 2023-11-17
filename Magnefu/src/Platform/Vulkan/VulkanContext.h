@@ -187,7 +187,7 @@ namespace Magnefu
 		void CreateSyncObjects();
 
 
-		void LoadSingleModel(const char* modelPath, size_t objIndex, ModelType modelType);
+		void LoadSingleModel(const ResourceInfo&, size_t objIndex, ModelType modelType);
 		void LoadSingleTexture(int sceneObjIndex, const char* texturePath, int textureType);
 
 

@@ -13,6 +13,17 @@ namespace Magnefu
 		MeshComponent(const Mesh& mesh)
 			: Mesh_(mesh) {}
 
+		MeshComponent(void* verticesData, void* indicesData, const uint32_t verticesCount, 
+			const uint32_t indicesCount, const uint32_t index)
+		{
+			Mesh_.VerticesData = verticesData;
+			Mesh_.IndicesData = indicesData;
+			Mesh_.VerticesCount = verticesCount;
+			Mesh_.IndicesCount = indicesCount;
+			Mesh_.MeshListIndex = index;
+
+		}
+
 		operator Mesh& () { return Mesh_; }
 		operator const Mesh&() const { return Mesh_; }
 
@@ -23,12 +34,19 @@ namespace Magnefu
 	{
 		TransformComponent() = default;
 		TransformComponent(const TransformComponent&) = default;
-		TransformComponent(const Maths::mat4& transform)
+		TransformComponent(const Maths::mat3& transform)
 			: Transform(transform) {}
 
-		operator Maths::mat4& () { return Transform; }
-		operator const Maths::mat4& () const { return Transform; }
+		TransformComponent(const Maths::vec3& pos, const Maths::vec3& rot, const Maths::vec3& scale)
+		{
+			Transform.c[0] = pos;
+			Transform.c[1] = rot;
+			Transform.c[2] = scale;
+		}
 
-		Maths::mat4 Transform;
+		operator Maths::mat3& () { return Transform; }
+		operator const Maths::mat3& () const { return Transform; }
+
+		Maths::mat3 Transform;
 	};
 }

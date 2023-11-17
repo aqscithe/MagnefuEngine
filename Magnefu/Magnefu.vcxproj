@@ -201,6 +201,7 @@
     <ClInclude Include="src\Magnefu\ResourceManagement\ResourceManager.h" />
     <ClInclude Include="src\Magnefu\ResourceManagement\ResourcePaths.h" />
     <ClInclude Include="src\Magnefu\Scene\Components.h" />
+    <ClInclude Include="src\Magnefu\Scene\Entity.h" />
     <ClInclude Include="src\Magnefu\Scene\Scene.h" />
     <ClInclude Include="src\Magnefu\Window.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanBindGroup.h" />
@@ -560,6 +561,7 @@
     <ClCompile Include="src\Magnefu\Renderer\Texture.cpp" />
     <ClCompile Include="src\Magnefu\ResourceManagement\Pool.cpp" />
     <ClCompile Include="src\Magnefu\ResourceManagement\ResourceManager.cpp" />
+    <ClCompile Include="src\Magnefu\Scene\Entity.cpp" />
     <ClCompile Include="src\Magnefu\Scene\Scene.cpp" />
     <ClCompile Include="src\Platform\Vulkan\VulkanBindGroup.cpp" />
     <ClCompile Include="src\Platform\Vulkan\VulkanBuffer.cpp" />

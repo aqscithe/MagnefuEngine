@@ -24,7 +24,12 @@ namespace Magnefu
         s_Instance = this;
 
         // Number to be determined by saved scene files
-        m_Scenes.reserve(1);
+        m_Scenes.reserve(SCENE_COUNT);
+
+        for (int scene = 0; scene < SCENE_COUNT; scene++)
+        {
+            m_Scenes.emplace_back(Scene::Create());
+        }
 
         {
             MF_PROFILE_SCOPE("Window Creation");

@@ -26,6 +26,8 @@ namespace Magnefu
 		inline const size_t GetIndicesSize() { return m_Indices.span.GetSize(); }
 		inline const uint8_t* GetVerticesData() { return m_Vertices.span.GetData(); }
 		inline const uint8_t* GetIndicesData() { return m_Indices.span.GetData(); }
+
+		// TODO: Textures should be separate from the models
 		TextureDataBlock& GetTextureData(TextureType type);
 		inline bool IsInstanced() { return m_IsInstanced; }
 		inline uint32_t GetInstanceCount() { return m_InstanceCount; }

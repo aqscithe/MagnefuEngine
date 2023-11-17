@@ -1325,6 +1325,7 @@
     </ClInclude>
     <ClInclude Include="src\Magnefu\Scene\Components.h" />
     <ClInclude Include="src\Magnefu\Renderer\Mesh.h" />
+    <ClInclude Include="src\Magnefu\Scene\Entity.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application.cpp">
@@ -1489,5 +1490,6 @@
     <ClCompile Include="vendor\vulkan\include\glm\detail\glm.cpp">
       <Filter>vendor\vulkan\include\glm\detail</Filter>
     </ClCompile>
+    <ClCompile Include="src\Magnefu\Scene\Entity.cpp" />
   </ItemGroup>
 </Project>

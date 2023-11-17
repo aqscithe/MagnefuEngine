@@ -10,6 +10,9 @@
 #include "Magnefu/Renderer/RenderConstants.h"
 #include "Magnefu/Renderer/LTCMatrix.h"
 #include "Magnefu/ResourceManagement/ResourceManager.h"
+#include "Magnefu/Scene/Scene.h"
+#include "Magnefu/Scene/Entity.h"
+#include "Magnefu/Scene/Components.h"
 
 
 
@@ -613,6 +616,8 @@ namespace Magnefu
 
 
 		AllocateUniformBuffers(sceneObjCount);
+
+		// TODO: Can get pointers for mesh data in Mesh components here
 		AllocateVertexBuffers(sceneObjCount, sceneObjs, commandPool);
 		AllocateIndexBuffers(sceneObjCount, sceneObjs, commandPool);
 	}
@@ -676,6 +681,7 @@ namespace Magnefu
 
 	void VulkanContext::AllocateVertexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool)
 	{
+
 		VkDeviceSize totalSize = 0;
 		VkDeviceSize size = 0;
 		VkDeviceSize offset = 0;
@@ -1303,7 +1309,7 @@ namespace Magnefu
 		threads.resize(RESOURCE_PATHS.size());  // TODO: I need to do some testing to programmatically determine max number of threads
 
 		for (size_t i = 0; i < RESOURCE_PATHS.size(); i++)
-			threads[i] = std::thread(&VulkanContext::LoadSingleModel, this, RESOURCE_PATHS[i].ModelPath, i, ModelType::MODEL_DEFAULT);
+			threads[i] = std::thread(&VulkanContext::LoadSingleModel, this, RESOURCE_PATHS[i], i, ModelType::MODEL_DEFAULT);
 
 		// Join all threads
 		for (auto& t : threads)
@@ -1336,16 +1342,17 @@ namespace Magnefu
 			t.join();
 	}
 
-	void VulkanContext::LoadSingleModel(const char* modelPath, size_t objIndex, ModelType modelType)
+	void VulkanContext::LoadSingleModel(const ResourceInfo& resourceInfo, size_t objIndex, ModelType modelType)
 	{
 		Application& app = Application::Get();
+		auto& scene = app.GetScenes()[resourceInfo.SceneIndex];
 
 		tinyobj::attrib_t attrib;
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
 		std::string warn, err;
 
-		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, modelPath))
+		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, resourceInfo.ModelPath))
 		{
 			MF_CORE_WARN(warn);
 			MF_CORE_ERROR(err);
@@ -1448,6 +1455,8 @@ namespace Magnefu
 			}
 		}
 
+		
+
 		{
 			size_t bufferSize = vertices.size() * sizeof(VulkanVertex); // Buffer size
 			constexpr size_t alignment = 32; // Alignment requirement
@@ -1467,6 +1476,8 @@ namespace Magnefu
 				// Create the Span from the aligned memory
 				DataBlock vertexBlock(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
 				app.SetVertexBlock(std::move(vertexBlock), objIndex, modelType);
+				
+				
 			}
 			else
 			{
@@ -1476,6 +1487,12 @@ namespace Magnefu
 
 		DataBlock indexBlock(reinterpret_cast<const uint8_t*>(indices.data()), indices.size() * sizeof(uint32_t));
 		app.SetIndexBlock(std::move(indexBlock), objIndex, modelType);
+
+		Entity& entity = scene->CreateEntity();
+		 
+		MeshComponent& mesh = entity.AddComponent<MeshComponent>(nullptr, nullptr, attrib.vertices.size(), indices.size(), objIndex);
+		TransformComponent transform = entity.AddComponent<TransformComponent>(Maths::vec3(0.f), Maths::vec3(0.f), Maths::vec3(1.f));
+		
 	}
 
 

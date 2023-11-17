@@ -5,7 +5,7 @@
 #include "imgui/imgui.h"
 
 
-// USE STACK ALLOCATOR HERE
+// TODO: Add Editor Layer
 
 class GameLayer : public Magnefu::Layer
 {

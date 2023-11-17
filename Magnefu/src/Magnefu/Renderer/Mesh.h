@@ -17,6 +17,13 @@ namespace Magnefu
 
 	struct Mesh
 	{
-		uint32_t VertexCount;
+		
+		// TODO: a lot of the SceneObject functionality needs to be moved
+
+		void* VerticesData;
+		void* IndicesData;
+		uint32_t VerticesCount;
+		uint32_t IndicesCount;
+		uint32_t MeshListIndex;
 	};
 }

@@ -75,6 +75,8 @@ namespace Magnefu
 		
 		inline std::thread& GetBufferThread() { return m_BufferResourceThread; }
 		inline std::thread& GetImageThread() { return m_ImageResourceThread; }
+
+		inline std::vector<Scope<Scene>>& GetScenes() { return m_Scenes; }
 		
 
 		inline static Application& Get() { return *s_Instance; }

@@ -3,6 +3,7 @@
 
 namespace Magnefu
 {
+	class Entity;
 
 	class Scene 
 	{
@@ -13,6 +14,11 @@ namespace Magnefu
 			Scene& operator=(const Scene&) = delete;
 			~Scene();
 
+			static Scene* Create();
+
+			Entity& CreateEntity();
+
+			inline entt::registry& GetRegistry() { return m_Registry; }
 
 		private:
 
@@ -69,5 +75,7 @@ namespace Magnefu
 
 		entt::registry m_Registry;
 		entt::observer m_Observer;
+
+		std::vector<Scope<Entity>> m_Entities;
 	};
 }
