@@ -129,11 +129,17 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\GameLayer.h">
+      <Filter>src</Filter>
+    </ClInclude>
     <ClInclude Include="src\SandboxApp.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\GameLayer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="src\SandboxApp.cpp">
       <Filter>src</Filter>
     </ClCompile>

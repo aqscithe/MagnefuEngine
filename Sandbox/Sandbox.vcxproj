@@ -143,9 +143,11 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\GameLayer.h" />
     <ClInclude Include="src\SandboxApp.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\GameLayer.cpp" />
     <ClCompile Include="src\SandboxApp.cpp" />
   </ItemGroup>
   <ItemGroup>

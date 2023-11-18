@@ -321,6 +321,9 @@
     <ClInclude Include="src\Magnefu\Renderer\Material.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Renderer\Mesh.h">
+      <Filter>src\Magnefu\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
@@ -356,6 +359,12 @@
     </ClInclude>
     <ClInclude Include="src\Magnefu\ResourceManagement\ResourcePaths.h">
       <Filter>src\Magnefu\ResourceManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Scene\Components.h">
+      <Filter>src\Magnefu\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Scene\Entity.h">
+      <Filter>src\Magnefu\Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Scene\Scene.h">
       <Filter>src\Magnefu\Scene</Filter>
@@ -1323,9 +1332,6 @@
     <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_xlib_xrandr.h">
       <Filter>vendor\vulkan\include\vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Scene\Components.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Mesh.h" />
-    <ClInclude Include="src\Magnefu\Scene\Entity.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application.cpp">
@@ -1433,6 +1439,9 @@
     <ClCompile Include="src\Magnefu\ResourceManagement\ResourceManager.cpp">
       <Filter>src\Magnefu\ResourceManagement</Filter>
     </ClCompile>
+    <ClCompile Include="src\Magnefu\Scene\Entity.cpp">
+      <Filter>src\Magnefu\Scene</Filter>
+    </ClCompile>
     <ClCompile Include="src\Magnefu\Scene\Scene.cpp">
       <Filter>src\Magnefu\Scene</Filter>
     </ClCompile>
@@ -1490,6 +1499,5 @@
     <ClCompile Include="vendor\vulkan\include\glm\detail\glm.cpp">
       <Filter>vendor\vulkan\include\glm\detail</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Scene\Entity.cpp" />
   </ItemGroup>
 </Project>

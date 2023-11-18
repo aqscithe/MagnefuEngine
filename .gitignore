@@ -86,6 +86,8 @@ Magnefu/vendor/*/bin-int/*
 # Resources
 Sandbox/res/*
 !Sandbox/res/shaders
+Editor/res/*
+!Editor/res/shaders
 
 # Vendor
 !vendor/bin/premake/premake5.exe
@@ -96,6 +98,7 @@ Application/*
 OpenGL/header/vendor/glm/*
 OpenGL/header/vendor/imgui/main.cpp
 Sandbox/*.json
+Editor/*.json
 
 Content/Dynamic/Levels/FirstPersonExampleMap_BuiltData.uasset
 .vs/S05_TestingGrounds/v15/ipch/
