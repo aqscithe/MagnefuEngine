@@ -4,6 +4,8 @@
 
 #include "imgui/imgui.h"
 
+#include <filesystem>
+
 
 class EditorLayer : public Magnefu::Layer
 {
@@ -14,11 +16,20 @@ public:
 		m_Camera(std::static_pointer_cast<Magnefu::SceneCamera>(Magnefu::Application::Get().GetWindow().GetSceneCamera())),
 		m_PushConstants(),
 		m_AreaLightPoints(),
-		m_AreaLights()
+		m_AreaLights(),
+		current_path(std::filesystem::current_path())
 	{
 		Magnefu::Application& app = Magnefu::Application::Get();
 
 		m_GraphicsContext = app.GetWindow().GetGraphicsContext();
+
+		ImGuiStyle& style = ImGui::GetStyle();
+
+		// Set colors for window background, text, headers, etc.
+		style.Colors[ImGuiCol_WindowBg] = ImVec4(0.1f, 0.1f, 0.1f, 1.0f); // Dark gray
+		style.Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // White
+		style.Colors[ImGuiCol_Header] = ImVec4(0.2f, 0.6f, 1.0f, 1.0f); // Light blue
+		style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.3f, 0.7f, 1.0f, 1.0f); // Lighter blue
 
 		// -- Set Area Light Info -- //
 
@@ -220,6 +231,51 @@ public:
 			ImGui::EndTabBar();
 		}
 		ImGui::End();
+
+		 
+
+		if (ImGui::Begin("File Explorer")) 
+		{
+
+			static char buffer[256] = "";
+
+			// Button or item to go up one level
+			if (ImGui::Button("..")) 
+			{
+				current_path = current_path.parent_path();
+			}
+
+			// Input field for typing out the directory
+			if (ImGui::InputText("Go to", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue)) 
+			{
+				std::filesystem::path new_path(buffer);
+				if (std::filesystem::exists(new_path) && std::filesystem::is_directory(new_path)) 
+				{
+					current_path = new_path;
+				}
+				else 
+				{
+					// Handle invalid path
+				}
+			}
+
+			for (const auto& entry : std::filesystem::directory_iterator(current_path)) 
+			{
+				if (ImGui::Selectable(entry.path().filename().string().c_str())) 
+				{
+					if (entry.is_directory()) 
+					{
+						// Change directory
+						current_path = entry.path();
+					}
+					else 
+					{
+						// Handle file selection
+					}
+				}
+			}
+		}
+		ImGui::End();
 	}
 
 	void OnEvent(Magnefu::Event& e)
@@ -235,5 +291,7 @@ private:
 	int                                                 m_AreaLightCount;
 	Maths::mat4                                         m_AreaLightPoints;
 	std::array<Magnefu::AreaLight, Magnefu::MAX_AREA_LIGHTS>  m_AreaLights;
+
+	std::filesystem::path current_path; 
 	//Magnefu::Light&     m_Light;
 };
