@@ -11,7 +11,8 @@ namespace Magnefu
 
 	
 
-	Scene::Scene()
+	Scene::Scene(std::string& name) :
+		m_Name(name)
 	{
 		// -- Connect Entity Listeners -- //
 
@@ -32,6 +33,8 @@ namespace Magnefu
 		m_Registry.on_construct<MeshComponent>().connect<&Scene::OnAttachMeshComponent>();
 		m_Registry.on_destroy<MeshComponent>().connect<&Scene::OnDetachMeshComponent>();
 		m_Registry.on_update<MeshComponent>().connect<&Scene::OnUpdateMeshComponent>();
+
+		MF_CORE_INFO("Scene {} Created", name);
 		
 
 		// Another method for connecting listeners
@@ -186,14 +189,15 @@ namespace Magnefu
 		// --------------------------- //
 	}
 
-	Scene* Scene::Create()
+	Scene* Scene::Create(std::string& name)
 	{
-		return new Scene();
+		return new Scene(name);
 	}
 
-	Entity& Scene::CreateEntity()
+	Entity& Scene::CreateEntity(std::string& name)
 	{
-		m_Entities.emplace_back(new Entity(m_Registry.create(), this));
+
+		m_Entities.emplace_back(new Entity(m_Registry.create(), this, name));
 
 		return *m_Entities.back();
 	}

@@ -1345,7 +1345,7 @@ namespace Magnefu
 	void VulkanContext::LoadSingleModel(const ResourceInfo& resourceInfo, size_t objIndex, ModelType modelType)
 	{
 		Application& app = Application::Get();
-		auto& scene = app.GetScenes()[resourceInfo.SceneIndex];
+		
 
 		tinyobj::attrib_t attrib;
 		std::vector<tinyobj::shape_t> shapes;
@@ -1488,10 +1488,7 @@ namespace Magnefu
 		DataBlock indexBlock(reinterpret_cast<const uint8_t*>(indices.data()), indices.size() * sizeof(uint32_t));
 		app.SetIndexBlock(std::move(indexBlock), objIndex, modelType);
 
-		Entity& entity = scene->CreateEntity();
-		 
-		MeshComponent& mesh = entity.AddComponent<MeshComponent>(nullptr, nullptr, attrib.vertices.size(), indices.size(), objIndex);
-		TransformComponent transform = entity.AddComponent<TransformComponent>(Maths::vec3(0.f), Maths::vec3(0.f), Maths::vec3(1.f));
+		
 		
 	}
 

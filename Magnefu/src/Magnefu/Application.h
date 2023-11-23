@@ -76,8 +76,14 @@ namespace Magnefu
 		inline std::thread& GetBufferThread() { return m_BufferResourceThread; }
 		inline std::thread& GetImageThread() { return m_ImageResourceThread; }
 
+		// -- SCENES -- //
+		Scene* CreateScene();
 		inline std::vector<Scope<Scene>>& GetScenes() { return m_Scenes; }
-		
+
+		inline void ResizeSceneObjects(const size_t size) { m_SceneObjects.resize(size); }
+
+		inline std::vector<SceneObject>& GetSceneObjects() { return m_SceneObjects; }
+
 
 		inline static Application& Get() { return *s_Instance; }
 
@@ -85,9 +91,7 @@ namespace Magnefu
 		void SetIndexBlock(DataBlock&& indexBlock, size_t objPos, ModelType modelType);
 		
 
-		inline void ResizeSceneObjects(const size_t size) { m_SceneObjects.resize(size); }
-
-		inline std::vector<SceneObject>& GetSceneObjects() { return m_SceneObjects; }
+		
 
 
 	private:
@@ -115,6 +119,7 @@ namespace Magnefu
 		std::vector<SceneObject> m_SceneObjects;
 
 		std::vector<Scope<Scene>> m_Scenes;
+
 
 		// -- Area Lights -- //
 		std::array<AreaLight, MAX_AREA_LIGHTS> m_AreaLights;

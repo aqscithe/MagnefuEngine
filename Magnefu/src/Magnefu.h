@@ -38,10 +38,15 @@
 #include "Magnefu/Renderer/BindGroup.h"
 //----------------------------------------
 
+//----Scene-------------------------------
+#include "Magnefu/Scene/Scene.h"
+#include "Magnefu/Scene/Entity.h"
+#include "Magnefu/Scene/Components.h"
+//----------------------------------------
 
 
 
 
 // ----Entry Point---------------------
-#include "Magnefu/Entrypoint.h"
+//#include "Magnefu/Entrypoint.h"
 //-------------------------------------

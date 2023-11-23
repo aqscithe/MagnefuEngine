@@ -24,12 +24,8 @@ namespace Magnefu
         s_Instance = this;
 
         // Number to be determined by saved scene files
+        // Default reservation of 1
         m_Scenes.reserve(SCENE_COUNT);
-
-        for (int scene = 0; scene < SCENE_COUNT; scene++)
-        {
-            m_Scenes.emplace_back(Scene::Create());
-        }
 
         {
             MF_PROFILE_SCOPE("Window Creation");
@@ -101,6 +97,14 @@ namespace Magnefu
 	{
         
 	}
+
+    Scene* Application::CreateScene()
+    {
+        std::string name = "Scene" + std::to_string(m_Scenes.size());
+        //TODO: ERROR HANDLING to ensure name is not in use
+        
+        return m_Scenes.emplace_back(Scene::Create(name)).get();
+    }
 
     void Application::SetVertexBlock(DataBlock&& vertexBlock, size_t objPos, ModelType modelType)
     {

@@ -9,16 +9,20 @@ namespace Magnefu
 	{
 		public:
 
-			Scene();
+			Scene(std::string& name);
 			Scene(const Scene&) = delete;
 			Scene& operator=(const Scene&) = delete;
 			~Scene();
 
-			static Scene* Create();
+			static Scene* Create(std::string& name);
 
-			Entity& CreateEntity();
+			Entity& CreateEntity(std::string& name);
 
 			inline entt::registry& GetRegistry() { return m_Registry; }
+
+			inline std::vector<Scope<Entity>>& GetEntities() { return m_Entities; }
+
+			inline const std::string& GetName() const { return m_Name; }
 
 		private:
 
@@ -75,7 +79,7 @@ namespace Magnefu
 
 		entt::registry m_Registry;
 		entt::observer m_Observer;
-
+		std::string m_Name;
 		std::vector<Scope<Entity>> m_Entities;
 	};
 }

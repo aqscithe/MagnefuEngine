@@ -24,6 +24,16 @@ namespace Magnefu
 
 		}
 
+		// TODO: Properly handle the creation of MeshComponent by name
+		MeshComponent(std::string& name)
+		{
+			Mesh_.VerticesData = nullptr;
+			Mesh_.IndicesData = nullptr;
+			Mesh_.VerticesCount = 0;
+			Mesh_.IndicesCount = 0;
+			Mesh_.MeshListIndex = 99;
+		}
+
 		operator Mesh& () { return Mesh_; }
 		operator const Mesh&() const { return Mesh_; }
 
