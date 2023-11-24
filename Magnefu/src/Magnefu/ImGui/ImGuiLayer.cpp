@@ -387,7 +387,12 @@ namespace Magnefu
 			ImGuiIO& io = ImGui::GetIO();
 			e.m_Handled |= e.IsInCategory(EventCategoryMouse) & io.WantCaptureMouse;
 			e.m_Handled |= e.IsInCategory(EventCategoryKeyboard) & io.WantCaptureKeyboard;
+
+			//MF_CORE_DEBUG("{}", e.ToString());
 		}
+		
+		
+
 	}
 
 

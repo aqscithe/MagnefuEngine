@@ -128,12 +128,23 @@ void EditorLayer::OnRender()
 
 void EditorLayer::OnGUIRender()
 {
+	/*static bool show_demo_window = true;
+	if (show_demo_window) 
+	{
+		ImGui::ShowDemoWindow(&show_demo_window);
+	}*/
 	ShowCreateSceneWindow();
 	ShowScene();
 
 	// TODO: Hmm...the editor should determine which scene is active...
 	ShowEntityListWindow();
+
 	ShowComponentWindow();
+
+	if (showComponentCombo)
+	{
+		ShowAddComponentWidget();
+	}
 
 	ShowFileExplorer();
 }
@@ -352,25 +363,38 @@ void EditorLayer::ShowEntityListWindow()
 
 void EditorLayer::ShowAddComponentWidget() 
 {
+	// Combo Boxes are also called "Dropdown" in other systems
+		// Expose flags as checkbox for the demo
+	//static ImGuiComboFlags flags = 0;
+	//ImGui::CheckboxFlags("ImGuiComboFlags_PopupAlignLeft", &flags, ImGuiComboFlags_PopupAlignLeft);
+	//ImGui::SameLine(); 
+	//if (ImGui::CheckboxFlags("ImGuiComboFlags_NoArrowButton", &flags, ImGuiComboFlags_NoArrowButton))
+	//	flags &= ~ImGuiComboFlags_NoPreview;     // Clear the other flag, as we cannot combine both
+	//if (ImGui::CheckboxFlags("ImGuiComboFlags_NoPreview", &flags, ImGuiComboFlags_NoPreview))
+	//	flags &= ~ImGuiComboFlags_NoArrowButton; // Clear the other flag, as we cannot combine both
+
 	
 
-	if (ImGui::BeginCombo("Add Component", currentComponent >= 0 ? COMPONENT_TYPES[currentComponent] : "None")) 
+
+	if (ImGui::BeginCombo("Add Component", currentComponent >= 0 ? COMPONENT_TYPES[currentComponent] : "None"))
 	{
-		for (int i = 0; i < IM_ARRAYSIZE(COMPONENT_TYPES); i++) 
+		for (int i = 0; i < IM_ARRAYSIZE(COMPONENT_TYPES); i++)
 		{
 			bool isSelected = (currentComponent == i);
-			if (ImGui::Selectable(COMPONENT_TYPES[i], isSelected)) 
+			if (ImGui::Selectable(COMPONENT_TYPES[i], isSelected))
 			{
 				currentComponent = i;
 				showComponentCombo = false;
+				ImGui::CloseCurrentPopup();
 			}
-			if (isSelected) 
+			if (isSelected)
 			{
 				ImGui::SetItemDefaultFocus();
 			}
 		}
 		ImGui::EndCombo();
 	}
+		
 
 	if (currentComponent >= 0) 
 	{
@@ -464,7 +488,7 @@ void EditorLayer::ShowComponentWindow()
 			if (ImGui::Button("Add Component"))
 			{
 				showComponentCombo = true; // Set flag to open the combo box
-				ShowAddComponentWidget();
+				
 			}
 		}
 		else
