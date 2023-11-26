@@ -395,11 +395,6 @@ void EditorLayer::ShowScene()
 
 	ShowComponentWindow();
 
-	if (showComponentCombo)
-	{
-		ShowAddComponentWidget();
-	}
-
 	if (showMeshComponentWidget)
 	{
 		ShowMeshComponentWidget();
@@ -624,8 +619,6 @@ void EditorLayer::ShowAddComponentWidget()
 	//	flags &= ~ImGuiComboFlags_NoArrowButton; // Clear the other flag, as we cannot combine both
 
 	
-
-
 	if (ImGui::BeginCombo("Add Component", currentComponent >= 0 ? COMPONENT_TYPES[currentComponent] : "None"))
 	{
 		for (int i = 0; i < IM_ARRAYSIZE(COMPONENT_TYPES); i++)
@@ -634,7 +627,7 @@ void EditorLayer::ShowAddComponentWidget()
 			if (ImGui::Selectable(COMPONENT_TYPES[i], isSelected))
 			{
 				currentComponent = i;
-				showComponentCombo = false;
+				//showComponentCombo = false;
 				//ImGui::CloseCurrentPopup();
 			}
 			if (isSelected)
@@ -662,7 +655,6 @@ void EditorLayer::ShowAddComponentWidget()
 			{ 
 				
 					showMeshComponentWidget = true;
-					
 				
 			}
 			currentComponent = -1; // Reset selection
@@ -671,7 +663,7 @@ void EditorLayer::ShowAddComponentWidget()
 		if (ImGui::Button("Cancel")) 
 		{
 			currentComponent = -1; // Reset selection on cancel
-			showComponentCombo = false; 
+			//showComponentCombo = false; 
 			showMeshComponentWidget = false;
 		}
 	}
@@ -732,18 +724,28 @@ void EditorLayer::ShowComponentWindow()
 			if (Magnefu::TransformComponent* transform = static_cast<Magnefu::TransformComponent*>(m_SelectedEntity->GetTransformComponent()))
 			{
 				// Display transform component details
+				ImGui::Text("TRANSFORM");
+				ImGui::SliderFloat3("Position", transform->Position().e, -1000, 1000, "%.2f");
+				ImGui::SliderFloat3("Rotation", transform->Rotation().e, -360, 360, "%.2f");
+				ImGui::SliderFloat3("Scale", transform->Scale().e, 0.1, 100, "%.2f");
+				ImGui::Separator();
 			}
 			if (Magnefu::MeshComponent* transform = static_cast<Magnefu::MeshComponent*>(m_SelectedEntity->GetMeshComponent()))
 			{
 				// Display mesh component details
-				
+				ImGui::Text("MESH");
+				ImGui::Separator();
 			}
 
-			if (ImGui::Button("Add Component"))
-			{
-				showComponentCombo = true; // Set flag to open the combo box
-				
-			}
+			ImGui::Separator();
+
+			ShowAddComponentWidget();
+
+			//if (ImGui::Button("Add Component"))
+			//{
+			//	showComponentCombo = true; // Set flag to open the combo box
+			//	
+			//}
 		}
 		else
 		{

@@ -28,6 +28,8 @@ namespace Maths
 
 		float e[9];
 		vec3 c[3];
+
+		struct { vec3 position; vec3 rotation; vec3 scale; };
 	};
 
 	union mat4

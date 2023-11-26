@@ -54,6 +54,17 @@ namespace Magnefu
 			Transform.c[2] = scale;
 		}
 
+		// Direct access functions
+		Maths::vec3& Position() { return Transform.position; }
+		const Maths::vec3& Position() const { return Transform.position; }
+
+		Maths::vec3& Rotation() { return Transform.rotation; }
+		const Maths::vec3& Rotation() const { return Transform.rotation; }
+
+		Maths::vec3& Scale() { return Transform.scale; }
+		const Maths::vec3& Scale() const { return Transform.scale; }
+
+		// Get direct access to Transform member
 		operator Maths::mat3& () { return Transform; }
 		operator const Maths::mat3& () const { return Transform; }
 

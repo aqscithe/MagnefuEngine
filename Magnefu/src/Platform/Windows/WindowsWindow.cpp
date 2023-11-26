@@ -295,17 +295,7 @@ namespace Magnefu
 
 	void WindowsWindow::OnImGuiRender()
 	{
-		ImGui::Begin("Renderer");
-		if (ImGui::BeginTabBar("Renderer", ImGuiTabBarFlags_None))
-		{
-			if (ImGui::BeginTabItem("Info"))
-			{
-				m_Context->OnImGuiRender();
-				ImGui::EndTabItem();
-			}
-			ImGui::EndTabBar();
-		}
-		ImGui::End();
+		
 	}
 
 	void WindowsWindow::OnFinish()
