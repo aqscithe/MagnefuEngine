@@ -33,6 +33,8 @@ namespace Magnefu
 		bool IsVSync() const override { return m_Data.VSync; }
 		void SetFramebufferResized(bool framebufferResized) override;
 
+		void CloseWindow();
+
 	private:
 		virtual void Init(const WindowProps& props);
 		virtual void Shutdown();

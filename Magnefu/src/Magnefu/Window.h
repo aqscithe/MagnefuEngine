@@ -49,6 +49,8 @@ namespace Magnefu
 		virtual void SetFramebufferResized(bool framebufferResized) = 0;
 		virtual GraphicsContext* GetGraphicsContext() = 0;
 
+		virtual void CloseWindow() = 0;
+
 		static Window* Create(const WindowProps& props = WindowProps());
 	};
 }

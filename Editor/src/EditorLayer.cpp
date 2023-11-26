@@ -184,7 +184,10 @@ void EditorLayer::ShowApplicationMenuBar()
 				ImGui::MenuItem("Open Scene", NULL, false, true);
 				ImGui::EndMenu();
 			}
-			ImGui::MenuItem("Exit", "Esc", false, true);
+			if (ImGui::MenuItem("Exit", "Esc", false, true))
+			{
+				Magnefu::Application::Get().GetWindow().CloseWindow();
+			}
 			ImGui::EndMenu();
 		}
 
@@ -373,7 +376,7 @@ void EditorLayer::ShowFramerateOverlay()
 		ImVec4 originalColor = ImGui::GetStyle().Colors[ImGuiCol_Text];
 
 		// Set the new color for text
-		ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(0.03f, 0.15f, 0.40f, 1.0f); // Sapphire blue color
+		ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(0.03f, 0.15f, 0.40f, 1.0f); 
 
 		ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
 		//ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);

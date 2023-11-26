@@ -182,7 +182,6 @@ namespace Magnefu
 
     }
 
-    // TODO: Make graphics context a child of application, not window
 	void Application::Run()
 	{        
         MF_PROFILE_FUNCTION();
@@ -200,53 +199,42 @@ namespace Magnefu
 
         while (m_Running)
         {
-            //SingleFrameAllocator->Clear();
             MF_PROFILE_SCOPE("Run Loop");
 
-                m_TimeStep.CalculateDeltaTime();
+            m_TimeStep.CalculateDeltaTime();
 
-                // -- Poll and Handle Events -- //
-                m_Window->OnUpdate();
-                // -- ---------------------------------------- -- //
-
+            // -- Poll and Handle Events -- //
+            m_Window->OnUpdate();
 
 
-                // -- Start ImGui Frame -- //
-                if (m_ImGuiLayer)
-                    m_ImGuiLayer->BeginFrame();
-                // -- ---------------------------------------- -- //
+            // -- Start ImGui Frame -- //
+            if (m_ImGuiLayer)
+                m_ImGuiLayer->BeginFrame();
 
 
-
-                // -- Game Logic And ImGui Widget Updates Here -- //
-                for (Layer* layer : m_LayerStack)
-                    layer->OnUpdate(m_TimeStep.GetDeltaTime());
-
-
-                for (Layer* layer : m_LayerStack)
-                    layer->OnGUIRender();
-
-                OnGUIRender();
+            // -- Game Logic Here -- //
+            for (Layer* layer : m_LayerStack)
+                layer->OnUpdate(m_TimeStep.GetDeltaTime());
 
 
-                // -- This constructs the draw data for the ImGui frame, but doesn't actually submit any draw commands. -- //
-                if (m_ImGuiLayer)
-                    m_ImGuiLayer->EndFrame();
+            // -- ImGui Widget Updates -- //
+            for (Layer* layer : m_LayerStack)
+                layer->OnGUIRender();
 
 
-                // -- Start Vulkan command buffer recording -- //
-                // -- Issue draw calls for game objects and imgui widgets-- //
-                GraphicsContext->DrawFrame();
+            // -- End ImGui Frame -- //
+            // This constructs the draw data for the ImGui frame, 
+            // but doesn't actually submit any draw commands. 
+            if (m_ImGuiLayer)
+                m_ImGuiLayer->EndFrame();
 
 
+            // -- Start Vulkan command buffer recording -- //
+            // -- Issue draw calls for game objects and imgui widgets-- //
+            GraphicsContext->DrawFrame();
 
         }   
         m_Window->OnFinish();
-    }
-
-    void Application::OnGUIRender()
-    {        
-
     }
 
       

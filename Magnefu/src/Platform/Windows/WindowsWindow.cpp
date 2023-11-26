@@ -3,6 +3,7 @@
 #include "Magnefu/Core/Events/ApplicationEvent.h"
 #include "Magnefu/Core/Events/MouseEvent.h"
 #include "Magnefu/Core/Events/KeyEvent.h"
+#include "Magnefu/Core/Events/KeyCodes.h"
 #include "Platform/Vulkan/VulkanContext.h"
 #include "Magnefu/Renderer/Camera.h"
 #include "Magnefu/Renderer/RendererAPI.h"
@@ -19,6 +20,7 @@ namespace Magnefu
 		MF_CORE_ERROR("GLFW Error: {0} | {1}", code, msg);
 	}
 
+	// Handled by Vulkan API
 	static void FramebufferResizeCallback(GLFWwindow* window, int width, int height) 
 	{
 		//WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
@@ -243,11 +245,16 @@ namespace Magnefu
 		m_Context->SetFramebufferResized(framebufferResized);
 	}
 
+	void WindowsWindow::CloseWindow()
+	{
+		WindowCloseEvent event;
+		m_Data.EventCallback(event);
+	}
+
 	void WindowsWindow::processInput()
 	{
-		if (glfwGetKey(m_Window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		if (glfwGetKey(m_Window, MF_KEY_ESCAPE) == GLFW_PRESS)
 		{
-			//glfwSetWindowShouldClose(m_Window, GLFW_TRUE);
 			WindowCloseEvent event;
 			m_Data.EventCallback(event);
 		}
