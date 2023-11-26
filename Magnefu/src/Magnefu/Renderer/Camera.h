@@ -79,13 +79,18 @@ namespace Magnefu
 		virtual CameraData& GetData() = 0;
 		virtual void OnEvent(Event& e) = 0;
 
+		virtual void SetOrtho(bool) = 0;
+		virtual void SetPerspective(bool) = 0;
+
 		virtual Maths::mat4& CalculateView() = 0;
 		virtual Maths::mat4& CalculateProjection() = 0;
 		virtual Maths::mat4& CalculateVP() = 0;
 		virtual void ProcessInput(float deltaTime) = 0;
-		virtual void OnImGuiRender() = 0;
+		//virtual void OnImGuiRender() = 0;
 		virtual void SetDefaultProps() = 0;
 		virtual void SetAspectRatio(float) = 0;
+		virtual bool IsOrtho() = 0;
+		virtual bool IsPerspective() = 0;
 
 		static Camera* Create(const CameraOrientation& orientation = CameraOrientation(), const CameraProps& props = CameraProps());
 

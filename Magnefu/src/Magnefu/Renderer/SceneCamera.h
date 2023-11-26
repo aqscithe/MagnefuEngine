@@ -18,12 +18,17 @@ namespace Magnefu
 		inline const Maths::mat4& GetProjection() const override { return m_Projection; }
 		inline const Maths::mat4& GetVP() const override { return m_VP; }
 		inline CameraData& GetData() override { return m_Data; }
+		inline bool IsOrtho() override { return m_IsOrtho; }
+		inline bool IsPerspective() override { return m_IsPersp; }
+
+		inline void SetOrtho(bool ortho) override { m_IsOrtho = ortho; }
+		inline void SetPerspective(bool persp) override { m_IsPersp = persp; }
+
 
 		Maths::mat4& CalculateView() override;
 		Maths::mat4& CalculateProjection() override;
 		Maths::mat4& CalculateVP() override;
 		void ProcessInput(float deltaTime) override;
-		void OnImGuiRender() override;
 		void SetDefaultProps() override;
 		void SetAspectRatio(float aspectRatio) { m_Data.AspectRatio = aspectRatio; }
 

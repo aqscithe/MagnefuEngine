@@ -42,6 +42,7 @@
 #include "Magnefu/Scene/Scene.h"
 #include "Magnefu/Scene/Entity.h"
 #include "Magnefu/Scene/Components.h"
+#include "Magnefu/Scene/SceneManager.h"
 //----------------------------------------
 
 

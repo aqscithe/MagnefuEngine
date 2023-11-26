@@ -15,7 +15,7 @@
 #include "Magnefu/Renderer/SceneObject.h"
 #include "Magnefu/Core/TimeStep.h"
 #include "Magnefu/ResourceManagement/ResourcePaths.h"
-#include "Magnefu/Scene/Scene.h"
+#include "Magnefu/Scene/SceneManager.h"
 
 
 
@@ -62,6 +62,8 @@ namespace Magnefu
 
 		inline ResourceManager& GetResourceManager() { return *m_RM; }
 
+		inline SceneManager& GetSceneManager() { return *m_SceneManager; }
+
 		inline Handle<BindGroup>& GetRenderPassBindGroup() { return m_RenderPassGlobals; }
 
 		// -- AREA LIGHT INFO -- //
@@ -77,8 +79,7 @@ namespace Magnefu
 		inline std::thread& GetImageThread() { return m_ImageResourceThread; }
 
 		// -- SCENES -- //
-		Scene* CreateScene();
-		inline std::vector<Scope<Scene>>& GetScenes() { return m_Scenes; }
+		
 
 		inline void ResizeSceneObjects(const size_t size) { m_SceneObjects.resize(size); }
 
@@ -108,6 +109,8 @@ namespace Magnefu
 		Scope<Window> m_Window;
 		Scope<ResourceManager> m_RM;
 
+		Scope<SceneManager> m_SceneManager;
+
 		bool m_Running;
 		bool m_Minimized;
 
@@ -118,7 +121,7 @@ namespace Magnefu
 		// ECS architecture
 		std::vector<SceneObject> m_SceneObjects;
 
-		std::vector<Scope<Scene>> m_Scenes;
+		
 
 
 		// -- Area Lights -- //

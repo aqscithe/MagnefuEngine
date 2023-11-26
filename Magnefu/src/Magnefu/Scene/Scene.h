@@ -24,6 +24,8 @@ namespace Magnefu
 
 			inline const std::string& GetName() const { return m_Name; }
 
+
+
 		private:
 
 			// -- Entity Listeners -- //

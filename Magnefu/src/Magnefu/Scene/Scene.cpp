@@ -189,6 +189,8 @@ namespace Magnefu
 		// --------------------------- //
 	}
 
+	
+
 	Scene* Scene::Create(std::string& name)
 	{
 		return new Scene(name);

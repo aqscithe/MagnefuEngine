@@ -17,14 +17,24 @@ class EditorLayer : public Magnefu::Layer
 		void OnGUIRender() override;
 		void OnEvent(Magnefu::Event& e);
 
-
+private:
+		void ShowApplicationMenuBar();
+		void ShowNewSceneDialog();
+		void ShowCameraSettingsWindow();
+		void ShowRendererSettingsWindow();
+		void ShowControlsWindow();
+		void ShowFramerateOverlay();
 		void ShowScene();
-		void ShowCreateSceneWindow();
-		void ShowFileExplorer();
+		void ShowTemp();
+		void ShowResourceBrowser();
 		void ShowEntityListWindow();
 		void ShowComponentWindow();
 		void ShowAddComponentWidget();
 		void ShowMeshComponentWidget();
+
+	private:
+		void CreateNewScene();
+
 
 		
 

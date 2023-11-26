@@ -2,9 +2,20 @@
 
 #include "imgui/imgui.h"
 
+// should put imgui editor flags in a struct
+//static bool show_demo_window = true;
 static const char* COMPONENT_TYPES[] = { "TransformComponent", "MeshComponent" };
 static int currentComponent = -1; // -1: no selection, 0: MeshComponent, 1: TransformComponent
 static bool showComponentCombo = false; // Flag to control visibility of the combo box
+static bool showMeshComponentWidget = false;
+static bool openNewSceneDialog = false;
+static bool openCameraSettingsWindow = false;
+static bool openRendererSettingsWindow = false;
+static bool openControlsWindow = false;
+static bool showFramerate = false;
+static int duplicateNameAppend = 0;
+static char sceneNameBuffer[128] = "";
+static const uint32_t MAX_SCENES = 1;
 
 EditorLayer::EditorLayer() :
 	Layer("Editor"),
@@ -18,7 +29,7 @@ EditorLayer::EditorLayer() :
 	m_SelectedEntity(nullptr)
 {
 	Magnefu::Application& app = Magnefu::Application::Get();
-	auto& scenes = app.GetScenes();
+	//auto& scenes = app.GetScenes();
 	
 
 
@@ -128,16 +139,256 @@ void EditorLayer::OnRender()
 
 void EditorLayer::OnGUIRender()
 {
-	/*static bool show_demo_window = true;
+	/*
 	if (show_demo_window) 
 	{
 		ImGui::ShowDemoWindow(&show_demo_window);
 	}*/
-	ShowCreateSceneWindow();
-	ShowScene();
 
-	// TODO: Hmm...the editor should determine which scene is active...
+
+	ShowApplicationMenuBar();
+	ShowNewSceneDialog();
+	ShowCameraSettingsWindow();
+	ShowRendererSettingsWindow();
+	ShowControlsWindow();
+	ShowFramerateOverlay();
+
+	if (m_ActiveScene)
+	{
+		ShowScene();
+	}
+
+	
+}
+
+void EditorLayer::ShowApplicationMenuBar() 
+{
+	if (ImGui::BeginMainMenuBar()) {
+		// File menu
+		if (ImGui::BeginMenu("File")) 
+		{
+			if (ImGui::BeginMenu("Project")) 
+			{
+				ImGui::MenuItem("New Project", NULL, false, true);
+				ImGui::MenuItem("Save Project", NULL, false, true);
+				ImGui::MenuItem("Open Project", NULL, false, true);
+				ImGui::EndMenu();
+			}
+			if (ImGui::BeginMenu("Scene")) 
+			{
+				if (ImGui::MenuItem("New Scene", NULL, false, true))
+				{
+					openNewSceneDialog = true;
+				}
+				ImGui::MenuItem("Save Scene", NULL, false, true);
+				ImGui::MenuItem("Open Scene", NULL, false, true);
+				ImGui::EndMenu();
+			}
+			ImGui::MenuItem("Exit", "Esc", false, true);
+			ImGui::EndMenu();
+		}
+
+		// Display menu
+		if (ImGui::BeginMenu("Display"))
+		{
+			if(ImGui::MenuItem("Camera", NULL, false, true))
+			{
+				openCameraSettingsWindow = true;
+			}
+			if (ImGui::MenuItem("Renderer", NULL, false, true))
+			{
+				openRendererSettingsWindow = true;
+			}
+			if (ImGui::MenuItem("Toggle Framerate", NULL, false, true))
+			{
+				showFramerate = !showFramerate;
+			}
+			ImGui::EndMenu();
+		}
+
+		// Options menu
+		if (ImGui::BeginMenu("Options")) 
+		{
+			// Add options items here
+			if (ImGui::MenuItem("Controls", NULL, false, true))
+			{
+				openControlsWindow = true;
+			}
+			ImGui::EndMenu();
+		}
+
+		// Help menu
+		if (ImGui::BeginMenu("Help")) {
+			// Add help items here
+			ImGui::EndMenu();
+		}
+
+		ImGui::EndMainMenuBar();
+	}
+}
+
+void EditorLayer::ShowNewSceneDialog() 
+{
+	
+	if (openNewSceneDialog) 
+	{
+		ImGui::OpenPopup("New Scene");
+		openNewSceneDialog = false;
+	}
+
+	if (ImGui::BeginPopupModal("New Scene", NULL, ImGuiWindowFlags_AlwaysAutoResize)) 
+	{
+		ImGui::InputText("Scene Name", sceneNameBuffer, IM_ARRAYSIZE(sceneNameBuffer));
+
+		if (ImGui::Button("OK")) 
+		{
+			CreateNewScene();
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Cancel")) 
+		{
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
+}
+
+void EditorLayer::ShowCameraSettingsWindow()
+{
+	if (!openCameraSettingsWindow) { return; }
+
+	auto& camera = Magnefu::Application::Get().GetWindow().GetSceneCamera();
+	
+	if (ImGui::Begin("Camera Details", &openCameraSettingsWindow, ImGuiWindowFlags_NoCollapse))
+	{
+		ImGui::SeparatorText("MATRICES");
+
+		ImGui::Text("View");
+		ImGui::Text("\t%.1f\t%.1f\t%.1f\t%.1f", camera->GetView().e[0], camera->GetView().e[1], camera->GetView().e[2], camera->GetView().e[3]);
+		ImGui::Text("\t%.1f\t%.1f\t%.1f\t%.1f", camera->GetView().e[4], camera->GetView().e[5], camera->GetView().e[6], camera->GetView().e[7]);
+		ImGui::Text("\t%.1f\t%.1f\t%.1f\t%.1f", camera->GetView().e[8], camera->GetView().e[9], camera->GetView().e[10], camera->GetView().e[11]);
+		ImGui::Text("\t%.1f\t%.1f\t%.1f\t%.1f", camera->GetView().e[12], camera->GetView().e[13], camera->GetView().e[14], camera->GetView().e[15]);
+
+		ImGui::SeparatorText("ORIENTATION");
+
+		ImGui::SliderFloat3("Position", camera->GetData().Position.e, -10.f, 10.f);
+		ImGui::Text("Yaw: %.2f", camera->GetData().Yaw);
+		ImGui::Text("Pitch: %.2f", camera->GetData().Pitch);
+
+		ImGui::SeparatorText("PROPERTIES");
+		
+
+		ImGui::Text("Type: ");
+		if (ImGui::Selectable("\tPerspective", camera->IsPerspective()))
+		{
+			camera->GetData().Type = Magnefu::CameraType::Perspective;
+			camera->GetData().Near = 0.01f;
+			camera->SetOrtho(false);
+		}
+
+		if (ImGui::Selectable("\tOrthographic", camera->IsOrtho()))
+		{
+			camera->GetData().Type = Magnefu::CameraType::Orthographic;
+			camera->GetData().Near = 2.97f;
+			camera->SetPerspective(false);
+		}
+
+		ImGui::Text("Aspect Ration: %f", &camera->GetData().AspectRatio);
+		ImGui::SliderFloat("FOV", &camera->GetData().FOV, 45.f, 100.f);
+		ImGui::SliderFloat("Near", &camera->GetData().Near, 0.01f, 10.f);
+		ImGui::SliderFloat("Far", &camera->GetData().Far, 700.f, 1000.f);
+		ImGui::SliderFloat("Speed", &camera->GetData().Speed, 15.f, 100.f);
+		ImGui::SliderFloat3("Position", camera->GetData().Position.e, -500.f, 500.f);
+		ImGui::SliderFloat("Pitch", &camera->GetData().Pitch, -360.f, 360.f);
+		ImGui::SliderFloat("Yaw", &camera->GetData().Yaw, -360.f, 360.f);
+
+		ImGui::End();
+	}
+
+}
+
+void EditorLayer::ShowRendererSettingsWindow()
+{
+	//if (!openRendererSettingsWindow) { return; }
+
+	/*GraphicsContext* GraphicsContext = m_Window->GetGraphicsContext();
+		ImGui::Begin("Renderer", &openRendererSettingsWindow, ImGuiWindowFlags_NoCollapse);
+		ImGui::Text("Renderer: %s", GraphicsContext->GetRendererInfo().Renderer);
+		ImGui::Text("Version: %s", GraphicsContext->GetRendererInfo().Version);
+		ImGui::Text("Vendor: %s", GraphicsContext->GetRendererInfo().Vendor);
+		ImGui::End();*/
+}
+
+void EditorLayer::ShowControlsWindow()
+{
+	if (!openControlsWindow) { return; }
+
+	if (ImGui::Begin("CONTROLS", &openControlsWindow, ImGuiWindowFlags_NoCollapse))
+	{
+		ImGui::Text("APP CONTROLS");
+		ImGui::Bullet(); ImGui::Text("Close App:      ESC  |");
+		ImGui::Separator();
+		ImGui::Text("CAMERA CONTROLS");
+		ImGui::Bullet(); ImGui::Text("Camera Left:    A    | Left Arrow");
+		ImGui::Bullet(); ImGui::Text("Camera Right:   D    | Right Arrow");
+		ImGui::Bullet(); ImGui::Text("Camera Forward: W    | Up Arrow");
+		ImGui::Bullet(); ImGui::Text("Camera Back:    S    | Down Arrow");
+		ImGui::Bullet(); ImGui::Text("Camera Up:      E    |");
+		ImGui::Bullet(); ImGui::Text("Camera Down:    Q    |");
+		ImGui::Bullet(); ImGui::Text("Camera Rotate:  Right-Click + Move Mouse");
+		ImGui::Bullet(); ImGui::Text("Adjust FOV:     Rotate Middle Mouse Button");
+
+		ImGui::End();
+	}
+	
+
+}
+
+void EditorLayer::ShowFramerateOverlay() 
+{
+	if (!showFramerate) { return; }
+
+	const float PAD = 10.0f;
+	const ImGuiViewport* viewport = ImGui::GetMainViewport();
+	ImVec2 work_pos = viewport->WorkPos; // Top-left position of the viewport
+	ImVec2 work_size = viewport->WorkSize; // Size of the viewport
+	ImVec2 window_pos, window_pos_pivot;
+	window_pos.x = work_pos.x + work_size.x - PAD; // Position on the right
+	window_pos.y = work_pos.y + PAD; // Position at the top
+	window_pos_pivot.x = 1.0f; // Pivot on the right
+	window_pos_pivot.y = 0.0f; // Pivot at the top
+
+	ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+	ImGui::SetNextWindowViewport(viewport->ID);
+	ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
+
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+	if (ImGui::Begin("Framerate Overlay", &showFramerate, window_flags)) 
+	{
+		// Save the original color
+		ImVec4 originalColor = ImGui::GetStyle().Colors[ImGuiCol_Text];
+
+		// Set the new color for text
+		ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(0.03f, 0.15f, 0.40f, 1.0f); // Sapphire blue color
+
+		ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+		//ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+		ImGui::GetStyle().Colors[ImGuiCol_Text] = originalColor;
+		
+	}
+	ImGui::End();
+}
+
+
+void EditorLayer::ShowScene()
+{
 	ShowEntityListWindow();
+	ShowResourceBrowser();
 
 	ShowComponentWindow();
 
@@ -146,10 +397,16 @@ void EditorLayer::OnGUIRender()
 		ShowAddComponentWidget();
 	}
 
-	ShowFileExplorer();
+	if (showMeshComponentWidget)
+	{
+		ShowMeshComponentWidget();
+	}
 }
 
-void EditorLayer::ShowScene()
+
+
+
+void EditorLayer::ShowTemp()
 {
 	ImGui::Begin("Scene");
 	ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
@@ -264,9 +521,9 @@ void EditorLayer::ShowScene()
 	ImGui::End();
 }
 
-void EditorLayer::ShowFileExplorer()
+void EditorLayer::ShowResourceBrowser()
 {
-	if (ImGui::Begin("File Explorer"))
+	if (ImGui::Begin("Resource Browser"))
 	{
 
 		static char buffer[256] = "";
@@ -311,17 +568,7 @@ void EditorLayer::ShowFileExplorer()
 }
 
 
-void EditorLayer::ShowCreateSceneWindow()
-{
-	if (ImGui::Begin("New Scene"))
-	{
-		if (ImGui::Button("New Scene"))
-		{
-				m_ActiveScene = Magnefu::Application::Get().CreateScene();
-		}
-	}
-	ImGui::End();
-}
+
 
 void EditorLayer::ShowEntityListWindow()
 {
@@ -338,11 +585,11 @@ void EditorLayer::ShowEntityListWindow()
 
 
 				// Display Entity Node
-				if (ImGui::TreeNode(entity->GetName().c_str()))
+				/*if (ImGui::TreeNode(entity->GetName().c_str()))
 				{
 					
 					ImGui::TreePop();
-				}
+				}*/
 			}
 
 			
@@ -385,7 +632,7 @@ void EditorLayer::ShowAddComponentWidget()
 			{
 				currentComponent = i;
 				showComponentCombo = false;
-				ImGui::CloseCurrentPopup();
+				//ImGui::CloseCurrentPopup();
 			}
 			if (isSelected)
 			{
@@ -410,10 +657,10 @@ void EditorLayer::ShowAddComponentWidget()
 			}
 			else if (currentComponent == 1)  // MeshComponent
 			{ 
-				if (!m_SelectedEntity->Contains<Magnefu::MeshComponent>())
-				{
-					ShowMeshComponentWidget();
-				}
+				
+					showMeshComponentWidget = true;
+					
+				
 			}
 			currentComponent = -1; // Reset selection
 		}
@@ -422,6 +669,7 @@ void EditorLayer::ShowAddComponentWidget()
 		{
 			currentComponent = -1; // Reset selection on cancel
 			showComponentCombo = false; 
+			showMeshComponentWidget = false;
 		}
 	}
 }
@@ -455,9 +703,12 @@ void EditorLayer::ShowMeshComponentWidget()
 	{
 		if (ImGui::Button("Add MeshComponent")) 
 		{
-			// Add MeshComponent to the entity with the selected mesh
-			m_SelectedEntity->AddComponent<Magnefu::MeshComponent>(meshNames[currentMesh]);
-			currentMesh = -1; // Reset selection
+			if (!m_SelectedEntity->Contains<Magnefu::MeshComponent>())
+			{
+				// Add MeshComponent to the entity with the selected mesh
+				m_SelectedEntity->AddComponent<Magnefu::MeshComponent>(meshNames[currentMesh]);
+				currentMesh = -1; // Reset selection
+			}
 		}
 	}
 }
@@ -499,4 +750,30 @@ void EditorLayer::ShowComponentWindow()
 		
 	}
 	ImGui::End();
+}
+
+void EditorLayer::CreateNewScene()
+{
+	auto& sceneManager = Magnefu::Application::Get().GetSceneManager();
+
+	if (sceneManager.GetScenes().size() >= MAX_SCENES)
+	{
+		MF_WARN("Reached Max Scene Count: {}", MAX_SCENES);
+		return;
+	}
+
+	// Handle the creation of the new scene with the name in sceneNameBuffer
+	std::string name = sceneNameBuffer;
+	
+	while (sceneManager.NameExists(name))
+	{
+		// Append number to name if it already exists
+		name = sceneNameBuffer;
+		name += std::to_string(duplicateNameAppend);
+		duplicateNameAppend++;
+
+	}
+	duplicateNameAppend = 0;
+
+	m_ActiveScene = sceneManager.CreateScene(name);
 }

@@ -130,51 +130,6 @@ namespace Magnefu
 		m_Data.Position.y += verticalMovement;
 	}
 
-	void SceneCamera::OnImGuiRender()
-	{
-		if (ImGui::TreeNodeEx("Camera", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			ImGui::SeparatorText("MATRICES");
-
-			ImGui::Text("View");
-			ImGui::Text("\t%.1f\t%.1f\t%.1f\t%.1f", m_View.e[0], m_View.e[1], m_View.e[2], m_View.e[3]);
-			ImGui::Text("\t%.1f\t%.1f\t%.1f\t%.1f", m_View.e[4], m_View.e[5], m_View.e[6], m_View.e[7]);
-			ImGui::Text("\t%.1f\t%.1f\t%.1f\t%.1f", m_View.e[8], m_View.e[9], m_View.e[10], m_View.e[11]);
-			ImGui::Text("\t%.1f\t%.1f\t%.1f\t%.1f", m_View.e[12], m_View.e[13], m_View.e[14], m_View.e[15]);
-
-			ImGui::SeparatorText("ORIENTATION");
-
-			ImGui::SliderFloat3("Position", m_Data.Position.e, -10.f, 10.f);
-			ImGui::Text("Yaw: %.2f", m_Data.Yaw);
-			ImGui::Text("Pitch: %.2f", m_Data.Pitch);
-
-			ImGui::SeparatorText("PROPERTIES");
-
-
-			ImGui::Text("Type: ");
-			if (ImGui::Selectable("\tPerspective", m_IsPersp))
-			{
-				m_Data.Type = CameraType::Perspective;
-				m_Data.Near = 0.01f;
-				m_IsOrtho = false;
-			}
-			
-			if (ImGui::Selectable("\tOrthographic", m_IsOrtho))
-			{
-				m_Data.Type = CameraType::Orthographic;
-				m_Data.Near = 2.97f;
-				m_IsPersp = false;
-			}				
-			ImGui::Text("FOV: %.1f", m_Data.FOV);
-			ImGui::DragFloat("Speed", &m_Data.Speed, 1.f, 20.f);
-			ImGui::SliderFloat("Near", &m_Data.Near, 0.01f, 10.f);
-			ImGui::SliderFloat("Far", &m_Data.Far, 10.f, 100.f);
-
-			ImGui::TreePop();
-		}
-		
-		
-	}
 
 	void SceneCamera::SetDefaultProps()
 	{	
