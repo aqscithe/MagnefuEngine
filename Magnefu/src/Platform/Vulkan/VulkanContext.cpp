@@ -840,7 +840,7 @@ namespace Magnefu
 		swapChainCreateInfo.clipped = VK_TRUE;
 		swapChainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
-		if (vkCreateSwapchainKHR(m_VkDevice, &swapChainCreateInfo, s_Allocs, &m_SwapChain) != VK_SUCCESS)
+		if (vkCreateSwapchainKHR(m_VkDevice, &swapChainCreateInfo, nullptr, &m_SwapChain) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "Failed to create swap chain!");
 
 		vkGetSwapchainImagesKHR(m_VkDevice, m_SwapChain, &imageCount, nullptr);
@@ -1239,7 +1239,7 @@ namespace Magnefu
 			framebufferInfo.height = m_SwapChainExtent.height;
 			framebufferInfo.layers = 1;
 
-			if (vkCreateFramebuffer(m_VkDevice, &framebufferInfo, s_Allocs, &m_SwapChainFramebuffers[i]) != VK_SUCCESS)
+			if (vkCreateFramebuffer(m_VkDevice, &framebufferInfo, nullptr, &m_SwapChainFramebuffers[i]) != VK_SUCCESS)
 				MF_CORE_ASSERT(false, "failed to create framebuffer!");
 		}
 	}
@@ -2100,12 +2100,12 @@ namespace Magnefu
 		vmaDestroyImage(m_VmaAllocator, m_VulkanMemory.DepthImage, m_VulkanMemory.DepthResAllocation);
 
 		for (auto framebuffer : m_SwapChainFramebuffers)
-			vkDestroyFramebuffer(m_VkDevice, framebuffer, s_Allocs);
+			vkDestroyFramebuffer(m_VkDevice, framebuffer, nullptr);
 
 		for (auto imageView : m_SwapChainImageViews)
 			vkDestroyImageView(m_VkDevice, imageView, nullptr);
 
-		vkDestroySwapchainKHR(m_VkDevice, m_SwapChain, s_Allocs);
+		vkDestroySwapchainKHR(m_VkDevice, m_SwapChain, nullptr);
 	}
 
 
