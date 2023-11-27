@@ -23,6 +23,7 @@ namespace Magnefu
         MF_CORE_ASSERT(!s_Instance, "Application instance already exists.");
         s_Instance = this;
 
+        m_RM = Scope<ResourceManager>(ResourceManager::Create());
         m_SceneManager = Scope<SceneManager>(SceneManager::Create());
 
         {
@@ -33,7 +34,7 @@ namespace Magnefu
         }
         m_Minimized = false;
 
-        m_RM = Scope<ResourceManager>(ResourceManager::Create());
+        
 
 
         m_BufferResourceThread.join();

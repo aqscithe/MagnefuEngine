@@ -318,6 +318,30 @@ namespace Magnefu
 		else if (name == "ImGuiSignalSemaphores") return &m_ImGuiRenderFinishedSemaphores[m_CurrentFrame];
 	}
 
+	void VulkanContext::CalculateMemoryStats()
+	{
+		//vmaCalculateStatistics(m_VmaAllocator, &m_VulkanMemory.TotalStats);
+		vmaGetHeapBudgets(m_VmaAllocator, &m_VulkanMemory.Budgets);
+	}
+
+	MemoryStats VulkanContext::GetMemoryStats()
+	{
+		CalculateMemoryStats();
+
+		auto& vulkanStats = m_VulkanMemory.Budgets.statistics;
+		auto& vulkanBudget = m_VulkanMemory.Budgets;
+		MemoryStats stats;
+
+		stats.blockCount = vulkanStats.blockCount;
+		stats.blockBytes = (uint64_t)vulkanStats.blockBytes;
+		stats.allocationCount = vulkanStats.allocationCount;
+		stats.allocationBytes = (uint64_t)vulkanStats.allocationBytes;
+		stats.usage = vulkanBudget.usage;
+		stats.budget = vulkanBudget.budget;
+
+		return stats;
+	}
+
 	void VulkanContext::CreateVkInstance()
 	{
 		bool allLayersAvailable = true;
@@ -325,7 +349,7 @@ namespace Magnefu
 
 		VkApplicationInfo appInfo{};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-		appInfo.pApplicationName = "Sandbox - Vulkan";
+		appInfo.pApplicationName = "Magnefu Editor - Vulkan";
 		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.pEngineName = "Magnefu Engine - Vulkan";
 		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -624,6 +648,7 @@ namespace Magnefu
 
 	void VulkanContext::AllocateIndexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool)
 	{
+		
 		VkDeviceSize totalSize = 0;
 		VkDeviceSize size = 0;
 		VkDeviceSize offset = 0;

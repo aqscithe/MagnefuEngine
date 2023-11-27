@@ -78,6 +78,11 @@ namespace Magnefu
 
 	struct VulkanMemory
 	{
+		// Stats
+		VmaStatistics Stats;
+		VmaTotalStatistics TotalStats;
+		VmaBudget Budgets;
+		
 		// Vertex Buffer
 		std::vector<VkDeviceSize> VBufferOffsets;
 		VkBuffer                  VBuffer;
@@ -128,6 +133,10 @@ namespace Magnefu
 		const RendererInfo& GetRendererInfo() const override { return m_RendererInfo; }
 		void SetPushConstants(PushConstants& pushConstants) override { m_PushConstants = pushConstants; }
 
+		// Memory
+		void CalculateMemoryStats() override;
+		MemoryStats GetMemoryStats() override;
+
 		uint64_t GetVBufferOffset(uint32_t index) override { return static_cast<uint64_t>(m_VulkanMemory.VBufferOffsets[index]); }
 		uint64_t GetIBufferOffset(uint32_t index) override { return static_cast<uint64_t>(m_VulkanMemory.IBufferOffsets[index]); }
 
@@ -147,6 +156,8 @@ namespace Magnefu
 
 		inline const std::vector<VkBuffer>& GetUniformBuffers() { return m_VulkanMemory.UniformBuffers; }
 		inline VulkanMemory& GetVulkanMemory() { return m_VulkanMemory; }
+
+		
 
 
 	private:
@@ -250,9 +261,6 @@ namespace Magnefu
 		
 		uint32_t m_APIVersion = VK_API_VERSION_1_3;
 
-		// -- Vma Primitives -- //
-		VmaAllocator                m_VmaAllocator;
-
 
 		// -- Device Properties and Features -- //
 		VkPhysicalDeviceProperties   m_Properties{};
@@ -327,6 +335,8 @@ namespace Magnefu
 		//VkImage  m_FrameImageBuffer;
 		//VkImage  m_TextureImageBuffer;
 
+		// -- Vma Primitives -- //
+		VmaAllocator                m_VmaAllocator;
 		VulkanMemory m_VulkanMemory;
 		
 

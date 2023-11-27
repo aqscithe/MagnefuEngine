@@ -31,6 +31,7 @@ private:
 		void ShowComponentWindow();
 		void ShowAddComponentWidget();
 		void ShowMeshComponentWidget();
+		void ShowMemoryStats();
 
 	private:
 		void CreateNewScene();

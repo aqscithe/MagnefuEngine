@@ -13,6 +13,7 @@ static bool openCameraSettingsWindow = false;
 static bool openRendererSettingsWindow = false;
 static bool openControlsWindow = false;
 static bool showFramerate = false;
+static bool showMemoryStatsWindow = false;
 static int duplicateNameAppend = 0;
 static char sceneNameBuffer[128] = "";
 static const uint32_t MAX_SCENES = 1;
@@ -152,6 +153,7 @@ void EditorLayer::OnGUIRender()
 	ShowRendererSettingsWindow();
 	ShowControlsWindow();
 	ShowFramerateOverlay();
+	ShowMemoryStats();
 
 	if (m_ActiveScene)
 	{
@@ -205,6 +207,21 @@ void EditorLayer::ShowApplicationMenuBar()
 			if (ImGui::MenuItem("Toggle Framerate", NULL, false, true))
 			{
 				showFramerate = !showFramerate;
+			}
+			ImGui::EndMenu();
+		}
+
+		// Tools menu
+		if (ImGui::BeginMenu("Tools"))
+		{
+			// Memory
+			if (ImGui::BeginMenu("Memory"))
+			{
+				if (ImGui::MenuItem("Memory Stats", NULL, false, true))
+				{
+					showMemoryStatsWindow = true;
+				}
+				ImGui::EndMenu();
 			}
 			ImGui::EndMenu();
 		}
@@ -627,8 +644,6 @@ void EditorLayer::ShowAddComponentWidget()
 			if (ImGui::Selectable(COMPONENT_TYPES[i], isSelected))
 			{
 				currentComponent = i;
-				//showComponentCombo = false;
-				//ImGui::CloseCurrentPopup();
 			}
 			if (isSelected)
 			{
@@ -653,9 +668,7 @@ void EditorLayer::ShowAddComponentWidget()
 			}
 			else if (currentComponent == 1)  // MeshComponent
 			{ 
-				
-					showMeshComponentWidget = true;
-				
+				showMeshComponentWidget = true;
 			}
 			currentComponent = -1; // Reset selection
 		}
@@ -737,8 +750,6 @@ void EditorLayer::ShowComponentWindow()
 				ImGui::Separator();
 			}
 
-			ImGui::Separator();
-
 			ShowAddComponentWidget();
 
 			//if (ImGui::Button("Add Component"))
@@ -781,4 +792,60 @@ void EditorLayer::CreateNewScene()
 	duplicateNameAppend = 0;
 
 	m_ActiveScene = sceneManager.CreateScene(name);
+}
+
+void EditorLayer::ShowMemoryStats()
+{
+	if (!showMemoryStatsWindow) { return; }
+
+	if (ImGui::Begin("Memory Stats", &showMemoryStatsWindow, ImGuiWindowFlags_NoCollapse))
+	{
+		if (ImGui::Button("Update Memory Stats"))
+		{
+			Magnefu::Application::Get().GetWindow().GetGraphicsContext()->CalculateMemoryStats();
+		}
+		
+		
+		auto [blockCount, blockBytes, allocCount, allocBytes, usage, budget] = 
+			Magnefu::Application::Get().GetWindow().GetGraphicsContext()->GetMemoryStats();
+
+		ImGui::SeparatorText("VMA STATISTICS");
+
+		ImGui::Text("Block Count: %d", blockCount);
+		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Number of `VkDeviceMemory` objects - Vulkan memory blocks allocated."); }
+
+		ImGui::Text("Block Bytes: %llu", blockBytes); 
+		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Number of bytes allocated in `VkDeviceMemory` blocks."); }
+
+		ImGui::Text("Allocation Count: %d", allocCount);
+		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Number of #VmaAllocation objects allocated."); }
+
+		ImGui::Text("Allocation Bytes: %llu", allocBytes);
+		if (ImGui::IsItemHovered()) 
+		{ 
+			ImGui::SetTooltip("Total number of bytes occupied by all #VmaAllocation objects. \n\
+				Difference `(blockBytes - allocationBytes)` is the amount of memory allocated\n\
+				from Vulkan but unused by any #VmaAllocation."); 
+		}
+
+		ImVec4 color = usage > (0.8f * budget) ? ImVec4(1.0f, 0.0f, 0.0f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+		ImGui::TextColored(color, "Usage: %llu", usage);
+		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Estimated current memory usage of the program, in bytes."); }
+
+		ImGui::Text("Budget: %llu", budget);
+		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Estimated amount of memory available to the program, in bytes."); }
+
+		ImVec4 originalColor = ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram];
+		ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram] = ImVec4(0.2f, 0.9f, 0.4f, 1.0f);
+
+		ImGui::ProgressBar((float)usage / budget, ImVec2(0.0f, 0.0f), "Byte Usage");
+		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("%llu bytes remaining", budget - usage); }
+
+		ImGui::ProgressBar((float)allocBytes / blockBytes, ImVec2(0.0f, 0.0f), "VmaAllocation Byte Usage");
+		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("%d bytes remaining", blockBytes - allocBytes); }
+		ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram] = originalColor;
+
+
+		ImGui::End();
+	}
 }
