@@ -170,7 +170,9 @@ namespace Magnefu
 	{
 		CleanupSwapChain();
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		// -- COMPUTE SHADER CLEANUP -- //
+
+		/*for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			vkDestroyBuffer(m_VkDevice, m_ComputeUniformBuffers[i], s_Allocs);
 			vkFreeMemory(m_VkDevice, m_ComputeUniformBuffersMemory[i], s_Allocs);
@@ -183,8 +185,9 @@ namespace Magnefu
 		}
 
 		vkDestroyDescriptorPool(m_VkDevice, m_ComputeDescriptorPool, s_Allocs);
-		vkDestroyDescriptorSetLayout(m_VkDevice, m_ComputeDescriptorSetLayout, s_Allocs);
+		vkDestroyDescriptorSetLayout(m_VkDevice, m_ComputeDescriptorSetLayout, s_Allocs);*/
 
+		// ----------------------------- //
 
 		vkDestroyRenderPass(m_VkDevice, m_RenderPass, s_Allocs);
 
@@ -248,15 +251,6 @@ namespace Magnefu
 
 	void VulkanContext::TempSecondaryInit()
 	{
-		
-		//CreateComputeDescriptorSetLayout();
-		//CreateGraphicsPipeline();  // --> Shader class
-		//CreateParticleGraphicsPipeline();
-		
-		//CreateShaderStorageBuffers(); // For Compute pipeline
-		//CreateComputePipeline();
-
-
 		// -- FrameBuffer Class -- //
 		CreateImageViews();
 		CreateColorResources();
@@ -264,20 +258,13 @@ namespace Magnefu
 		CreateFrameBuffers();
 		// -- FrameBuffer Class -- //
 
-
-		//CreateComputeUniformBuffers();
-		//CreateComputeDescriptorPool();
-		//CreateComputeDescriptorSets();
-
 		CreateCommandBuffers();
-		//CreateComputeCommandBuffers();
 		CreateSyncObjects();
 
 	}
 
 	void VulkanContext::DrawFrame()
 	{
-		//PerformComputeOps();
 		PerformGraphicsOps();
 		PresentImage();
 	}
@@ -961,291 +948,7 @@ namespace Magnefu
 			MF_CORE_ASSERT(false, "failed to create render pass!");
 	}
 
-	void VulkanContext::CreateComputeDescriptorSetLayout()
-	{
-		std::array<VkDescriptorSetLayoutBinding, 3> layoutBindings{};
-		layoutBindings[0].binding = 0;
-		layoutBindings[0].descriptorCount = 1;
-		layoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		layoutBindings[0].pImmutableSamplers = nullptr;
-		layoutBindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-
-		layoutBindings[1].binding = 1;
-		layoutBindings[1].descriptorCount = 1;
-		layoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-		layoutBindings[1].pImmutableSamplers = nullptr;
-		layoutBindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-
-		layoutBindings[2].binding = 2;
-		layoutBindings[2].descriptorCount = 1;
-		layoutBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-		layoutBindings[2].pImmutableSamplers = nullptr;
-		layoutBindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-
-		VkDescriptorSetLayoutCreateInfo layoutInfo{};
-		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		layoutInfo.bindingCount = 3;
-		layoutInfo.pBindings = layoutBindings.data();
-
-		if (vkCreateDescriptorSetLayout(m_VkDevice, &layoutInfo, s_Allocs, &m_ComputeDescriptorSetLayout) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create compute descriptor set layout!");
-		}
-	}
-
-
-	//void VulkanContext::CreateParticleGraphicsPipeline()
-	//{
-	//	m_ParticleShaderList = ParseShader(PARTICLE_SHADER_PATH);
-	//	VkShaderModule vertShaderModule = CreateShaderModule(m_ParticleShaderList.Vertex);
-	//	VkShaderModule fragShaderModule = CreateShaderModule(m_ParticleShaderList.Fragment);
-
-	//	VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
-	//	vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	//	vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-	//	vertShaderStageInfo.module = vertShaderModule;
-	//	vertShaderStageInfo.pName = "main";
-
-	//	VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
-	//	fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	//	fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-	//	fragShaderStageInfo.module = fragShaderModule;
-	//	fragShaderStageInfo.pName = "main";
-
-	//	VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
-
-	//	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-	//	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-
-	//	auto bindingDescription = Particle::GetBindingDescription();
-	//	auto attributeDescriptions = Particle::GetAttributeDescriptions();
-
-	//	vertexInputInfo.vertexBindingDescriptionCount = 1;
-	//	vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-	//	vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
-	//	vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
-
-	//	VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
-	//	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-	//	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
-	//	inputAssembly.primitiveRestartEnable = VK_FALSE;
-
-	//	VkPipelineViewportStateCreateInfo viewportState{};
-	//	viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-	//	viewportState.viewportCount = 1;
-	//	viewportState.scissorCount = 1;
-
-	//	VkPipelineRasterizationStateCreateInfo rasterizer{};
-	//	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-	//	rasterizer.depthClampEnable = VK_FALSE;
-	//	rasterizer.rasterizerDiscardEnable = VK_FALSE;
-	//	rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
-	//	rasterizer.lineWidth = 1.f;
-	//	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-	//	rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE; //VK_FRONT_FACE_CLOCKWISE;
-	//	rasterizer.depthBiasEnable = VK_FALSE;
-	//	rasterizer.depthBiasConstantFactor = 0.0f; // Optional
-	//	rasterizer.depthBiasClamp = 0.0f; // Optional
-	//	rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
-
-	//	VkPipelineMultisampleStateCreateInfo multisampling{};
-	//	multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-	//	multisampling.sampleShadingEnable = VK_FALSE;
-	//	multisampling.rasterizationSamples = m_MSAASamples;
-	//	multisampling.minSampleShading = 1.f; // Optional
-	//	multisampling.pSampleMask = nullptr; // Optional
-	//	multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
-	//	multisampling.alphaToOneEnable = VK_FALSE; // Optional
-
-	//	VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-	//	colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	//	colorBlendAttachment.blendEnable = VK_TRUE;
-	//	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-	//	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-	//	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-	//	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-	//	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-	//	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-
-	//	// Depth & Stencil Testing
-	//	VkPipelineDepthStencilStateCreateInfo depthStencil{};
-	//	depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-	//	depthStencil.depthTestEnable = VK_TRUE;
-	//	depthStencil.depthWriteEnable = VK_TRUE;
-	//	depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
-	//	depthStencil.depthBoundsTestEnable = VK_FALSE;
-	//	depthStencil.minDepthBounds = 0.0f; // Optional
-	//	depthStencil.maxDepthBounds = 1.0f; // Optional
-	//	depthStencil.stencilTestEnable = VK_FALSE;
-	//	depthStencil.front = {}; // Optional
-	//	depthStencil.back = {}; // Optional
-
-	//	VkPipelineColorBlendStateCreateInfo colorBlending{};
-	//	colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-	//	colorBlending.logicOpEnable = VK_FALSE;
-	//	colorBlending.logicOp = VK_LOGIC_OP_COPY;
-	//	colorBlending.attachmentCount = 1;
-	//	colorBlending.pAttachments = &colorBlendAttachment;
-	//	colorBlending.blendConstants[0] = 0.0f;
-	//	colorBlending.blendConstants[1] = 0.0f;
-	//	colorBlending.blendConstants[2] = 0.0f;
-	//	colorBlending.blendConstants[3] = 0.0f;
-
-	//	std::vector<VkDynamicState> dynamicStates = {
-	//		VK_DYNAMIC_STATE_VIEWPORT,
-	//		VK_DYNAMIC_STATE_SCISSOR
-	//	};
-	//	VkPipelineDynamicStateCreateInfo dynamicState{};
-	//	dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-	//	dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
-	//	dynamicState.pDynamicStates = dynamicStates.data();
-
-	//	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-	//	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	//	pipelineLayoutInfo.setLayoutCount = 0;
-	//	pipelineLayoutInfo.pSetLayouts = nullptr;
-
-	//	if (vkCreatePipelineLayout(m_VkDevice, &pipelineLayoutInfo, nullptr, &m_ParticleGraphicsPipelineLayout) != VK_SUCCESS)
-	//		MF_CORE_ASSERT(false, "failed to create particle pipeline layout!");
-	//	
-
-	//	VkGraphicsPipelineCreateInfo pipelineInfo{};
-	//	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-	//	pipelineInfo.stageCount = 2;
-	//	pipelineInfo.pStages = shaderStages;
-	//	pipelineInfo.pVertexInputState = &vertexInputInfo;
-	//	pipelineInfo.pInputAssemblyState = &inputAssembly;
-	//	pipelineInfo.pViewportState = &viewportState;
-	//	pipelineInfo.pRasterizationState = &rasterizer;
-	//	pipelineInfo.pMultisampleState = &multisampling;
-	//	pipelineInfo.pDepthStencilState = &depthStencil;
-	//	pipelineInfo.pColorBlendState = &colorBlending;
-	//	pipelineInfo.pDynamicState = &dynamicState;
-	//	pipelineInfo.layout = m_ParticleGraphicsPipelineLayout;
-	//	pipelineInfo.renderPass = m_RenderPass;
-	//	pipelineInfo.subpass = 0;
-	//	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-
-	//	if (vkCreateGraphicsPipelines(m_VkDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_ParticleGraphicsPipeline) != VK_SUCCESS)
-	//		MF_CORE_ASSERT(false, "failed to create graphics pipeline!");
-	//	
-
-	//	vkDestroyShaderModule(m_VkDevice, fragShaderModule, nullptr);
-	//	vkDestroyShaderModule(m_VkDevice, vertShaderModule, nullptr);
-	//}
-
-	void VulkanContext::CreateShaderStorageBuffers()
-	{
-		m_ShaderStorageBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-		m_ShaderStorageBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-
-		// Initialize particles
-		std::default_random_engine rndEngine((unsigned)time(nullptr));
-		std::uniform_real_distribution<float> rndDist(0.0f, 1.0f);
-
-		// Initial particle positions on a circle
-		std::vector<Particle> particles(PARTICLE_COUNT);
-		for (auto& particle : particles) {
-			float r = 0.25f * sqrt(rndDist(rndEngine));
-			float theta = rndDist(rndEngine) * 2 * 3.14159265358979323846;
-			float x = r * cos(theta) * HEIGHT / WIDTH;
-			float y = r * sin(theta);
-			particle.position = Maths::vec2(x, y);
-			particle.velocity = Maths::normalize(Maths::vec2(x, y)) * 0.00025f;
-			particle.color    = Maths::vec4(rndDist(rndEngine), rndDist(rndEngine), rndDist(rndEngine), 1.0f);
-		}
-
-		VkDeviceSize bufferSize = sizeof(Particle) * PARTICLE_COUNT;
-
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
-
-		VulkanCommon::CreateBuffer(
-			bufferSize,
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			stagingBuffer,
-			stagingBufferMemory
-		);
-
-		void* data;
-		vkMapMemory(m_VkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-		memcpy(data, particles.data(), (size_t)bufferSize);
-		vkUnmapMemory(m_VkDevice, stagingBufferMemory);
-
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-		{
-			VulkanCommon::CreateBuffer(
-				bufferSize,
-				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-				m_ShaderStorageBuffers[i],
-				m_ShaderStorageBuffersMemory[i]
-			);
-
-			// Copy data from the staging buffer (host) to the shader storage buffer (GPU)
-			VulkanCommon::CopyBuffer(stagingBuffer, m_ShaderStorageBuffers[i], bufferSize, VK_NULL_HANDLE);
-		}
-
-		std::array<VkDescriptorSetLayoutBinding, 3> layoutBindings{};
-		layoutBindings[0].binding = 0;
-		layoutBindings[0].descriptorCount = 1;
-		layoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		layoutBindings[0].pImmutableSamplers = nullptr;
-		layoutBindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-
-		layoutBindings[1].binding = 1;
-		layoutBindings[1].descriptorCount = 1;
-		layoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-		layoutBindings[1].pImmutableSamplers = nullptr;
-		layoutBindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-
-		layoutBindings[2].binding = 2;
-		layoutBindings[2].descriptorCount = 1;
-		layoutBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-		layoutBindings[2].pImmutableSamplers = nullptr;
-		layoutBindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-
-		VkDescriptorSetLayoutCreateInfo layoutInfo{};
-		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		layoutInfo.bindingCount = 3;
-		layoutInfo.pBindings = layoutBindings.data();
-
-		if (vkCreateDescriptorSetLayout(m_VkDevice, &layoutInfo, nullptr, &m_ComputeDescriptorSetLayout) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "failed to create COMPUTE descriptor set layout!");
-		
-
-	}
-
-	/*void VulkanContext::CreateComputePipeline()
-	{
-		VkShaderModule computeShaderModule = CreateShaderModule(m_ParticleShaderList.Compute);
-
-		VkPipelineShaderStageCreateInfo computeShaderStageInfo{};
-		computeShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		computeShaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
-		computeShaderStageInfo.module = computeShaderModule;
-		computeShaderStageInfo.pName = "main";
-		computeShaderStageInfo.pSpecializationInfo = nullptr;
-
-		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = 1;
-		pipelineLayoutInfo.pSetLayouts = &m_ComputeDescriptorSetLayout;
-
-		if (vkCreatePipelineLayout(m_VkDevice, &pipelineLayoutInfo, nullptr, &m_ComputePipelineLayout) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "failed to create compute pipeline layout!");
-		
-
-		VkComputePipelineCreateInfo pipelineInfo{};
-		pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
-		pipelineInfo.layout = m_ComputePipelineLayout;
-		pipelineInfo.stage = computeShaderStageInfo;
-
-		if (vkCreateComputePipelines(m_VkDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_ComputePipeline) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "failed to create compute pipeline!");
-		
-
-	}*/
+	
 
 	void VulkanContext::CreateFrameBuffers()
 	{
@@ -1538,109 +1241,6 @@ namespace Magnefu
 		SOIL_free_image_data(pixels);
 	}
 
-	void VulkanContext::CreateComputeUniformBuffers()
-	{
-		VkDeviceSize bufferSize = sizeof(ParticleUniformBufferObject);
-
-		m_ComputeUniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-		m_ComputeUniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-		m_ComputeUniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
-
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			VulkanCommon::CreateBuffer(
-				bufferSize, 
-				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
-				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-				m_ComputeUniformBuffers[i], 
-				m_ComputeUniformBuffersMemory[i]
-			);
-
-			vkMapMemory(m_VkDevice, m_ComputeUniformBuffersMemory[i], 0, bufferSize, 0, &m_ComputeUniformBuffersMapped[i]);
-		}
-	}
-
-	void VulkanContext::CreateComputeDescriptorPool()
-	{
-		std::array<VkDescriptorPoolSize, 2> poolSizes{};
-
-		poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-
-		poolSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-		poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * 2;
-
-		VkDescriptorPoolCreateInfo poolInfo{};
-		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-		poolInfo.pPoolSizes = poolSizes.data();
-		poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-
-		if (vkCreateDescriptorPool(m_VkDevice, &poolInfo, s_Allocs, &m_ComputeDescriptorPool) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "failed to create COMPUTE descriptor pool!");
-	}
-
-	void VulkanContext::CreateComputeDescriptorSets()
-	{
-		std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_ComputeDescriptorSetLayout);
-		VkDescriptorSetAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocInfo.descriptorPool = m_ComputeDescriptorPool;
-		allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-		allocInfo.pSetLayouts = layouts.data();
-
-		m_ComputeDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-		if (vkAllocateDescriptorSets(m_VkDevice, &allocInfo, m_ComputeDescriptorSets.data()) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "failed to allocate COMPUTE descriptor sets!");
-
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-		{
-			std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
-
-			VkDescriptorBufferInfo uniformBufferInfo{};
-			uniformBufferInfo.buffer = m_ComputeUniformBuffers[i];
-			uniformBufferInfo.offset = 0;
-			uniformBufferInfo.range = sizeof(ParticleUniformBufferObject);
-
-			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[0].dstSet = m_ComputeDescriptorSets[i];
-			descriptorWrites[0].dstBinding = 0;
-			descriptorWrites[0].dstArrayElement = 0;
-			descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			descriptorWrites[0].descriptorCount = 1;
-			descriptorWrites[0].pBufferInfo = &uniformBufferInfo;
-			descriptorWrites[0].pImageInfo = nullptr; // Optional
-			descriptorWrites[0].pTexelBufferView = nullptr; // Optional
-
-			VkDescriptorBufferInfo storageBufferInfoLastFrame{};
-			storageBufferInfoLastFrame.buffer = m_ShaderStorageBuffers[(i - 1) % MAX_FRAMES_IN_FLIGHT];
-			storageBufferInfoLastFrame.offset = 0;
-			storageBufferInfoLastFrame.range = sizeof(Particle) * PARTICLE_COUNT;
-
-			descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[1].dstSet = m_ComputeDescriptorSets[i];
-			descriptorWrites[1].dstBinding = 1;
-			descriptorWrites[1].dstArrayElement = 0;
-			descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-			descriptorWrites[1].descriptorCount = 1;
-			descriptorWrites[1].pBufferInfo = &storageBufferInfoLastFrame;
-
-			VkDescriptorBufferInfo storageBufferInfoCurrentFrame{};
-			storageBufferInfoCurrentFrame.buffer = m_ShaderStorageBuffers[i];
-			storageBufferInfoCurrentFrame.offset = 0;
-			storageBufferInfoCurrentFrame.range = sizeof(Particle) * PARTICLE_COUNT;
-
-			descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[2].dstSet = m_ComputeDescriptorSets[i];
-			descriptorWrites[2].dstBinding = 2;
-			descriptorWrites[2].dstArrayElement = 0;
-			descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-			descriptorWrites[2].descriptorCount = 1;
-			descriptorWrites[2].pBufferInfo = &storageBufferInfoCurrentFrame;
-
-			vkUpdateDescriptorSets(m_VkDevice, 3, descriptorWrites.data(), 0, nullptr);
-
-		}
-	}
 
 	void VulkanContext::CreateCommandBuffers()
 	{
@@ -1665,69 +1265,6 @@ namespace Magnefu
 
 		if (vkAllocateCommandBuffers(m_VkDevice, &allocInfo, m_ImGuiCommandBuffers.data()) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to allocate command buffers!");
-		
-	}
-
-	void VulkanContext::CreateComputeCommandBuffers()
-	{
-		m_ComputeCommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-
-		VkCommandBufferAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		allocInfo.commandPool = m_CommandPool;
-		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandBufferCount = (uint32_t)m_ComputeCommandBuffers.size();
-
-		if (vkAllocateCommandBuffers(m_VkDevice, &allocInfo, m_ComputeCommandBuffers.data()) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "failed to allocate compute command buffers!");
-		
-	}
-
-	void VulkanContext::CreateSyncObjects()
-	{
-		
-		m_ComputeFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-		m_ComputeInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-
-		VkSemaphoreCreateInfo computeSemaphoreInfo{};
-		computeSemaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-		VkFenceCreateInfo computeFenceInfo{};
-		computeFenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-		computeFenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-
-		m_ImageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-		m_ImGuiRenderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-		m_RenderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-
-		m_InFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-		m_ImGuiInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-
-		VkSemaphoreCreateInfo semaphoreInfo{};
-		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-		VkFenceCreateInfo fenceInfo{};
-		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-		{
-			if (vkCreateSemaphore(m_VkDevice, &computeSemaphoreInfo, s_Allocs, &m_ComputeFinishedSemaphores[i]) != VK_SUCCESS ||
-				vkCreateFence(m_VkDevice, &computeFenceInfo, s_Allocs, &m_ComputeInFlightFences[i]) != VK_SUCCESS)
-			{
-				MF_CORE_ASSERT(false, "failed to create COMPUTE semaphores and/or fences!");
-			}
-
-			if (vkCreateSemaphore(m_VkDevice, &semaphoreInfo, s_Allocs, &m_ImageAvailableSemaphores[i]) != VK_SUCCESS ||
-				vkCreateSemaphore(m_VkDevice, &semaphoreInfo, s_Allocs, &m_ImGuiRenderFinishedSemaphores[i]) != VK_SUCCESS ||
-				vkCreateSemaphore(m_VkDevice, &semaphoreInfo, s_Allocs, &m_RenderFinishedSemaphores[i]) != VK_SUCCESS ||
-				vkCreateFence(m_VkDevice, &fenceInfo, s_Allocs, &m_InFlightFences[i]) != VK_SUCCESS ||
-				vkCreateFence(m_VkDevice, &fenceInfo, s_Allocs, &m_ImGuiInFlightFences[i]) != VK_SUCCESS)
-			{
-				MF_CORE_ASSERT(false, "failed to create GRAPHICS semaphores and/or fences!");
-			}
-		}
 		
 	}
 
@@ -2034,30 +1571,6 @@ namespace Magnefu
 		}
 			
 
-			// PARTICLE PIPELINE
-			/*vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_ParticleGraphicsPipeline);
-
-			{
-				VkViewport viewport{};
-				viewport.x = 0.0f;
-				viewport.y = 0.0f;
-				viewport.width = (float)m_SwapChainExtent.width;
-				viewport.height = (float)m_SwapChainExtent.height;
-				viewport.minDepth = 0.0f;
-				viewport.maxDepth = 1.0f;
-				vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-				VkRect2D scissor{};
-				scissor.offset = { 0, 0 };
-				scissor.extent = m_SwapChainExtent;
-				vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-				VkDeviceSize offsets[] = { 0 };
-				vkCmdBindVertexBuffers(commandBuffer, 0, 1, &m_ShaderStorageBuffers[m_CurrentFrame], offsets);
-
-				vkCmdDraw(commandBuffer, PARTICLE_COUNT, 1, 0, 0);
-			}*/
-
 		vkCmdEndRenderPass(commandBuffer);
 
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
@@ -2082,6 +1595,39 @@ namespace Magnefu
 			}
 		}
 		
+	}
+
+	void VulkanContext::CreateSyncObjects()
+	{
+
+
+		m_ImageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+		m_ImGuiRenderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+		m_RenderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+
+		m_InFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+		m_ImGuiInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+
+		VkSemaphoreCreateInfo semaphoreInfo{};
+		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+		VkFenceCreateInfo fenceInfo{};
+		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+
+			if (vkCreateSemaphore(m_VkDevice, &semaphoreInfo, s_Allocs, &m_ImageAvailableSemaphores[i]) != VK_SUCCESS ||
+				vkCreateSemaphore(m_VkDevice, &semaphoreInfo, s_Allocs, &m_ImGuiRenderFinishedSemaphores[i]) != VK_SUCCESS ||
+				vkCreateSemaphore(m_VkDevice, &semaphoreInfo, s_Allocs, &m_RenderFinishedSemaphores[i]) != VK_SUCCESS ||
+				vkCreateFence(m_VkDevice, &fenceInfo, s_Allocs, &m_InFlightFences[i]) != VK_SUCCESS ||
+				vkCreateFence(m_VkDevice, &fenceInfo, s_Allocs, &m_ImGuiInFlightFences[i]) != VK_SUCCESS)
+			{
+				MF_CORE_ASSERT(false, "failed to create GRAPHICS semaphores and/or fences!");
+			}
+		}
+
 	}
 
 
@@ -2134,16 +1680,6 @@ namespace Magnefu
 	}
 
 
-	void VulkanContext::UpdateComputeUniformBuffer()
-	{
-		//Application& app = Application::Get();
-		ParticleUniformBufferObject ubo{};
-		ubo.deltaTime = Application::Get().GetTimeStep().GetDeltaTime() * 1000.f * 2.0f;
-
-		memcpy(m_ComputeUniformBuffersMapped[m_CurrentFrame], &ubo, sizeof(ubo));
-	}
-
-
 	VkFormat VulkanContext::FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
 	{
 		for (VkFormat format : candidates) 
@@ -2190,50 +1726,7 @@ namespace Magnefu
 		return VK_SAMPLE_COUNT_1_BIT;
 	}
 
-	void VulkanContext::RecordComputeCommandBuffer(VkCommandBuffer commandBuffer)
-	{
-		VkCommandBufferBeginInfo beginInfo{};
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
-		if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "failed to begin recording compute command buffer!");
-		
-
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_ComputePipeline);
-
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_ComputePipelineLayout, 0, 1, &m_ComputeDescriptorSets[m_CurrentFrame], 0, nullptr);
-
-		vkCmdDispatch(commandBuffer, PARTICLE_COUNT / 256, 1, 1);
-
-		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "failed to record compute command buffer!");
-		
-	}
-
-	void VulkanContext::PerformComputeOps()
-	{
-		// COMPUTE SUBMISSION //
-
-		// Wait for previous frame
-		vkWaitForFences(m_VkDevice, 1, &m_ComputeInFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
-
-		UpdateComputeUniformBuffer();
-
-		vkResetFences(m_VkDevice, 1, &m_ComputeInFlightFences[m_CurrentFrame]);
-
-		vkResetCommandBuffer(m_ComputeCommandBuffers[m_CurrentFrame], /*VkCommandBufferResetFlagBits*/ 0);
-		RecordComputeCommandBuffer(m_ComputeCommandBuffers[m_CurrentFrame]);
-
-		VkSubmitInfo submitInfo{};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &m_ComputeCommandBuffers[m_CurrentFrame];
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = &m_ComputeFinishedSemaphores[m_CurrentFrame];
-
-		if (vkQueueSubmit(m_ComputeQueue, 1, &submitInfo, m_ComputeInFlightFences[m_CurrentFrame]) != VK_SUCCESS)
-			MF_CORE_ASSERT(false, "failed to submit compute command buffer!");
-	}
 
 	void VulkanContext::PerformGraphicsOps()
 	{

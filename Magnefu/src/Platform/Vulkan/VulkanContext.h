@@ -178,23 +178,14 @@ namespace Magnefu
 		void CreateSwapChain();
 		void CreateImageViews();
 		void CreateRenderPass();
-		void CreateComputeDescriptorSetLayout();
-		//void CreateGraphicsPipeline();
-		//void CreateParticleGraphicsPipeline();
 		void CreateFrameBuffers();
 		void CreateCommandPool();
-		void CreateShaderStorageBuffers();
-		//void CreateComputePipeline();
 		void CreateColorResources();
 		void CreateDepthResources();
 		void LoadModels();
 		void LoadTextures();
 
-		void CreateComputeUniformBuffers();
-		void CreateComputeDescriptorPool();
-		void CreateComputeDescriptorSets();
 		void CreateCommandBuffers();
-		void CreateComputeCommandBuffers();
 		void CreateSyncObjects();
 
 
@@ -228,8 +219,6 @@ namespace Magnefu
 		
 
 		// Uniforms
-		//void UpdateUniformBuffer();
-		void UpdateComputeUniformBuffer();
 
 		// Depth 
 		bool HasStencilComponent(VkFormat format);
@@ -238,10 +227,8 @@ namespace Magnefu
 		
 
 		// Part of Render Loop
-		void RecordComputeCommandBuffer(VkCommandBuffer commandBuffer);
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 		void RecreateSwapChain();
-		void PerformComputeOps();
 		void PerformGraphicsOps();
 		void PresentImage();
 
@@ -299,9 +286,6 @@ namespace Magnefu
 
 		// -- Render Pass and Pipeline Primitives -- //
 		VkRenderPass                 m_RenderPass;
-		//ShaderList                   m_ParticleShaderList;
-		//VkPipelineLayout             m_PipelineLayout;
-		//VkPipeline                   m_GraphicsPipeline;
 		std::vector<VkFramebuffer>   m_SwapChainFramebuffers;
 		VkCommandPool                m_CommandPool;
 		std::vector<VkCommandBuffer> m_CommandBuffers;
@@ -321,19 +305,11 @@ namespace Magnefu
 
 		// -- Image Buffers -- //
 
-		//VkImage                      m_DepthImage;
-		//VkDeviceMemory               m_DepthImageMemory;
 		VkImageView                  m_DepthImageView;
-		//VkImage                      m_ColorImage;
-		//VkDeviceMemory               m_ColorImageMemory;
 		VkImageView                  m_ColorImageView;
 
 		// -- Memory Allocations -- //
 
-		//VkBuffer m_VerticesBuffer;
-		//VkBuffer m_IndicesBuffer;
-		//VkImage  m_FrameImageBuffer;
-		//VkImage  m_TextureImageBuffer;
 
 		// -- Vma Primitives -- //
 		VmaAllocator                m_VmaAllocator;
@@ -341,22 +317,6 @@ namespace Magnefu
 		
 
 		//------------------- Compute Shader ---------------------- //
-		std::vector<VkBuffer>        m_ShaderStorageBuffers;
-		std::vector<VkDeviceMemory>  m_ShaderStorageBuffersMemory;
-		VkDescriptorSetLayout        m_ComputeDescriptorSetLayout;
-		VkDescriptorPool             m_ComputeDescriptorPool;
-		std::vector<VkDescriptorSet> m_ComputeDescriptorSets;
-		std::vector<VkBuffer>        m_ComputeUniformBuffers;
-		std::vector<VkDeviceMemory>  m_ComputeUniformBuffersMemory;
-		std::vector<void*>           m_ComputeUniformBuffersMapped;
-		VkPipeline                   m_ComputePipeline;
-		VkPipelineLayout             m_ComputePipelineLayout;
-		std::vector<VkFence>         m_ComputeInFlightFences;
-		std::vector<VkSemaphore>     m_ComputeFinishedSemaphores;
-		std::vector<VkCommandBuffer> m_ComputeCommandBuffers;
-
-		VkPipeline                   m_ParticleGraphicsPipeline;
-		VkPipelineLayout             m_ParticleGraphicsPipelineLayout;
 		// -------------------------------------------------------- //
 
 		PushConstants                m_PushConstants;
