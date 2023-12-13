@@ -37,10 +37,10 @@ namespace Magnefu
         
 
 
-        //m_BufferResourceThread.join();
+        m_BufferResourceThread.join();
 
         // -- Global RenderPass -- //
-        /*m_RenderPassGlobals = m_RM->CreateBindGroup({
+        m_RenderPassGlobals = m_RM->CreateBindGroup({
             .DebugName  = "Render Pass Globals",
             .LayoutType = BindingLayoutType::LAYOUT_RENDERPASS,
             .Layout     = DEFAULT_RENDERPASS_BINDING_LAYOUT,
@@ -60,7 +60,7 @@ namespace Magnefu
                     TextureFormat::FORMAT_R32G32B32A32_SFLOAT,
                 }},
             .Buffers    = RenderPassUniformBufferDesc
-        });*/
+        });
 
         // -- Scene Objects -- //
 
@@ -69,8 +69,8 @@ namespace Magnefu
         // need to get info on whether the object is textured from
         // MODEL_PATHS
 
-        /*for (size_t i = 0; i < m_SceneObjects.size(); i++)
-            m_SceneObjects[i].Init(i);*/
+        for (size_t i = 0; i < m_SceneObjects.size(); i++)
+            m_SceneObjects[i].Init(i);
 
 
         // NON AREA LIGHTS

@@ -236,16 +236,16 @@ namespace Magnefu
 		CreateLogicalDevice();
 		CreateSwapChain();
 		CreateCommandPool(); 
-		//LoadModels();
-		//LoadTextures();
+		LoadModels();
+		LoadTextures();
 		CreateRenderPass();
 
 		// The Application should tell Context how much memory is needed à la m_GraphicsContext->AllocateResourceMemory(BytesStruct)
 		// For now, I will explicitly state within the function what is needed.
 		CreateVmaAllocator();
 
-		//std::thread& bufferThread = Application::Get().GetBufferThread();
-		//bufferThread = std::thread(&VulkanContext::AllocateBufferMemory, this);
+		std::thread& bufferThread = Application::Get().GetBufferThread();
+		bufferThread = std::thread(&VulkanContext::AllocateBufferMemory, this);
 
 	}
 
@@ -1484,8 +1484,8 @@ namespace Magnefu
 		Application& app = Application::Get();
 		ResourceManager& rm = Application::Get().GetResourceManager();
 
-		/*VulkanBindGroup& renderpassGlobals = static_cast<VulkanBindGroup&>(rm.GetBindGroup(app.GetRenderPassBindGroup()));
-		VulkanUniformBuffer& renderpassUniformBuffer = static_cast<VulkanUniformBuffer&>(rm.GetBuffer(renderpassGlobals.GetUniformsHandle()));*/
+		VulkanBindGroup& renderpassGlobals = static_cast<VulkanBindGroup&>(rm.GetBindGroup(app.GetRenderPassBindGroup()));
+		VulkanUniformBuffer& renderpassUniformBuffer = static_cast<VulkanUniformBuffer&>(rm.GetBuffer(renderpassGlobals.GetUniformsHandle()));
 
 
 		VkCommandBufferBeginInfo beginInfo{};
@@ -1532,7 +1532,7 @@ namespace Magnefu
 
 		auto& sceneObjects = app.GetSceneObjects();		
 
-		/*for (auto& sceneObject : sceneObjects)
+		for (auto& sceneObject : sceneObjects)
 		{
 			VulkanShader& shader = static_cast<VulkanShader&>(rm.GetShader(sceneObject.GetGraphicsPipelineShaderHandle()));
 			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader.GetPipeline());
@@ -1568,7 +1568,7 @@ namespace Magnefu
 			}
 			
 			
-		}*/
+		}
 			
 
 		vkCmdEndRenderPass(commandBuffer);
@@ -1578,7 +1578,7 @@ namespace Magnefu
 
 		// -- Update Uniform Buffers -- //
 
-		/*renderpassUniformBuffer.UpdateUniformBuffer(Material{});
+		renderpassUniformBuffer.UpdateUniformBuffer(Material{});
 
 		for (auto& sceneObject : sceneObjects)
 		{
@@ -1593,7 +1593,7 @@ namespace Magnefu
 			{
 				materialUniformBuffer.UpdateUniformBuffer(sceneObject.GetMaterialData());
 			}
-		}*/
+		}
 		
 	}
 

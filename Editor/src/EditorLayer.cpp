@@ -60,7 +60,7 @@ EditorLayer::EditorLayer() :
 
 	// Get number of area light instances in the scene
 	// Area Lights are currently at index 1
-	/*m_AreaLightCount = m_SceneObjects[1].GetInstanceCount();
+	m_AreaLightCount = m_SceneObjects[1].GetInstanceCount();
 
 	app.SetAreaLightCount(m_AreaLightCount);
 
@@ -71,7 +71,7 @@ EditorLayer::EditorLayer() :
 		light.Color = Maths::vec3(1.f);
 		light.Translation = Maths::vec3(0.f);
 		light.TwoSided = 1;
-	}*/
+	}
 
 	// ------------------------------ //
 
@@ -115,17 +115,17 @@ void EditorLayer::OnUpdate(float deltaTime)
 {
 	m_Camera->ProcessInput(deltaTime);
 	m_GraphicsContext->SetPushConstants(m_PushConstants);
-	//Magnefu::Application::Get().SetAreaLightData(m_AreaLights);
+	Magnefu::Application::Get().SetAreaLightData(m_AreaLights);
 
 
 	//// Getting material applied to area light geometry
-	//auto& material = m_SceneObjects[1].GetMaterialDataInstanced();
-	//int instanceCount = m_SceneObjects[1].GetInstanceCount();
+	auto& material = m_SceneObjects[1].GetMaterialDataInstanced();
+	int instanceCount = m_SceneObjects[1].GetInstanceCount();
 
-	//for (int instance = 0; instance < instanceCount; instance++)
-	//{
-	//	material.Translation[instance] = m_AreaLights[instance].Translation;
-	//}
+	for (int instance = 0; instance < instanceCount; instance++)
+	{
+		material.Translation[instance] = m_AreaLights[instance].Translation;
+	}
 }
 
 void EditorLayer::OnEvent(Magnefu::Event& e)
