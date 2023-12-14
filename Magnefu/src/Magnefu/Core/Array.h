@@ -1,8 +1,6 @@
 #pragma once
 
-#include "Typedefs.hpp"
 #include "MemoryAllocation/Memory.hpp"
-#include "Assertions.h"
 
 namespace Magnefu
 {
@@ -75,6 +73,9 @@ namespace Magnefu
 
 	// -- Implementation ----------------------------------- //
 
+
+	// -- Array Aligned -- //
+
 	template<typename T>
 	inline Array<T>::Array()
 	{
@@ -142,28 +143,28 @@ namespace Magnefu
 	template<typename T>
 	inline void Array<T>::pop()
 	{
-		MF_CORE_ASSERT(size > 0);
+		MF_CORE_ASSERT(size > 0, "Empty array");
 		size--;
 	}
 
 	template<typename T>
 	inline void Array<T>::delete_swap(u32 index)
 	{
-		MF_CORE_ASSERT(size > 0 && index < size);
+		MF_CORE_ASSERT(size > 0 && index < size, "Empty array and/or Index out of bounds");
 		data[index] = data[--size];
 	}
 
 	template<typename T>
 	inline T& Array<T>::operator [](u32 index) 
 	{
-		MF_CORE_ASSERT(index < size);
+		MF_CORE_ASSERT(index < size, "Index out of bounds");
 		return data[index];
 	}
 
 	template<typename T>
 	inline const T& Array<T>::operator [](u32 index) const 
 	{
-		MF_CORE_ASSERT(index < size);
+		MF_CORE_ASSERT(index < size, "Index out of bounds");
 		return data[index];
 	}
 
@@ -174,37 +175,116 @@ namespace Magnefu
 	}
 
 	template<typename T>
-	inline void Array<T>::set_size(u32 new_size) 
+	inline void Array<T>::set_size(u32 newSize) 
 	{
-		if (new_size > capacity) 
+		if (newSize > capacity) 
 		{
-			grow(new_size);
+			grow(newSize);
 		}
-		size = new_size;
+		size = newSize;
 	}
 
 	template<typename T>
-	inline void Array<T>::set_capacity(u32 new_capacity) 
+	inline void Array<T>::set_capacity(u32 newCapacity) 
 	{
-		if (new_capacity > capacity) 
+		if (newCapacity > capacity) 
 		{
-			grow(new_capacity);
+			grow(newCapacity);
 		}
 	}
 
 	template<typename T>
-	inline void Array<T>::grow(u32 new_capacity)
+	inline void Array<T>::grow(u32 newCapacity)
 	{
-		if (new_capacity < capacity * 2)
+		if (newCapacity < capacity * 2)
 		{
-			new_capacity = capacity * 2;
+			newCapacity = capacity * 2;
 		}
-		else if (new_capacity < 4)
+		else if (newCapacity < 4)
 		{
-			new_capacity = 4;
+			newCapacity = 4;
 		}
 
-		T* 
+		T* new_data = (T*)allocator->allocate(newCapacity * sizeof(T), alignof(T));
+		if (capacity)
+		{
+			memoryCopy(new_data, data, capacity * sizeof(T));
+
+			allocator->deallocate(data);
+		}
+
+		data = new_data;
+		capacity = newCapacity;
 	}
 
-}
+	template<typename T>
+	inline T& Array<T>::back() 
+	{
+		MF_CORE_ASSERT(size, "Empty array");
+		return data[size - 1];
+	}
+
+	template<typename T>
+	inline const T& Array<T>::back() const 
+	{
+		MF_CORE_ASSERT(size, "Empty array");
+		return data[size - 1];
+	}
+
+	template<typename T>
+	inline T& Array<T>::front() 
+	{
+		MF_CORE_ASSERT(size, "Empty array");
+		return data[0];
+	}
+
+	template<typename T>
+	inline const T& Array<T>::front() const 
+	{
+		MF_CORE_ASSERT(size, "Empty array");
+		return data[0];
+	}
+
+	template<typename T>
+	inline u32 Array<T>::size_in_bytes() const 
+	{
+		return size * sizeof(T);
+	}
+
+	template<typename T>
+	inline u32 Array<T>::capacity_in_bytes() const 
+	{
+		return capacity * sizeof(T);
+	}
+
+
+	// -- ArrayView -- //
+
+	template<typename T>
+	inline ArrayView<T>::ArrayView(T* data_, u32 size_)
+		: data(data_), size(size_) 
+	{
+	}
+
+	template<typename T>
+	inline void ArrayView<T>::set(T* data_, u32 size_) 
+	{
+		data = data_;
+		size = size_;
+	}
+
+	template<typename T>
+	inline T& ArrayView<T>::operator[](u32 index) 
+	{
+		MF_CORE_ASSERT(index < size, "Index out of bounds");
+		return data[index];
+	}
+
+	template<typename T>
+	inline const T& ArrayView<T>::operator[](u32 index) const 
+	{
+		MF_CORE_ASSERT(index < size, "Index out of bounds");
+		return data[index];
+	}
+
+} // namespace Magnefu

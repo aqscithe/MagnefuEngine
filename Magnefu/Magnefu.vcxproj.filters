@@ -3145,6 +3145,7 @@
       <Filter>vendor\vulkan\include\vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\ImGui\ImGuiDefs.h" />
+    <ClInclude Include="src\Magnefu\Core\Array.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application.cpp">

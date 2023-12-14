@@ -53,7 +53,7 @@ namespace Magnefu
         stats->add(used ? size : 0);
 
         if (used)
-            MF_CORE_INFO("Found active allocation %p, %llu\n", ptr, size);
+            MF_CORE_INFO("Found active allocation {0}, {1}", ptr, size);
     }
 
 #if defined MF_IMGUI
@@ -169,12 +169,14 @@ namespace Magnefu
 
 
 #if defined (MF_MEMORY_STACK)
-    class MagnefuStackWalker : public StackWalker {
+    class MagnefuStackWalker : public StackWalker 
+    {
     public:
         MagnefuStackWalker() : StackWalker() {}
     protected:
-        virtual void OnOutput(LPCSTR szText) {
-            MF_CORE_INFO("\nStack: \n%s\n", szText);
+        virtual void OnOutput(LPCSTR szText) 
+        {
+            MF_CORE_INFO("\nStack: \n{}\n", szText);
             StackWalker::OnOutput(szText);
         }
     }; // class MagnefuStackWalker
@@ -188,7 +190,7 @@ namespace Magnefu
         }*/
 
         void* mem = tlsf_malloc(tlsfHandle, size);
-        MF_CORE_INFO("Mem: %p, size %llu \n", mem, size);
+        MF_CORE_INFO("Mem: {0}, size {1} ", mem, size);
         return mem;
     }
 #else

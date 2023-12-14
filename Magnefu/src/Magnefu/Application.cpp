@@ -84,6 +84,12 @@ namespace Magnefu
             m_SceneObjects[i].Init(i);
 
 
+        Array<int> days{};
+        days.init( &MemoryService::instance()->systemAllocator, 7, 0 );
+        days.push(4);
+        days.push(23);
+        days.pop();
+
         // NON AREA LIGHTS
         /*for (auto& light : m_PointLights)
         {

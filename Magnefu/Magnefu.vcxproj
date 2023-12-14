@@ -148,6 +148,7 @@
   <ItemGroup>
     <ClInclude Include="src\Magnefu.h" />
     <ClInclude Include="src\Magnefu\Application.h" />
+    <ClInclude Include="src\Magnefu\Core\Array.h" />
     <ClInclude Include="src\Magnefu\Core\Assertions.h" />
     <ClInclude Include="src\Magnefu\Core\Events\ApplicationEvent.h" />
     <ClInclude Include="src\Magnefu\Core\Events\Event.h" />
