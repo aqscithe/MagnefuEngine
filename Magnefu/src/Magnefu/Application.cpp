@@ -2,7 +2,7 @@
 
 #include "Application.h"
 #include "Renderer/GraphicsContext.h"
-#include "Magnefu/Core/MemoryAllocation/OffsetAllocator.h"
+
 
 //TEMP
 #include "imgui/imgui.h"
@@ -17,13 +17,24 @@ namespace Magnefu
     Application* Application::s_Instance = nullptr;
 
 
+
 	Application::Application()
 	{
         MF_PROFILE_FUNCTION();
+
+        // Set Application Instance
         MF_CORE_ASSERT(!s_Instance, "Application instance already exists.");
         s_Instance = this;
 
+        // -- Init Services -- //
+        
+        // Start Memory Service
+        MemoryService::instance()->init(nullptr);
+
+        // Create Resource Manager
         m_RM = Scope<ResourceManager>(ResourceManager::Create());
+
+        // Create Scene Manager
         m_SceneManager = Scope<SceneManager>(SceneManager::Create());
 
         {
@@ -89,12 +100,11 @@ namespace Magnefu
         m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);
 
-        
 	}
 
 	Application::~Application()
 	{
-        
+        MemoryService::instance()->shutdown();
 	}
 
     void Application::SetVertexBlock(DataBlock&& vertexBlock, size_t objPos, ModelType modelType)
@@ -183,13 +193,11 @@ namespace Magnefu
 
     }
 
+
 	void Application::Run()
 	{        
         MF_PROFILE_FUNCTION();
-        //Scope<StackAllocator>& SingleFrameAllocator = StackAllocator::Get();
-        //Scope<OffsetAllocator::Allocator>& OffsetAllocator = OffsetAllocator::Allocator::Get();
 
-        // Maybe Do a unique pointer(Scope) as there should only be one
         GraphicsContext* GraphicsContext = m_Window->GetGraphicsContext();
 
 

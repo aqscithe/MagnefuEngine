@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ImGuiDefs.h"
 #include "Magnefu/Layer.h"
 #include "Magnefu/Core/Events/KeyEvent.h"
 #include "Magnefu/Core/Events/MouseEvent.h"

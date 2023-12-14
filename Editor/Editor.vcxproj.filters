@@ -1,0 +1,736 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="res">
+      <UniqueIdentifier>{4FA5880B-BBAE-887C-442A-9F7CB032947C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\materials">
+      <UniqueIdentifier>{00F71BAF-6CB7-97E5-35F2-E062A171DCC1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\meshes">
+      <UniqueIdentifier>{C3ACA540-AF64-E78D-186C-C0E90443827E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\meshes\area_lights">
+      <UniqueIdentifier>{559CE90F-4196-1262-2A03-A972169C78CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\meshes\primitives">
+      <UniqueIdentifier>{DEEE9906-4A5B-5501-134F-ED5E7F7A7769}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\meshes\primitives\3D">
+      <UniqueIdentifier>{E4B8F5AE-D0DD-442F-F928-2ABFE5AC434D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\meshes\usd">
+      <UniqueIdentifier>{FE1C8041-EAEA-7347-D37E-E46DBFEB4FAC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\shaders">
+      <UniqueIdentifier>{4841F028-B4F6-681E-3DEB-62F5A99F5F22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures">
+      <UniqueIdentifier>{227C1C83-0EDF-AB27-B764-E4DDA3A677AA}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\12221_Cat_v1_l3">
+      <UniqueIdentifier>{A4003536-90BB-24E2-3973-9D2C250D6F72}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\Bronze_shield">
+      <UniqueIdentifier>{5987231E-4597-CFEE-AE50-340D9A7FBE87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\DDS">
+      <UniqueIdentifier>{4CAD7C77-38A6-9BC9-61D8-804E4D307BD5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\Lava_03-2K">
+      <UniqueIdentifier>{411FBDFF-AD56-0597-B660-69BA22172C90}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\T-rex">
+      <UniqueIdentifier>{01AD724A-ED90-33A0-56F1-2DF342F41D22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\Victorian_Painting">
+      <UniqueIdentifier>{191A47C9-85FD-5509-8E00-8445FA621C5A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\aluminium_foil-2K">
+      <UniqueIdentifier>{B551C831-A177-9298-8ABD-17647682B764}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\amethyst_texture_1-2K">
+      <UniqueIdentifier>{AA92C7C9-96CE-CA33-FFE0-E22AEB3B734E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\colors">
+      <UniqueIdentifier>{C3DF6CC0-2F41-4ACE-B8AE-9080240F818D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\darkmarble">
+      <UniqueIdentifier>{C624BCD5-325C-046D-3B66-6890A71C2B66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\defaults">
+      <UniqueIdentifier>{C99DA46A-350A-6065-FEFD-F7C26A2982CD}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\leaf_1-2K">
+      <UniqueIdentifier>{C3CE32EC-AFC8-5B3E-9835-F24E84CEC1AA}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\metal_plate">
+      <UniqueIdentifier>{D98250AA-C5A7-9F2A-EEF2-84BADA769E48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\old_copper">
+      <UniqueIdentifier>{98A1DD65-04D9-25FD-0DE3-892079994CF6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\painted-wall-sky-blue">
+      <UniqueIdentifier>{ECE1E741-D81D-EBAB-4130-03A32D8B93C6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\retrotv0319">
+      <UniqueIdentifier>{541BB50D-4040-048E-698B-E91D550F03AC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\santa_hat">
+      <UniqueIdentifier>{844C2E74-7046-57C6-59B3-EDD6454CBD32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\scificorridor">
+      <UniqueIdentifier>{A381CD69-8F91-793A-F84A-DE58E47968D3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\skybox">
+      <UniqueIdentifier>{11F17DE5-7D52-5BF3-06C0-A1A5722092B2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\skybox\default">
+      <UniqueIdentifier>{853EFE59-F14B-2C40-7A32-282BE63EF8F6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\snow_field_aerial">
+      <UniqueIdentifier>{28966825-14BC-328C-FD01-B857E9C65758}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\starlights">
+      <UniqueIdentifier>{F63C4520-6274-8DB7-6B7E-F1DAD734B4B0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\surfaces">
+      <UniqueIdentifier>{4D25712E-B991-2C29-8285-C486EEB04E91}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\surfaces\aerial_rocks_02">
+      <UniqueIdentifier>{8C87457D-F84B-446D-C1B1-74372D35E0A2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\surfaces\metal_plate">
+      <UniqueIdentifier>{8444E105-F0B2-3685-399C-F184A5492C21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\surfaces\painted_concrete">
+      <UniqueIdentifier>{F3B49CC1-DF06-74B1-C825-B1C1B4168D9A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\surfaces\painted_metal_shutter">
+      <UniqueIdentifier>{01FFE400-6D64-7887-F63C-1A6062A16DF6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\surfaces\plank_flooring">
+      <UniqueIdentifier>{11268C4E-FD0C-4E46-A65D-B4639223C7AC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\surfaces\red_laterite_soil_stones">
+      <UniqueIdentifier>{0111583C-ED8E-A8D5-D686-666DC2A3EAFD}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\surfaces\slate_floor">
+      <UniqueIdentifier>{3682710A-A2F0-C689-EBD9-81895787BC25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\surfaces\snow_01">
+      <UniqueIdentifier>{03736612-6F8B-4D3C-3838-DDD5A40FE2D5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\textures\wooden_watch_tower2">
+      <UniqueIdentifier>{95943AF5-81E5-2537-AA49-14F996F9B8A0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{2DAB880B-99B4-887C-2230-9F7C8E38947C}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\EditorApp.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\EditorLayer.h">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\EditorApp.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\EditorLayer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\materials\12221_Cat_v1_l3.mtl">
+      <Filter>res\materials</Filter>
+    </None>
+    <None Include="res\materials\Bronze_shield.mtl">
+      <Filter>res\materials</Filter>
+    </None>
+    <None Include="res\materials\T-rex.mtl">
+      <Filter>res\materials</Filter>
+    </None>
+    <None Include="res\materials\Victorian_Painting.mtl">
+      <Filter>res\materials</Filter>
+    </None>
+    <None Include="res\materials\retrotv0319.mtl">
+      <Filter>res\materials</Filter>
+    </None>
+    <None Include="res\materials\santa_hat.mtl">
+      <Filter>res\materials</Filter>
+    </None>
+    <None Include="res\materials\wooden_watch_tower2.mtl">
+      <Filter>res\materials</Filter>
+    </None>
+    <None Include="res\meshes\12221_Cat_v1_l3.obj">
+      <Filter>res\meshes</Filter>
+    </None>
+    <None Include="res\meshes\Bronze_shield.obj">
+      <Filter>res\meshes</Filter>
+    </None>
+    <None Include="res\meshes\Victorian_Painting.obj">
+      <Filter>res\meshes</Filter>
+    </None>
+    <None Include="res\meshes\area_lights\square_light.obj">
+      <Filter>res\meshes\area_lights</Filter>
+    </None>
+    <None Include="res\meshes\corridor.obj">
+      <Filter>res\meshes</Filter>
+    </None>
+    <None Include="res\meshes\primitives\3D\cube.obj">
+      <Filter>res\meshes\primitives\3D</Filter>
+    </None>
+    <None Include="res\meshes\primitives\3D\plane.obj">
+      <Filter>res\meshes\primitives\3D</Filter>
+    </None>
+    <None Include="res\meshes\primitives\3D\plane_template.obj">
+      <Filter>res\meshes\primitives\3D</Filter>
+    </None>
+    <None Include="res\meshes\retrotv0319.obj">
+      <Filter>res\meshes</Filter>
+    </None>
+    <None Include="res\meshes\santa_hat(DEFAULT).obj">
+      <Filter>res\meshes</Filter>
+    </None>
+    <None Include="res\meshes\usd\Sci-fi-corridor.usdz">
+      <Filter>res\meshes\usd</Filter>
+    </None>
+    <None Include="res\meshes\usd\The_Hunters_Rest.usdz">
+      <Filter>res\meshes\usd</Filter>
+    </None>
+    <None Include="res\meshes\viking_room.obj">
+      <Filter>res\meshes</Filter>
+    </None>
+    <None Include="res\meshes\wooden_watch_tower2.obj">
+      <Filter>res\meshes</Filter>
+    </None>
+    <None Include="res\shaders\AreaLight.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\AreaLightLTC.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Basic.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\BatchRender.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Cube.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\LightCube.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Particles.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Primitive.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\RecPrism.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Skybox.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Sphere.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Test.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\TestLighting-Texture.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\TestLighting.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\TestModelLoading.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Texture2D.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\textures\DDS\ltc_amp.dds">
+      <Filter>res\textures\DDS</Filter>
+    </None>
+    <None Include="res\textures\DDS\ltc_mat.dds">
+      <Filter>res\textures\DDS</Filter>
+    </None>
+    <None Include="res\textures\DDS\rgba_dxt1.dds">
+      <Filter>res\textures\DDS</Filter>
+    </None>
+    <None Include="res\textures\DDS\sample.dds">
+      <Filter>res\textures\DDS</Filter>
+    </None>
+    <None Include="res\textures\create_arm_texture.py">
+      <Filter>res\textures</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\textures\12221_Cat_v1_l3\Cat_ao.jpg">
+      <Filter>res\textures\12221_Cat_v1_l3</Filter>
+    </Image>
+    <Image Include="res\textures\12221_Cat_v1_l3\Cat_bump.jpg">
+      <Filter>res\textures\12221_Cat_v1_l3</Filter>
+    </Image>
+    <Image Include="res\textures\12221_Cat_v1_l3\Cat_diffuse.jpg">
+      <Filter>res\textures\12221_Cat_v1_l3</Filter>
+    </Image>
+    <Image Include="res\textures\12221_Cat_v1_l3\Cat_normal.jpg">
+      <Filter>res\textures\12221_Cat_v1_l3</Filter>
+    </Image>
+    <Image Include="res\textures\12221_Cat_v1_l3\Cat_rough.png">
+      <Filter>res\textures\12221_Cat_v1_l3</Filter>
+    </Image>
+    <Image Include="res\textures\Bronze_shield\Bronze_shield_AO.png">
+      <Filter>res\textures\Bronze_shield</Filter>
+    </Image>
+    <Image Include="res\textures\Bronze_shield\Bronze_shield_ARM.png">
+      <Filter>res\textures\Bronze_shield</Filter>
+    </Image>
+    <Image Include="res\textures\Bronze_shield\Bronze_shield_BaseColor.png">
+      <Filter>res\textures\Bronze_shield</Filter>
+    </Image>
+    <Image Include="res\textures\Bronze_shield\Bronze_shield_Height.png">
+      <Filter>res\textures\Bronze_shield</Filter>
+    </Image>
+    <Image Include="res\textures\Bronze_shield\Bronze_shield_Metallic.png">
+      <Filter>res\textures\Bronze_shield</Filter>
+    </Image>
+    <Image Include="res\textures\Bronze_shield\Bronze_shield_Normal.png">
+      <Filter>res\textures\Bronze_shield</Filter>
+    </Image>
+    <Image Include="res\textures\Bronze_shield\Bronze_shield_Roughness.png">
+      <Filter>res\textures\Bronze_shield</Filter>
+    </Image>
+    <Image Include="res\textures\Lava_03-2K\Lava_03_ambientocclusion-2K.png">
+      <Filter>res\textures\Lava_03-2K</Filter>
+    </Image>
+    <Image Include="res\textures\Lava_03-2K\Lava_03_basecolor-2K.png">
+      <Filter>res\textures\Lava_03-2K</Filter>
+    </Image>
+    <Image Include="res\textures\Lava_03-2K\Lava_03_emissive-2K.png">
+      <Filter>res\textures\Lava_03-2K</Filter>
+    </Image>
+    <Image Include="res\textures\Lava_03-2K\Lava_03_height-2K.png">
+      <Filter>res\textures\Lava_03-2K</Filter>
+    </Image>
+    <Image Include="res\textures\Lava_03-2K\Lava_03_metallic-2K.png">
+      <Filter>res\textures\Lava_03-2K</Filter>
+    </Image>
+    <Image Include="res\textures\Lava_03-2K\Lava_03_normal-2K.png">
+      <Filter>res\textures\Lava_03-2K</Filter>
+    </Image>
+    <Image Include="res\textures\Lava_03-2K\Lava_03_roughness-2K.png">
+      <Filter>res\textures\Lava_03-2K</Filter>
+    </Image>
+    <Image Include="res\textures\Lava_03-2K\Lava_03_spec.jpg">
+      <Filter>res\textures\Lava_03-2K</Filter>
+    </Image>
+    <Image Include="res\textures\T-rex\755688691_2048x2048.png">
+      <Filter>res\textures\T-rex</Filter>
+    </Image>
+    <Image Include="res\textures\Victorian_Painting\VictorianPaintings_AO_1_Utility-Raw.png">
+      <Filter>res\textures\Victorian_Painting</Filter>
+    </Image>
+    <Image Include="res\textures\Victorian_Painting\VictorianPaintings_AO_2_Utility-Raw.png">
+      <Filter>res\textures\Victorian_Painting</Filter>
+    </Image>
+    <Image Include="res\textures\Victorian_Painting\VictorianPaintings_ARM_Utility-sRGB-Texture.png">
+      <Filter>res\textures\Victorian_Painting</Filter>
+    </Image>
+    <Image Include="res\textures\Victorian_Painting\VictorianPaintings_BaseColor_Utility-sRGB-Texture.png">
+      <Filter>res\textures\Victorian_Painting</Filter>
+    </Image>
+    <Image Include="res\textures\Victorian_Painting\VictorianPaintings_Metallic_Utility-Raw.png">
+      <Filter>res\textures\Victorian_Painting</Filter>
+    </Image>
+    <Image Include="res\textures\Victorian_Painting\VictorianPaintings_Normal_Utility-Raw.png">
+      <Filter>res\textures\Victorian_Painting</Filter>
+    </Image>
+    <Image Include="res\textures\Victorian_Painting\VictorianPaintings_Roughness_Utility-Raw.png">
+      <Filter>res\textures\Victorian_Painting</Filter>
+    </Image>
+    <Image Include="res\textures\aluminium_foil-2K\2K-aluminium_foil_1_ao.png">
+      <Filter>res\textures\aluminium_foil-2K</Filter>
+    </Image>
+    <Image Include="res\textures\aluminium_foil-2K\2K-aluminium_foil_1_base_color.png">
+      <Filter>res\textures\aluminium_foil-2K</Filter>
+    </Image>
+    <Image Include="res\textures\aluminium_foil-2K\2K-aluminium_foil_1_displacement.png">
+      <Filter>res\textures\aluminium_foil-2K</Filter>
+    </Image>
+    <Image Include="res\textures\aluminium_foil-2K\2K-aluminium_foil_1_metallic.png">
+      <Filter>res\textures\aluminium_foil-2K</Filter>
+    </Image>
+    <Image Include="res\textures\aluminium_foil-2K\2K-aluminium_foil_1_normal.png">
+      <Filter>res\textures\aluminium_foil-2K</Filter>
+    </Image>
+    <Image Include="res\textures\aluminium_foil-2K\2K-aluminium_foil_1_roughness.png">
+      <Filter>res\textures\aluminium_foil-2K</Filter>
+    </Image>
+    <Image Include="res\textures\aluminium_foil-2K\2k-aluminum-spec.jpg">
+      <Filter>res\textures\aluminium_foil-2K</Filter>
+    </Image>
+    <Image Include="res\textures\amethyst_texture_1-2K\2K-amethyst_1-ao.jpg">
+      <Filter>res\textures\amethyst_texture_1-2K</Filter>
+    </Image>
+    <Image Include="res\textures\amethyst_texture_1-2K\2K-amethyst_1-diffuse.jpg">
+      <Filter>res\textures\amethyst_texture_1-2K</Filter>
+    </Image>
+    <Image Include="res\textures\amethyst_texture_1-2K\2K-amethyst_1-displacement.jpg">
+      <Filter>res\textures\amethyst_texture_1-2K</Filter>
+    </Image>
+    <Image Include="res\textures\amethyst_texture_1-2K\2K-amethyst_1-normal.jpg">
+      <Filter>res\textures\amethyst_texture_1-2K</Filter>
+    </Image>
+    <Image Include="res\textures\amethyst_texture_1-2K\2K-amethyst_1-specular.jpg">
+      <Filter>res\textures\amethyst_texture_1-2K</Filter>
+    </Image>
+    <Image Include="res\textures\amethyst_texture_1-2K\amethyst-rough.png">
+      <Filter>res\textures\amethyst_texture_1-2K</Filter>
+    </Image>
+    <Image Include="res\textures\colors\black.png">
+      <Filter>res\textures\colors</Filter>
+    </Image>
+    <Image Include="res\textures\container_specular.png">
+      <Filter>res\textures</Filter>
+    </Image>
+    <Image Include="res\textures\darkmarble\dark-marbled-stone.jpg">
+      <Filter>res\textures\darkmarble</Filter>
+    </Image>
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_ao.jpg">
+      <Filter>res\textures\darkmarble</Filter>
+    </Image>
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_d.jpg">
+      <Filter>res\textures\darkmarble</Filter>
+    </Image>
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_n.jpg">
+      <Filter>res\textures\darkmarble</Filter>
+    </Image>
+    <Image Include="res\textures\darkmarble\dark-marbled-stone_s.jpg">
+      <Filter>res\textures\darkmarble</Filter>
+    </Image>
+    <Image Include="res\textures\defaults\diffuse.jpg">
+      <Filter>res\textures\defaults</Filter>
+    </Image>
+    <Image Include="res\textures\defaults\metallic.png">
+      <Filter>res\textures\defaults</Filter>
+    </Image>
+    <Image Include="res\textures\defaults\roughness.jpg">
+      <Filter>res\textures\defaults</Filter>
+    </Image>
+    <Image Include="res\textures\grass.jpg">
+      <Filter>res\textures</Filter>
+    </Image>
+    <Image Include="res\textures\leaf_1-2K\2K-leaf_1-ao.jpg">
+      <Filter>res\textures\leaf_1-2K</Filter>
+    </Image>
+    <Image Include="res\textures\leaf_1-2K\2K-leaf_1-diffuse.jpg">
+      <Filter>res\textures\leaf_1-2K</Filter>
+    </Image>
+    <Image Include="res\textures\leaf_1-2K\2K-leaf_1-displacement.jpg">
+      <Filter>res\textures\leaf_1-2K</Filter>
+    </Image>
+    <Image Include="res\textures\leaf_1-2K\2K-leaf_1-normal.jpg">
+      <Filter>res\textures\leaf_1-2K</Filter>
+    </Image>
+    <Image Include="res\textures\leaf_1-2K\2K-leaf_1-specular.jpg">
+      <Filter>res\textures\leaf_1-2K</Filter>
+    </Image>
+    <Image Include="res\textures\leaf_1-2K\leaf-rough.png">
+      <Filter>res\textures\leaf_1-2K</Filter>
+    </Image>
+    <Image Include="res\textures\metal_plate\metal_plate_diff_2k.jpg">
+      <Filter>res\textures\metal_plate</Filter>
+    </Image>
+    <Image Include="res\textures\metal_plate\metal_plate_metal_2k.jpg">
+      <Filter>res\textures\metal_plate</Filter>
+    </Image>
+    <Image Include="res\textures\metal_plate\metal_plate_rough_2k.jpg">
+      <Filter>res\textures\metal_plate</Filter>
+    </Image>
+    <Image Include="res\textures\metal_plate\metal_plate_spec_2k.jpg">
+      <Filter>res\textures\metal_plate</Filter>
+    </Image>
+    <Image Include="res\textures\moon.png">
+      <Filter>res\textures</Filter>
+    </Image>
+    <Image Include="res\textures\old_copper\2K_old_copper_ambient_occlusion.png">
+      <Filter>res\textures\old_copper</Filter>
+    </Image>
+    <Image Include="res\textures\old_copper\2K_old_copper_base_color.png">
+      <Filter>res\textures\old_copper</Filter>
+    </Image>
+    <Image Include="res\textures\old_copper\2K_old_copper_diffuse.png">
+      <Filter>res\textures\old_copper</Filter>
+    </Image>
+    <Image Include="res\textures\old_copper\2K_old_copper_height.png">
+      <Filter>res\textures\old_copper</Filter>
+    </Image>
+    <Image Include="res\textures\old_copper\2K_old_copper_metallic.png">
+      <Filter>res\textures\old_copper</Filter>
+    </Image>
+    <Image Include="res\textures\old_copper\2K_old_copper_normal.png">
+      <Filter>res\textures\old_copper</Filter>
+    </Image>
+    <Image Include="res\textures\old_copper\2K_old_copper_roughness.png">
+      <Filter>res\textures\old_copper</Filter>
+    </Image>
+    <Image Include="res\textures\old_copper\2K_old_copper_specular_level.png">
+      <Filter>res\textures\old_copper</Filter>
+    </Image>
+    <Image Include="res\textures\painted-wall-sky-blue\diffuse.png">
+      <Filter>res\textures\painted-wall-sky-blue</Filter>
+    </Image>
+    <Image Include="res\textures\painted-wall-sky-blue\metallic.png">
+      <Filter>res\textures\painted-wall-sky-blue</Filter>
+    </Image>
+    <Image Include="res\textures\painted-wall-sky-blue\normal.png">
+      <Filter>res\textures\painted-wall-sky-blue</Filter>
+    </Image>
+    <Image Include="res\textures\painted-wall-sky-blue\roughness.png">
+      <Filter>res\textures\painted-wall-sky-blue</Filter>
+    </Image>
+    <Image Include="res\textures\pluto.png">
+      <Filter>res\textures</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Main_AO.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Main_BaseColor.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Main_Metallic.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Main_NormalDX.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Main_NormalGL.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Main_Roughness.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Screen_AO.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Screen_BaseColor.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Screen_BaseColor_noise.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Screen_Metallic.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Screen_NormalDX.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Screen_NormalGL.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\retrotv0319\retrotv0319_Screen_Roughness.png">
+      <Filter>res\textures\retrotv0319</Filter>
+    </Image>
+    <Image Include="res\textures\santa_hat\bump.jpg">
+      <Filter>res\textures\santa_hat</Filter>
+    </Image>
+    <Image Include="res\textures\santa_hat\color.jpg">
+      <Filter>res\textures\santa_hat</Filter>
+    </Image>
+    <Image Include="res\textures\santa_hat\normalmap.jpg">
+      <Filter>res\textures\santa_hat</Filter>
+    </Image>
+    <Image Include="res\textures\santa_hat\rough.png">
+      <Filter>res\textures\santa_hat</Filter>
+    </Image>
+    <Image Include="res\textures\santa_hat\softnessmap.jpg">
+      <Filter>res\textures\santa_hat</Filter>
+    </Image>
+    <Image Include="res\textures\santa_hat\specular.jpg">
+      <Filter>res\textures\santa_hat</Filter>
+    </Image>
+    <Image Include="res\textures\scificorridor\scene_1001_AO.png">
+      <Filter>res\textures\scificorridor</Filter>
+    </Image>
+    <Image Include="res\textures\scificorridor\scene_1001_ARM.png">
+      <Filter>res\textures\scificorridor</Filter>
+    </Image>
+    <Image Include="res\textures\scificorridor\scene_1001_BaseColor.png">
+      <Filter>res\textures\scificorridor</Filter>
+    </Image>
+    <Image Include="res\textures\scificorridor\scene_1001_Emissive.png">
+      <Filter>res\textures\scificorridor</Filter>
+    </Image>
+    <Image Include="res\textures\scificorridor\scene_1001_Metalness.png">
+      <Filter>res\textures\scificorridor</Filter>
+    </Image>
+    <Image Include="res\textures\scificorridor\scene_1001_Normal.png">
+      <Filter>res\textures\scificorridor</Filter>
+    </Image>
+    <Image Include="res\textures\scificorridor\scene_1001_Roughness.png">
+      <Filter>res\textures\scificorridor</Filter>
+    </Image>
+    <Image Include="res\textures\skybox\default\back-nz.png">
+      <Filter>res\textures\skybox\default</Filter>
+    </Image>
+    <Image Include="res\textures\skybox\default\bottom-ny.png">
+      <Filter>res\textures\skybox\default</Filter>
+    </Image>
+    <Image Include="res\textures\skybox\default\front-pz.png">
+      <Filter>res\textures\skybox\default</Filter>
+    </Image>
+    <Image Include="res\textures\skybox\default\left-nx.png">
+      <Filter>res\textures\skybox\default</Filter>
+    </Image>
+    <Image Include="res\textures\skybox\default\right-px.png">
+      <Filter>res\textures\skybox\default</Filter>
+    </Image>
+    <Image Include="res\textures\skybox\default\top-py.png">
+      <Filter>res\textures\skybox\default</Filter>
+    </Image>
+    <Image Include="res\textures\snow_field_aerial\snow_f_a_spec.jpg">
+      <Filter>res\textures\snow_field_aerial</Filter>
+    </Image>
+    <Image Include="res\textures\snow_field_aerial\snow_field_aerial_diff_2k.jpg">
+      <Filter>res\textures\snow_field_aerial</Filter>
+    </Image>
+    <Image Include="res\textures\snow_field_aerial\snow_field_aerial_rough_2k.jpg">
+      <Filter>res\textures\snow_field_aerial</Filter>
+    </Image>
+    <Image Include="res\textures\starlights\starlights.jpg">
+      <Filter>res\textures\starlights</Filter>
+    </Image>
+    <Image Include="res\textures\starlights\starlights_ao.jpg">
+      <Filter>res\textures\starlights</Filter>
+    </Image>
+    <Image Include="res\textures\starlights\starlights_d.jpg">
+      <Filter>res\textures\starlights</Filter>
+    </Image>
+    <Image Include="res\textures\starlights\starlights_n.jpg">
+      <Filter>res\textures\starlights</Filter>
+    </Image>
+    <Image Include="res\textures\starlights\starlights_s.jpg">
+      <Filter>res\textures\starlights</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\aerial_rocks_02\aerial_rocks_02_arm_2k.png">
+      <Filter>res\textures\surfaces\aerial_rocks_02</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\aerial_rocks_02\aerial_rocks_02_diff_2k.png">
+      <Filter>res\textures\surfaces\aerial_rocks_02</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\aerial_rocks_02\aerial_rocks_02_disp_2k.png">
+      <Filter>res\textures\surfaces\aerial_rocks_02</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\aerial_rocks_02\aerial_rocks_02_nor_dx_2k.png">
+      <Filter>res\textures\surfaces\aerial_rocks_02</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\metal_plate\metal_plate_arm_2k.png">
+      <Filter>res\textures\surfaces\metal_plate</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\metal_plate\metal_plate_diff_2k.png">
+      <Filter>res\textures\surfaces\metal_plate</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\metal_plate\metal_plate_disp_2k.png">
+      <Filter>res\textures\surfaces\metal_plate</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\metal_plate\metal_plate_nor_dx_2k.png">
+      <Filter>res\textures\surfaces\metal_plate</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\painted_concrete\painted_concrete_arm_2k.png">
+      <Filter>res\textures\surfaces\painted_concrete</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\painted_concrete\painted_concrete_diff_2k.png">
+      <Filter>res\textures\surfaces\painted_concrete</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\painted_concrete\painted_concrete_disp_2k.png">
+      <Filter>res\textures\surfaces\painted_concrete</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\painted_concrete\painted_concrete_nor_dx_2k.png">
+      <Filter>res\textures\surfaces\painted_concrete</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\painted_metal_shutter\painted_metal_shutter_arm_2k.png">
+      <Filter>res\textures\surfaces\painted_metal_shutter</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\painted_metal_shutter\painted_metal_shutter_diff_2k.png">
+      <Filter>res\textures\surfaces\painted_metal_shutter</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\painted_metal_shutter\painted_metal_shutter_disp_2k.png">
+      <Filter>res\textures\surfaces\painted_metal_shutter</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\painted_metal_shutter\painted_metal_shutter_nor_dx_2k.png">
+      <Filter>res\textures\surfaces\painted_metal_shutter</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\plank_flooring\plank_flooring_arm_2k.png">
+      <Filter>res\textures\surfaces\plank_flooring</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\plank_flooring\plank_flooring_diff_2k.png">
+      <Filter>res\textures\surfaces\plank_flooring</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\plank_flooring\plank_flooring_disp_2k.png">
+      <Filter>res\textures\surfaces\plank_flooring</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\plank_flooring\plank_flooring_nor_dx_2k.png">
+      <Filter>res\textures\surfaces\plank_flooring</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\red_laterite_soil_stones\red_laterite_soil_stones_arm_2k.png">
+      <Filter>res\textures\surfaces\red_laterite_soil_stones</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\red_laterite_soil_stones\red_laterite_soil_stones_diff_2k.png">
+      <Filter>res\textures\surfaces\red_laterite_soil_stones</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\red_laterite_soil_stones\red_laterite_soil_stones_disp_2k.png">
+      <Filter>res\textures\surfaces\red_laterite_soil_stones</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\red_laterite_soil_stones\red_laterite_soil_stones_nor_dx_2k.png">
+      <Filter>res\textures\surfaces\red_laterite_soil_stones</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\slate_floor\slate_floor_arm_2k.png">
+      <Filter>res\textures\surfaces\slate_floor</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\slate_floor\slate_floor_diff_2k.png">
+      <Filter>res\textures\surfaces\slate_floor</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\slate_floor\slate_floor_disp_2k.png">
+      <Filter>res\textures\surfaces\slate_floor</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\slate_floor\slate_floor_nor_dx_2k.png">
+      <Filter>res\textures\surfaces\slate_floor</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\snow_01\snow_01_arm_2k.png">
+      <Filter>res\textures\surfaces\snow_01</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\snow_01\snow_01_diff_2k.png">
+      <Filter>res\textures\surfaces\snow_01</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\snow_01\snow_01_disp_2k.png">
+      <Filter>res\textures\surfaces\snow_01</Filter>
+    </Image>
+    <Image Include="res\textures\surfaces\snow_01\snow_01_nor_dx_2k.png">
+      <Filter>res\textures\surfaces\snow_01</Filter>
+    </Image>
+    <Image Include="res\textures\viking_room.png">
+      <Filter>res\textures</Filter>
+    </Image>
+    <Image Include="res\textures\wall.jpg">
+      <Filter>res\textures</Filter>
+    </Image>
+    <Image Include="res\textures\water_abstract.jpg">
+      <Filter>res\textures</Filter>
+    </Image>
+    <Image Include="res\textures\wooden_watch_tower2\Wood_Tower_Col.jpg">
+      <Filter>res\textures\wooden_watch_tower2</Filter>
+    </Image>
+    <Image Include="res\textures\wooden_watch_tower2\Wood_Tower_Nor.jpg">
+      <Filter>res\textures\wooden_watch_tower2</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

@@ -47,9 +47,14 @@ project "Magnefu"
 
     files {
         "%{prj.name}/src/**.h",
+        "%{prj.name}/src/**.hpp",
         "%{prj.name}/src/**.cpp",
         "%{prj.name}/vendor/**.h",
+        "%{prj.name}/vendor/**.hpp",
         "%{prj.name}/vendor/**.cpp",
+
+        -- Explicitly makes c files available
+        "%{prj.name}/vendor/tlsf/tlsf.c",
         resourcedir .. "/**",
     }
 
@@ -98,6 +103,13 @@ project "Magnefu"
         "soil2",
         "opengl32"
     }
+
+    -- C files ignore PCH
+    filter "files:magnefu/vendor/**.c"
+        flags {
+            "NoPCH"
+        }
+
 
     filter "system:windows"
         systemversion "latest"

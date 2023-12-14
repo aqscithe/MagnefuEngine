@@ -805,6 +805,7 @@ void EditorLayer::ShowMemoryStats()
 			Magnefu::Application::Get().GetWindow().GetGraphicsContext()->CalculateMemoryStats();
 		}
 		
+		Magnefu::Application::Get().GetMemoryService().imguiDraw();
 		
 		auto [blockCount, blockBytes, allocCount, allocBytes, usage, budget] = 
 			Magnefu::Application::Get().GetWindow().GetGraphicsContext()->GetMemoryStats();

@@ -36,11 +36,11 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <glad/gl.h>
+#include <GLFW/deps/glad/gl.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-#include <linmath.h>
+#include <GLFW/deps/linmath.h>
 
 
 /*****************************************************************************

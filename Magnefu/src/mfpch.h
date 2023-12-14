@@ -3,6 +3,8 @@
 // TODO: I currently need to add this file to the imgui cpp files in order to compile
 // See if there is a way to avoid this.
 
+#include <stdint.h>
+
 #include <iostream>
 #include <memory>
 #include <algorithm>
@@ -31,12 +33,14 @@
 #include "Magnefu/Core/Log.h"
 #include "Magnefu/Core/SmartPointers.h"
 #include "Magnefu/Core/Span.h"
+#include "Magnefu/Core/Typedefs.hpp"
+#include "Magnefu/ImGui/ImGuiDefs.h"
 
 #include "Magnefu/Debug/Instrumentor.h"
 
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/hash.hpp>4
+#include <glm/gtx/hash.hpp>
 
 
 

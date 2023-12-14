@@ -8,7 +8,6 @@
 #include "Magnefu/Core/Events/MouseEvent.h"
 #include "Magnefu/Core/Events/KeyEvent.h"
 #include "Magnefu/ResourceManagement/ResourceManager.h"
-#include "Magnefu/Core/MemoryAllocation/StackAllocator.h"
 #include "Magnefu/Core/MemoryAllocation/LinkedListAlloc.h"
 #include "Magnefu/Renderer/Light.h"
 #include "Magnefu/Renderer/Material.h"
@@ -16,6 +15,7 @@
 #include "Magnefu/Core/TimeStep.h"
 #include "Magnefu/ResourceManagement/ResourcePaths.h"
 #include "Magnefu/Scene/SceneManager.h"
+#include "Magnefu/Core/MemoryAllocation/Memory.hpp"
 
 
 
@@ -59,11 +59,18 @@ namespace Magnefu
 		inline TimeStep& GetTimeStep() { return m_TimeStep; }
 		inline ImGuiLayer* GetImGuiLayer() { return m_ImGuiLayer; }
 
+		// -- Managers -- //
+
 		inline ResourceManager& GetResourceManager() { return *m_RM; }
 
 		inline SceneManager& GetSceneManager() { return *m_SceneManager; }
 
+		// -- Services -- //
+		inline MemoryService& GetMemoryService() { return *MemoryService::instance(); }
+
 		inline Handle<BindGroup>& GetRenderPassBindGroup() { return m_RenderPassGlobals; }
+
+		
 
 		// -- AREA LIGHT INFO -- //
 		inline const std::array<AreaLight, MAX_AREA_LIGHTS>& GetAreaLightData() const { return m_AreaLights; }
@@ -131,7 +138,6 @@ namespace Magnefu
 		//std::vector<std::thread> m_ThreadPool;
 		std::thread m_BufferResourceThread;
 		std::thread m_ImageResourceThread;
-
 
 		
 	};
