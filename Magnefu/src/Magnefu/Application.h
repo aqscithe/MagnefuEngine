@@ -126,7 +126,6 @@ namespace Magnefu
 		Maths::mat4 m_AreaLightVertices;
 		int m_AreaLightCount;
 
-		//std::vector<std::thread> m_ThreadPool;
 		std::thread m_BufferResourceThread;
 		std::thread m_ImageResourceThread;
 

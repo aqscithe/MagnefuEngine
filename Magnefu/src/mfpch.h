@@ -38,6 +38,8 @@
 #include "Magnefu/Core/Array.h"
 #include "Magnefu/Core/Assertions.h"
 #include "Magnefu/Core/MemoryAllocation/Memory.hpp"
+#include "Magnefu/Core/File.hpp"
+#include "Magnefu/Core/String.hpp"
 
 #include "Magnefu/Debug/Instrumentor.h"
 
