@@ -12,7 +12,7 @@ namespace Magnefu
 	class SceneObject
 	{
 	public:
-		SceneObject() = default;
+		SceneObject();
 		~SceneObject();
 
 		void Init(uint32_t index);
@@ -35,7 +35,10 @@ namespace Magnefu
 		inline Material& GetMaterialData() { return m_MaterialData; }
 		inline MaterialInstanced& GetMaterialDataInstanced() { return m_MaterialDataInstanced; }
 
-		inline void SetVertexBlock(DataBlock&& vertexBlock) { m_Vertices = std::move(vertexBlock); }
+		inline void SetVertexBlock(DataBlock&& vertexBlock) 
+		{ 
+			m_Vertices = std::move(vertexBlock); 
+		}
 		inline void SetIndexBlock(DataBlock&& indexBlock) { m_Indices = std::move(indexBlock); m_IndexCount = static_cast<uint32_t>(m_Indices.data.size()) / sizeof(uint32_t); }
 
 		void SetTextureBlock(TextureType type, DataBlock&& dataBlock, int width, int height, int channels);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 
 namespace Magnefu
 {
@@ -16,6 +18,12 @@ namespace Magnefu
         Span(const T* data, std::size_t size)
             : m_Data(data), m_Size(size) {}
 
+        Span(const Span& other)
+            : m_Data(other.GetData()), m_Size(other.GetSize())
+        {
+
+        }
+
         const std::size_t GetSize() const { return m_Size; }
         const T* GetData() const { return m_Data; }
         
@@ -30,7 +38,7 @@ namespace Magnefu
     struct DataBlock 
     {
         DataBlock()
-            : span(Span<const uint8_t>()), data() {}
+            : span(Span<const uint8_t>(nullptr, 0)), data() {}
 
         DataBlock(const void* ptr, std::size_t byteSize)
         {
@@ -40,6 +48,25 @@ namespace Magnefu
 
             // Initialize the span to cover the vector
             span = Span<const uint8_t>(data.data(), byteSize);
+        }
+
+        DataBlock(DataBlock&& other) noexcept
+            : data(std::move(other.data)), span(std::move(other.span))
+        {
+            other.span = Span<const uint8_t>(nullptr, 0);
+        }
+
+        DataBlock& operator=(DataBlock&& other) noexcept
+        {
+            if (this != &other) 
+            {
+                data = std::move(other.data);
+                span = Span<const uint8_t>(data.data(), data.size());
+
+                // Leave other in a valid state
+                other.span = Span<const uint8_t>(nullptr, 0);
+            }
+            return *this;
         }
 
 

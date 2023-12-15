@@ -1,21 +1,17 @@
 #pragma once
 
-#include "Magnefu/Core/Assertions.h"
 #include "Window.h"
 #include "Magnefu/LayerStack.h"
 #include "Magnefu/ImGui/ImGuiLayer.h"
+
 #include "Magnefu/Core/Events/ApplicationEvent.h"
 #include "Magnefu/Core/Events/MouseEvent.h"
 #include "Magnefu/Core/Events/KeyEvent.h"
+
 #include "Magnefu/ResourceManagement/ResourceManager.h"
-#include "Magnefu/Core/MemoryAllocation/LinkedListAlloc.h"
-#include "Magnefu/Renderer/Light.h"
-#include "Magnefu/Renderer/Material.h"
 #include "Magnefu/Renderer/SceneObject.h"
 #include "Magnefu/Core/TimeStep.h"
-#include "Magnefu/ResourceManagement/ResourcePaths.h"
 #include "Magnefu/Scene/SceneManager.h"
-#include "Magnefu/Core/MemoryAllocation/Memory.hpp"
 
 
 
@@ -87,14 +83,14 @@ namespace Magnefu
 		// -- SCENES -- //
 		
 
-		inline void ResizeSceneObjects(const size_t size) { m_SceneObjects.resize(size); }
+		inline void ResizeSceneObjects(const size_t size) { m_SceneObjects.set_size(size); }
 
-		inline std::vector<SceneObject>& GetSceneObjects() { return m_SceneObjects; }
+		inline Array<SceneObject>& GetSceneObjects() { return m_SceneObjects; }
 
 
 		inline static Application& Get() { return *s_Instance; }
 
-		void SetVertexBlock(DataBlock&& vertexBlock, size_t objPos, ModelType modelType);
+		void SetVertexBlock(DataBlock& vertexBlock, size_t objPos, ModelType modelType);
 		void SetIndexBlock(DataBlock&& indexBlock, size_t objPos, ModelType modelType);
 		
 
@@ -125,8 +121,8 @@ namespace Magnefu
 		// Phasing out SceneObject in favor or scene
 		// objects will be represented as entities using
 		// ECS architecture
-		std::vector<SceneObject> m_SceneObjects;
-
+		//std::vector<SceneObject> m_SceneObjects;
+		Array<SceneObject> m_SceneObjects;
 		
 
 

@@ -47,18 +47,14 @@ namespace Magnefu
 		void UpdateUniformBuffer(const Material& mat);
 		void UpdateUniformBuffer(const MaterialInstanced& mat, uint32_t instanceCount);
 
-		std::vector<VkBuffer>& GetBuffers() { return m_Buffers; }
+		Array<VkBuffer>& GetBuffers() { return m_Buffers; }
 		
 		
 	private:
-		std::vector<VkBuffer>        m_Buffers;
+		Array<VkBuffer>        m_Buffers;
 		
 
 		UniformBufferType            m_UniformType = UniformBufferType::UNIFORM_NONE;
-		std::vector<void*>           m_BuffersMapped;
-
-		std::vector<VmaAllocation>     m_Allocation;
-		std::vector<VmaAllocationInfo> m_AllocInfo;
 
 	};
 }

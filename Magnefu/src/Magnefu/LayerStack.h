@@ -3,7 +3,7 @@
 #include "Magnefu/Core/Assertions.h"
 #include "Layer.h"
 
-#include <vector>
+
 namespace Magnefu
 {
 	class  LayerStack

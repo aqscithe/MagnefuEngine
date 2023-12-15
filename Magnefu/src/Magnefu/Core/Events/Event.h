@@ -2,7 +2,6 @@
 
 #include "Magnefu/Core/Assertions.h"
 
-#include "mfpch.h"
 
 namespace Magnefu {
 

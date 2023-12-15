@@ -12,6 +12,7 @@ namespace Magnefu
 {
 	VulkanBuffer::VulkanBuffer(const BufferDesc& desc) : Buffer(desc)
 	{
+		
 		switch (desc.Usage)
 		{
 			case USAGE_VERTEX:

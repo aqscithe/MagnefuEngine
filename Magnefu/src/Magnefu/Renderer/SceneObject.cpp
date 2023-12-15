@@ -8,6 +8,12 @@
 
 namespace Magnefu
 {
+    SceneObject::SceneObject()
+    {
+        m_Vertices = DataBlock();
+        m_Indices = DataBlock();
+    }
+
     SceneObject::~SceneObject()
     {
 

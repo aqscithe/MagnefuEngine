@@ -366,30 +366,6 @@
     <ClInclude Include="src\Magnefu\Renderer\Mesh.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\Platform\Vulkan\VulkanBindGroup.h">
-      <Filter>src\Magnefu\Renderer\Platform\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\Platform\Vulkan\VulkanBuffer.h">
-      <Filter>src\Magnefu\Renderer\Platform\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\Platform\Vulkan\VulkanCommon.h">
-      <Filter>src\Magnefu\Renderer\Platform\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\Platform\Vulkan\VulkanContext.h">
-      <Filter>src\Magnefu\Renderer\Platform\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\Platform\Vulkan\VulkanShader.h">
-      <Filter>src\Magnefu\Renderer\Platform\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\Platform\Vulkan\VulkanTexture.h">
-      <Filter>src\Magnefu\Renderer\Platform\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\Platform\Windows\WindowsInput.h">
-      <Filter>src\Magnefu\Renderer\Platform\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\Platform\Windows\WindowsWindow.h">
-      <Filter>src\Magnefu\Renderer\Platform\Windows</Filter>
-    </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
@@ -3225,30 +3201,6 @@
     </ClCompile>
     <ClCompile Include="src\Magnefu\Renderer\Material.cpp">
       <Filter>src\Magnefu\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\Platform\Vulkan\VulkanBindGroup.cpp">
-      <Filter>src\Magnefu\Renderer\Platform\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\Platform\Vulkan\VulkanBuffer.cpp">
-      <Filter>src\Magnefu\Renderer\Platform\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\Platform\Vulkan\VulkanCommon.cpp">
-      <Filter>src\Magnefu\Renderer\Platform\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\Platform\Vulkan\VulkanContext.cpp">
-      <Filter>src\Magnefu\Renderer\Platform\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\Platform\Vulkan\VulkanShader.cpp">
-      <Filter>src\Magnefu\Renderer\Platform\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\Platform\Vulkan\VulkanTexture.cpp">
-      <Filter>src\Magnefu\Renderer\Platform\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\Platform\Windows\WindowsInput.cpp">
-      <Filter>src\Magnefu\Renderer\Platform\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\Platform\Windows\WindowsWindow.cpp">
-      <Filter>src\Magnefu\Renderer\Platform\Windows</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Renderer\RenderCommand.cpp">
       <Filter>src\Magnefu\Renderer</Filter>

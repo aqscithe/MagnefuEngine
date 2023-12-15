@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include "MemoryAllocation/Memory.hpp"
 
 namespace Magnefu
@@ -10,7 +12,23 @@ namespace Magnefu
 	template<typename T>
 	struct Array
 	{
+		// -- Constructors --------------------------- //
+
 		Array();
+		Array(Allocator* allocator, u32 initialCapacity, u32 initialSize = 0);
+		Array(Allocator* allocator, T* begin, T* end);
+
+		// Enables the following initialization: 
+		// Array<int> nums = { 2, 4, 1};
+		/*template<typename... Args>
+		Array(Args&&... args)
+		{
+			u32 count = sizeof...(Args);
+			init(&MemoryService::instance()->systemAllocator, count, count);
+
+			initializeElements(std::forward<Args>(args)...);
+		}*/
+
 		~Array();
 
 		// -- Methods -- //
@@ -38,11 +56,32 @@ namespace Magnefu
 		T&			front();
 		const T&	front() const;
 
+		T*			begin() { return data; }
+		const T*	begin() const { return data; }
+
+		T*			end();
+		const T*	end() const;
+
+		T*			raw();
+		const T*	raw() const;
+
+		bool		empty() { return size <= 0; }
+
+		u32			count() const;
 		u32         size_in_bytes() const;
 		u32         capacity_in_bytes() const;
 
+		//template<typename... Args>
+		//void		initializeElements(Args&&... args)
+		//{
+		//	int index = 0;
+		//	(..., (new(&data[index++]) T(std::forward<Args>(args)))); // Placement new for each argument
+		//}
+
 
 		// -- Members -- //
+
+	private:
 
 		T*			data;
 		u32         size;       // Occupied size
@@ -64,7 +103,14 @@ namespace Magnefu
 		T&			operator[](u32 index);
 		const T&	operator[](u32 index) const;
 
+		T*			raw();
+		const T*	raw() const;
+
+		u32			count() const;
+
 		// -- Members -- //
+
+	private:
 
 		T*			data;
 		u32			size;
@@ -79,13 +125,43 @@ namespace Magnefu
 	template<typename T>
 	inline Array<T>::Array()
 	{
+		data = nullptr;
+		capacity = 0;
+		size = 0;
+		allocator = nullptr;
+	}
 
+	template<typename T>
+	inline Array<T>::Array(Allocator* allocator_, u32 initialCapacity, u32 initialSize)
+	{
+		init(allocator_, initialCapacity, initialSize);
+	}
+
+	template<typename T>
+	inline Array<T>::Array(Allocator* allocator_, T* begin, T* end)
+	{
+		sizet initialSize = end - begin;
+		MF_CORE_ASSERT((initialSize > 0), "End pointer comes before begin");
+
+		//init(allocator_, initialSize, initialSize);
+
+		allocator = allocator_;
+
+		u32 initialCapacity = initialSize;
+		u32 capacityBytes = initialCapacity * sizeof(T);
+		T* new_data = (T*)allocator->allocate(capacityBytes, alignof(T));
+
+		memoryCopy(new_data, begin, capacityBytes);
+		
+		data = new_data;
+		capacity = initialCapacity;
+		size = initialSize;
 	}
 
 	template<typename T>
 	inline Array<T>::~Array()
 	{
-
+		shutdown();
 	}
 
 	template<typename T>
@@ -116,6 +192,7 @@ namespace Magnefu
 		size = capacity = 0;
 	}
 
+
 	template<typename T>
 	inline void Array<T>::push(const T& element)
 	{
@@ -143,28 +220,28 @@ namespace Magnefu
 	template<typename T>
 	inline void Array<T>::pop()
 	{
-		MF_CORE_ASSERT(size > 0, "Empty array");
+		MF_CORE_ASSERT((size > 0), "Empty array");
 		size--;
 	}
 
 	template<typename T>
 	inline void Array<T>::delete_swap(u32 index)
 	{
-		MF_CORE_ASSERT(size > 0 && index < size, "Empty array and/or Index out of bounds");
+		MF_CORE_ASSERT((size > 0 && index < size), "Empty array and/or Index out of bounds");
 		data[index] = data[--size];
 	}
 
 	template<typename T>
 	inline T& Array<T>::operator [](u32 index) 
 	{
-		MF_CORE_ASSERT(index < size, "Index out of bounds");
+		MF_CORE_ASSERT((index < size), "Index out of bounds");
 		return data[index];
 	}
 
 	template<typename T>
 	inline const T& Array<T>::operator [](u32 index) const 
 	{
-		MF_CORE_ASSERT(index < size, "Index out of bounds");
+		MF_CORE_ASSERT((index < size), "Index out of bounds");
 		return data[index];
 	}
 
@@ -246,6 +323,38 @@ namespace Magnefu
 	}
 
 	template<typename T>
+	inline T* Array<T>::end()
+	{ 
+		MF_CORE_ASSERT(size, "Empty array");
+		return data + size; 
+	}
+
+	template<typename T>
+	const T* Array<T>::end() const
+	{ 
+		MF_CORE_ASSERT(size, "Empty array");
+		return data + size; 
+	}
+
+	template<typename T>
+	inline T* Array<T>::raw()
+	{
+		return data;
+	}
+
+	template<typename T>
+	inline const T* Array<T>::raw() const
+	{
+		return data;
+	}
+
+	template<typename T>
+	inline u32 Array<T>::count() const
+	{
+		return size;
+	}
+
+	template<typename T>
 	inline u32 Array<T>::size_in_bytes() const 
 	{
 		return size * sizeof(T);
@@ -285,6 +394,24 @@ namespace Magnefu
 	{
 		MF_CORE_ASSERT(index < size, "Index out of bounds");
 		return data[index];
+	}
+
+	template<typename T>
+	inline T* ArrayView<T>::raw()
+	{
+		return data;
+	}
+
+	template<typename T>
+	inline const T* ArrayView<T>::raw() const
+	{
+		return data;
+	}
+
+	template<typename T>
+	inline u32 ArrayView<T>::count() const
+	{
+		return size;
 	}
 
 } // namespace Magnefu

@@ -27,8 +27,8 @@ namespace Magnefu
 
 	struct SwapChainSupportDetails 
 	{
-		std::vector<VkSurfaceFormatKHR> Formats;
-		std::vector<VkPresentModeKHR>   PresentModes;
+		Array<VkSurfaceFormatKHR> Formats;
+		Array<VkPresentModeKHR>   PresentModes;
 		VkSurfaceCapabilitiesKHR        Capabilities;
 	};
 
@@ -84,13 +84,13 @@ namespace Magnefu
 		VmaBudget Budgets;
 		
 		// Vertex Buffer
-		std::vector<VkDeviceSize> VBufferOffsets;
+		Array<VkDeviceSize> VBufferOffsets;
 		VkBuffer                  VBuffer;
 		VmaAllocation             VBufferAllocation;
 		VmaAllocationInfo         VBufferAllocInfo;
 
 		// Index Buffer
-		std::vector<VkDeviceSize> IBufferOffsets;
+		Array<VkDeviceSize> IBufferOffsets;
 		VkBuffer                  IBuffer;
 		VmaAllocation             IBufferAllocation;
 		VmaAllocationInfo         IBufferAllocInfo;
@@ -99,10 +99,10 @@ namespace Magnefu
 		// Uniforms
 		VkDeviceSize                   UniformOffset = 0;
 		VkDeviceSize                   UniformAlignment;
-		std::vector<VkBuffer>          UniformBuffers;
-		std::vector<void*>             UniformBuffersMapped;
-		std::vector<VmaAllocation>     UniformAllocations;
-		std::vector<VmaAllocationInfo> UniformAllocInfo;
+		Array<VkBuffer>          UniformBuffers;
+		Array<void*>             UniformBuffersMapped;
+		Array<VmaAllocation>     UniformAllocations;
+		Array<VmaAllocationInfo> UniformAllocInfo;
 
 		// Framebuffer Resources
 		VkImage DepthImage;
@@ -154,7 +154,7 @@ namespace Magnefu
 		inline const VkRenderPass& GetRenderPass() const { return m_RenderPass; }
 		inline const VmaAllocator& GetVmaAllocator() const { return m_VmaAllocator; }
 
-		inline const std::vector<VkBuffer>& GetUniformBuffers() { return m_VulkanMemory.UniformBuffers; }
+		inline const Array<VkBuffer>& GetUniformBuffers() { return m_VulkanMemory.UniformBuffers; }
 		inline VulkanMemory& GetVulkanMemory() { return m_VulkanMemory; }
 
 		
@@ -194,13 +194,13 @@ namespace Magnefu
 
 
 		// -- Buffers -- //
-		void AllocateIndexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool);
-		void AllocateVertexBuffers(const uint32_t& sceneObjCount, std::vector<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool);
+		void AllocateIndexBuffers(const uint32_t& sceneObjCount, Array<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool);
+		void AllocateVertexBuffers(const uint32_t& sceneObjCount, Array<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool);
 		void AllocateUniformBuffers(const uint32_t& sceneObjCount);
 
 
 		// -- Device -- //
-		std::vector<const char*> GetRequiredExtensions();
+		Array<const char*> GetRequiredExtensions();
 		void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 		bool IsDeviceSuitable(VkPhysicalDevice);
 		bool CheckDeviceExtensionSupport(VkPhysicalDevice);
@@ -209,13 +209,13 @@ namespace Magnefu
 		// -- Swap Chain -- //
 		QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice);
 		SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice);
-		VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+		VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const Array<VkSurfaceFormatKHR>& availableFormats);
+		VkPresentModeKHR ChooseSwapPresentMode(const Array<VkPresentModeKHR>& availablePresentModes);
 		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
 		
 		VkFormat FindDepthFormat();
-		VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+		VkFormat FindSupportedFormat(const VkFormat* candidates, u32 candidateCount, VkImageTiling tiling, VkFormatFeatureFlags features);
 		
 
 		// Uniforms
@@ -279,24 +279,24 @@ namespace Magnefu
 		bool                         m_SwapChainRebuild = false;
 		VkPresentModeKHR             m_PresentMode;
 		VkSwapchainKHR               m_SwapChain;
-		std::vector<VkImage>         m_SwapChainImages;
+		Array<VkImage>         m_SwapChainImages;
 		VkFormat                     m_SwapChainImageFormat;
 		VkExtent2D                   m_SwapChainExtent;
-		std::vector<VkImageView>     m_SwapChainImageViews;
+		Array<VkImageView>     m_SwapChainImageViews;
 
 		// -- Render Pass and Pipeline Primitives -- //
 		VkRenderPass                 m_RenderPass;
-		std::vector<VkFramebuffer>   m_SwapChainFramebuffers;
+		Array<VkFramebuffer>   m_SwapChainFramebuffers;
 		VkCommandPool                m_CommandPool;
-		std::vector<VkCommandBuffer> m_CommandBuffers;
+		Array<VkCommandBuffer> m_CommandBuffers;
 		uint32_t                     m_CurrentFrame;
 		bool						 m_FramebufferResized;
 
 		// -- Synchronization Primitives -- //
-		std::vector<VkSemaphore>     m_ImageAvailableSemaphores;
-		std::vector<VkSemaphore>     m_ImGuiRenderFinishedSemaphores;
-		std::vector<VkSemaphore>     m_RenderFinishedSemaphores;
-		std::vector<VkFence>         m_InFlightFences;
+		Array<VkSemaphore>     m_ImageAvailableSemaphores;
+		Array<VkSemaphore>     m_ImGuiRenderFinishedSemaphores;
+		Array<VkSemaphore>     m_RenderFinishedSemaphores;
+		Array<VkFence>         m_InFlightFences;
 
 
 		// -- Mip Map Info -- //
@@ -324,8 +324,8 @@ namespace Magnefu
 
 		//------------------- ImGui ---------------------- //
 
-		std::vector<VkCommandBuffer> m_ImGuiCommandBuffers;
-		std::vector<VkFence>         m_ImGuiInFlightFences;
+		Array<VkCommandBuffer> m_ImGuiCommandBuffers;
+		Array<VkFence>         m_ImGuiInFlightFences;
 
 		// ----------------------------------------------- //
 

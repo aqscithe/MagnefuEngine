@@ -4,6 +4,7 @@
 #include "Renderer/GraphicsContext.h"
 
 
+
 //TEMP
 #include "imgui/imgui.h"
 
@@ -16,6 +17,7 @@ namespace Magnefu
 
     Application* Application::s_Instance = nullptr;
 
+    
 
 
 	Application::Application()
@@ -26,10 +28,14 @@ namespace Magnefu
         MF_CORE_ASSERT(!s_Instance, "Application instance already exists.");
         s_Instance = this;
 
-        // -- Init Services -- //
+        // -- Init Services ------------------------------------------- //
         
         // Start Memory Service
         MemoryService::instance()->init(nullptr);
+
+        m_SceneObjects.init(&MemoryService::instance()->systemAllocator, 1);
+
+        // -- Create Managers ------------------------------------------- //
 
         // Create Resource Manager
         m_RM = Scope<ResourceManager>(ResourceManager::Create());
@@ -80,15 +86,11 @@ namespace Magnefu
         // need to get info on whether the object is textured from
         // MODEL_PATHS
 
-        for (size_t i = 0; i < m_SceneObjects.size(); i++)
+        for (size_t i = 0; i < m_SceneObjects.count(); i++)
             m_SceneObjects[i].Init(i);
 
 
-        Array<int> days{};
-        days.init( &MemoryService::instance()->systemAllocator, 7, 0 );
-        days.push(4);
-        days.push(23);
-        days.pop();
+        
 
         // NON AREA LIGHTS
         /*for (auto& light : m_PointLights)
@@ -113,7 +115,7 @@ namespace Magnefu
         MemoryService::instance()->shutdown();
 	}
 
-    void Application::SetVertexBlock(DataBlock&& vertexBlock, size_t objPos, ModelType modelType)
+    void Application::SetVertexBlock(DataBlock& vertexBlock, size_t objPos, ModelType modelType)
     {
         switch (modelType)
         {

@@ -20,7 +20,6 @@ static const uint32_t MAX_SCENES = 1;
 
 EditorLayer::EditorLayer() :
 	Layer("Editor"),
-	m_SceneObjects(Magnefu::Application::Get().GetSceneObjects()),
 	m_Camera(std::static_pointer_cast<Magnefu::SceneCamera>(Magnefu::Application::Get().GetWindow().GetSceneCamera())),
 	m_PushConstants(),
 	m_AreaLightPoints(),
@@ -32,6 +31,7 @@ EditorLayer::EditorLayer() :
 	Magnefu::Application& app = Magnefu::Application::Get();
 	//auto& scenes = app.GetScenes();
 	
+	auto& sceneObjs = Magnefu::Application::Get().GetSceneObjects();
 
 
 	//// All of this should be within an ImGui editor //
@@ -60,7 +60,7 @@ EditorLayer::EditorLayer() :
 
 	// Get number of area light instances in the scene
 	// Area Lights are currently at index 1
-	m_AreaLightCount = m_SceneObjects[1].GetInstanceCount();
+	m_AreaLightCount = sceneObjs[1].GetInstanceCount();
 
 	app.SetAreaLightCount(m_AreaLightCount);
 
@@ -79,13 +79,13 @@ EditorLayer::EditorLayer() :
 
 
 	// -- Initialize Instanced Materials -- //
-	for (int object = 0; object < m_SceneObjects.size(); object++)
+	for (int object = 0; object < sceneObjs.count(); object++)
 	{
 
-		if (m_SceneObjects[object].IsInstanced())
+		if (sceneObjs[object].IsInstanced())
 		{
-			int instanceCount = m_SceneObjects[object].GetInstanceCount();
-			auto& material = m_SceneObjects[object].GetMaterialDataInstanced();
+			int instanceCount = sceneObjs[object].GetInstanceCount();
+			auto& material = sceneObjs[object].GetMaterialDataInstanced();
 
 			for (int instance = 0; instance < instanceCount; instance++)
 			{
@@ -117,10 +117,11 @@ void EditorLayer::OnUpdate(float deltaTime)
 	m_GraphicsContext->SetPushConstants(m_PushConstants);
 	Magnefu::Application::Get().SetAreaLightData(m_AreaLights);
 
+	auto& sceneObjs = Magnefu::Application::Get().GetSceneObjects();
 
 	//// Getting material applied to area light geometry
-	auto& material = m_SceneObjects[1].GetMaterialDataInstanced();
-	int instanceCount = m_SceneObjects[1].GetInstanceCount();
+	auto& material = sceneObjs[1].GetMaterialDataInstanced();
+	int instanceCount = sceneObjs[1].GetInstanceCount();
 
 	for (int instance = 0; instance < instanceCount; instance++)
 	{
@@ -423,20 +424,22 @@ void EditorLayer::ShowScene()
 
 void EditorLayer::ShowTemp()
 {
+	auto& sceneObjs = Magnefu::Application::Get().GetSceneObjects();
+
 	ImGui::Begin("Scene");
 	ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
 	if (ImGui::BeginTabBar("Scene", tab_bar_flags))
 	{
 		if (ImGui::BeginTabItem("Objects"))
 		{
-			for (int object = 0; object < m_SceneObjects.size(); object++)
+			for (int object = 0; object < sceneObjs.count(); object++)
 			{
 
 				// -- TODO: DETERMINE IF OBJECT IS INSTANCED -- //
-				if (m_SceneObjects[object].IsInstanced())
+				if (sceneObjs[object].IsInstanced())
 				{
-					int instanceCount = m_SceneObjects[object].GetInstanceCount();
-					auto& material = m_SceneObjects[object].GetMaterialDataInstanced();
+					int instanceCount = sceneObjs[object].GetInstanceCount();
+					auto& material = sceneObjs[object].GetMaterialDataInstanced();
 
 					for (int instance = 0; instance < instanceCount; instance++)
 					{
@@ -456,7 +459,7 @@ void EditorLayer::ShowTemp()
 				}
 				else
 				{
-					auto& material = m_SceneObjects[object].GetMaterialData();
+					auto& material = sceneObjs[object].GetMaterialData();
 
 					char label[32];
 

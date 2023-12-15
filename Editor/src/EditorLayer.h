@@ -43,7 +43,7 @@ private:
 		Magnefu::Ref<Magnefu::SceneCamera>                  m_Camera;
 		Magnefu::GraphicsContext* m_GraphicsContext;
 		Magnefu::PushConstants                              m_PushConstants;
-		std::vector<Magnefu::SceneObject>& m_SceneObjects;
+		//Array<Magnefu::SceneObject>& m_SceneObjects;
 		int                                                 m_AreaLightCount;
 		Maths::mat4                                         m_AreaLightPoints;
 		std::array<Magnefu::AreaLight, Magnefu::MAX_AREA_LIGHTS>  m_AreaLights;
