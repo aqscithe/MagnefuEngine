@@ -381,9 +381,6 @@
     <ClInclude Include="src\Magnefu\Renderer\SceneCamera.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Renderer\SceneObject.h">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="src\Magnefu\Renderer\Shader.h">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClInclude>
@@ -3212,9 +3209,6 @@
       <Filter>src\Magnefu\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Renderer\SceneCamera.cpp">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Renderer\SceneObject.cpp">
       <Filter>src\Magnefu\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Renderer\Shader.cpp">

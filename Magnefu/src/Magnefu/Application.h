@@ -9,7 +9,6 @@
 #include "Magnefu/Core/Events/KeyEvent.h"
 
 #include "Magnefu/ResourceManagement/ResourceManager.h"
-#include "Magnefu/Renderer/SceneObject.h"
 #include "Magnefu/Core/TimeStep.h"
 #include "Magnefu/Scene/SceneManager.h"
 
@@ -83,19 +82,10 @@ namespace Magnefu
 		// -- SCENES -- //
 		
 
-		inline void ResizeSceneObjects(const size_t size) { m_SceneObjects.set_size(size); }
-
-		inline Array<SceneObject>& GetSceneObjects() { return m_SceneObjects; }
-
 
 		inline static Application& Get() { return *s_Instance; }
 
-		void SetVertexBlock(DataBlock& vertexBlock, size_t objPos, ModelType modelType);
-		void SetIndexBlock(DataBlock&& indexBlock, size_t objPos, ModelType modelType);
 		
-
-		
-
 
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
@@ -103,6 +93,13 @@ namespace Magnefu
 	
 
 	private:
+
+		// Try not to have any Array<T> members in this class as
+		// the memory service is initialized in its constructor
+		// but any arrays' default constructor will need its memory
+		// allocator. class member constructors are called
+		// BEFORE their owning object's constructor is called
+
 		static Application* s_Instance;
 
 		TimeStep m_TimeStep;
@@ -121,8 +118,6 @@ namespace Magnefu
 		// Phasing out SceneObject in favor or scene
 		// objects will be represented as entities using
 		// ECS architecture
-		//std::vector<SceneObject> m_SceneObjects;
-		Array<SceneObject> m_SceneObjects;
 		
 
 

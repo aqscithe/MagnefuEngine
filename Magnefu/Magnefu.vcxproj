@@ -197,7 +197,6 @@
     <ClInclude Include="src\Magnefu\Renderer\Renderer.h" />
     <ClInclude Include="src\Magnefu\Renderer\RendererAPI.h" />
     <ClInclude Include="src\Magnefu\Renderer\SceneCamera.h" />
-    <ClInclude Include="src\Magnefu\Renderer\SceneObject.h" />
     <ClInclude Include="src\Magnefu\Renderer\Shader.h" />
     <ClInclude Include="src\Magnefu\Renderer\Texture.h" />
     <ClInclude Include="src\Magnefu\ResourceManagement\Handle.h" />
@@ -1142,7 +1141,6 @@
     <ClCompile Include="src\Magnefu\Renderer\Renderer.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\RendererAPI.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\SceneCamera.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\SceneObject.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Shader.cpp" />
     <ClCompile Include="src\Magnefu\Renderer\Texture.cpp" />
     <ClCompile Include="src\Magnefu\ResourceManagement\Pool.cpp" />

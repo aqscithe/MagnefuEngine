@@ -168,22 +168,23 @@ namespace Magnefu
 
 		// -- Vulkan Context Member Array Inits ---------------------------------------- //
 
-		m_SwapChainImages.init(&MemoryService::instance()->systemAllocator, 1);
+		/*m_SwapChainImages.init(&MemoryService::instance()->systemAllocator, 1);
 		m_SwapChainImageViews.init(&MemoryService::instance()->systemAllocator, 1);
 		m_SwapChainFramebuffers.init(&MemoryService::instance()->systemAllocator, 1);
 		m_CommandBuffers.init(&MemoryService::instance()->systemAllocator, 1);
+		m_ImGuiCommandBuffers.init(&MemoryService::instance()->systemAllocator, 1);
 		m_ImageAvailableSemaphores.init(&MemoryService::instance()->systemAllocator, 1);
 		m_ImGuiRenderFinishedSemaphores.init(&MemoryService::instance()->systemAllocator, 1);
 		m_RenderFinishedSemaphores.init(&MemoryService::instance()->systemAllocator, 1);
 		m_InFlightFences.init(&MemoryService::instance()->systemAllocator, 1);
-
+		m_ImGuiInFlightFences.init(&MemoryService::instance()->systemAllocator, 1);
 
 		m_VulkanMemory.VBufferOffsets.init(&MemoryService::instance()->systemAllocator, 1);
 		m_VulkanMemory.IBufferOffsets.init(&MemoryService::instance()->systemAllocator, 1);
 		m_VulkanMemory.UniformBuffers.init(&MemoryService::instance()->systemAllocator, 1);
 		m_VulkanMemory.UniformBuffersMapped.init(&MemoryService::instance()->systemAllocator, 1);
 		m_VulkanMemory.UniformAllocations.init(&MemoryService::instance()->systemAllocator, 1);
-		m_VulkanMemory.UniformAllocInfo.init(&MemoryService::instance()->systemAllocator, 1);
+		m_VulkanMemory.UniformAllocInfo.init(&MemoryService::instance()->systemAllocator, 1);*/
 
 
 
@@ -195,20 +196,6 @@ namespace Magnefu
 
 		// -- COMPUTE SHADER CLEANUP -- //
 
-		/*for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-		{
-			vkDestroyBuffer(m_VkDevice, m_ComputeUniformBuffers[i], s_Allocs);
-			vkFreeMemory(m_VkDevice, m_ComputeUniformBuffersMemory[i], s_Allocs);
-		}
-
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-		{
-			vkDestroyBuffer(m_VkDevice, m_ShaderStorageBuffers[i], s_Allocs);
-			vkFreeMemory(m_VkDevice, m_ShaderStorageBuffersMemory[i], s_Allocs);
-		}
-
-		vkDestroyDescriptorPool(m_VkDevice, m_ComputeDescriptorPool, s_Allocs);
-		vkDestroyDescriptorSetLayout(m_VkDevice, m_ComputeDescriptorSetLayout, s_Allocs);*/
 
 		// ----------------------------- //
 
@@ -259,8 +246,8 @@ namespace Magnefu
 		CreateLogicalDevice();
 		CreateSwapChain();
 		CreateCommandPool(); 
-		LoadModels();
-		LoadTextures();
+		//LoadModels();
+		//LoadTextures();
 		CreateRenderPass();
 
 		// The Application should tell Context how much memory is needed à la m_GraphicsContext->AllocateResourceMemory(BytesStruct)
@@ -635,8 +622,6 @@ namespace Magnefu
 	void VulkanContext::AllocateBufferMemory()
 	{
 		Application& app = Application::Get();
-		auto sceneObjs = app.GetSceneObjects();
-		uint32_t sceneObjCount = sceneObjs.count();
 
 		VkCommandPool commandPool;
 
@@ -649,179 +634,179 @@ namespace Magnefu
 			MF_CORE_ASSERT(false, "failed to create command pool!");
 
 
-		AllocateUniformBuffers(sceneObjCount);
+		//AllocateUniformBuffers(sceneObjCount);
 
-		// TODO: Can get pointers for mesh data in Mesh components here
-		AllocateVertexBuffers(sceneObjCount, sceneObjs, commandPool);
-		AllocateIndexBuffers(sceneObjCount, sceneObjs, commandPool);
+		//// TODO: Can get pointers for mesh data in Mesh components here
+		//AllocateVertexBuffers(sceneObjCount, sceneObjs, commandPool);
+		//AllocateIndexBuffers(sceneObjCount, sceneObjs, commandPool);
 	}
 
-	void VulkanContext::AllocateIndexBuffers(const uint32_t& sceneObjCount, Array<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool)
-	{
-		
-		VkDeviceSize totalSize = 0;
-		VkDeviceSize size = 0;
-		VkDeviceSize offset = 0;
+	//void VulkanContext::AllocateIndexBuffers(const uint32_t& sceneObjCount, Array<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool)
+	//{
+	//	
+	//	VkDeviceSize totalSize = 0;
+	//	VkDeviceSize size = 0;
+	//	VkDeviceSize offset = 0;
 
-		m_VulkanMemory.IBufferOffsets.set_size(sceneObjCount);
+	//	m_VulkanMemory.IBufferOffsets.set_size(sceneObjCount);
 
-		for (size_t i = 0; i < sceneObjCount; i++)
-		{
-			size = sceneObjs[i].GetIndicesSize();
-			offset = (totalSize + ALIGNMENT_INDEX_BUFFER - 1) & ~(ALIGNMENT_INDEX_BUFFER - 1);
-			totalSize = offset + size;
-			m_VulkanMemory.IBufferOffsets[i] = offset;
-		}
+	//	for (size_t i = 0; i < sceneObjCount; i++)
+	//	{
+	//		size = sceneObjs[i].GetIndicesSize();
+	//		offset = (totalSize + ALIGNMENT_INDEX_BUFFER - 1) & ~(ALIGNMENT_INDEX_BUFFER - 1);
+	//		totalSize = offset + size;
+	//		m_VulkanMemory.IBufferOffsets[i] = offset;
+	//	}
 
-		VkBuffer stagingBuffer;
-		VmaAllocation stagingAllocation;
-		VmaAllocationInfo stagingAllocInfo;
+	//	VkBuffer stagingBuffer;
+	//	VmaAllocation stagingAllocation;
+	//	VmaAllocationInfo stagingAllocInfo;
 
-		VulkanCommon::CreateBuffer(
-			totalSize,
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			stagingBuffer,
-			VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
-			VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
-			stagingAllocation,
-			stagingAllocInfo
-		);
+	//	VulkanCommon::CreateBuffer(
+	//		totalSize,
+	//		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+	//		stagingBuffer,
+	//		VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+	//		VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+	//		stagingAllocation,
+	//		stagingAllocInfo
+	//	);
 
-		void* data;
-		vmaMapMemory(m_VmaAllocator, stagingAllocation, &data);
+	//	void* data;
+	//	vmaMapMemory(m_VmaAllocator, stagingAllocation, &data);
 
-		for (size_t i = 0; i < sceneObjCount; i++)
-		{
-			memcpy(static_cast<char*>(data) + m_VulkanMemory.IBufferOffsets[i], sceneObjs[i].GetIndicesData(), sceneObjs[i].GetIndicesSize());
-			sceneObjs[i].ClearIndexDataBlock();
-		}
-			
+	//	for (size_t i = 0; i < sceneObjCount; i++)
+	//	{
+	//		memcpy(static_cast<char*>(data) + m_VulkanMemory.IBufferOffsets[i], sceneObjs[i].GetIndicesData(), sceneObjs[i].GetIndicesSize());
+	//		sceneObjs[i].ClearIndexDataBlock();
+	//	}
+	//		
 
-		vmaUnmapMemory(m_VmaAllocator, stagingAllocation);
+	//	vmaUnmapMemory(m_VmaAllocator, stagingAllocation);
 
-		VulkanCommon::CreateBuffer(
-			totalSize,
-			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-			m_VulkanMemory.IBuffer,
-			VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
-			0,
-			m_VulkanMemory.IBufferAllocation,
-			m_VulkanMemory.IBufferAllocInfo
-		);
+	//	VulkanCommon::CreateBuffer(
+	//		totalSize,
+	//		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+	//		m_VulkanMemory.IBuffer,
+	//		VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+	//		0,
+	//		m_VulkanMemory.IBufferAllocation,
+	//		m_VulkanMemory.IBufferAllocInfo
+	//	);
 
-		VulkanCommon::CopyBuffer(stagingBuffer, m_VulkanMemory.IBuffer, totalSize, commandPool);
+	//	VulkanCommon::CopyBuffer(stagingBuffer, m_VulkanMemory.IBuffer, totalSize, commandPool);
 
-		vmaDestroyBuffer(m_VmaAllocator, stagingBuffer, stagingAllocation);
-	}
+	//	vmaDestroyBuffer(m_VmaAllocator, stagingBuffer, stagingAllocation);
+	//}
 
-	void VulkanContext::AllocateVertexBuffers(const uint32_t& sceneObjCount, Array<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool)
-	{
+	//void VulkanContext::AllocateVertexBuffers(const uint32_t& sceneObjCount, Array<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool)
+	//{
 
-		VkDeviceSize totalSize = 0;
-		VkDeviceSize size = 0;
-		VkDeviceSize offset = 0;
+	//	VkDeviceSize totalSize = 0;
+	//	VkDeviceSize size = 0;
+	//	VkDeviceSize offset = 0;
 
-		m_VulkanMemory.VBufferOffsets.set_size(sceneObjCount);
+	//	m_VulkanMemory.VBufferOffsets.set_size(sceneObjCount);
 
-		for (size_t i = 0; i < sceneObjCount; i++)
-		{
-			size = sceneObjs[i].GetVerticesSize();
-			offset = (totalSize + ALIGNMENT_VERTEX_BUFFER - 1) & ~(ALIGNMENT_VERTEX_BUFFER - 1);
-			totalSize = offset + size;
-			m_VulkanMemory.VBufferOffsets[i] = offset;
-		}
+	//	for (size_t i = 0; i < sceneObjCount; i++)
+	//	{
+	//		size = sceneObjs[i].GetVerticesSize();
+	//		offset = (totalSize + ALIGNMENT_VERTEX_BUFFER - 1) & ~(ALIGNMENT_VERTEX_BUFFER - 1);
+	//		totalSize = offset + size;
+	//		m_VulkanMemory.VBufferOffsets[i] = offset;
+	//	}
 
-		VkBuffer stagingBuffer;
-		VmaAllocation stagingAllocation;
-		VmaAllocationInfo stagingAllocInfo;
+	//	VkBuffer stagingBuffer;
+	//	VmaAllocation stagingAllocation;
+	//	VmaAllocationInfo stagingAllocInfo;
 
-		VulkanCommon::CreateBuffer(
-			totalSize,
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			stagingBuffer,
-			VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
-			VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
-			stagingAllocation,
-			stagingAllocInfo
-		);
+	//	VulkanCommon::CreateBuffer(
+	//		totalSize,
+	//		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+	//		stagingBuffer,
+	//		VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+	//		VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+	//		stagingAllocation,
+	//		stagingAllocInfo
+	//	);
 
-		void* data;
-		vmaMapMemory(m_VmaAllocator, stagingAllocation, &data);
+	//	void* data;
+	//	vmaMapMemory(m_VmaAllocator, stagingAllocation, &data);
 
-		for (size_t i = 0; i < sceneObjCount; i++)
-		{
-			memcpy(static_cast<char*>(data) + m_VulkanMemory.VBufferOffsets[i], sceneObjs[i].GetVerticesData(), sceneObjs[i].GetVerticesSize());
-			sceneObjs[i].ClearVertexDataBlock();
-		}
-			
+	//	for (size_t i = 0; i < sceneObjCount; i++)
+	//	{
+	//		memcpy(static_cast<char*>(data) + m_VulkanMemory.VBufferOffsets[i], sceneObjs[i].GetVerticesData(), sceneObjs[i].GetVerticesSize());
+	//		sceneObjs[i].ClearVertexDataBlock();
+	//	}
+	//		
 
-		vmaUnmapMemory(m_VmaAllocator, stagingAllocation);
+	//	vmaUnmapMemory(m_VmaAllocator, stagingAllocation);
 
-		VulkanCommon::CreateBuffer(
-			totalSize,
-			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-			m_VulkanMemory.VBuffer,
-			VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
-			0,
-			m_VulkanMemory.VBufferAllocation,
-			m_VulkanMemory.VBufferAllocInfo
-		);
+	//	VulkanCommon::CreateBuffer(
+	//		totalSize,
+	//		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+	//		m_VulkanMemory.VBuffer,
+	//		VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+	//		0,
+	//		m_VulkanMemory.VBufferAllocation,
+	//		m_VulkanMemory.VBufferAllocInfo
+	//	);
 
-		VulkanCommon::CopyBuffer(stagingBuffer, m_VulkanMemory.VBuffer, totalSize, commandPool);
+	//	VulkanCommon::CopyBuffer(stagingBuffer, m_VulkanMemory.VBuffer, totalSize, commandPool);
 
-		vmaDestroyBuffer(m_VmaAllocator, stagingBuffer, stagingAllocation);
-	}
+	//	vmaDestroyBuffer(m_VmaAllocator, stagingBuffer, stagingAllocation);
+	//}
 
-	void VulkanContext::AllocateUniformBuffers(const uint32_t& sceneObjCount)
-	{
-		VkDeviceSize totalSize = 0;
-		VkDeviceSize size = sizeof(RenderPassUniformBufferObject);
-		VkDeviceSize offset = (totalSize + m_VulkanMemory.UniformAlignment - 1) & ~(m_VulkanMemory.UniformAlignment - 1);
+	//void VulkanContext::AllocateUniformBuffers(const uint32_t& sceneObjCount)
+	//{
+	//	VkDeviceSize totalSize = 0;
+	//	VkDeviceSize size = sizeof(RenderPassUniformBufferObject);
+	//	VkDeviceSize offset = (totalSize + m_VulkanMemory.UniformAlignment - 1) & ~(m_VulkanMemory.UniformAlignment - 1);
 
-		totalSize = offset + size;
+	//	totalSize = offset + size;
 
-		
-		for (int index = 0; index < sceneObjCount; index++)
-		{
-			ResourceInfo resourceInfo = RESOURCE_PATHS[index];
+	//	
+	//	for (int index = 0; index < sceneObjCount; index++)
+	//	{
+	//		ResourceInfo resourceInfo = RESOURCE_PATHS[index];
 
-			// If the sceneobject is instanced, the size of its uniform buffer
-			// will be different
-			if (resourceInfo.IsInstanced)
-			{
-				size = sizeof(MaterialUniformBufferObjectInstanced);
-			}
-			else
-			{
-				size = sizeof(MaterialUniformBufferObject);
-			}
-			
-			offset = (totalSize + m_VulkanMemory.UniformAlignment - 1) & ~(m_VulkanMemory.UniformAlignment - 1);
-			totalSize = offset + size;
-		}
+	//		// If the sceneobject is instanced, the size of its uniform buffer
+	//		// will be different
+	//		if (resourceInfo.IsInstanced)
+	//		{
+	//			size = sizeof(MaterialUniformBufferObjectInstanced);
+	//		}
+	//		else
+	//		{
+	//			size = sizeof(MaterialUniformBufferObject);
+	//		}
+	//		
+	//		offset = (totalSize + m_VulkanMemory.UniformAlignment - 1) & ~(m_VulkanMemory.UniformAlignment - 1);
+	//		totalSize = offset + size;
+	//	}
 
-		m_VulkanMemory.UniformBuffers.set_size(MAX_FRAMES_IN_FLIGHT);
-		m_VulkanMemory.UniformBuffersMapped.set_size(MAX_FRAMES_IN_FLIGHT);
-		m_VulkanMemory.UniformAllocations.set_size(MAX_FRAMES_IN_FLIGHT);
-		m_VulkanMemory.UniformAllocInfo.set_size(MAX_FRAMES_IN_FLIGHT);
-		m_VulkanMemory.UniformOffset = 0;
+	//	m_VulkanMemory.UniformBuffers.set_size(MAX_FRAMES_IN_FLIGHT);
+	//	m_VulkanMemory.UniformBuffersMapped.set_size(MAX_FRAMES_IN_FLIGHT);
+	//	m_VulkanMemory.UniformAllocations.set_size(MAX_FRAMES_IN_FLIGHT);
+	//	m_VulkanMemory.UniformAllocInfo.set_size(MAX_FRAMES_IN_FLIGHT);
+	//	m_VulkanMemory.UniformOffset = 0;
 
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-		{
-			VulkanCommon::CreateBuffer(
-				totalSize,
-				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-				m_VulkanMemory.UniformBuffers[i],
-				VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
-				VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
-				m_VulkanMemory.UniformAllocations[i],
-				m_VulkanMemory.UniformAllocInfo[i]
-			);
+	//	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+	//	{
+	//		VulkanCommon::CreateBuffer(
+	//			totalSize,
+	//			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+	//			m_VulkanMemory.UniformBuffers[i],
+	//			VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+	//			VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+	//			m_VulkanMemory.UniformAllocations[i],
+	//			m_VulkanMemory.UniformAllocInfo[i]
+	//		);
 
-			vmaMapMemory(m_VmaAllocator, m_VulkanMemory.UniformAllocations[i], &m_VulkanMemory.UniformBuffersMapped[i]);
-		}
-	}
+	//		vmaMapMemory(m_VmaAllocator, m_VulkanMemory.UniformAllocations[i], &m_VulkanMemory.UniformBuffersMapped[i]);
+	//	}
+	//}
 
 	void VulkanContext::CreateSwapChain()
 	{
@@ -1052,234 +1037,234 @@ namespace Magnefu
 		m_DepthImageView = VulkanCommon::CreateImageView(m_VulkanMemory.DepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 	}
 
-	void VulkanContext::LoadModels()
-	{
-		Application::Get().ResizeSceneObjects(RESOURCE_PATHS.size());
+	//void VulkanContext::LoadModels()
+	//{
+	//	Application::Get().ResizeSceneObjects(RESOURCE_PATHS.size());
 
-		u32 threadSize = RESOURCE_PATHS.size();
-		//Array<std::thread> threads(&MemoryService::instance()->systemAllocator, threadSize, threadSize);
-		std::vector<std::thread> threads(threadSize);
+	//	u32 threadSize = RESOURCE_PATHS.size();
+	//	//Array<std::thread> threads(&MemoryService::instance()->systemAllocator, threadSize, threadSize);
+	//	std::vector<std::thread> threads(threadSize);
 
-		for (size_t i = 0; i < RESOURCE_PATHS.size(); i++)
-			threads[i] = std::thread(&VulkanContext::LoadSingleModel, this, RESOURCE_PATHS[i], i, ModelType::MODEL_DEFAULT);
+	//	for (size_t i = 0; i < RESOURCE_PATHS.size(); i++)
+	//		threads[i] = std::thread(&VulkanContext::LoadSingleModel, this, RESOURCE_PATHS[i], i, ModelType::MODEL_DEFAULT);
 
-		// Join all threads
-		for (auto& t : threads)
-			t.join();
-		
-	}
+	//	// Join all threads
+	//	for (auto& t : threads)
+	//		t.join();
+	//	
+	//}
 
-	void VulkanContext::LoadTextures()
-	{
-		MF_CORE_ASSERT(
-			Application::Get().GetSceneObjects().count() == TEXTURE_PATHS.size(),
-			"Texture path count does not match number of scene objects"
-		); // Will only be relevant as long as each object has a different set of textures.
+	//void VulkanContext::LoadTextures()
+	//{
+	//	MF_CORE_ASSERT(
+	//		Application::Get().GetSceneObjects().count() == TEXTURE_PATHS.size(),
+	//		"Texture path count does not match number of scene objects"
+	//	); // Will only be relevant as long as each object has a different set of textures.
 
-		u32 threadSize = TEXTURE_PATHS.size() * 3; // TODO: Hard coding this is REEEAALLY dangerous. Update ASAP!!
-		//Array<std::thread> threads(&MemoryService::instance()->systemAllocator, threadSize, threadSize);
-		std::vector<std::thread> threads(threadSize);
+	//	u32 threadSize = TEXTURE_PATHS.size() * 3; // TODO: Hard coding this is REEEAALLY dangerous. Update ASAP!!
+	//	//Array<std::thread> threads(&MemoryService::instance()->systemAllocator, threadSize, threadSize);
+	//	std::vector<std::thread> threads(threadSize);
 
-		for (int i = 0; i < TEXTURE_PATHS.size(); i++)  //
-		{
-			//auto& sceneObj = sceneObjs[i];
-			for (int j = 0; j < 3; j++)
-			{
-				threads[i * 3 + j] = std::thread(&VulkanContext::LoadSingleTexture, this, TEXTURE_PATHS[i].ModelIndex, TEXTURE_PATHS[i].Paths[j], j);
-			}
-			
-		}
+	//	for (int i = 0; i < TEXTURE_PATHS.size(); i++)  //
+	//	{
+	//		//auto& sceneObj = sceneObjs[i];
+	//		for (int j = 0; j < 3; j++)
+	//		{
+	//			threads[i * 3 + j] = std::thread(&VulkanContext::LoadSingleTexture, this, TEXTURE_PATHS[i].ModelIndex, TEXTURE_PATHS[i].Paths[j], j);
+	//		}
+	//		
+	//	}
 
-		// Join all threads
-		for (auto& t : threads)
-			t.join();
-	}
+	//	// Join all threads
+	//	for (auto& t : threads)
+	//		t.join();
+	//}
 
-	void VulkanContext::LoadSingleModel(const ResourceInfo& resourceInfo, size_t objIndex, ModelType modelType)
-	{
-		Application& app = Application::Get();
-		
+	//void VulkanContext::LoadSingleModel(const ResourceInfo& resourceInfo, size_t objIndex, ModelType modelType)
+	//{
+	//	Application& app = Application::Get();
+	//	
 
-		tinyobj::attrib_t attrib;
-		std::vector<tinyobj::shape_t> shapes;
-		std::vector<tinyobj::material_t> materials;
-		std::string warn, err;
+	//	tinyobj::attrib_t attrib;
+	//	std::vector<tinyobj::shape_t> shapes;
+	//	std::vector<tinyobj::material_t> materials;
+	//	std::string warn, err;
 
-		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, resourceInfo.ModelPath))
-		{
-			MF_CORE_WARN(warn);
-			MF_CORE_ERROR(err);
-		}
+	//	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, resourceInfo.ModelPath))
+	//	{
+	//		MF_CORE_WARN(warn);
+	//		MF_CORE_ERROR(err);
+	//	}
 
-		MF_CORE_DEBUG(
-			"Loaded model: Vertices {0} | Normals {1} | TexCoords {2} | Shapes {3}", 
-			attrib.vertices.size(), 
-			attrib.normals.size(), 
-			attrib.texcoords.size(), 
-			shapes.size()
-		);
+	//	MF_CORE_DEBUG(
+	//		"Loaded model: Vertices {0} | Normals {1} | TexCoords {2} | Shapes {3}", 
+	//		attrib.vertices.size(), 
+	//		attrib.normals.size(), 
+	//		attrib.texcoords.size(), 
+	//		shapes.size()
+	//	);
 
-		std::unordered_map<VulkanVertex, uint32_t> uniqueVertices{};
+	//	std::unordered_map<VulkanVertex, uint32_t> uniqueVertices{};
 
-		/*Array<VulkanVertex>    vertices(&MemoryService::instance()->systemAllocator, 1);
-		Array<uint32_t>  indices(&MemoryService::instance()->systemAllocator, 1);*/
+	//	/*Array<VulkanVertex>    vertices(&MemoryService::instance()->systemAllocator, 1);
+	//	Array<uint32_t>  indices(&MemoryService::instance()->systemAllocator, 1);*/
 
-		std::vector<VulkanVertex>    vertices;
-		std::vector<uint32_t>  indices;
+	//	std::vector<VulkanVertex>    vertices;
+	//	std::vector<uint32_t>  indices;
 
-		// Note that this code(tangents and bitangents) does not handle mirrored UV sand other special cases, 
-		// and it does not normalize the vectors, which you may want to do depending on how you use them.
+	//	// Note that this code(tangents and bitangents) does not handle mirrored UV sand other special cases, 
+	//	// and it does not normalize the vectors, which you may want to do depending on how you use them.
 
-		u32 arraySize = attrib.vertices.size() / 3;
-		/*Array<Array<Maths::vec3>> tempTangents(&MemoryService::instance()->systemAllocator, arraySize);
-		Array<Array<Maths::vec3>> tempBitangents(&MemoryService::instance()->systemAllocator, arraySize);*/
-		std::vector<std::vector<Maths::vec3>> tempTangents(arraySize);
-		std::vector<std::vector<Maths::vec3>> tempBitangents(arraySize);
-
-
-		for (const auto& shape : shapes)
-		{
-			for (size_t i = 0; i < shape.mesh.indices.size(); i += 3)
-			{
-				tinyobj::index_t idx1 = shape.mesh.indices[i];
-				tinyobj::index_t idx2 = shape.mesh.indices[i + 1];
-				tinyobj::index_t idx3 = shape.mesh.indices[i + 2];
-
-				// Grab the three vertices of the current face
-				Maths::vec3 pos1 = Maths::vec3(&attrib.vertices[3 * idx1.vertex_index]);
-				Maths::vec3 pos2 = Maths::vec3(&attrib.vertices[3 * idx2.vertex_index]);
-				Maths::vec3 pos3 = Maths::vec3(&attrib.vertices[3 * idx3.vertex_index]);
-
-				// Same for the texture coordinates
-				Maths::vec2 uv1 = Maths::vec2(&attrib.texcoords[2 * idx1.texcoord_index]);
-				Maths::vec2 uv2 = Maths::vec2(&attrib.texcoords[2 * idx2.texcoord_index]);
-				Maths::vec2 uv3 = Maths::vec2(&attrib.texcoords[2 * idx3.texcoord_index]);
-
-				// Edges of the triangle in position and texture space
-				Maths::vec3 deltaPos1 = pos2 - pos1;
-				Maths::vec3 deltaPos2 = pos3 - pos1;
-				Maths::vec2 deltaUV1 = uv2 - uv1;
-				Maths::vec2 deltaUV2 = uv3 - uv1;
-
-				// This will give us a direction vector pointing in the direction of positive s for this triangle.
-				// It calculates how much each vertex position needs to be adjusted in space to match how it was proportionally stretched when the texture was mapped.
-				float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
-				Maths::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
-				Maths::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
+	//	u32 arraySize = attrib.vertices.size() / 3;
+	//	/*Array<Array<Maths::vec3>> tempTangents(&MemoryService::instance()->systemAllocator, arraySize);
+	//	Array<Array<Maths::vec3>> tempBitangents(&MemoryService::instance()->systemAllocator, arraySize);*/
+	//	std::vector<std::vector<Maths::vec3>> tempTangents(arraySize);
+	//	std::vector<std::vector<Maths::vec3>> tempBitangents(arraySize);
 
 
-				// Init vertex arrays
-				/*tempTangents[idx1.vertex_index].init(&MemoryService::instance()->systemAllocator, 1);
-				tempBitangents[idx1.vertex_index].init(&MemoryService::instance()->systemAllocator, 1);
-				tempTangents[idx2.vertex_index].init(&MemoryService::instance()->systemAllocator, 1);
-				tempBitangents[idx2.vertex_index].init(&MemoryService::instance()->systemAllocator, 1);
-				tempTangents[idx3.vertex_index].init(&MemoryService::instance()->systemAllocator, 1);
-				tempBitangents[idx3.vertex_index].init(&MemoryService::instance()->systemAllocator, 1);*/
+	//	for (const auto& shape : shapes)
+	//	{
+	//		for (size_t i = 0; i < shape.mesh.indices.size(); i += 3)
+	//		{
+	//			tinyobj::index_t idx1 = shape.mesh.indices[i];
+	//			tinyobj::index_t idx2 = shape.mesh.indices[i + 1];
+	//			tinyobj::index_t idx3 = shape.mesh.indices[i + 2];
 
-				// Store the tangents and bitangents in the temporary vectors
-				tempTangents[idx1.vertex_index].push_back(tangent);
-				tempBitangents[idx1.vertex_index].push_back(bitangent);
-				tempTangents[idx2.vertex_index].push_back(tangent);
-				tempBitangents[idx2.vertex_index].push_back(bitangent);
-				tempTangents[idx3.vertex_index].push_back(tangent);
-				tempBitangents[idx3.vertex_index].push_back(bitangent);
-			}
+	//			// Grab the three vertices of the current face
+	//			Maths::vec3 pos1 = Maths::vec3(&attrib.vertices[3 * idx1.vertex_index]);
+	//			Maths::vec3 pos2 = Maths::vec3(&attrib.vertices[3 * idx2.vertex_index]);
+	//			Maths::vec3 pos3 = Maths::vec3(&attrib.vertices[3 * idx3.vertex_index]);
 
-			for (const auto& index : shape.mesh.indices)
-			{
+	//			// Same for the texture coordinates
+	//			Maths::vec2 uv1 = Maths::vec2(&attrib.texcoords[2 * idx1.texcoord_index]);
+	//			Maths::vec2 uv2 = Maths::vec2(&attrib.texcoords[2 * idx2.texcoord_index]);
+	//			Maths::vec2 uv3 = Maths::vec2(&attrib.texcoords[2 * idx3.texcoord_index]);
 
-				VulkanVertex vertex{};
+	//			// Edges of the triangle in position and texture space
+	//			Maths::vec3 deltaPos1 = pos2 - pos1;
+	//			Maths::vec3 deltaPos2 = pos3 - pos1;
+	//			Maths::vec2 deltaUV1 = uv2 - uv1;
+	//			Maths::vec2 deltaUV2 = uv3 - uv1;
 
-				vertex.pos = {
-					attrib.vertices[3 * index.vertex_index + 0],
-					attrib.vertices[3 * index.vertex_index + 1],
-					attrib.vertices[3 * index.vertex_index + 2]
-				};
-
-				vertex.texCoord = {
-					attrib.texcoords[2 * index.texcoord_index + 0],
-					1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
-				};
-
-				vertex.color = { 1.0f, 1.0f, 1.0f };
-
-				vertex.normal = {
-					attrib.normals[3 * index.normal_index + 0],
-					attrib.normals[3 * index.normal_index + 1],
-					attrib.normals[3 * index.normal_index + 2]
-				};
-
-				vertex.tangent = Maths::normalize(std::accumulate(tempTangents[index.vertex_index].begin(), tempTangents[index.vertex_index].end(), Maths::vec3(0.0f)));
-				vertex.bitangent = Maths::normalize(std::accumulate(tempBitangents[index.vertex_index].begin(), tempBitangents[index.vertex_index].end(), Maths::vec3(0.0f)));
+	//			// This will give us a direction vector pointing in the direction of positive s for this triangle.
+	//			// It calculates how much each vertex position needs to be adjusted in space to match how it was proportionally stretched when the texture was mapped.
+	//			float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+	//			Maths::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
+	//			Maths::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
 
 
-				if (uniqueVertices.count(vertex) == 0)
-				{
-					uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
-					vertices.push_back(vertex);
-				}
+	//			// Init vertex arrays
+	//			/*tempTangents[idx1.vertex_index].init(&MemoryService::instance()->systemAllocator, 1);
+	//			tempBitangents[idx1.vertex_index].init(&MemoryService::instance()->systemAllocator, 1);
+	//			tempTangents[idx2.vertex_index].init(&MemoryService::instance()->systemAllocator, 1);
+	//			tempBitangents[idx2.vertex_index].init(&MemoryService::instance()->systemAllocator, 1);
+	//			tempTangents[idx3.vertex_index].init(&MemoryService::instance()->systemAllocator, 1);
+	//			tempBitangents[idx3.vertex_index].init(&MemoryService::instance()->systemAllocator, 1);*/
 
-				indices.push_back(uniqueVertices[vertex]);
-			}
-		}
+	//			// Store the tangents and bitangents in the temporary vectors
+	//			tempTangents[idx1.vertex_index].push_back(tangent);
+	//			tempBitangents[idx1.vertex_index].push_back(bitangent);
+	//			tempTangents[idx2.vertex_index].push_back(tangent);
+	//			tempBitangents[idx2.vertex_index].push_back(bitangent);
+	//			tempTangents[idx3.vertex_index].push_back(tangent);
+	//			tempBitangents[idx3.vertex_index].push_back(bitangent);
+	//		}
 
-		
+	//		for (const auto& index : shape.mesh.indices)
+	//		{
 
-		{
-			size_t bufferSize = vertices.size() * sizeof(VulkanVertex); // Buffer size
-			constexpr size_t alignment = 32; // Alignment requirement
+	//			VulkanVertex vertex{};
 
-			// Allocate extra memory to accommodate alignment
-			Scope<char[]> vertexData(new char[bufferSize + alignment]);
-			void* ptr = vertexData.get();
-			size_t space = bufferSize + alignment;
+	//			vertex.pos = {
+	//				attrib.vertices[3 * index.vertex_index + 0],
+	//				attrib.vertices[3 * index.vertex_index + 1],
+	//				attrib.vertices[3 * index.vertex_index + 2]
+	//			};
 
-			void* alignedPtr = std::align(alignment, bufferSize, ptr, space);
+	//			vertex.texCoord = {
+	//				attrib.texcoords[2 * index.texcoord_index + 0],
+	//				1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
+	//			};
 
-			if (alignedPtr != nullptr)
-			{
-				// Copy the vertex data to the aligned memory
-				std::memcpy(alignedPtr, vertices.data(), bufferSize);
+	//			vertex.color = { 1.0f, 1.0f, 1.0f };
 
-				// Create the Span from the aligned memory
-				DataBlock vertexBlock(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
-				app.SetVertexBlock(vertexBlock, objIndex, modelType);
-				
-				
-			}
-			else
-			{
-				MF_CORE_ASSERT(false, "Failed to properly align data.");
-			}
-		}
+	//			vertex.normal = {
+	//				attrib.normals[3 * index.normal_index + 0],
+	//				attrib.normals[3 * index.normal_index + 1],
+	//				attrib.normals[3 * index.normal_index + 2]
+	//			};
 
-		DataBlock indexBlock(reinterpret_cast<const uint8_t*>(indices.data()), indices.size() * sizeof(uint32_t));
-		app.SetIndexBlock(std::move(indexBlock), objIndex, modelType);
-
-		
-		
-	}
+	//			vertex.tangent = Maths::normalize(std::accumulate(tempTangents[index.vertex_index].begin(), tempTangents[index.vertex_index].end(), Maths::vec3(0.0f)));
+	//			vertex.bitangent = Maths::normalize(std::accumulate(tempBitangents[index.vertex_index].begin(), tempBitangents[index.vertex_index].end(), Maths::vec3(0.0f)));
 
 
-	void VulkanContext::LoadSingleTexture(int sceneObjIndex, const char* texturePath, int textureType)
-	{
-		int width, height, channels;
+	//			if (uniqueVertices.count(vertex) == 0)
+	//			{
+	//				uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
+	//				vertices.push_back(vertex);
+	//			}
 
-		unsigned char* pixels = SOIL_load_image(
-			texturePath, 
-			&width, &height, &channels, 
-			TextureChannels::CHANNELS_RGB_ALPHA
-		);
+	//			indices.push_back(uniqueVertices[vertex]);
+	//		}
+	//	}
 
-		if (!pixels)
-			MF_CORE_ASSERT(false, "failed to load texture image!");
+	//	
 
-		MF_CORE_DEBUG("Width: {0} | Height: {1} | Channels: {2}", width, height, channels);
+	//	{
+	//		size_t bufferSize = vertices.size() * sizeof(VulkanVertex); // Buffer size
+	//		constexpr size_t alignment = 32; // Alignment requirement
 
-		DataBlock textureBlock(reinterpret_cast<const uint8_t*>(pixels), width * height * TextureChannels::CHANNELS_RGB_ALPHA);
-		Application::Get().GetSceneObjects()[sceneObjIndex].SetTextureBlock(static_cast<TextureType>(textureType), std::move(textureBlock), width, height, channels);
-		SOIL_free_image_data(pixels);
-	}
+	//		// Allocate extra memory to accommodate alignment
+	//		Scope<char[]> vertexData(new char[bufferSize + alignment]);
+	//		void* ptr = vertexData.get();
+	//		size_t space = bufferSize + alignment;
+
+	//		void* alignedPtr = std::align(alignment, bufferSize, ptr, space);
+
+	//		if (alignedPtr != nullptr)
+	//		{
+	//			// Copy the vertex data to the aligned memory
+	//			std::memcpy(alignedPtr, vertices.data(), bufferSize);
+
+	//			// Create the Span from the aligned memory
+	//			DataBlock vertexBlock(reinterpret_cast<const uint8_t*>(alignedPtr), bufferSize);
+	//			app.SetVertexBlock(vertexBlock, objIndex, modelType);
+	//			
+	//			
+	//		}
+	//		else
+	//		{
+	//			MF_CORE_ASSERT(false, "Failed to properly align data.");
+	//		}
+	//	}
+
+	//	DataBlock indexBlock(reinterpret_cast<const uint8_t*>(indices.data()), indices.size() * sizeof(uint32_t));
+	//	app.SetIndexBlock(std::move(indexBlock), objIndex, modelType);
+
+	//	
+	//	
+	//}
+
+
+	//void VulkanContext::LoadSingleTexture(int sceneObjIndex, const char* texturePath, int textureType)
+	//{
+	//	int width, height, channels;
+
+	//	unsigned char* pixels = SOIL_load_image(
+	//		texturePath, 
+	//		&width, &height, &channels, 
+	//		TextureChannels::CHANNELS_RGB_ALPHA
+	//	);
+
+	//	if (!pixels)
+	//		MF_CORE_ASSERT(false, "failed to load texture image!");
+
+	//	MF_CORE_DEBUG("Width: {0} | Height: {1} | Channels: {2}", width, height, channels);
+
+	//	DataBlock textureBlock(reinterpret_cast<const uint8_t*>(pixels), width * height * TextureChannels::CHANNELS_RGB_ALPHA);
+	//	Application::Get().GetSceneObjects()[sceneObjIndex].SetTextureBlock(static_cast<TextureType>(textureType), std::move(textureBlock), width, height, channels);
+	//	SOIL_free_image_data(pixels);
+	//}
 
 
 	void VulkanContext::CreateCommandBuffers()
@@ -1527,10 +1512,10 @@ namespace Magnefu
 	void VulkanContext::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 	{
 		Application& app = Application::Get();
-		ResourceManager& rm = Application::Get().GetResourceManager();
+		//ResourceManager& rm = Application::Get().GetResourceManager();
 
-		VulkanBindGroup& renderpassGlobals = static_cast<VulkanBindGroup&>(rm.GetBindGroup(app.GetRenderPassBindGroup()));
-		VulkanUniformBuffer& renderpassUniformBuffer = static_cast<VulkanUniformBuffer&>(rm.GetBuffer(renderpassGlobals.GetUniformsHandle()));
+		/*VulkanBindGroup& renderpassGlobals = static_cast<VulkanBindGroup&>(rm.GetBindGroup(app.GetRenderPassBindGroup()));
+		VulkanUniformBuffer& renderpassUniformBuffer = static_cast<VulkanUniformBuffer&>(rm.GetBuffer(renderpassGlobals.GetUniformsHandle()));*/
 
 
 		VkCommandBufferBeginInfo beginInfo{};
@@ -1575,7 +1560,7 @@ namespace Magnefu
 
 		// TODO: Order draw calls by shader to limit pipeline switching
 
-		auto& sceneObjects = app.GetSceneObjects();		
+		/*auto& sceneObjects = app.GetSceneObjects();		
 
 		for (auto& sceneObject : sceneObjects)
 		{
@@ -1613,7 +1598,7 @@ namespace Magnefu
 			}
 			
 			
-		}
+		}*/
 			
 
 		vkCmdEndRenderPass(commandBuffer);
@@ -1623,7 +1608,7 @@ namespace Magnefu
 
 		// -- Update Uniform Buffers -- //
 
-		renderpassUniformBuffer.UpdateUniformBuffer(Material{});
+		/*renderpassUniformBuffer.UpdateUniformBuffer(Material{});
 
 		for (auto& sceneObject : sceneObjects)
 		{
@@ -1638,7 +1623,7 @@ namespace Magnefu
 			{
 				materialUniformBuffer.UpdateUniformBuffer(sceneObject.GetMaterialData());
 			}
-		}
+		}*/
 		
 	}
 

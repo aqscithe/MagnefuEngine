@@ -160,68 +160,68 @@ namespace Magnefu
 		}
 		else
 		{
-			auto& sceneObj = Application::Get().GetSceneObjects()[desc.Index];
+			////auto& sceneObj = Application::Get().GetSceneObjects()[desc.Index];
 
-			TextureDataBlock& texture = sceneObj.GetTextureData(desc.Type);
-
-
-			m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texture.Dimensions.Width, texture.Dimensions.Height)))) + 1;
-
-			MF_CORE_DEBUG("Mip Levels: {}", m_MipLevels);
-
-			VkDeviceSize imageSize = texture.Pixels.span.GetSize();
-
-			VkBuffer stagingBuffer;
-			VmaAllocation stagingAllocation;
-			VmaAllocationInfo stagingAllocInfo;
-
-			VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();
+			////TextureDataBlock& texture = sceneObj.GetTextureData(desc.Type);
 
 
-			VulkanCommon::CreateBuffer(
-				imageSize,
-				VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-				stagingBuffer,
-				VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
-				VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
-				stagingAllocation,
-				stagingAllocInfo
-			);
+			//m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texture.Dimensions.Width, texture.Dimensions.Height)))) + 1;
 
-			void* data;
-			vmaMapMemory(allocator, stagingAllocation, &data);
+			//MF_CORE_DEBUG("Mip Levels: {}", m_MipLevels);
 
-			memcpy(data, texture.Pixels.span.GetData(), static_cast<size_t>(imageSize));
+			//VkDeviceSize imageSize = texture.Pixels.span.GetSize();
 
-			vmaUnmapMemory(allocator, stagingAllocation);
+			//VkBuffer stagingBuffer;
+			//VmaAllocation stagingAllocation;
+			//VmaAllocationInfo stagingAllocInfo;
 
-			VulkanCommon::CreateImage(
-				static_cast<uint32_t>(texture.Dimensions.Width),  
-				static_cast<uint32_t>(texture.Dimensions.Height),
-				m_MipLevels,
-				VK_SAMPLE_COUNT_1_BIT,
-				static_cast<VkFormat>(desc.Format),
-				VK_IMAGE_TYPE_2D,
-				static_cast<VkImageTiling>(desc.Tiling),
-				VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-				m_Image,
-				VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
-				//0,
-				//VMA_ALLOCATION_CREATE_STRATEGY_BEST_FIT_BIT, 
-				VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT, // I'm currently using 4k textures so this is perhaps the best option. Will need to make the flag choice programmatic.
-				m_Allocation,
-				m_AllocInfo
-			);
+			//VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();
 
-			TransitionImageLayout(m_Image, static_cast<VkFormat>(desc.Format), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_MipLevels);
-			VulkanCommon::CopyBufferToImage(stagingBuffer, m_Image, static_cast<uint32_t>(texture.Dimensions.Width), static_cast<uint32_t>(texture.Dimensions.Height), VK_NULL_HANDLE);
-			GenerateMipmaps(m_Image, static_cast<VkFormat>(desc.Format), texture.Dimensions.Width, texture.Dimensions.Height, m_MipLevels);
 
-			vmaDestroyBuffer(allocator, stagingBuffer, stagingAllocation);
+			//VulkanCommon::CreateBuffer(
+			//	imageSize,
+			//	VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			//	stagingBuffer,
+			//	VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+			//	VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+			//	stagingAllocation,
+			//	stagingAllocInfo
+			//);
 
-			// Freeing the texture memory host-side from sceneObject
-			texture.Pixels.data.clear();
-			texture.Pixels.data.shrink_to_fit();
+			//void* data;
+			//vmaMapMemory(allocator, stagingAllocation, &data);
+
+			//memcpy(data, texture.Pixels.span.GetData(), static_cast<size_t>(imageSize));
+
+			//vmaUnmapMemory(allocator, stagingAllocation);
+
+			//VulkanCommon::CreateImage(
+			//	static_cast<uint32_t>(texture.Dimensions.Width),  
+			//	static_cast<uint32_t>(texture.Dimensions.Height),
+			//	m_MipLevels,
+			//	VK_SAMPLE_COUNT_1_BIT,
+			//	static_cast<VkFormat>(desc.Format),
+			//	VK_IMAGE_TYPE_2D,
+			//	static_cast<VkImageTiling>(desc.Tiling),
+			//	VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+			//	m_Image,
+			//	VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+			//	//0,
+			//	//VMA_ALLOCATION_CREATE_STRATEGY_BEST_FIT_BIT, 
+			//	VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT, // I'm currently using 4k textures so this is perhaps the best option. Will need to make the flag choice programmatic.
+			//	m_Allocation,
+			//	m_AllocInfo
+			//);
+
+			//TransitionImageLayout(m_Image, static_cast<VkFormat>(desc.Format), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_MipLevels);
+			//VulkanCommon::CopyBufferToImage(stagingBuffer, m_Image, static_cast<uint32_t>(texture.Dimensions.Width), static_cast<uint32_t>(texture.Dimensions.Height), VK_NULL_HANDLE);
+			//GenerateMipmaps(m_Image, static_cast<VkFormat>(desc.Format), texture.Dimensions.Width, texture.Dimensions.Height, m_MipLevels);
+
+			//vmaDestroyBuffer(allocator, stagingBuffer, stagingAllocation);
+
+			//// Freeing the texture memory host-side from sceneObject
+			//texture.Pixels.data.clear();
+			//texture.Pixels.data.shrink_to_fit();
 		}
 
 		

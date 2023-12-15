@@ -33,7 +33,6 @@ namespace Magnefu
         // Start Memory Service
         MemoryService::instance()->init(nullptr);
 
-        m_SceneObjects.init(&MemoryService::instance()->systemAllocator, 1);
 
         // -- Create Managers ------------------------------------------- //
 
@@ -57,7 +56,7 @@ namespace Magnefu
         m_BufferResourceThread.join();
 
         // -- Global RenderPass -- //
-        m_RenderPassGlobals = m_RM->CreateBindGroup({
+        /*m_RenderPassGlobals = m_RM->CreateBindGroup({
             .DebugName  = "Render Pass Globals",
             .LayoutType = BindingLayoutType::LAYOUT_RENDERPASS,
             .Layout     = DEFAULT_RENDERPASS_BINDING_LAYOUT,
@@ -77,7 +76,7 @@ namespace Magnefu
                     TextureFormat::FORMAT_R32G32B32A32_SFLOAT,
                 }},
             .Buffers    = RenderPassUniformBufferDesc
-        });
+        });*/
 
         // -- Scene Objects -- //
 
@@ -86,8 +85,6 @@ namespace Magnefu
         // need to get info on whether the object is textured from
         // MODEL_PATHS
 
-        for (size_t i = 0; i < m_SceneObjects.count(); i++)
-            m_SceneObjects[i].Init(i);
 
 
         
@@ -115,42 +112,7 @@ namespace Magnefu
         MemoryService::instance()->shutdown();
 	}
 
-    void Application::SetVertexBlock(DataBlock& vertexBlock, size_t objPos, ModelType modelType)
-    {
-        switch (modelType)
-        {
-            case Magnefu::MODEL_DEFAULT:
-            {
-                m_SceneObjects[objPos].SetVertexBlock(std::move(vertexBlock));
-                break;
-            }
-            default:
-            {
-                MF_CORE_ASSERT(false, "Invalid Model Type -- Application::SetVertexBlock");
-                break;
-            }
-        }
-        
-    }
-
-    void Application::SetIndexBlock(DataBlock&& indexBlock, size_t objPos, ModelType modelType)
-    {
-        switch (modelType)
-        {
-            case Magnefu::MODEL_DEFAULT:
-            {
-                m_SceneObjects[objPos].SetIndexBlock(std::move(indexBlock));
-                break;
-            }
-            default:
-            {
-                MF_CORE_ASSERT(false, "Invalid Model Type -- Application::SetIndexBlock");
-                break;
-            }
-        }
-        
-    }
-
+    
     bool Application::OnWindowClose(WindowCloseEvent& e)
     {
         m_Running = false;

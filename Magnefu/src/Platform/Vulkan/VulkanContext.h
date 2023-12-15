@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Magnefu/Renderer/GraphicsContext.h"
-#include "Magnefu/Renderer/SceneObject.h"
 #include "Magnefu/ResourceManagement/ResourcePaths.h"
 
 #include "VulkanCommon.h"
@@ -182,21 +181,21 @@ namespace Magnefu
 		void CreateCommandPool();
 		void CreateColorResources();
 		void CreateDepthResources();
-		void LoadModels();
-		void LoadTextures();
+		//void LoadModels();
+		//void LoadTextures();
 
 		void CreateCommandBuffers();
 		void CreateSyncObjects();
 
 
-		void LoadSingleModel(const ResourceInfo&, size_t objIndex, ModelType modelType);
-		void LoadSingleTexture(int sceneObjIndex, const char* texturePath, int textureType);
+		//void LoadSingleModel(const ResourceInfo&, size_t objIndex, ModelType modelType);
+		//void LoadSingleTexture(int sceneObjIndex, const char* texturePath, int textureType);
 
 
 		// -- Buffers -- //
-		void AllocateIndexBuffers(const uint32_t& sceneObjCount, Array<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool);
+		/*void AllocateIndexBuffers(const uint32_t& sceneObjCount, Array<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool);
 		void AllocateVertexBuffers(const uint32_t& sceneObjCount, Array<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool);
-		void AllocateUniformBuffers(const uint32_t& sceneObjCount);
+		void AllocateUniformBuffers(const uint32_t& sceneObjCount);*/
 
 
 		// -- Device -- //
