@@ -166,11 +166,87 @@ namespace Magnefu
 
 		MF_CORE_DEBUG("Size of LTC1: {0}  | Size of LTC2 : {1}", sizeof(LTC1_Matrix), sizeof(LTC2_Matrix));
 
-		// -- Vulkan Context Member Array Inits ---------------------------------------- //
+	}
 
-		/*m_SwapChainImages.init(&MemoryService::instance()->systemAllocator, 1);
-		m_SwapChainImageViews.init(&MemoryService::instance()->systemAllocator, 1);
-		m_SwapChainFramebuffers.init(&MemoryService::instance()->systemAllocator, 1);
+	VulkanContext::~VulkanContext()
+	{
+		CleanupSwapChain();
+
+		// -- COMPUTE SHADER CLEANUP -- //
+
+
+		// ----------------------------- //
+
+		// -- Destroy Vulkan Primitives ----------------------------------- //
+
+		// Vulkan Resources
+		ResourceManager& rm = Application::Get().GetResourceManager();
+
+		
+		MF_CORE_DEBUG("Texture Count: {}", rm.GetTextureCount());
+		MF_CORE_DEBUG("Buffer Count: {}", rm.GetBufferCount());
+		MF_CORE_DEBUG("Shader Count: {}", rm.GetShaderCount());
+		MF_CORE_DEBUG("Bind Group Count: {}", rm.GetBindGroupCount());
+
+		//vkDestroyRenderPass(m_VkDevice, m_RenderPass, s_Allocs);
+		vkDestroyRenderPass(m_VkDevice, m_RenderPass, nullptr);
+
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			vkDestroySemaphore(m_VkDevice, m_ImageAvailableSemaphores[i], s_Allocs);
+			vkDestroySemaphore(m_VkDevice, m_ImGuiRenderFinishedSemaphores[i], s_Allocs);
+			vkDestroySemaphore(m_VkDevice, m_RenderFinishedSemaphores[i], s_Allocs);
+			vkDestroyFence(m_VkDevice, m_InFlightFences[i], s_Allocs);
+			vkDestroyFence(m_VkDevice, m_ImGuiInFlightFences[i], s_Allocs);
+		}
+
+		//vkDestroyCommandPool(m_VkDevice, m_CommandPool, s_Allocs);
+		vkDestroyCommandPool(m_VkDevice, m_CommandPool, nullptr);
+
+
+		// Vulkan memory buffers temporarily not being created
+		// Uncomment when loading models again
+		/*for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+			vmaDestroyBuffer(m_VmaAllocator, m_VulkanMemory.UniformBuffers[i], m_VulkanMemory.UniformAllocations[i]);
+
+		vmaDestroyBuffer(m_VmaAllocator, m_VulkanMemory.VBuffer, m_VulkanMemory.VBufferAllocation);
+		vmaDestroyBuffer(m_VmaAllocator, m_VulkanMemory.IBuffer, m_VulkanMemory.IBufferAllocation);*/
+
+		vmaDestroyAllocator(m_VmaAllocator);
+
+		vkDestroyDevice(m_VkDevice, nullptr);
+		
+
+		vkDestroySurfaceKHR(m_VkInstance, m_WindowSurface, nullptr);
+
+		if (m_EnableValidationLayers)
+			DestroyDebugUtilsMessengerEXT(m_VkInstance, m_DebugMessenger, nullptr);
+		
+		vkDestroyInstance(m_VkInstance, nullptr);
+
+		
+
+
+		// -- Deallocate VulkanContext Arrays ------------------------------- //
+
+		m_SwapChainImageViews.shutdown();
+		m_SwapChainFramebuffers.shutdown();
+		m_CommandBuffers.shutdown();
+		m_ImGuiCommandBuffers.shutdown();
+		m_ImageAvailableSemaphores.shutdown();
+		m_ImGuiRenderFinishedSemaphores.shutdown();
+		m_RenderFinishedSemaphores.shutdown();
+		m_InFlightFences.shutdown();
+		m_ImGuiInFlightFences.shutdown();
+
+		m_VulkanMemory.VBufferOffsets.shutdown();
+		m_VulkanMemory.IBufferOffsets.shutdown();
+		m_VulkanMemory.UniformBuffers.shutdown();
+		m_VulkanMemory.UniformBuffersMapped.shutdown();
+		m_VulkanMemory.UniformAllocations.shutdown();
+		m_VulkanMemory.UniformAllocInfo.shutdown();
+
+		/*m_SwapChainFramebuffers.init(&MemoryService::instance()->systemAllocator, 1);
 		m_CommandBuffers.init(&MemoryService::instance()->systemAllocator, 1);
 		m_ImGuiCommandBuffers.init(&MemoryService::instance()->systemAllocator, 1);
 		m_ImageAvailableSemaphores.init(&MemoryService::instance()->systemAllocator, 1);
@@ -184,51 +260,7 @@ namespace Magnefu
 		m_VulkanMemory.UniformBuffers.init(&MemoryService::instance()->systemAllocator, 1);
 		m_VulkanMemory.UniformBuffersMapped.init(&MemoryService::instance()->systemAllocator, 1);
 		m_VulkanMemory.UniformAllocations.init(&MemoryService::instance()->systemAllocator, 1);
-		m_VulkanMemory.UniformAllocInfo.init(&MemoryService::instance()->systemAllocator, 1);*/
-
-
-
-	}
-
-	VulkanContext::~VulkanContext()
-	{
-		CleanupSwapChain();
-
-		// -- COMPUTE SHADER CLEANUP -- //
-
-
-		// ----------------------------- //
-
-		vkDestroyRenderPass(m_VkDevice, m_RenderPass, s_Allocs);
-
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-		{
-			vkDestroySemaphore(m_VkDevice, m_ImageAvailableSemaphores[i], s_Allocs);
-			vkDestroySemaphore(m_VkDevice, m_ImGuiRenderFinishedSemaphores[i], s_Allocs);
-			vkDestroySemaphore(m_VkDevice, m_RenderFinishedSemaphores[i], s_Allocs);
-			vkDestroyFence(m_VkDevice, m_InFlightFences[i], s_Allocs);
-			vkDestroyFence(m_VkDevice, m_ImGuiInFlightFences[i], s_Allocs);
-		}
-
-		vkDestroyCommandPool(m_VkDevice, m_CommandPool, s_Allocs);
-
-
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-			vmaDestroyBuffer(m_VmaAllocator, m_VulkanMemory.UniformBuffers[i], m_VulkanMemory.UniformAllocations[i]);
-
-		vmaDestroyBuffer(m_VmaAllocator, m_VulkanMemory.VBuffer, m_VulkanMemory.VBufferAllocation);
-		vmaDestroyBuffer(m_VmaAllocator, m_VulkanMemory.IBuffer, m_VulkanMemory.IBufferAllocation);
-
-		vmaDestroyAllocator(m_VmaAllocator);
-		
-		vkDestroyDevice(m_VkDevice, s_Allocs);
-
-		if (m_EnableValidationLayers)
-			DestroyDebugUtilsMessengerEXT(m_VkInstance, m_DebugMessenger, s_Allocs);
-
-		vkDestroySurfaceKHR(m_VkInstance, m_WindowSurface, s_Allocs);
-		
-		vkDestroyInstance(m_VkInstance, s_Allocs);
+		m_VulkanMemory.UniformAllocInfo.init(&MemoryService::instance()->systemAllocator, 1); */
 		
 	}
 
@@ -952,7 +984,7 @@ namespace Magnefu
 		renderPassInfo.dependencyCount = 1;
 		renderPassInfo.pDependencies = &dependency;
 
-		if (vkCreateRenderPass(m_VkDevice, &renderPassInfo, s_Allocs, &m_RenderPass) != VK_SUCCESS)
+		if (vkCreateRenderPass(m_VkDevice, &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS)
 			MF_CORE_ASSERT(false, "failed to create render pass!");
 	}
 

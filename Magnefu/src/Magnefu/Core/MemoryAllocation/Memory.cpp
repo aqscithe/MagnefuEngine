@@ -53,7 +53,7 @@ namespace Magnefu
         stats->add(used ? size : 0);
 
         if (used)
-            MF_CORE_INFO("Found active allocation {0}, {1}", ptr, size);
+            MF_CORE_INFO("Found active allocation {0} | {1} bytes", ptr, size);
     }
 
 #if defined MF_IMGUI
@@ -126,7 +126,7 @@ namespace Magnefu
 
         tlsfHandle = tlsf_create_with_pool(memory, size);
 
-        MF_CORE_INFO("HeapAllocator of size {} created", size);
+        MF_CORE_INFO("HeapAllocator of size {} bytes created", size);
     }
 
     void HeapAllocator::shutdown() 
@@ -138,7 +138,7 @@ namespace Magnefu
         tlsf_walk_pool(pool, exitWalker, (void*)&stats);
 
         if (stats.allocatedBytes) {
-            MF_CORE_INFO("HeapAllocator Shutdown.\n===============\nFAILURE! Allocated memory detected. allocated %llu, total %llu\n===============\n\n", stats.allocatedBytes, stats.totalBytes);
+            MF_CORE_INFO("HeapAllocator Shutdown.\n===============\nFAILURE! Allocated memory detected. allocated {0}, total {1}\n===============\n\n", stats.allocatedBytes, stats.totalBytes);
         }
         else {
             MF_CORE_INFO("HeapAllocator Shutdown - all memory free!\n");
@@ -154,9 +154,7 @@ namespace Magnefu
 #if defined MF_IMGUI
     void HeapAllocator::debugUI() {
 
-        ImGui::Separator();
-        ImGui::Text("Heap Allocator");
-        ImGui::Separator();
+        ImGui::SeparatorText("HEAP ALLOCATOR");
         MemoryStatistics stats{ 0, maxSize };
         pool_t pool = tlsf_get_pool(tlsfHandle);
         tlsf_walk_pool(pool, imguiWalker, (void*)&stats);

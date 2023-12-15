@@ -214,6 +214,8 @@ namespace Magnefu
 
         }   
         m_Window->OnFinish();
+
+        delete GraphicsContext;
     }
 
       

@@ -33,6 +33,7 @@ namespace Magnefu
 	class GraphicsContext
 	{
 	public:
+		virtual ~GraphicsContext() = default;
 		virtual void Init() = 0;
 		virtual void TempSecondaryInit() = 0;
 		virtual void DrawFrame() = 0;

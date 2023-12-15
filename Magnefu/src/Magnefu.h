@@ -34,7 +34,6 @@
 #include "Magnefu/Renderer/Shader.h"
 #include "Magnefu/Renderer/Texture.h"
 #include "Magnefu/Renderer/SceneCamera.h"
-#include "Magnefu/Renderer/SceneObject.h"
 #include "Magnefu/Renderer/GraphicsContext.h"
 #include "Magnefu/Renderer/BindGroup.h"
 //----------------------------------------
