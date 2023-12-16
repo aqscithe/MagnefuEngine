@@ -28,11 +28,6 @@ namespace Magnefu
         MF_CORE_ASSERT(!s_Instance, "Application instance already exists.");
         s_Instance = this;
 
-        // -- Init Services ------------------------------------------- //
-        
-        // Start Memory Service
-        MemoryService::Instance()->Init(nullptr);
-
 
         // -- Create Managers ------------------------------------------- //
 
@@ -109,7 +104,7 @@ namespace Magnefu
 
 	Application::~Application()
 	{
-        MemoryService::Instance()->Shutdown();
+        
 	}
 
     
