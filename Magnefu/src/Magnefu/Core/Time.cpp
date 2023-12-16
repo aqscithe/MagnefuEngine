@@ -39,6 +39,7 @@ namespace Magnefu
 		// for our time conversions).
 		static i64 int64_mul_div(i64 value, i64 numer, i64 denom) 
 		{
+			MF_CORE_ASSERT(denom != 0, "No division by zero. Did you initialize the time service?");
 			const i64 q = value / denom;
 			const i64 r = value % denom;
 			// Decompose value as (value/denom*denom + value%denom),

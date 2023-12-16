@@ -40,6 +40,7 @@
 #include "Magnefu/Core/MemoryAllocation/Memory.hpp"
 #include "Magnefu/Core/File.hpp"
 #include "Magnefu/Core/String.hpp"
+#include "Magnefu/Core/Time.hpp"
 
 #include "Magnefu/Debug/Instrumentor.h"
 

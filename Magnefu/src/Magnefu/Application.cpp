@@ -24,6 +24,8 @@ namespace Magnefu
 	{
         MF_PROFILE_FUNCTION();
 
+        auto timestuff = time_now();
+
         // Set Application Instance
         MF_CORE_ASSERT(!s_Instance, "Application instance already exists.");
         s_Instance = this;

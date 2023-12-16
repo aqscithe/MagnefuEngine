@@ -11,6 +11,7 @@ int main(int argc, char** argv)
 
 	// -- Init Services ------------------------------------------- //
 
+	Magnefu::time_service_init();
 	Magnefu::LogService::Instance()->Init(nullptr);
 	Magnefu::MemoryService::Instance()->Init(nullptr);
 
@@ -32,6 +33,8 @@ int main(int argc, char** argv)
 	MF_PROFILE_BEGIN_SESSION("Magnefu Shutdown", "Magnefu-Shutdown.json");
 
 	delete app;
+
+	// -- Shutdown Services ------------------------------------------- //
 
 	Magnefu::MemoryService::Instance()->Shutdown();
 	Magnefu::LogService::Instance()->Shutdown();
