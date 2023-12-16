@@ -18,6 +18,8 @@ static int duplicateNameAppend = 0;
 static char sceneNameBuffer[128] = "";
 static const uint32_t MAX_SCENES = 1;
 
+static double s_deltaTime = 1.0;
+
 EditorLayer::EditorLayer() :
 	Layer("Editor"),
 	m_Camera(std::static_pointer_cast<Magnefu::SceneCamera>(Magnefu::Application::Get().GetWindow().GetSceneCamera())),
@@ -110,8 +112,9 @@ void EditorLayer::OnDetach()
 
 }
 
-void EditorLayer::OnUpdate(float deltaTime)
+void EditorLayer::OnUpdate(double deltaTime)
 {
+	s_deltaTime = deltaTime;
 	m_Camera->ProcessInput(deltaTime);
 	m_GraphicsContext->SetPushConstants(m_PushConstants);
 	//Magnefu::Application::Get().SetAreaLightData(m_AreaLights);
@@ -395,7 +398,12 @@ void EditorLayer::ShowFramerateOverlay()
 		// Set the new color for text
 		ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(0.03f, 0.15f, 0.40f, 1.0f); 
 
-		ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+
+		float frameRate = (float)1.f / (s_deltaTime * (1.0 / 1000.0));
+		//ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+		ImGui::Text("FPS: %.1f", frameRate);
+
+		
 		//ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
 		ImGui::GetStyle().Colors[ImGuiCol_Text] = originalColor;

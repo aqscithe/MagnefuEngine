@@ -85,7 +85,7 @@ namespace Magnefu
 		virtual Maths::mat4& CalculateView() = 0;
 		virtual Maths::mat4& CalculateProjection() = 0;
 		virtual Maths::mat4& CalculateVP() = 0;
-		virtual void ProcessInput(float deltaTime) = 0;
+		virtual void ProcessInput(double deltaTime) = 0;
 		//virtual void OnImGuiRender() = 0;
 		virtual void SetDefaultProps() = 0;
 		virtual void SetAspectRatio(float) = 0;

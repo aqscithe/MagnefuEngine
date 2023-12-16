@@ -99,23 +99,23 @@ namespace Magnefu
 		return m_VP;
 	}
 
-	void SceneCamera::ProcessInput(float deltaTime)
+	void SceneCamera::ProcessInput(double deltaTime)
 	{
-		float cameraSpeed = m_Data.Speed * deltaTime;
-		float forwardMovement = 0.f;
+		double cameraSpeed = m_Data.Speed * deltaTime;
+		double forwardMovement = 0.0;
 		if (Input::IsKeyPressed(MF_KEY_W) || Input::IsKeyPressed(MF_KEY_UP))
 			forwardMovement += cameraSpeed;
 		if (Input::IsKeyPressed(MF_KEY_S) || Input::IsKeyPressed(MF_KEY_DOWN))
 			forwardMovement -= cameraSpeed;
 
 
-		float strafeMovement = 0.f;
+		double strafeMovement = 0.0;
 		if (Input::IsKeyPressed(MF_KEY_A) || Input::IsKeyPressed(MF_KEY_LEFT))
 			strafeMovement -= cameraSpeed;
 		if (Input::IsKeyPressed(MF_KEY_D) || Input::IsKeyPressed(MF_KEY_RIGHT))
 			strafeMovement += cameraSpeed;
 
-		float verticalMovement = 0.f;
+		double verticalMovement = 0.0;
 		if (Input::IsKeyPressed(MF_KEY_E))
 			verticalMovement += cameraSpeed;
 		if (Input::IsKeyPressed(MF_KEY_Q))

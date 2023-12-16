@@ -12,7 +12,7 @@ class EditorLayer : public Magnefu::Layer
 
 		void OnAttach() override;
 		void OnDetach() override;
-		void OnUpdate(float deltaTime) override;
+		void OnUpdate(double deltaTime) override;
 		void OnRender() override;
 		void OnGUIRender() override;
 		void OnEvent(Magnefu::Event& e);

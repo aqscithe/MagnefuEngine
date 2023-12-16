@@ -24,7 +24,6 @@ namespace Magnefu
 	{
         MF_PROFILE_FUNCTION();
 
-        auto timestuff = time_now();
 
         // Set Application Instance
         MF_CORE_ASSERT(!s_Instance, "Application instance already exists.");
@@ -169,7 +168,10 @@ namespace Magnefu
 
 
         // TODO: Create setting to switch between locked and unlocked frame rate
-        m_TimeStep.Init();
+        //m_TimeStep.Init();
+
+        auto lastTime = Magnefu::time_now();
+
 
        MF_CORE_INFO("STARTING FIRST LOOP");
 
@@ -177,7 +179,10 @@ namespace Magnefu
         {
             MF_PROFILE_SCOPE("Run Loop");
 
-            m_TimeStep.CalculateDeltaTime();
+            //m_TimeStep.CalculateDeltaTime();
+            auto currentTime = Magnefu::time_now();
+            auto deltaTime = Magnefu::time_delta_milliseconds(lastTime, currentTime);
+            lastTime = currentTime;
 
             // -- Poll and Handle Events -- //
             m_Window->OnUpdate();
@@ -190,7 +195,7 @@ namespace Magnefu
 
             // -- Game Logic Here -- //
             for (Layer* layer : m_LayerStack)
-                layer->OnUpdate(m_TimeStep.GetDeltaTime());
+                layer->OnUpdate(deltaTime);
 
 
             // -- ImGui Widget Updates -- //

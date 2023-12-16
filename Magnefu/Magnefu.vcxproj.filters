@@ -321,9 +321,6 @@
     <ClInclude Include="src\Magnefu\Core\Span.h">
       <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\TimeStep.h">
-      <Filter>src\Magnefu\Core</Filter>
-    </ClInclude>
     <ClInclude Include="src\Magnefu\Core\Typedefs.hpp">
       <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
@@ -3175,9 +3172,6 @@
     </ClCompile>
     <ClCompile Include="src\Magnefu\Core\Physics\PhysicsCommon.cpp">
       <Filter>src\Magnefu\Core\Physics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Core\TimeStep.cpp">
-      <Filter>src\Magnefu\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\ImGui\ImGuiBuild.cpp">
       <Filter>src\Magnefu\ImGui</Filter>

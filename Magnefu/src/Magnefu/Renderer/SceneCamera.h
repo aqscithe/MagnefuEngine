@@ -28,7 +28,7 @@ namespace Magnefu
 		Maths::mat4& CalculateView() override;
 		Maths::mat4& CalculateProjection() override;
 		Maths::mat4& CalculateVP() override;
-		void ProcessInput(float deltaTime) override;
+		void ProcessInput(double deltaTime) override;
 		void SetDefaultProps() override;
 		void SetAspectRatio(float aspectRatio) { m_Data.AspectRatio = aspectRatio; }
 

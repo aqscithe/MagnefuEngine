@@ -13,7 +13,7 @@ namespace Magnefu
 
 		virtual void OnAttach() {}
 		virtual void OnDetach() {}
-		virtual void OnUpdate(float deltaTime) {}
+		virtual void OnUpdate(double deltaTime) {}
 		virtual void OnRender() {}
 		virtual void OnGUIRender() {}
 		virtual void OnEvent(Event& event) {}

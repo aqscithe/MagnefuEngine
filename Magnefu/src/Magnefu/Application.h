@@ -9,7 +9,6 @@
 #include "Magnefu/Core/Events/KeyEvent.h"
 
 #include "Magnefu/ResourceManagement/ResourceManager.h"
-#include "Magnefu/Core/TimeStep.h"
 #include "Magnefu/Scene/SceneManager.h"
 
 
@@ -51,7 +50,6 @@ namespace Magnefu
 		void PushOverlay(Layer* overlay);
 
 		inline Window& GetWindow() { return *m_Window; }
-		inline TimeStep& GetTimeStep() { return m_TimeStep; }
 		inline ImGuiLayer* GetImGuiLayer() { return m_ImGuiLayer; }
 
 		// -- Managers -- //
@@ -102,7 +100,6 @@ namespace Magnefu
 
 		static Application* s_Instance;
 
-		TimeStep m_TimeStep;
 		LayerStack m_LayerStack;
 		ImGuiLayer* m_ImGuiLayer;
 		Scope<Window> m_Window;

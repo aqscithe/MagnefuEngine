@@ -185,7 +185,6 @@
     <ClInclude Include="src\Magnefu\Core\Span.h" />
     <ClInclude Include="src\Magnefu\Core\String.hpp" />
     <ClInclude Include="src\Magnefu\Core\Time.hpp" />
-    <ClInclude Include="src\Magnefu\Core\TimeStep.h" />
     <ClInclude Include="src\Magnefu\Core\Typedefs.hpp" />
     <ClInclude Include="src\Magnefu\Debug\Instrumentor.h" />
     <ClInclude Include="src\Magnefu\Entrypoint.h" />
@@ -1141,7 +1140,6 @@
     <ClCompile Include="src\Magnefu\Core\Process.cpp" />
     <ClCompile Include="src\Magnefu\Core\String.cpp" />
     <ClCompile Include="src\Magnefu\Core\Time.cpp" />
-    <ClCompile Include="src\Magnefu\Core\TimeStep.cpp" />
     <ClCompile Include="src\Magnefu\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\Magnefu\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\Magnefu\Layer.cpp" />

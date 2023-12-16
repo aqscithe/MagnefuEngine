@@ -8,7 +8,6 @@
 //----Core--------------------------------
 #include "Magnefu/Core/Assertions.h"
 #include "Magnefu/Core/Log.h"
-#include "Magnefu/Core/TimeStep.h"
 #include "Magnefu/Core/SmartPointers.h"
 #include "Magnefu/Core/Array.h"
 //----------------------------------------
