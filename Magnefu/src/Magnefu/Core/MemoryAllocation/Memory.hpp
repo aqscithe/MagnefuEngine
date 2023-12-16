@@ -175,8 +175,8 @@ namespace Magnefu
 
 		MF_DECLARE_SERVICE(MemoryService);
 
-		void						init(void* configuration);
-		void						shutdown();
+		void						Init(void* configuration);
+		void						Shutdown();
 
 #if defined MF_IMGUI
 		void                        imguiDraw();

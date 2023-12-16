@@ -3128,6 +3128,7 @@
     <ClInclude Include="src\Magnefu\Core\Blob.hpp" />
     <ClInclude Include="src\Magnefu\Core\RelativeDataStructures.hpp" />
     <ClInclude Include="src\Magnefu\Core\Time.hpp" />
+    <ClInclude Include="src\Magnefu\Core\Process.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application.cpp">
@@ -3302,6 +3303,7 @@
     <ClCompile Include="src\Magnefu\Core\String.cpp" />
     <ClCompile Include="src\Magnefu\Core\BlobSerialization.cpp" />
     <ClCompile Include="src\Magnefu\Core\Time.cpp" />
+    <ClCompile Include="src\Magnefu\Core\Process.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\vulkan\include\spirv-headers\spirv.hpp11">

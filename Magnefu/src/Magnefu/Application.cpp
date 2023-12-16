@@ -31,7 +31,7 @@ namespace Magnefu
         // -- Init Services ------------------------------------------- //
         
         // Start Memory Service
-        MemoryService::instance()->init(nullptr);
+        MemoryService::Instance()->Init(nullptr);
 
 
         // -- Create Managers ------------------------------------------- //
@@ -109,7 +109,7 @@ namespace Magnefu
 
 	Application::~Application()
 	{
-        MemoryService::instance()->shutdown();
+        MemoryService::Instance()->Shutdown();
 	}
 
     

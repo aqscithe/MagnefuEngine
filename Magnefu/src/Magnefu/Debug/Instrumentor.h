@@ -47,7 +47,7 @@ namespace Magnefu
 			std::lock_guard lock(m_Mutex);
 			if (m_CurrentSession)
 			{
-				if(Log::GetCoreLogger())
+				if(LogService::GetCoreLogger())
 					MF_CORE_ERROR("Instrumentor::BeginSession - Can't open session {0}. Session {1} already open.", name, m_CurrentSession->Name);
 
 				InternalEndSession();
@@ -61,7 +61,7 @@ namespace Magnefu
 			}
 			else
 			{
-				if (Log::GetCoreLogger())
+				if (LogService::GetCoreLogger())
 					MF_CORE_ERROR("Instrumentor::BeginSession - Failed to open results file: {0}", filepath);
 
 				InternalEndSession();

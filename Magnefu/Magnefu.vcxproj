@@ -178,6 +178,7 @@
     <ClInclude Include="src\Magnefu\Core\NumGen.h" />
     <ClInclude Include="src\Magnefu\Core\Physics\PhysicsCommon.h" />
     <ClInclude Include="src\Magnefu\Core\BlobSerialization.hpp" />
+    <ClInclude Include="src\Magnefu\Core\Process.hpp" />
     <ClInclude Include="src\Magnefu\Core\RelativeDataStructures.hpp" />
     <ClInclude Include="src\Magnefu\Core\Service.hpp" />
     <ClInclude Include="src\Magnefu\Core\SmartPointers.h" />
@@ -1137,6 +1138,7 @@
     <ClCompile Include="src\Magnefu\Core\MemoryAllocation\VmaUsage.cpp" />
     <ClCompile Include="src\Magnefu\Core\NumGen.cpp" />
     <ClCompile Include="src\Magnefu\Core\Physics\PhysicsCommon.cpp" />
+    <ClCompile Include="src\Magnefu\Core\Process.cpp" />
     <ClCompile Include="src\Magnefu\Core\String.cpp" />
     <ClCompile Include="src\Magnefu\Core\Time.cpp" />
     <ClCompile Include="src\Magnefu\Core\TimeStep.cpp" />

@@ -1,22 +1,36 @@
 #include "mfpch.h"
+#include "Log.h"
 
 namespace Magnefu
 {
-	std::shared_ptr<spdlog::logger> Log::s_ClientLogger;
-	std::shared_ptr<spdlog::logger> Log::s_CoreLogger;
+	static LogService s_LogService;
+
+	std::shared_ptr<spdlog::logger> LogService::s_ClientLogger;
+	std::shared_ptr<spdlog::logger> LogService::s_CoreLogger;
 
 
-	void Log::Init()
+	LogService* LogService::Instance()
 	{
+		return &s_LogService;
+	}
+
+
+	void LogService::Init(void* configuration) 
+	{
+
+		LogServiceConfiguration* log_configuration = static_cast<LogServiceConfiguration*>(configuration);
+		
+
 		spdlog::set_pattern("%^[%T] | [%n] | [thread %t] | %v%$");
 
-		s_CoreLogger = spdlog::stdout_color_mt("Magnefu");
+		s_CoreLogger = spdlog::stdout_color_mt(log_configuration ? log_configuration->coreLogName : "Magnefu");
 		s_CoreLogger->set_level(spdlog::level::trace);
 		s_CoreLogger->trace("Magnefu Logger initialized");
 
-		s_ClientLogger = spdlog::stdout_color_mt("App");
+		s_ClientLogger = spdlog::stdout_color_mt(log_configuration ? log_configuration->clientLogName : "App");
 		s_ClientLogger->set_level(spdlog::level::trace);
 		s_ClientLogger->trace("App Logger initialized");
+
 	}
 }
 

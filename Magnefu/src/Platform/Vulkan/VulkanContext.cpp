@@ -246,21 +246,21 @@ namespace Magnefu
 		m_VulkanMemory.UniformAllocations.shutdown();
 		m_VulkanMemory.UniformAllocInfo.shutdown();
 
-		/*m_SwapChainFramebuffers.init(&MemoryService::instance()->systemAllocator, 1);
-		m_CommandBuffers.init(&MemoryService::instance()->systemAllocator, 1);
-		m_ImGuiCommandBuffers.init(&MemoryService::instance()->systemAllocator, 1);
-		m_ImageAvailableSemaphores.init(&MemoryService::instance()->systemAllocator, 1);
-		m_ImGuiRenderFinishedSemaphores.init(&MemoryService::instance()->systemAllocator, 1);
-		m_RenderFinishedSemaphores.init(&MemoryService::instance()->systemAllocator, 1);
-		m_InFlightFences.init(&MemoryService::instance()->systemAllocator, 1);
-		m_ImGuiInFlightFences.init(&MemoryService::instance()->systemAllocator, 1);
+		/*m_SwapChainFramebuffers.init(&MemoryService::Instance()->systemAllocator, 1);
+		m_CommandBuffers.init(&MemoryService::Instance()->systemAllocator, 1);
+		m_ImGuiCommandBuffers.init(&MemoryService::Instance()->systemAllocator, 1);
+		m_ImageAvailableSemaphores.init(&MemoryService::Instance()->systemAllocator, 1);
+		m_ImGuiRenderFinishedSemaphores.init(&MemoryService::Instance()->systemAllocator, 1);
+		m_RenderFinishedSemaphores.init(&MemoryService::Instance()->systemAllocator, 1);
+		m_InFlightFences.init(&MemoryService::Instance()->systemAllocator, 1);
+		m_ImGuiInFlightFences.init(&MemoryService::Instance()->systemAllocator, 1);
 
-		m_VulkanMemory.VBufferOffsets.init(&MemoryService::instance()->systemAllocator, 1);
-		m_VulkanMemory.IBufferOffsets.init(&MemoryService::instance()->systemAllocator, 1);
-		m_VulkanMemory.UniformBuffers.init(&MemoryService::instance()->systemAllocator, 1);
-		m_VulkanMemory.UniformBuffersMapped.init(&MemoryService::instance()->systemAllocator, 1);
-		m_VulkanMemory.UniformAllocations.init(&MemoryService::instance()->systemAllocator, 1);
-		m_VulkanMemory.UniformAllocInfo.init(&MemoryService::instance()->systemAllocator, 1); */
+		m_VulkanMemory.VBufferOffsets.init(&MemoryService::Instance()->systemAllocator, 1);
+		m_VulkanMemory.IBufferOffsets.init(&MemoryService::Instance()->systemAllocator, 1);
+		m_VulkanMemory.UniformBuffers.init(&MemoryService::Instance()->systemAllocator, 1);
+		m_VulkanMemory.UniformBuffersMapped.init(&MemoryService::Instance()->systemAllocator, 1);
+		m_VulkanMemory.UniformAllocations.init(&MemoryService::Instance()->systemAllocator, 1);
+		m_VulkanMemory.UniformAllocInfo.init(&MemoryService::Instance()->systemAllocator, 1); */
 		
 	}
 
@@ -419,7 +419,7 @@ namespace Magnefu
 		// Print extensions
 		uint32_t extensionCount = 0;
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-		Array<VkExtensionProperties> vkextensions( &MemoryService::instance()->systemAllocator, extensionCount, extensionCount);
+		Array<VkExtensionProperties> vkextensions( &MemoryService::Instance()->systemAllocator, extensionCount, extensionCount);
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, vkextensions.raw());
 		MF_CORE_DEBUG("Available Vulkan Extensions: ");
 		for (const auto& extension : vkextensions)
@@ -434,7 +434,7 @@ namespace Magnefu
 			uint32_t layerCount;
 			vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
-			Array<VkLayerProperties> availableLayers(&MemoryService::instance()->systemAllocator, layerCount, layerCount);
+			Array<VkLayerProperties> availableLayers(&MemoryService::Instance()->systemAllocator, layerCount, layerCount);
 			vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.raw());
 
 			for (const char* layerName : validationLayers)
@@ -488,7 +488,7 @@ namespace Magnefu
 		vkEnumeratePhysicalDevices(m_VkInstance, &deviceCount, nullptr);
 		MF_CORE_ASSERT(deviceCount, "Failed to find a GPU with Vulkan support");
 
-		Array<VkPhysicalDevice> devices(&MemoryService::instance()->systemAllocator, deviceCount, deviceCount);
+		Array<VkPhysicalDevice> devices(&MemoryService::Instance()->systemAllocator, deviceCount, deviceCount);
 		vkEnumeratePhysicalDevices(m_VkInstance, &deviceCount, devices.raw());
 
 		for (const auto& device : devices)
@@ -511,7 +511,7 @@ namespace Magnefu
 		
 		std::set<uint32_t> uniqueQueueFamilies = { m_QueueFamilyIndices.GraphicsFamily.value(), m_QueueFamilyIndices.PresentFamily.value() };
 
-		Array<VkDeviceQueueCreateInfo> queueCreateInfos(&MemoryService::instance()->systemAllocator, uniqueQueueFamilies.size());
+		Array<VkDeviceQueueCreateInfo> queueCreateInfos(&MemoryService::Instance()->systemAllocator, uniqueQueueFamilies.size());
 
 		float queuePriority = 1.f;
 		for (uint32_t queueFamily : uniqueQueueFamilies)
@@ -536,7 +536,7 @@ namespace Magnefu
 		// Print device extensions
 		uint32_t deviceExtensionCount = 0;
 		vkEnumerateDeviceExtensionProperties(m_VkPhysicalDevice, nullptr, &deviceExtensionCount, nullptr);
-		Array<VkExtensionProperties> vkDeviceExtensions( &MemoryService::instance()->systemAllocator, deviceExtensionCount, deviceExtensionCount);
+		Array<VkExtensionProperties> vkDeviceExtensions( &MemoryService::Instance()->systemAllocator, deviceExtensionCount, deviceExtensionCount);
 		vkEnumerateDeviceExtensionProperties(m_VkPhysicalDevice, nullptr, &deviceExtensionCount, vkDeviceExtensions.raw());
 		MF_CORE_DEBUG("Available Device Extensions: ");
 		for (const auto& extension : vkDeviceExtensions)
@@ -1074,7 +1074,7 @@ namespace Magnefu
 	//	Application::Get().ResizeSceneObjects(RESOURCE_PATHS.size());
 
 	//	u32 threadSize = RESOURCE_PATHS.size();
-	//	//Array<std::thread> threads(&MemoryService::instance()->systemAllocator, threadSize, threadSize);
+	//	//Array<std::thread> threads(&MemoryService::Instance()->systemAllocator, threadSize, threadSize);
 	//	std::vector<std::thread> threads(threadSize);
 
 	//	for (size_t i = 0; i < RESOURCE_PATHS.size(); i++)
@@ -1094,7 +1094,7 @@ namespace Magnefu
 	//	); // Will only be relevant as long as each object has a different set of textures.
 
 	//	u32 threadSize = TEXTURE_PATHS.size() * 3; // TODO: Hard coding this is REEEAALLY dangerous. Update ASAP!!
-	//	//Array<std::thread> threads(&MemoryService::instance()->systemAllocator, threadSize, threadSize);
+	//	//Array<std::thread> threads(&MemoryService::Instance()->systemAllocator, threadSize, threadSize);
 	//	std::vector<std::thread> threads(threadSize);
 
 	//	for (int i = 0; i < TEXTURE_PATHS.size(); i++)  //
@@ -1138,8 +1138,8 @@ namespace Magnefu
 
 	//	std::unordered_map<VulkanVertex, uint32_t> uniqueVertices{};
 
-	//	/*Array<VulkanVertex>    vertices(&MemoryService::instance()->systemAllocator, 1);
-	//	Array<uint32_t>  indices(&MemoryService::instance()->systemAllocator, 1);*/
+	//	/*Array<VulkanVertex>    vertices(&MemoryService::Instance()->systemAllocator, 1);
+	//	Array<uint32_t>  indices(&MemoryService::Instance()->systemAllocator, 1);*/
 
 	//	std::vector<VulkanVertex>    vertices;
 	//	std::vector<uint32_t>  indices;
@@ -1148,8 +1148,8 @@ namespace Magnefu
 	//	// and it does not normalize the vectors, which you may want to do depending on how you use them.
 
 	//	u32 arraySize = attrib.vertices.size() / 3;
-	//	/*Array<Array<Maths::vec3>> tempTangents(&MemoryService::instance()->systemAllocator, arraySize);
-	//	Array<Array<Maths::vec3>> tempBitangents(&MemoryService::instance()->systemAllocator, arraySize);*/
+	//	/*Array<Array<Maths::vec3>> tempTangents(&MemoryService::Instance()->systemAllocator, arraySize);
+	//	Array<Array<Maths::vec3>> tempBitangents(&MemoryService::Instance()->systemAllocator, arraySize);*/
 	//	std::vector<std::vector<Maths::vec3>> tempTangents(arraySize);
 	//	std::vector<std::vector<Maths::vec3>> tempBitangents(arraySize);
 
@@ -1186,12 +1186,12 @@ namespace Magnefu
 
 
 	//			// Init vertex arrays
-	//			/*tempTangents[idx1.vertex_index].init(&MemoryService::instance()->systemAllocator, 1);
-	//			tempBitangents[idx1.vertex_index].init(&MemoryService::instance()->systemAllocator, 1);
-	//			tempTangents[idx2.vertex_index].init(&MemoryService::instance()->systemAllocator, 1);
-	//			tempBitangents[idx2.vertex_index].init(&MemoryService::instance()->systemAllocator, 1);
-	//			tempTangents[idx3.vertex_index].init(&MemoryService::instance()->systemAllocator, 1);
-	//			tempBitangents[idx3.vertex_index].init(&MemoryService::instance()->systemAllocator, 1);*/
+	//			/*tempTangents[idx1.vertex_index].init(&MemoryService::Instance()->systemAllocator, 1);
+	//			tempBitangents[idx1.vertex_index].init(&MemoryService::Instance()->systemAllocator, 1);
+	//			tempTangents[idx2.vertex_index].init(&MemoryService::Instance()->systemAllocator, 1);
+	//			tempBitangents[idx2.vertex_index].init(&MemoryService::Instance()->systemAllocator, 1);
+	//			tempTangents[idx3.vertex_index].init(&MemoryService::Instance()->systemAllocator, 1);
+	//			tempBitangents[idx3.vertex_index].init(&MemoryService::Instance()->systemAllocator, 1);*/
 
 	//			// Store the tangents and bitangents in the temporary vectors
 	//			tempTangents[idx1.vertex_index].push_back(tangent);
@@ -1334,7 +1334,7 @@ namespace Magnefu
 		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
 
-		Array<const char*> extensions(&MemoryService::instance()->systemAllocator, glfwExtensions, glfwExtensions + glfwExtensionCount);
+		Array<const char*> extensions(&MemoryService::Instance()->systemAllocator, glfwExtensions, glfwExtensions + glfwExtensionCount);
 
 		if (m_EnableValidationLayers)
 			extensions.push(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -1397,7 +1397,7 @@ namespace Magnefu
 		uint32_t extensionCount;
 		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
 
-		Array<VkExtensionProperties> availableExtensions( &MemoryService::instance()->systemAllocator, extensionCount, extensionCount);
+		Array<VkExtensionProperties> availableExtensions( &MemoryService::Instance()->systemAllocator, extensionCount, extensionCount);
 		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.raw());
 
 		std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
@@ -1430,7 +1430,7 @@ namespace Magnefu
 		uint32_t queueFamilyCount = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
 
-		Array<VkQueueFamilyProperties> queueFamilies(&MemoryService::instance()->systemAllocator, queueFamilyCount, queueFamilyCount);
+		Array<VkQueueFamilyProperties> queueFamilies(&MemoryService::Instance()->systemAllocator, queueFamilyCount, queueFamilyCount);
 		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.raw());
 
 		int i = 0;
@@ -1471,7 +1471,7 @@ namespace Magnefu
 		uint32_t formatCount;
 		vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_WindowSurface, &formatCount, nullptr);
 
-		details.Formats.init(&MemoryService::instance()->systemAllocator, formatCount, formatCount);
+		details.Formats.init(&MemoryService::Instance()->systemAllocator, formatCount, formatCount);
 		
 
 		if (formatCount != 0) 
@@ -1483,7 +1483,7 @@ namespace Magnefu
 		uint32_t presentModeCount;
 		vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_WindowSurface, &presentModeCount, nullptr);
 
-		details.PresentModes.init(&MemoryService::instance()->systemAllocator, presentModeCount, presentModeCount);
+		details.PresentModes.init(&MemoryService::Instance()->systemAllocator, presentModeCount, presentModeCount);
 
 		if (presentModeCount != 0) 
 		{

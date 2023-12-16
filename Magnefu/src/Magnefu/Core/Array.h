@@ -128,7 +128,7 @@ namespace Magnefu
 		data = nullptr;
 		capacity = 0;
 		size = 0;
-		allocator = &MemoryService::instance()->systemAllocator;
+		allocator = &MemoryService::Instance()->systemAllocator;
 	}
 
 	template<typename T>

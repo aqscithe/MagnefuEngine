@@ -27,13 +27,13 @@ namespace Magnefu
     static void exitWalker(void* ptr, size_t size, int used, void* user);
     static void imguiWalker(void* ptr, size_t size, int used, void* user);
 
-    MemoryService* MemoryService::instance() 
+    MemoryService* MemoryService::Instance() 
     {
         return &s_MemoryService;
     }
 
     
-    void MemoryService::init(void* configuration) {
+    void MemoryService::Init(void* configuration) {
 
         MF_CORE_INFO("Memory Service Init");
         MemoryServiceConfiguration* memory_configuration = static_cast<MemoryServiceConfiguration*>(configuration);
@@ -41,7 +41,7 @@ namespace Magnefu
         
     }
 
-    void MemoryService::shutdown() {
+    void MemoryService::Shutdown() {
 
         systemAllocator.shutdown();
 

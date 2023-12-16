@@ -61,7 +61,7 @@ namespace Magnefu
 		inline SceneManager& GetSceneManager() { return *m_SceneManager; }
 
 		// -- Services -- //
-		inline MemoryService& GetMemoryService() { return *MemoryService::instance(); }
+		inline MemoryService& GetMemoryService() { return *MemoryService::Instance(); }
 
 		inline Handle<BindGroup>& GetRenderPassBindGroup() { return m_RenderPassGlobals; }
 

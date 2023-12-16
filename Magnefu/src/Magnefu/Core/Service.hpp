@@ -7,11 +7,11 @@ namespace Magnefu
     struct Service 
     {
 
-        virtual void                init(void* configuration) { }
-        virtual void                shutdown() { }
+        virtual void                Init(void* configuration) { }
+        virtual void                Shutdown() { }
 
     }; 
 
-#define MF_DECLARE_SERVICE(Type)    static Type* instance();
+#define MF_DECLARE_SERVICE(Type)    static Type* Instance();
 
 } 

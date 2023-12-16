@@ -8,7 +8,9 @@
 int main(int argc, char** argv)
 {
 	MF_PROFILE_BEGIN_SESSION("Magnefu Startup", "Magnefu-Startup.json");
-	Magnefu::Log::Init();
+	Magnefu::LogService::Instance()->Init(nullptr);
+
+	// Should i just start memory service here as well?
 	auto app = Magnefu::CreateApplication();
 	MF_PROFILE_END_SESSION();
 
