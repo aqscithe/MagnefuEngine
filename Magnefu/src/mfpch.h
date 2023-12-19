@@ -42,7 +42,7 @@
 #include "Magnefu/Core/String.hpp"
 #include "Magnefu/Core/Time.hpp"
 
-#include "Magnefu/Debug/Instrumentor.h"
+#include "Magnefu/Core/Debug/Instrumentor.h"
 
 
 #define GLM_ENABLE_EXPERIMENTAL

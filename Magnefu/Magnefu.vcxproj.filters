@@ -324,7 +324,7 @@
     <ClInclude Include="src\Magnefu\Core\Typedefs.hpp">
       <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Debug\Instrumentor.h">
+    <ClInclude Include="src\Magnefu\Core\Debug\Instrumentor.h">
       <Filter>src\Magnefu\Debug</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Entrypoint.h">
