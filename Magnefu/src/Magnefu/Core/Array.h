@@ -3,6 +3,7 @@
 
 // -- Core Includes ---------------------------------- //
 #include "MemoryAllocation/Memory.hpp"
+#include "Assertions.h"
 
 // -- other Includes -------------- //
 

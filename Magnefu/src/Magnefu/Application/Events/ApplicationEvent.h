@@ -9,6 +9,8 @@
 // -- Core Includes ---------------------------------- //
 
 
+// -- Other Includes --------------------------- //
+#include <sstream>
 
 
 namespace Magnefu

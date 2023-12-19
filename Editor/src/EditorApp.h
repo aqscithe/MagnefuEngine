@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Magnefu.h"
-#include "Magnefu/Entrypoint.h"
+#include "Magnefu/Magnefu.h"
+#include "Magnefu/Application/Entrypoint.h"
 
 class Editor : public Magnefu::Application
 {

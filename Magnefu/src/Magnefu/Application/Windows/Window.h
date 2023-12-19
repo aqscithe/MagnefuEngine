@@ -1,11 +1,20 @@
 #pragma once
 
-#include "mfpch.h"
 
+// -- Application ------------------- //
+#include "Magnefu/Application/Events/Event.h"
+#include "Magnefu/Application/Camera/Camera.h"
+
+
+// -- Graphics ----------------------- //
+#include "Magnefu/Graphics/GraphicsContext.h"
+
+
+// -- Core ------------------------- //
 #include "Magnefu/Core/Assertions.h"
-#include "Magnefu/Core/Events/Event.h"
-#include "Magnefu/Renderer/Camera.h"
-#include "Magnefu/Renderer/GraphicsContext.h"
+
+
+
 
 
 namespace Magnefu

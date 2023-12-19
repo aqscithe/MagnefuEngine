@@ -2,6 +2,7 @@
 
 // -- Core Includes -- //
 #include "Service.hpp"
+#include "Typedefs.hpp"
 
 
 // -- vendor Indcludes -- //

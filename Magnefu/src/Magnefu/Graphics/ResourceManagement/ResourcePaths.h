@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Magnefu/Renderer/RenderConstants.h"
+#include "Magnefu/Graphics/RenderConstants.h"
 
 #include <array>
 

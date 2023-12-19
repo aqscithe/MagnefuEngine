@@ -7,7 +7,7 @@
 #include "Magnefu/Application/Events/MouseEvent.h"
 
 // -- Graphics Includes --------------------- //
-#include "Magnefu/Graphics/Renderer.h"
+
 
 // -- Core Includes ---------------------------------- //
 
@@ -40,7 +40,7 @@ namespace Magnefu
 
 
 	private:
-		Renderer m_Renderer;
+		
 		bool m_BlockEvents = true;
 		
 	};

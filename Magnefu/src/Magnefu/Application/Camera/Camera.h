@@ -1,8 +1,13 @@
 #pragma once
 
+// -- Application Includes ----------------- //
+#include "Magnefu/Application/Events/Event.h"
+
+
+// -- Core Includes -------------------- //
 #include "Magnefu/Core/Maths/Vectors.h"
 #include "Magnefu/Core/Maths/Matrices.h"
-#include "Magnefu/Core/Events/Event.h"
+
 
 namespace Magnefu
 {

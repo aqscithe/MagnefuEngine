@@ -25,8 +25,9 @@
 #include <fstream>
 
 
+#include "Magnefu/Application/ImGui/ImGuiDefs.h"
+
 #include "Magnefu/Core/Maths/MathsCommon.h"
-#include "Magnefu/Core/Maths/PrimitiveCommon.h"
 #include "Magnefu/Core/Maths/Vectors.h"
 #include "Magnefu/Core/Maths/Matrices.h"
 
@@ -34,14 +35,12 @@
 #include "Magnefu/Core/SmartPointers.h"
 #include "Magnefu/Core/Span.h"
 #include "Magnefu/Core/Typedefs.hpp"
-#include "Magnefu/ImGui/ImGuiDefs.h"
 #include "Magnefu/Core/Array.h"
 #include "Magnefu/Core/Assertions.h"
 #include "Magnefu/Core/MemoryAllocation/Memory.hpp"
 #include "Magnefu/Core/File.hpp"
 #include "Magnefu/Core/String.hpp"
 #include "Magnefu/Core/Time.hpp"
-
 #include "Magnefu/Core/Debug/Instrumentor.h"
 
 

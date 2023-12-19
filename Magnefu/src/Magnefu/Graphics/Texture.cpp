@@ -4,6 +4,9 @@
 // -- header -- //
 #include "Texture.h"
 
+// -- Graphics Includes ----------- //
+#include "LTCMatrix.h"
+
 
 
 namespace Magnefu

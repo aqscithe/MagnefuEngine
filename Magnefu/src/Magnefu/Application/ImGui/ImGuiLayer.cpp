@@ -9,7 +9,7 @@
 #include "Magnefu/Application/Application.h"
 
 // -- Graphics Includes --------------------- //
-#include "Magnefu/Graphics/Platform/Vulkan/VulkanContext.h"
+#include "Magnefu/Graphics/GraphicsContext.h"
 
 
 // -- Core Includes ---------------------------------- //

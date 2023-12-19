@@ -1,9 +1,9 @@
 #pragma once
-#include "Magnefu/Renderer/Buffer.h"
-#include "Magnefu/Renderer/Texture.h"
-#include "Magnefu/Renderer/BindGroup.h"
-#include "Magnefu/Renderer/Shader.h"
-#include "Magnefu/ResourceManagement/Handle.h"
+#include "Magnefu/Graphics/Buffer.h"
+#include "Magnefu/Graphics/Texture.h"
+#include "Magnefu/Graphics/BindGroup.h"
+#include "Magnefu/Graphics/Shader.h"
+#include "Magnefu/Graphics/ResourceManagement/Handle.h"
 
 
 namespace Magnefu

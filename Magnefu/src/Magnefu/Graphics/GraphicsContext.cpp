@@ -161,12 +161,12 @@ namespace Magnefu
 
 	GraphicsContext* GraphicsContext::s_Instance = nullptr;
 
-	GraphicsContext* GraphicsContext::Create(GLFWwindow* windowHandle)
+	GraphicsContext* GraphicsContext::Create(void* windowHandle)
 	{
 		return new GraphicsContext(windowHandle);
 	}
 
-	GraphicsContext::GraphicsContext(GLFWwindow* windowHandle) :
+	GraphicsContext::GraphicsContext(void* windowHandle) :
 		m_WindowHandle(windowHandle), m_VkInstance(VkInstance()), m_VkPhysicalDevice(VK_NULL_HANDLE)
 	{
 		MF_CORE_ASSERT(m_WindowHandle, "Window Handle is null!");

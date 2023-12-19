@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Magnefu.h"
+#include "Magnefu/Magnefu.h"
 
 #include <filesystem>
 

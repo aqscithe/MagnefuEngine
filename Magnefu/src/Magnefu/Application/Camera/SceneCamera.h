@@ -1,8 +1,12 @@
 #pragma once
 
+
+// -- Application Includes ------------------ //
 #include "Camera.h"
-#include "Magnefu/Core/Events/ApplicationEvent.h"
-#include "Magnefu/Core/Events/MouseEvent.h"
+#include "Magnefu/Application/Events/ApplicationEvent.h"
+#include "Magnefu/Application/Events/MouseEvent.h"
+
+
 
 namespace Magnefu
 {

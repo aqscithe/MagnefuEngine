@@ -1,5 +1,10 @@
+// - PCH -- //
 #include "mfpch.h"
+
+// -- HEADER -- //
 #include "Camera.h"
+
+// Application Includes ------------ //
 #include "SceneCamera.h"
 
 

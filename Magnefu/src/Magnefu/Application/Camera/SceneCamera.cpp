@@ -1,10 +1,20 @@
+// -- PCH -- //
 #include "mfpch.h"
+
+// -- HEADER -- //
 #include "SceneCamera.h"
 
-#include "Magnefu/Core/Events/Input.h"
-#include "Magnefu/Core/Events/KeyCodes.h"
 
+// -- Application Includes ------------- //
+#include "Magnefu/Application/Events/Input.h"
+#include "Magnefu/Application/Events/KeyCodes.h"
+
+
+// -- Vendor Includes -------------- //
 #include "imgui.h"
+
+
+
 
 namespace Magnefu
 {

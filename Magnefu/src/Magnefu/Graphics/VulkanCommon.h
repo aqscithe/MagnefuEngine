@@ -68,6 +68,43 @@ namespace Magnefu
 
 	};
 
+	struct VulkanMemory
+	{
+		// Stats
+		VmaStatistics Stats;
+		VmaTotalStatistics TotalStats;
+		VmaBudget Budgets;
+
+		// Vertex Buffer
+		Array<VkDeviceSize> VBufferOffsets;
+		VkBuffer                  VBuffer;
+		VmaAllocation             VBufferAllocation;
+		VmaAllocationInfo         VBufferAllocInfo;
+
+		// Index Buffer
+		Array<VkDeviceSize> IBufferOffsets;
+		VkBuffer                  IBuffer;
+		VmaAllocation             IBufferAllocation;
+		VmaAllocationInfo         IBufferAllocInfo;
+
+
+		// Uniforms
+		VkDeviceSize                   UniformOffset = 0;
+		VkDeviceSize                   UniformAlignment;
+		Array<VkBuffer>          UniformBuffers;
+		Array<void*>             UniformBuffersMapped;
+		Array<VmaAllocation>     UniformAllocations;
+		Array<VmaAllocationInfo> UniformAllocInfo;
+
+		// Framebuffer Resources
+		VkImage DepthImage;
+		VkImage ColorImage;
+		VmaAllocation DepthResAllocation;
+		VmaAllocation ColorResAllocation;
+		VmaAllocationInfo DepthResAllocInfo;
+		VmaAllocationInfo ColorResAllocInfo;
+	};
+
 
 	enum ShaderStage;
 

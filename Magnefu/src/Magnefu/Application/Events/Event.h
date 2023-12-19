@@ -10,6 +10,9 @@
 #include "Magnefu/Core/Assertions.h"
 
 
+// -- Other Includes ----------------------- //
+#include <string>
+
 namespace Magnefu {
 
 	// Eventually I want to modify events so that they are handled asynchronously from a queue
