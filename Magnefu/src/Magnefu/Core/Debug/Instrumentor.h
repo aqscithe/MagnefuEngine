@@ -1,5 +1,11 @@
 #pragma once
 
+
+// -- Core Includes ---------------------------------- //
+#include "Magnefu/Core/Log.h"
+
+
+// -- vendor Includes ---------- //
 #include <string>
 #include <chrono>
 #include <algorithm>
@@ -9,7 +15,7 @@
 #include <thread>
 #include <iomanip>
 
-#include "Magnefu/Core/Log.h"
+
 
 
 // TODO: Ability to start and stop a profile while running the application

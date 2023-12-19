@@ -1,4 +1,7 @@
+// -- PCH -- //
 #include "mfpch.h"
+
+// -- header -- //
 #include "Log.h"
 
 namespace Magnefu

@@ -1,8 +1,14 @@
+// -- PCH -- //
 #include "mfpch.h"
 
+// -- header -- //
 #include "String.hpp"
+
+// -- Core Includes ------------ //
 #include "Magnefu/Core/MemoryAllocation/Memory.hpp"
 
+
+// -- Other Includes ------------- //
 #include <stdio.h>
 #include <stdarg.h>
 #include <memory.h>

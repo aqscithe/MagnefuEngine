@@ -1,4 +1,7 @@
+// - PCH -- //
 #include "mfpch.h"
+
+// -- heade r-- //
 #include "NumGen.h"
 
 namespace Magnefu

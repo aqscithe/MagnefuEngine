@@ -1,8 +1,13 @@
 #pragma once
 
+
+// -- Core Includes -- //
 #include "Magnefu/Core/Typedefs.hpp"
 #include "Magnefu/Core/MemoryAllocation/Memory.hpp"
 #include "Magnefu/Core/Array.h"
+
+
+
 
 // Defines:
 // MF_BLOB_WRITE         - use it in code that can write blueprints,

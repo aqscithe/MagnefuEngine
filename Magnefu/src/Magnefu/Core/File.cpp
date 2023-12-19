@@ -1,8 +1,15 @@
+// -- PCH -- //
 #include "mfpch.h"
+
+// -- header -- //
 #include "File.hpp"
 
+
+// -- Core Includes -- //
 #include "Magnefu/Core/MemoryAllocation/Memory.hpp"
 #include "Magnefu/Core/String.hpp"
+
+// -- Other Includes -- //
 
 #if defined(_WIN64)
 #include <windows.h>
@@ -14,6 +21,9 @@
 #endif
 
 #include <string.h>
+
+
+
 
 namespace Magnefu {
 

@@ -1,7 +1,11 @@
 // (C) Sebastian Aaltonen 2023
 // MIT License (see file: LICENSE)
 
+
+// -- PCH -- //
 #include "mfpch.h"
+
+// -- .h -- //
 #include "OffsetAllocator.h"
 
 #ifdef DEBUG

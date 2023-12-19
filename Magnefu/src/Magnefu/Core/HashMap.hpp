@@ -1,8 +1,15 @@
 #pragma once
 
+
+// -- Core Includes -- //
 #include "Magnefu/Core/MemoryAllocation/Memory.hpp"
 #include "Bit.hpp"
+
+
+// -- Vendore Includes -- //
 #include "wyhash/wyhash.h"
+
+
 
 namespace Magnefu
 {

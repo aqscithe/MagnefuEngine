@@ -146,19 +146,19 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\Magnefu.h" />
-    <ClInclude Include="src\Magnefu\Application.h" />
+    <ClInclude Include="src\Magnefu\Magnefu.h" />
+    <ClInclude Include="src\Magnefu\Application\Application.h" />
     <ClInclude Include="src\Magnefu\Core\Array.h" />
     <ClInclude Include="src\Magnefu\Core\Assertions.h" />
     <ClInclude Include="src\Magnefu\Core\Bit.hpp" />
     <ClInclude Include="src\Magnefu\Core\Blob.hpp" />
-    <ClInclude Include="src\Magnefu\Core\Events\ApplicationEvent.h" />
-    <ClInclude Include="src\Magnefu\Core\Events\Event.h" />
-    <ClInclude Include="src\Magnefu\Core\Events\Input.h" />
-    <ClInclude Include="src\Magnefu\Core\Events\KeyCodes.h" />
-    <ClInclude Include="src\Magnefu\Core\Events\KeyEvent.h" />
-    <ClInclude Include="src\Magnefu\Core\Events\MouseButtonCodes.h" />
-    <ClInclude Include="src\Magnefu\Core\Events\MouseEvent.h" />
+    <ClInclude Include="src\Magnefu\Application\Events\ApplicationEvent.h" />
+    <ClInclude Include="src\Magnefu\Application\Events\Event.h" />
+    <ClInclude Include="src\Magnefu\Application\Events\Input.h" />
+    <ClInclude Include="src\Magnefu\Application\Events\KeyCodes.h" />
+    <ClInclude Include="src\Magnefu\Application\Events\KeyEvent.h" />
+    <ClInclude Include="src\Magnefu\Application\Events\MouseButtonCodes.h" />
+    <ClInclude Include="src\Magnefu\Application\Events\MouseEvent.h" />
     <ClInclude Include="src\Magnefu\Core\File.hpp" />
     <ClInclude Include="src\Magnefu\Core\HashMap.hpp" />
     <ClInclude Include="src\Magnefu\Core\Log.h" />
@@ -187,43 +187,43 @@
     <ClInclude Include="src\Magnefu\Core\Time.hpp" />
     <ClInclude Include="src\Magnefu\Core\Typedefs.hpp" />
     <ClInclude Include="src\Magnefu\Core\Debug\Instrumentor.h" />
-    <ClInclude Include="src\Magnefu\Entrypoint.h" />
-    <ClInclude Include="src\Magnefu\ImGui\ImGuiDefs.h" />
-    <ClInclude Include="src\Magnefu\ImGui\ImGuiLayer.h" />
-    <ClInclude Include="src\Magnefu\Layer.h" />
-    <ClInclude Include="src\Magnefu\LayerStack.h" />
-    <ClInclude Include="src\Magnefu\Renderer\BindGroup.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Buffer.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Camera.h" />
-    <ClInclude Include="src\Magnefu\Renderer\GraphicsContext.h" />
-    <ClInclude Include="src\Magnefu\Renderer\LTCMatrix.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Light.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Material.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Mesh.h" />
-    <ClInclude Include="src\Magnefu\Renderer\RenderCommand.h" />
-    <ClInclude Include="src\Magnefu\Renderer\RenderConstants.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Renderer.h" />
-    <ClInclude Include="src\Magnefu\Renderer\RendererAPI.h" />
-    <ClInclude Include="src\Magnefu\Renderer\SceneCamera.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Shader.h" />
-    <ClInclude Include="src\Magnefu\Renderer\Texture.h" />
-    <ClInclude Include="src\Magnefu\ResourceManagement\Handle.h" />
-    <ClInclude Include="src\Magnefu\ResourceManagement\Pool.h" />
-    <ClInclude Include="src\Magnefu\ResourceManagement\ResourceManager.h" />
-    <ClInclude Include="src\Magnefu\ResourceManagement\ResourcePaths.h" />
-    <ClInclude Include="src\Magnefu\Scene\Components.h" />
-    <ClInclude Include="src\Magnefu\Scene\Entity.h" />
-    <ClInclude Include="src\Magnefu\Scene\Scene.h" />
-    <ClInclude Include="src\Magnefu\Scene\SceneManager.h" />
-    <ClInclude Include="src\Magnefu\Window.h" />
-    <ClInclude Include="src\Platform\Vulkan\VulkanBindGroup.h" />
-    <ClInclude Include="src\Platform\Vulkan\VulkanBuffer.h" />
-    <ClInclude Include="src\Platform\Vulkan\VulkanCommon.h" />
-    <ClInclude Include="src\Platform\Vulkan\VulkanContext.h" />
-    <ClInclude Include="src\Platform\Vulkan\VulkanShader.h" />
-    <ClInclude Include="src\Platform\Vulkan\VulkanTexture.h" />
-    <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
-    <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
+    <ClInclude Include="src\Magnefu\Application\Entrypoint.h" />
+    <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiDefs.h" />
+    <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiLayer.h" />
+    <ClInclude Include="src\Magnefu\Application\Layer.h" />
+    <ClInclude Include="src\Magnefu\Application\LayerStack.h" />
+    <ClInclude Include="src\Magnefu\Graphics\BindGroup.h" />
+    <ClInclude Include="src\Magnefu\Graphics\Buffer.h" />
+    <ClInclude Include="src\Magnefu\Graphics\Camera.h" />
+    <ClInclude Include="src\Magnefu\Graphics\GraphicsContext.h" />
+    <ClInclude Include="src\Magnefu\Graphics\LTCMatrix.h" />
+    <ClInclude Include="src\Magnefu\Graphics\Light.h" />
+    <ClInclude Include="src\Magnefu\Graphics\Material.h" />
+    <ClInclude Include="src\Magnefu\Graphics\Mesh.h" />
+    <ClInclude Include="src\Magnefu\Graphics\RenderCommand.h" />
+    <ClInclude Include="src\Magnefu\Graphics\RenderConstants.h" />
+    <ClInclude Include="src\Magnefu\Graphics\Renderer.h" />
+    <ClInclude Include="src\Magnefu\Graphics\RendererAPI.h" />
+    <ClInclude Include="src\Magnefu\Graphics\SceneCamera.h" />
+    <ClInclude Include="src\Magnefu\Graphics\Shader.h" />
+    <ClInclude Include="src\Magnefu\Graphics\Texture.h" />
+    <ClInclude Include="src\Magnefu\Graphics\ResourceManagement\Handle.h" />
+    <ClInclude Include="src\Magnefu\Graphics\ResourceManagement\Pool.h" />
+    <ClInclude Include="src\Magnefu\Graphics\ResourceManagement\ResourceManager.h" />
+    <ClInclude Include="src\Magnefu\Graphics\ResourceManagement\ResourcePaths.h" />
+    <ClInclude Include="src\Magnefu\Application\Scene\Components.h" />
+    <ClInclude Include="src\Magnefu\Application\Scene\Entity.h" />
+    <ClInclude Include="src\Magnefu\Application\Scene\Scene.h" />
+    <ClInclude Include="src\Magnefu\Application\Scene\SceneManager.h" />
+    <ClInclude Include="src\Magnefu\Application\Windows\Window.h" />
+    <ClInclude Include="src\Magnefu\Graphics\Platform\Vulkan\VulkanBindGroup.h" />
+    <ClInclude Include="src\Magnefu\Graphics\Platform\Vulkan\VulkanBuffer.h" />
+    <ClInclude Include="src\Magnefu\Graphics\Platform\Vulkan\VulkanCommon.h" />
+    <ClInclude Include="src\Magnefu\Graphics\Platform\Vulkan\VulkanContext.h" />
+    <ClInclude Include="src\Magnefu\Graphics\Platform\Vulkan\VulkanShader.h" />
+    <ClInclude Include="src\Magnefu\Graphics\Platform\Vulkan\VulkanTexture.h" />
+    <ClInclude Include="src\Magnefu\Application\Windows\WindowsInput.h" />
+    <ClInclude Include="src\Magnefu\Application\Windows\WindowsWindow.h" />
     <ClInclude Include="src\mfpch.h" />
     <ClInclude Include="vendor\GLAD\include\KHR\khrplatform.h" />
     <ClInclude Include="vendor\GLAD\include\glad\glad.h" />
@@ -1120,7 +1120,7 @@
     <ClInclude Include="vendor\wyhash\wyhash.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Magnefu\Application.cpp" />
+    <ClCompile Include="src\Magnefu\Application\Application.cpp" />
     <ClCompile Include="src\Magnefu\Core\Assertions.cpp" />
     <ClCompile Include="src\Magnefu\Core\BlobSerialization.cpp" />
     <ClCompile Include="src\Magnefu\Core\File.cpp" />
@@ -1140,49 +1140,49 @@
     <ClCompile Include="src\Magnefu\Core\Process.cpp" />
     <ClCompile Include="src\Magnefu\Core\String.cpp" />
     <ClCompile Include="src\Magnefu\Core\Time.cpp" />
-    <ClCompile Include="src\Magnefu\ImGui\ImGuiBuild.cpp" />
-    <ClCompile Include="src\Magnefu\ImGui\ImGuiLayer.cpp" />
-    <ClCompile Include="src\Magnefu\Layer.cpp" />
-    <ClCompile Include="src\Magnefu\LayerStack.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\BindGroup.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\Buffer.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\Camera.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\GraphicsContext.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\Light.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\Material.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\RenderCommand.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\Renderer.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\RendererAPI.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\SceneCamera.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\Shader.cpp" />
-    <ClCompile Include="src\Magnefu\Renderer\Texture.cpp" />
-    <ClCompile Include="src\Magnefu\ResourceManagement\Pool.cpp" />
-    <ClCompile Include="src\Magnefu\ResourceManagement\ResourceManager.cpp" />
-    <ClCompile Include="src\Magnefu\Scene\Entity.cpp" />
-    <ClCompile Include="src\Magnefu\Scene\Scene.cpp" />
-    <ClCompile Include="src\Magnefu\Scene\SceneManager.cpp" />
-    <ClCompile Include="src\Platform\Vulkan\VulkanBindGroup.cpp">
+    <ClCompile Include="src\Magnefu\Application\ImGui\ImGuiBuild.cpp" />
+    <ClCompile Include="src\Magnefu\Application\ImGui\ImGuiLayer.cpp" />
+    <ClCompile Include="src\Magnefu\Application\Layer.cpp" />
+    <ClCompile Include="src\Magnefu\Application\LayerStack.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\BindGroup.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\Buffer.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\Camera.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\GraphicsContext.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\Light.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\Material.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\RenderCommand.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\Renderer.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\RendererAPI.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\SceneCamera.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\Shader.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\Texture.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\ResourceManagement\Pool.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\ResourceManagement\ResourceManager.cpp" />
+    <ClCompile Include="src\Magnefu\Application\Scene\Entity.cpp" />
+    <ClCompile Include="src\Magnefu\Application\Scene\Scene.cpp" />
+    <ClCompile Include="src\Magnefu\Application\Scene\SceneManager.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\Platform\Vulkan\VulkanBindGroup.cpp">
       <ObjectFileName>$(IntDir)\VulkanBindGroup1.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="src\Platform\Vulkan\VulkanBuffer.cpp">
+    <ClCompile Include="src\Magnefu\Graphics\Platform\Vulkan\VulkanBuffer.cpp">
       <ObjectFileName>$(IntDir)\VulkanBuffer1.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="src\Platform\Vulkan\VulkanCommon.cpp">
+    <ClCompile Include="src\Magnefu\Graphics\Platform\Vulkan\VulkanCommon.cpp">
       <ObjectFileName>$(IntDir)\VulkanCommon1.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="src\Platform\Vulkan\VulkanContext.cpp">
+    <ClCompile Include="src\Magnefu\Graphics\Platform\Vulkan\VulkanContext.cpp">
       <ObjectFileName>$(IntDir)\VulkanContext1.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="src\Platform\Vulkan\VulkanShader.cpp">
+    <ClCompile Include="src\Magnefu\Graphics\Platform\Vulkan\VulkanShader.cpp">
       <ObjectFileName>$(IntDir)\VulkanShader1.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="src\Platform\Vulkan\VulkanTexture.cpp">
+    <ClCompile Include="src\Magnefu\Graphics\Platform\Vulkan\VulkanTexture.cpp">
       <ObjectFileName>$(IntDir)\VulkanTexture1.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
+    <ClCompile Include="src\Magnefu\Application\Windows\WindowsInput.cpp">
       <ObjectFileName>$(IntDir)\WindowsInput1.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp">
+    <ClCompile Include="src\Magnefu\Application\Windows\WindowsWindow.cpp">
       <ObjectFileName>$(IntDir)\WindowsWindow1.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="src\mfpch.cpp">

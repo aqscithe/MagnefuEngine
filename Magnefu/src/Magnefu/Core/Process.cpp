@@ -1,7 +1,14 @@
+// -- PCH -- //
 #include "mfpch.h"
+
+// -- header -- //
 #include "Process.hpp"
 
+
+
+// -- Other Includes ----------- //
 #include <stdio.h>
+
 
 #if defined(_WIN64)
 	#define WIN32_LEAN_AND_MEAN

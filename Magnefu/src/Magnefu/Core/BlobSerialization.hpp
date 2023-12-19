@@ -1,12 +1,14 @@
 #pragma once
 
-
-#include "Magnefu/Core/RelativeDataStructures.hpp"
-
+// -- Core Includes ---------------------- //
+#include "RelativeDataStructures.hpp"
 #include "Blob.hpp"
 
+
+
+
 // Defines:
-// RAPTOR_BLOB_WRITE         - use it in code that can write blueprints,
+// MF_BLOB_WRITE         - use it in code that can write blueprints,
 //                            like data compilers.
 
 

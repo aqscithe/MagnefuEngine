@@ -1,6 +1,9 @@
 #pragma once
 
-#include "Magnefu/Core/Typedefs.hpp"
+// -- Core Includes ---------------------------------- //
+#include "Typedefs.hpp"
+
+// -- other Includes -------------- //
 
 namespace Magnefu 
 {

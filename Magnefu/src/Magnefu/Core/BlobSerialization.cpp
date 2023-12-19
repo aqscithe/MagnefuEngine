@@ -1,9 +1,13 @@
+// -- PCH -- //
 #include "mfpch.h"
 
-#define RAPTOR_BLOB_WRITE
-#include <string.h>
+// -- header -- //
+#define MF_BLOB_WRITE
 #include "BlobSerialization.hpp"
 
+
+// -- other includes -- //
+#include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
 
