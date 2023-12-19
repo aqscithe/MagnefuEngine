@@ -1,7 +1,14 @@
 #pragma once
 
-#include "Magnefu/Renderer/Light.h"
-#include "Magnefu/Renderer/RenderConstants.h"
+// -- Graphics Includes -------------------- //
+#include "Magnefu/Graphics/Light.h"
+#include "Magnefu/Graphics/RenderConstants.h"
+#include "VulkanCommon.h"
+#include "Magnefu/Graphics/Material.h"
+
+// -- Core Includes ------------------------- //
+
+
 
 namespace Magnefu
 {
@@ -136,20 +143,66 @@ namespace Magnefu
 
     class Buffer
     {
-    public:
-        Buffer(const BufferDesc& desc);
-        virtual ~Buffer() = default;
+        public:
+            Buffer(const BufferDesc& desc);
+            ~Buffer();
 
+            VkBuffer& GetBuffer() { return m_Buffer; }
+            VkDeviceSize GetRange() { return m_Range; }
+            VkDeviceSize GetOffset() { return m_Offset; }
+
+        private:
+            void CreateVertexBuffer(const BufferDesc& desc);
+            void CreateIndexBuffer(const BufferDesc& desc);
+
+        protected:
+            VkDeviceSize  m_Offset;
+            VkDeviceSize  m_Range;
+
+
+        private:
+            VkBuffer        m_Buffer;
+            VkDeviceMemory  m_BufferMemory;
+
+            VmaAllocation     m_Allocation;
+            VmaAllocationInfo m_AllocInfo;
+    };
+
+
+
+    class UniformBuffer : public Buffer
+    {
+        public:
+            UniformBuffer(const BufferDesc& desc);
+            ~UniformBuffer();
+
+            void UpdateUniformBuffer(const Material& mat);
+            void UpdateUniformBuffer(const MaterialInstanced& mat, uint32_t instanceCount);
+
+            Array<VkBuffer>& GetBuffers() { return m_Buffers; }
+
+
+        private:
+            Array<VkBuffer>        m_Buffers;
+
+
+            UniformBufferType            m_UniformType = UniformBufferType::UNIFORM_NONE;
 
     };
+
 
 
     class BufferFactory
     {
-    public:
-        static Buffer* CreateBuffer(const BufferDesc& desc);
+        public:
+            static Buffer* CreateBuffer(const BufferDesc& desc);
 
     };
+
+   
+
+
+    
 
     
 }

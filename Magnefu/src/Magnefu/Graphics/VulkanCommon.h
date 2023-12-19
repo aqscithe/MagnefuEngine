@@ -1,9 +1,16 @@
 #pragma once
 
 
-#include "vulkan/vulkan.h"
+// -- Graphics Includes -------------- //
+#include "Magnefu/Graphics/Mesh.h"
+
+// -- Core Includes -------------------- //
 #include "Magnefu/Core/MemoryAllocation/VmaUsage.h"
-#include "Magnefu/Renderer/Mesh.h"
+
+// -- Other Includes ------------------ //
+#include "vulkan/vulkan.h"
+
+
 
 
 namespace Magnefu

@@ -1,7 +1,12 @@
+// -- PCH -- //
 #include "mfpch.h"
+
+// -- header -- //
 #include "VulkanCommon.h"
-#include "VulkanContext.h"
-#include "Magnefu/Renderer/Shader.h"
+
+// -- Graphics Includes ------------- //
+#include "GraphicsContext.h"
+#include "Shader.h"
 
 
 namespace Magnefu
@@ -11,7 +16,7 @@ namespace Magnefu
 		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 		{
 			VkPhysicalDeviceMemoryProperties memProperties;
-			vkGetPhysicalDeviceMemoryProperties(VulkanContext::Get().GetPhysicalDevice(), &memProperties);
+			vkGetPhysicalDeviceMemoryProperties(GraphicsContext::Get().GetPhysicalDevice(), &memProperties);
 
 			for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
 				if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
@@ -26,7 +31,7 @@ namespace Magnefu
 
 		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
 		{
-			VkDevice device = VulkanContext::Get().GetDevice();
+			VkDevice device = GraphicsContext::Get().GetDevice();
 
 			VkBufferCreateInfo bufferInfo{};
 			bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -54,8 +59,8 @@ namespace Magnefu
 
 		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkBuffer& buffer, VmaMemoryUsage vmaUsage, VmaAllocationCreateFlags vmaFlags, VmaAllocation& allocation, VmaAllocationInfo& allocInfo)
 		{
-			VkDevice device = VulkanContext::Get().GetDevice();
-			VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();
+			VkDevice device = GraphicsContext::Get().GetDevice();
+			VmaAllocator allocator = GraphicsContext::Get().GetVmaAllocator();
 			
 			
 
@@ -93,7 +98,7 @@ namespace Magnefu
 
 		VkCommandBuffer BeginSingleTimeCommands(VkCommandPool commandPool)
 		{
-			VulkanContext& context = VulkanContext::Get();
+			GraphicsContext& context = GraphicsContext::Get();
 
 			VkCommandBufferAllocateInfo allocInfo{};
 			allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -115,7 +120,7 @@ namespace Magnefu
 
 		void EndSingleTimeCommands(VkCommandBuffer commandBuffer, VkCommandPool commandPool)
 		{
-			VulkanContext& context = VulkanContext::Get();
+			GraphicsContext& context = GraphicsContext::Get();
 
 			vkEndCommandBuffer(commandBuffer);
 
@@ -153,7 +158,7 @@ namespace Magnefu
 
 		void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
 		{
-			VkDevice device = VulkanContext::Get().GetDevice();
+			VkDevice device = GraphicsContext::Get().GetDevice();
 
 			VkPhysicalDeviceImageFormatInfo2 imageFormatInfo = {};
 			imageFormatInfo.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2;
@@ -166,7 +171,7 @@ namespace Magnefu
 			VkImageFormatProperties2 imageFormatProperties = {};
 			imageFormatProperties.sType = VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2;
 
-			if (vkGetPhysicalDeviceImageFormatProperties2(VulkanContext::Get().GetPhysicalDevice(), &imageFormatInfo, &imageFormatProperties) != VK_SUCCESS)
+			if (vkGetPhysicalDeviceImageFormatProperties2(GraphicsContext::Get().GetPhysicalDevice(), &imageFormatInfo, &imageFormatProperties) != VK_SUCCESS)
 				MF_CORE_ASSERT(false, "Image format w/ specified properties not supported!");
 
 			VkImageCreateInfo imageInfo{};
@@ -205,8 +210,8 @@ namespace Magnefu
 
 		void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkImage& image, VmaMemoryUsage vmaUsage, VmaAllocationCreateFlags vmaFlags, VmaAllocation& allocation, VmaAllocationInfo& allocInfo)
 		{
-			VmaAllocator allocator = VulkanContext::Get().GetVmaAllocator();
-
+			VmaAllocator allocator = GraphicsContext::Get().GetVmaAllocator();
+			
 			VkImageCreateInfo imageInfo{};
 			imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 			imageInfo.imageType = imageType;
@@ -250,7 +255,7 @@ namespace Magnefu
 
 
 			VkImageView imageView;
-			if (vkCreateImageView(VulkanContext::Get().GetDevice(), &viewInfo, nullptr, &imageView) != VK_SUCCESS)
+			if (vkCreateImageView(GraphicsContext::Get().GetDevice(), &viewInfo, nullptr, &imageView) != VK_SUCCESS)
 				MF_CORE_ASSERT(false, "Failed to create image or texture image view!");
 
 			return imageView;

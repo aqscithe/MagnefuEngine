@@ -1,6 +1,12 @@
 #pragma once
 
-#include "Magnefu/ResourceManagement/Handle.h"
+// -- Graphics Includes ---------------------- //
+#include "ResourceManagement/Handle.h"
+#include "VulkanCommon.h"
+
+// -- Core Includes ------------------------ //
+
+
 
 namespace Magnefu
 {
@@ -167,7 +173,26 @@ namespace Magnefu
 	{
 	public:
 		Shader(const ShaderDesc&);
-		virtual ~Shader() = default;
+		~Shader();
+
+		inline const VkPipelineLayout& GetPipelineLayout() { return m_PipelineLayout; }
+		inline const VkPipeline& GetPipeline() { return m_Pipeline; }
+
+	private:
+		void CreateGraphicsPipeline(const ShaderDesc&);
+		//void CreateComputePipeline(const ShaderDesc&);
+
+		ShaderList ParseShader(const char*);
+		VkShaderModule CreateShaderModule(const ShaderSource&);
+
+		VkDynamicState TranslateDynamicState(const DynamicState&);
+		VkPolygonMode TranslatePolygonMode(const PolygonMode&);
+		VkCullModeFlags TranslateCullMode(const CullMode&);
+		VkCompareOp TranslateDepthCompareOp(const DepthCompareOp&);
+
+	private:
+		VkPipelineLayout m_PipelineLayout;
+		VkPipeline       m_Pipeline;
 	};
 
 	class ShaderFactory
