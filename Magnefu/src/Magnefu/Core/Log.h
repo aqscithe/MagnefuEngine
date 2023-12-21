@@ -21,6 +21,9 @@ namespace Magnefu
 
 	};
 
+	typedef void                        (*PrintCallback)(const char*);  // Additional callback for printing
+
+
 	struct LogService : public Service 
 	{
 
@@ -30,12 +33,18 @@ namespace Magnefu
 
 			void Init(void* configuration);
 
+			static LogService* Instance();
+
 			inline static std::shared_ptr<spdlog::logger>& GetCoreLogger() { return s_CoreLogger; }
 			inline static std::shared_ptr<spdlog::logger>& GetClientLogger() { return s_ClientLogger; }
 
+			void                            SetCallback(PrintCallback callback);
+
+			
 	
 
 		private:
+			PrintCallback                   print_callback = nullptr;
 
 			static constexpr cstring        k_name = "Magnefu_Log_Service";
 			static std::shared_ptr<spdlog::logger> s_CoreLogger;

@@ -35,5 +35,11 @@ namespace Magnefu
 		s_ClientLogger->trace("App Logger initialized");
 
 	}
+
+	void LogService::SetCallback(PrintCallback callback)
+	{
+		print_callback = callback;
+		
+	}
 }
 

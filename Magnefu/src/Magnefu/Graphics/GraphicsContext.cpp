@@ -404,7 +404,7 @@ namespace Magnefu
 
         std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
         
-        sizet requsted_ext_count = sizeof(s_requested_extensions) / sizeof(const char*);
+        sizet requsted_ext_count = ArraySize(s_requested_extensions);
 
         for (size_t ext = 0; ext < requsted_ext_count; ext++)
         {
@@ -417,7 +417,7 @@ namespace Magnefu
         instanceCreateInfo.flags = 0;
         instanceCreateInfo.pApplicationInfo = &application_info;
 #if defined(VULKAN_DEBUG_REPORT)
-        instanceCreateInfo.enabledLayerCount = (u32)sizeof(s_requested_layers) / sizeof(const char*);
+        instanceCreateInfo.enabledLayerCount = (u32)ArraySize(s_requested_layers);
         instanceCreateInfo.ppEnabledLayerNames = s_requested_layers;
 #else
         instanceCreateInfo.enabledLayerCount = 0;
@@ -598,7 +598,7 @@ namespace Magnefu
 
         VkDeviceCreateInfo device_create_info = {};
         device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        device_create_info.queueCreateInfoCount = sizeof(queue_info) / sizeof(queue_info[0]);
+        device_create_info.queueCreateInfoCount = ArraySize(queue_info);
         device_create_info.pQueueCreateInfos = queue_info;
         device_create_info.enabledExtensionCount = extensions.size();
         device_create_info.ppEnabledExtensionNames = extensions.data();
@@ -646,7 +646,7 @@ namespace Magnefu
 
         //// Check for supported formats
         bool format_found = false;
-        const u32 surface_format_count = (u32)(sizeof(surface_image_formats) / sizeof(VkFormat));
+        const u32 surface_format_count = (u32)ArraySize(surface_image_formats);
 
         for (int i = 0; i < surface_format_count; i++) 
         {
@@ -705,7 +705,7 @@ namespace Magnefu
             { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, k_global_pool_elements}
         };
 
-        u32 pool_size_count = (u32)(sizeof(pool_sizes) / sizeof(VkDescriptorPoolSize));
+        u32 pool_size_count = (u32)ArraySize(pool_sizes);
         VkDescriptorPoolCreateInfo pool_info = {};
         pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
@@ -1586,7 +1586,7 @@ namespace Magnefu
             //// Dynamic states
             VkDynamicState dynamic_states[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
             VkPipelineDynamicStateCreateInfo dynamic_state{ VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO };
-            dynamic_state.dynamicStateCount = (u32)(sizeof(dynamic_states) / sizeof(VkDynamicState));
+            dynamic_state.dynamicStateCount = (u32)ArraySize(dynamic_states);
             dynamic_state.pDynamicStates = dynamic_states;
 
             pipeline_info.pDynamicState = &dynamic_state;
@@ -2811,7 +2811,8 @@ namespace Magnefu
         vkResetFences(vulkan_device, 1, render_complete_fence);
 
         VkResult result = vkAcquireNextImageKHR(vulkan_device, vulkan_swapchain, UINT64_MAX, vulkan_image_acquired_semaphore, VK_NULL_HANDLE, &vulkan_image_index);
-        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        if (result == VK_ERROR_OUT_OF_DATE_KHR)
+        {
             resize_swapchain();
         }
 
