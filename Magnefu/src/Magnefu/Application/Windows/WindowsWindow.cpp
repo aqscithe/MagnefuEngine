@@ -1,14 +1,26 @@
+// -- PCH -- //
 #include "mfpch.h"
-#include "WindowsWindow.h"
-#include "Magnefu/Core/Events/ApplicationEvent.h"
-#include "Magnefu/Core/Events/MouseEvent.h"
-#include "Magnefu/Core/Events/KeyEvent.h"
-#include "Magnefu/Core/Events/KeyCodes.h"
-#include "Platform/Vulkan/VulkanContext.h"
-#include "Magnefu/Renderer/Camera.h"
-#include "Magnefu/Renderer/RendererAPI.h"
 
+// -- HEADER -- //
+#include "WindowsWindow.h"
+
+// -- Application Includes ------------------------ //
+#include "Magnefu/Application/Events/ApplicationEvent.h"
+#include "Magnefu/Application/Events/MouseEvent.h"
+#include "Magnefu/Application/Events/KeyEvent.h"
+#include "Magnefu/Application/Events/KeyCodes.h"
+#include "Magnefu/Application/Camera/Camera.h"
+
+
+// -- Graphics Includes ---------------------- //
+#include "Magnefu/Graphics/GraphicsContext.h"
+
+
+// -- Vendor Includes ------------------------- //
 #include "imgui.h"
+
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
 
 
 namespace Magnefu
@@ -62,33 +74,30 @@ namespace Magnefu
 			s_GLFWInitialized = true;
 		}
 
-		switch (RendererAPI::GetAPI())
-		{
-			case RendererAPI::API::VULKAN:
-			{
-				glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-				glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-				break;
-			}
-		}
+		
+		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+		
 
 		m_Window = glfwCreateWindow(m_Data.Width, m_Data.Height, m_Data.Title.c_str(), NULL, NULL);
 		MF_CORE_ASSERT(m_Window, "Failed to create GLFW window");
 
-		m_Context = GraphicsContext::Create(m_Window);
+		/*m_Context = GraphicsContext::Create(m_Window);
 
 		if(m_Context)
-			m_Context->Init();
+			m_Context->Init();*/
 
 		// maybe i pass WindowData as an argument to the context init function
 
-		glfwSetWindowUserPointer(m_Window, &m_Data);
+		m_Window = GraphicsContext::get_window_handle();
+
+		glfwSetWindowUserPointer((GLFWwindow*)m_Window, &m_Data);
 
 		// vsync set by presentation mode in vulkan swap chain
 
 		// Set GLFW Callbacks
 
-		glfwSetFramebufferSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
+		glfwSetFramebufferSizeCallback((GLFWwindow*)m_Window, [](GLFWwindow* window, int width, int height)
 		{
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
@@ -99,7 +108,7 @@ namespace Magnefu
 			//MF_CORE_DEBUG("A framebuffer resize event");
 		});
 
-		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
+		glfwSetWindowSizeCallback((GLFWwindow*)m_Window, [](GLFWwindow* window, int width, int height)
 		{
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 			data.Width = width;
@@ -112,7 +121,7 @@ namespace Magnefu
 
 		});
 
-		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window) 
+		glfwSetWindowCloseCallback((GLFWwindow*)m_Window, [](GLFWwindow* window)
 		{
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 			
@@ -121,7 +130,7 @@ namespace Magnefu
 
 		});
 
-		glfwSetKeyCallback(m_Window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
+		glfwSetKeyCallback((GLFWwindow*)m_Window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
 		{
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
@@ -150,7 +159,7 @@ namespace Magnefu
 			}
 		});
 
-		glfwSetMouseButtonCallback(m_Window, [](GLFWwindow* window, int button, int action, int mods)
+		glfwSetMouseButtonCallback((GLFWwindow*)m_Window, [](GLFWwindow* window, int button, int action, int mods)
 		{
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
@@ -178,7 +187,7 @@ namespace Magnefu
 			}
 		});
 
-		glfwSetCursorPosCallback(m_Window, [](GLFWwindow* window, double xpos, double ypos)
+		glfwSetCursorPosCallback((GLFWwindow*)m_Window, [](GLFWwindow* window, double xpos, double ypos)
 		{
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 			MouseMovedEvent event((float)xpos, (float)ypos);
@@ -186,7 +195,7 @@ namespace Magnefu
 
 		});
 
-		glfwSetScrollCallback(m_Window, [](GLFWwindow* window, double xoffset, double yoffset)
+		glfwSetScrollCallback((GLFWwindow*)m_Window, [](GLFWwindow* window, double xoffset, double yoffset)
 		{
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 			MouseScrolledEvent event((float)xoffset, (float)yoffset);
@@ -224,12 +233,12 @@ namespace Magnefu
 
 	void WindowsWindow::DrawFrame()
 	{
-		m_Context->DrawFrame();
+		/*m_Context->DrawFrame();*/
 	}
 
 	void WindowsWindow::Shutdown()
 	{
-		glfwDestroyWindow(m_Window);
+		glfwDestroyWindow((GLFWwindow*)m_Window);
 		glfwTerminate();
 	}
 
@@ -242,7 +251,7 @@ namespace Magnefu
 
 	void WindowsWindow::SetFramebufferResized(bool framebufferResized)
 	{
-		m_Context->SetFramebufferResized(framebufferResized);
+		/*m_Context->SetFramebufferResized(framebufferResized);*/
 	}
 
 	void WindowsWindow::CloseWindow()
@@ -253,24 +262,24 @@ namespace Magnefu
 
 	void WindowsWindow::processInput()
 	{
-		if (glfwGetKey(m_Window, MF_KEY_ESCAPE) == GLFW_PRESS)
+		if (glfwGetKey((GLFWwindow*)m_Window, MF_KEY_ESCAPE) == GLFW_PRESS)
 		{
 			WindowCloseEvent event;
 			m_Data.EventCallback(event);
 		}
 			
-		m_Mouse.flightMode = (glfwGetMouseButton(m_Window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS || glfwGetMouseButton(m_Window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_REPEAT);
+		m_Mouse.flightMode = (glfwGetMouseButton((GLFWwindow*)m_Window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS || glfwGetMouseButton((GLFWwindow*)m_Window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_REPEAT);
 		if (m_Mouse.flightMode)
-			glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			glfwSetInputMode((GLFWwindow*)m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		else
-			glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			glfwSetInputMode((GLFWwindow*)m_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	}
 
 	void WindowsWindow::MouseUpdates()
 	{
 
 		double newMouseX, newMouseY;
-		glfwGetCursorPos(m_Window, &newMouseX, &newMouseY);
+		glfwGetCursorPos((GLFWwindow*)m_Window, &newMouseX, &newMouseY);
 		m_Mouse.DeltaX = (float)(newMouseX - m_Mouse.X);
 		m_Mouse.DeltaY = (float)(newMouseY - m_Mouse.Y);
 		m_Mouse.X = newMouseX;
@@ -300,7 +309,7 @@ namespace Magnefu
 
 	void WindowsWindow::OnFinish()
 	{
-		m_Context->OnFinish();
+		/*m_Context->OnFinish();*/
 	}
 
 }

@@ -1,10 +1,7 @@
 #pragma once
 
-#include "Magnefu/Window.h"
-#include "Magnefu/Renderer/GraphicsContext.h"
+#include "Window.h"
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
 
 namespace Magnefu
 {
@@ -25,7 +22,6 @@ namespace Magnefu
 		inline uint16_t GetHeight() const override { return m_Data.Height; }
 		inline void* GetNativeWindow() const override { return m_Window; }
 		inline Ref<Camera>& GetSceneCamera() { return m_SceneCamera; }
-		inline GraphicsContext* GetGraphicsContext() { return m_Context; }
 
 		// Window attributes
 		void SetEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; }
@@ -69,8 +65,7 @@ namespace Magnefu
 
 		MouseData m_Mouse;
 
-		GLFWwindow* m_Window;
-		GraphicsContext* m_Context;
+		void* m_Window;
 
 		// Here we store all the data that a window api like glfw might be interested in.
 		// this way we only have to pass the struct, not the entire class.

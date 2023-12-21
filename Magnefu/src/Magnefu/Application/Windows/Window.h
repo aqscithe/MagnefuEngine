@@ -56,7 +56,6 @@ namespace Magnefu
 		virtual void SetSceneCamera(const Ref<Camera>&) = 0;
 		virtual Ref<Camera>& GetSceneCamera() = 0;
 		virtual void SetFramebufferResized(bool framebufferResized) = 0;
-		virtual GraphicsContext* GetGraphicsContext() = 0;
 
 		virtual void CloseWindow() = 0;
 

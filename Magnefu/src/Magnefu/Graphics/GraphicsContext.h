@@ -1,333 +1,395 @@
 #pragma once
 
-// -- Graphics Includes -- //
-#include "ResourceManagement/ResourcePaths.h"
-#include "VulkanCommon.h"
-#include "Buffer.h"
+// -- Graphics Includes ---------------------- //
+#include "GPUResources.hpp"
+
+// -- Core Includes ------------------------ //
+#include "Magnefu/Core/DataStructures.hpp"
+
+
+#if (_MSC_VER)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#define VK_USE_PLATFORM_WIN32_KHR
+#else
+#define VK_USE_PLATFORM_XLIB_KHR
+#endif
+#include <vulkan/vulkan.h>
+
+#include "vma/vk_mem_alloc.h"
 
 
 namespace Magnefu
 {
-	
-	using String = std::string;
 
-	struct PushConstants
+	// Forward-declarations ----------------------------------------- //
+	struct Allocator;
+	struct CommandBuffer;
+	struct DeviceRenderFrame;
+	struct GPUTimestampManager;
+	struct GraphicsContext;
+
+
+
+	struct GPUTimestamp
 	{
-		float Roughness;
+
+		u32				start;
+		u32				end;
+
+		f64				elapsed_ms;
+
+		u16				parent_index;
+		u16				depth;
+
+		u32				color;
+		u32				frame_index;
+
+		const char* name;
 	};
 
-	struct RendererInfo
+
+	struct GPUTimestampManager
 	{
-		String Version;
-		String Vendor;
-		String Renderer;
+		// -- Methods ------------------------ //
+
+		void                            init(Allocator* allocator, u16 queries_per_frame, u16 max_frames);
+		void                            shutdown();
+
+		bool                            has_valid_queries() const;
+		void                            reset();
+		u32                             resolve(u32 current_frame, GPUTimestamp* timestamps_to_fill);    // Returns the total queries for this frame.
+
+		u32                             push(u32 current_frame, const char* name);    // Returns the timestamp query index.
+		u32                             pop(u32 current_frame);
+
+
+
+		// -- Members --------------------- //
+
+		Allocator* allocator = nullptr;
+		GPUTimestamp* timestamps = nullptr;
+		u64* timestamps_data = nullptr;
+
+		u32                             queries_per_frame = 0;
+		u32                             current_query = 0;
+		u32                             parent_index = 0;
+		u32                             depth = 0;
+
+		bool                            current_frame_resolved = false;    // Used to query the GPU only once per frame if get_gpu_timestamps is called more than once per frame.
+
 	};
 
-	struct MemoryStats
+
+
+	struct DeviceCreation
 	{
-		uint32_t blockCount;
-		uint32_t allocationCount;
-		uint64_t blockBytes;
-		uint64_t allocationBytes;
-		uint64_t usage;
-		uint64_t budget;
+		// -- Methods ------------------------------------------------------ //
+
+		DeviceCreation& set_window(u32 width, u32 height, void* handle);
+		DeviceCreation& set_allocator(Allocator* allocator);
+		DeviceCreation& set_linear_allocator(StackAllocator* allocator);
+
+
+		// -- Members ----------------------------------------------------- //
+
+		Allocator* allocator = nullptr;
+		StackAllocator* temporary_allocator = nullptr;
+		void* window = nullptr; // Pointer to API-specific window: SDL_Window, GLFWWindow
+		u16                             width = 1;
+		u16                             height = 1;
+
+		u16                             gpu_time_queries_per_frame = 32;
+		bool                            enable_gpu_time_queries = false;
+		bool                            debug = false;
+
+
+
 	};
 
-	
-	
-
-	struct QueueFamilyIndices
-	{
-		std::optional<uint32_t> GraphicsFamily;
-		std::optional<uint32_t> PresentFamily;
-		std::optional<uint32_t> ComputeFamily;
-
-		bool IsComplete() {
-			return (GraphicsFamily.has_value() && PresentFamily.has_value() && ComputeFamily.has_value());
-		}
-	};
-
-	struct SwapChainSupportDetails
-	{
-		Array<VkSurfaceFormatKHR> Formats;
-		Array<VkPresentModeKHR>   PresentModes;
-		VkSurfaceCapabilitiesKHR        Capabilities;
-	};
+    struct SwapChainSupportDetails
+    {
+        Array<VkSurfaceFormatKHR> Formats;
+        Array<VkPresentModeKHR>   PresentModes;
+        VkSurfaceCapabilitiesKHR  Capabilities;
+    };
 
-	struct GraphicsPipelines
-	{
-		VkPipeline Primitive3D;
-		VkPipeline Skybox;
-	};
 
 
+    struct GraphicsContext : public Service 
+    {
 
-	struct ParticleUniformBufferObject
-	{
-		float deltaTime = 1.0f;
-	};
+        static GraphicsContext* instance();
 
-	struct Particle {
-		Maths::vec2 position;
-		Maths::vec2 velocity;
-		Maths::vec4 color;
-
-		static VkVertexInputBindingDescription GetBindingDescription() {
-			VkVertexInputBindingDescription bindingDescription{};
-			bindingDescription.binding = 0;
-			bindingDescription.stride = sizeof(Particle);
-			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+        static void* get_window_handle();
 
-			return bindingDescription;
-		}
+        // Init/Terminate methods ------------------------------------------------ //
 
-		static std::array<VkVertexInputAttributeDescription, 2> GetAttributeDescriptions() {
-			std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+        void                            init(const DeviceCreation& creation);
+        void                            shutdown();
 
-			attributeDescriptions[0].binding = 0;
-			attributeDescriptions[0].location = 0;
-			attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
-			attributeDescriptions[0].offset = offsetof(Particle, position);
 
-			attributeDescriptions[1].binding = 0;
-			attributeDescriptions[1].location = 1;
-			attributeDescriptions[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-			attributeDescriptions[1].offset = offsetof(Particle, color);
+        // Creation/Destruction of resources ------------------------------------------------- //
 
-			return attributeDescriptions;
-		}
-	};
+        BufferHandle                    create_buffer(const BufferCreation& creation);
+        TextureHandle                   create_texture(const TextureCreation& creation);
+        PipelineHandle                  create_pipeline(const PipelineCreation& creation);
+        SamplerHandle                   create_sampler(const SamplerCreation& creation);
+        DescriptorSetLayoutHandle       create_descriptor_set_layout(const DescriptorSetLayoutCreation& creation);
+        DescriptorSetHandle             create_descriptor_set(const DescriptorSetCreation& creation);
+        RenderPassHandle                create_render_pass(const RenderPassCreation& creation);
+        ShaderStateHandle               create_shader_state(const ShaderStateCreation& creation);
 
+        void                            destroy_buffer(BufferHandle buffer);
+        void                            destroy_texture(TextureHandle texture);
+        void                            destroy_pipeline(PipelineHandle pipeline);
+        void                            destroy_sampler(SamplerHandle sampler);
+        void                            destroy_descriptor_set_layout(DescriptorSetLayoutHandle layout);
+        void                            destroy_descriptor_set(DescriptorSetHandle set);
+        void                            destroy_render_pass(RenderPassHandle render_pass);
+        void                            destroy_shader_state(ShaderStateHandle shader);
 
 
+        // Query Description -------------------------------------------------------------------------------------------------- //
 
-	class GraphicsContext
-	{
-	public:
-		GraphicsContext(void* window);
-		~GraphicsContext() = default;
+        void                            query_buffer(BufferHandle buffer, BufferDescription& out_description);
+        void                            query_texture(TextureHandle texture, TextureDescription& out_description);
+        void                            query_pipeline(PipelineHandle pipeline, PipelineDescription& out_description);
+        void                            query_sampler(SamplerHandle sampler, SamplerDescription& out_description);
+        void                            query_descriptor_set_layout(DescriptorSetLayoutHandle layout, DescriptorSetLayoutDescription& out_description);
+        void                            query_descriptor_set(DescriptorSetHandle set, DesciptorSetDescription& out_description);
+        void                            query_shader_state(ShaderStateHandle shader, ShaderStateDescription& out_description);
 
-		static GraphicsContext* Create(void* windowHandle);
+        const RenderPassOutput&         get_render_pass_output(RenderPassHandle render_pass) const;
 
-		void Init() ;
-		void TempSecondaryInit() ;
-		void DrawFrame() ;
-		void OnImGuiRender() ;
-		void OnFinish() ; // main loop completed
-		std::any GetContextInfo(const std::string& name) ;
-		void SetFramebufferResized(bool framebufferResized)  { m_FramebufferResized = framebufferResized; }
-		const RendererInfo& GetRendererInfo() const  { return m_RendererInfo; }
-		void SetPushConstants(PushConstants& pushConstants)  { m_PushConstants = pushConstants; }
 
-		// Memory
-		void CalculateMemoryStats() ;
-		MemoryStats GetMemoryStats() ;
+        // -- Update/Reload resources ------------------------------------------------------------------------------------- //
 
-		uint64_t GetVBufferOffset(uint32_t index)  { return static_cast<uint64_t>(m_VulkanMemory.VBufferOffsets[index]); }
-		uint64_t GetIBufferOffset(uint32_t index)  { return static_cast<uint64_t>(m_VulkanMemory.IBufferOffsets[index]); }
+        void                            resize_output_textures(RenderPassHandle render_pass, u32 width, u32 height);
 
-		// -- Getter Methods -- //
-		inline const VkDevice& GetDevice() const { return m_VkDevice; }
-		inline const VkPhysicalDevice& GetPhysicalDevice() const { return m_VkPhysicalDevice; }
-		inline const VkCommandPool& GetCommandPool() const { return m_CommandPool; }
-		inline const VkQueue& GetGraphicsQueue() const { return m_GraphicsQueue; }
-		inline const VkExtent2D& GetSwapChainExtent() const { return m_SwapChainExtent; }
-		inline const uint32_t GetCurrentFrame() const { return m_CurrentFrame; }
-		inline const VkPhysicalDeviceProperties GetDeviceProperties() const { return m_Properties; }
-		inline const VkPhysicalDeviceFeatures GetSupportedFeatures() const { return m_SupportedFeatures; }
-		inline const VkPhysicalDeviceFeatures GetEnabledFeatures() const { return m_EnabledFeatures; }
-		inline const VkSampleCountFlagBits GetMSAASamples() const { return m_MSAASamples; }
-		inline const VkRenderPass& GetRenderPass() const { return m_RenderPass; }
-		inline const VmaAllocator& GetVmaAllocator() const { return m_VmaAllocator; }
+        void                            update_descriptor_set(DescriptorSetHandle set);
 
-		inline const Array<VkBuffer>& GetUniformBuffers() { return m_VulkanMemory.UniformBuffers; }
-		inline VulkanMemory& GetVulkanMemory() { return m_VulkanMemory; }
+        // -- Misc ------------------------------------------------- ------------------------------------------------- //
+        void                            link_texture_sampler(TextureHandle texture, SamplerHandle sampler);   // TODO: for now specify a sampler for a texture or use the default one.
 
-		
+        void                            set_present_mode(PresentMode::Enum mode);
 
-	private:
+        void                            frame_counters_advance();
 
+        bool                            get_family_queue(VkPhysicalDevice physical_device);
+        bool                            check_device_extension_support(VkPhysicalDevice physical_device);
+        SwapChainSupportDetails         query_swapchain_support(VkPhysicalDevice physical_device);
 
+        VkShaderModuleCreateInfo        compile_shader(cstring code, u32 code_size, VkShaderStageFlagBits stage, cstring name);
 
-	private:
 
+        // -- Swapchain ------------------------------------------------- //
 
+        void                            create_swapchain();
+        void                            destroy_swapchain();
+        void                            resize_swapchain();
 
-		// -- Initialization -- //
-		void CreateVkInstance();
-		void SetupValidationLayers(bool& allLayersAvailable);
-		void SetupDebugMessenger();
-		void CreateWindowSurface();
-		void SelectPhysicalDevice();
-		void CreateLogicalDevice();
-		void CreateVmaAllocator();
-		void AllocateBufferMemory();
 
+        // -- Map/Unmap ------------------------------------------------- //
 
-		void CreateSwapChain();
-		void CreateImageViews();
-		void CreateRenderPass();
-		void CreateFrameBuffers();
-		void CreateCommandPool();
-		void CreateColorResources();
-		void CreateDepthResources();
-		//void LoadModels();
-		//void LoadTextures();
+        void*                           map_buffer(const MapBufferParameters& parameters);
+        void                            unmap_buffer(const MapBufferParameters& parameters);
 
-		void CreateCommandBuffers();
-		void CreateSyncObjects();
+        void*                           dynamic_allocate(u32 size);
 
+        void                            set_buffer_global_offset(BufferHandle buffer, u32 offset);
 
-		//void LoadSingleModel(const ResourceInfo&, size_t objIndex, ModelType modelType);
-		//void LoadSingleTexture(int sceneObjIndex, const char* texturePath, int textureType);
 
+        // -- Command Buffers ------------------------------------------------- //
 
-		// -- Buffers -- //
-		/*void AllocateIndexBuffers(const uint32_t& sceneObjCount, Array<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool);
-		void AllocateVertexBuffers(const uint32_t& sceneObjCount, Array<Magnefu::SceneObject>& sceneObjs, VkCommandPool commandPool);
-		void AllocateUniformBuffers(const uint32_t& sceneObjCount);*/
+        CommandBuffer*                  get_command_buffer(QueueType::Enum type, bool begin);
+        CommandBuffer*                  get_instant_command_buffer();
 
+        void                            queue_command_buffer(CommandBuffer* command_buffer);          // Queue command buffer that will not be executed until present is called.
 
-		// -- Device -- //
-		Array<const char*> GetRequiredExtensions();
-		void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-		bool IsDeviceSuitable(VkPhysicalDevice);
-		bool CheckDeviceExtensionSupport(VkPhysicalDevice);
 
+        // -- Rendering ------------------------------------------------- //
 
-		// -- Swap Chain -- //
-		QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice);
-		SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice);
-		VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const Array<VkSurfaceFormatKHR>& availableFormats);
-		VkPresentModeKHR ChooseSwapPresentMode(const Array<VkPresentModeKHR>& availablePresentModes);
-		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+        void                            new_frame();
+        void                            present();
+        void                            resize(u16 width, u16 height);
+        void                            set_presentation_mode(PresentMode::Enum mode);
 
+        void                            fill_barrier(RenderPassHandle render_pass, ExecutionBarrier& out_barrier);
 
-		VkFormat FindDepthFormat();
-		VkFormat FindSupportedFormat(const VkFormat* candidates, u32 candidateCount, VkImageTiling tiling, VkFormatFeatureFlags features);
+        BufferHandle                    get_fullscreen_vertex_buffer() const;           // Returns a vertex buffer usable for fullscreen shaders that uses no vertices.
+        RenderPassHandle                get_swapchain_pass() const;                     // Returns what is considered the final pass that writes to the swapchain.
 
+        TextureHandle                   get_dummy_texture() const;
+        BufferHandle                    get_dummy_constant_buffer() const;
+        const RenderPassOutput&         get_swapchain_output() const { return swapchain_output; }
 
-		// Uniforms
+        VkRenderPass                    get_vulkan_render_pass(const RenderPassOutput& output, cstring name);
 
-		// Depth 
-		bool HasStencilComponent(VkFormat format);
 
-		VkSampleCountFlagBits GetMaxUsableSampleCount();
+        // -- Names and markers --------------------------------------------------------------------------------------------- //
 
+        void                            set_resource_name(VkObjectType object_type, uint64_t handle, const char* name);
+        void                            push_marker(VkCommandBuffer command_buffer, cstring name);
+        void                            pop_marker(VkCommandBuffer command_buffer);
 
-		// Part of Render Loop
-		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
-		void RecreateSwapChain();
-		void PerformGraphicsOps();
-		void PresentImage();
 
+        // -- GPU Timings ---------------------------------------------------------------------------------------------- //
+        void                            set_gpu_timestamps_enable(bool value) { timestamps_enabled = value; }
 
-		// -- Clean Up -- //
-		void CleanupSwapChain();
+        u32                             get_gpu_timestamps(GPUTimestamp* out_timestamps);
+        void                            push_gpu_timestamp(CommandBuffer* command_buffer, const char* name);
+        void                            pop_gpu_timestamp(CommandBuffer* command_buffer);
 
-	private:
 
-		static GraphicsContext* s_Instance;
+        // -- Instant methods ---------------------------------------------------------------------------------------------- //
+        void                            destroy_buffer_instant(ResourceHandle buffer);
+        void                            destroy_texture_instant(ResourceHandle texture);
+        void                            destroy_pipeline_instant(ResourceHandle pipeline);
+        void                            destroy_sampler_instant(ResourceHandle sampler);
+        void                            destroy_descriptor_set_layout_instant(ResourceHandle layout);
+        void                            destroy_descriptor_set_instant(ResourceHandle set);
+        void                            destroy_render_pass_instant(ResourceHandle render_pass);
+        void                            destroy_shader_state_instant(ResourceHandle shader);
 
-#ifdef MF_DEBUG
-		const bool                   m_EnableValidationLayers = true;
-#else			                   
-		const bool                   m_EnableValidationLayers = false;
-#endif
+        void                            update_descriptor_set_instant(const DescriptorSetUpdate& update);
 
-		uint32_t m_APIVersion = VK_API_VERSION_1_3;
+        
 
+        // -- Resource Acquisition -------------------------------------------------------- //
 
-		// -- Device Properties and Features -- //
-		VkPhysicalDeviceProperties   m_Properties{};
-		VkPhysicalDeviceFeatures     m_SupportedFeatures;
-		VkPhysicalDeviceFeatures     m_EnabledFeatures;
+        ShaderState* access_shader_state(ShaderStateHandle shader);
+        const ShaderState* access_shader_state(ShaderStateHandle shader) const;
 
+        Texture* access_texture(TextureHandle texture);
+        const Texture* access_texture(TextureHandle texture) const;
 
-		// -- Device Primitives -- //
-		RendererInfo                 m_RendererInfo;
-		VkDebugUtilsMessengerEXT     m_DebugMessenger;
-		VkInstance                   m_VkInstance;
-		VkPhysicalDevice             m_VkPhysicalDevice;
-		VkDevice                     m_VkDevice;
+        Buffer* access_buffer(BufferHandle buffer);
+        const Buffer* access_buffer(BufferHandle buffer) const;
 
-		// -- Window Primitives -- //
-		void* m_WindowHandle;
-		VkSurfaceKHR                 m_WindowSurface;
+        Pipeline* access_pipeline(PipelineHandle pipeline);
+        const Pipeline* access_pipeline(PipelineHandle pipeline) const;
 
-		// -- Queues -- //
-		VkQueue                      m_GraphicsQueue;
-		VkQueue			             m_PresentQueue;
-		VkQueue                      m_ComputeQueue;
-		QueueFamilyIndices           m_QueueFamilyIndices;
-		VkSurfaceFormatKHR           m_SurfaceFormat;
+        Sampler* access_sampler(SamplerHandle sampler);
+        const Sampler* access_sampler(SamplerHandle sampler) const;
 
-		// -- Swap Chain -- //
-		uint32_t                     m_ImageCount;
-		uint32_t                     m_ImageIndex;
-		bool                         m_SwapChainRebuild = false;
-		VkPresentModeKHR             m_PresentMode;
-		VkSwapchainKHR               m_SwapChain;
-		Array<VkImage>         m_SwapChainImages;
-		VkFormat                     m_SwapChainImageFormat;
-		VkExtent2D                   m_SwapChainExtent;
-		Array<VkImageView>     m_SwapChainImageViews;
+        DesciptorSetLayout* access_descriptor_set_layout(DescriptorSetLayoutHandle layout);
+        const DesciptorSetLayout* access_descriptor_set_layout(DescriptorSetLayoutHandle layout) const;
 
-		// -- Render Pass and Pipeline Primitives -- //
-		VkRenderPass                 m_RenderPass;
-		Array<VkFramebuffer>   m_SwapChainFramebuffers;
-		VkCommandPool                m_CommandPool;
-		Array<VkCommandBuffer> m_CommandBuffers;
-		uint32_t                     m_CurrentFrame;
-		bool						 m_FramebufferResized;
+        DesciptorSet* access_descriptor_set(DescriptorSetHandle set);
+        const DesciptorSet* access_descriptor_set(DescriptorSetHandle set) const;
 
-		// -- Synchronization Primitives -- //
-		Array<VkSemaphore>     m_ImageAvailableSemaphores;
-		Array<VkSemaphore>     m_ImGuiRenderFinishedSemaphores;
-		Array<VkSemaphore>     m_RenderFinishedSemaphores;
-		Array<VkFence>         m_InFlightFences;
+        RenderPass* access_render_pass(RenderPassHandle render_pass);
+        const RenderPass* access_render_pass(RenderPassHandle render_pass) const;
 
 
-		// -- Mip Map Info -- //
-		VkSampleCountFlagBits        m_MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+        // -- Members -------------------------------------------------------- //
 
+        ResourcePool                    buffers;
+        ResourcePool                    textures;
+        ResourcePool                    pipelines;
+        ResourcePool                    samplers;
+        ResourcePool                    descriptor_set_layouts;
+        ResourcePool                    descriptor_sets;
+        ResourcePool                    render_passes;
+        ResourcePool                    command_buffers;
+        ResourcePool                    shaders;
 
-		// -- Image Buffers -- //
+        // Primitive resources
+        BufferHandle                    fullscreen_vertex_buffer;
+        RenderPassHandle                swapchain_pass;
+        SamplerHandle                   default_sampler;
+        // Dummy resources
+        TextureHandle                   dummy_texture;
+        BufferHandle                    dummy_constant_buffer;
 
-		VkImageView                  m_DepthImageView;
-		VkImageView                  m_ColorImageView;
+        RenderPassOutput                swapchain_output;
 
-		// -- Memory Allocations -- //
+        StringBuffer                    string_buffer;
 
+        Allocator* allocator;
+        StackAllocator* temporary_allocator;
 
-		// -- Vma Primitives -- //
-		VmaAllocator                m_VmaAllocator;
-		VulkanMemory m_VulkanMemory;
+        u32                             dynamic_max_per_frame_size;
+        BufferHandle                    dynamic_buffer;
+        u8* dynamic_mapped_memory;
+        u32                             dynamic_allocated_size;
+        u32                             dynamic_per_frame_size;
 
+        CommandBuffer** queued_command_buffers = nullptr;
+        u32                             num_allocated_command_buffers = 0;
+        u32                             num_queued_command_buffers = 0;
 
-		//------------------- Compute Shader ---------------------- //
-		// -------------------------------------------------------- //
+        PresentMode::Enum               present_mode = PresentMode::VSync;
+        u32                             current_frame;
+        u32                             previous_frame;
 
-		PushConstants                m_PushConstants;
+        u32                             absolute_frame;
 
+        u16                             swapchain_width = 1;
+        u16                             swapchain_height = 1;
 
-		//------------------- ImGui ---------------------- //
+        GPUTimestampManager* gpu_timestamp_manager = nullptr;
 
-		Array<VkCommandBuffer> m_ImGuiCommandBuffers;
-		Array<VkFence>         m_ImGuiInFlightFences;
+        bool                            bindless_supported = false;
+        bool                            timestamps_enabled = false;
+        bool                            resized = false;
+        bool                            vertical_sync = false;
 
-		// ----------------------------------------------- //
-	};
+        static constexpr cstring        k_name = "Magnefu_GPU_Service";
 
-}
 
-namespace std
-{
-	template<> struct hash<Magnefu::VulkanVertex> {
-		size_t operator()(Magnefu::VulkanVertex const& vertex) const {
-			return ((hash<Maths::vec3>()(vertex.pos) ^
-				(hash<Maths::vec3>()(vertex.color) << 1)) >> 1) ^
-				(hash<Maths::vec2>()(vertex.texCoord) << 1);
-		}
-	};
+        VkAllocationCallbacks*          vulkan_allocation_callbacks;
+        VkInstance                      vulkan_instance;
+        VkPhysicalDevice                vulkan_physical_device;
+        VkPhysicalDeviceProperties      vulkan_physical_properties;
+        VkPhysicalDeviceFeatures2       vulkan_physical_features;
+        VkDevice                        vulkan_device;
+        VkQueue                         vulkan_queue;
+        uint32_t                        vulkan_queue_family;
+        VkDescriptorPool                vulkan_descriptor_pool;
+
+        // Swapchain
+        VkImage                         vulkan_swapchain_images[k_max_swapchain_images];
+        VkImageView                     vulkan_swapchain_image_views[k_max_swapchain_images];
+        VkFramebuffer                   vulkan_swapchain_framebuffers[k_max_swapchain_images];
+
+        VkQueryPool                     vulkan_timestamp_query_pool;
+        // Per frame synchronization
+        VkSemaphore                     vulkan_render_complete_semaphore[k_max_swapchain_images];
+        VkSemaphore                     vulkan_image_acquired_semaphore;
+        VkFence                         vulkan_command_buffer_executed_fence[k_max_swapchain_images];
+
+        TextureHandle                   depth_texture;
+
+        static const uint32_t           k_max_frames = 3;
+
+        // Windows specific
+        VkSurfaceKHR                    vulkan_window_surface;
+        VkSurfaceFormatKHR              vulkan_surface_format;
+        VkPresentModeKHR                vulkan_present_mode;
+        VkSwapchainKHR                  vulkan_swapchain;
+        u32                             vulkan_swapchain_image_count;
+
+        VkDebugReportCallbackEXT        vulkan_debug_callback;
+        VkDebugUtilsMessengerEXT        vulkan_debug_utils_messenger;
+
+        u32                             vulkan_image_index;
+
+        VmaAllocator                    vma_allocator;
+
+        // These are dynamic - so that workload can be handled correctly.
+        Array<ResourceUpdate>           resource_deletion_queue;
+        Array<DescriptorSetUpdate>      descriptor_set_updates;
+
+        f32                             gpu_timestamp_frequency;
+        bool                            gpu_timestamp_reset = true;
+        bool                            debug_utils_extension_present = false;
+
+        char                            vulkan_binaries_path[512];
+
+
+    }; // struct Device
+
 }
