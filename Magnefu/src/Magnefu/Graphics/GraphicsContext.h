@@ -349,6 +349,8 @@ namespace Magnefu
         VkQueue                         vulkan_queue;
         uint32_t                        vulkan_queue_family;
         VkDescriptorPool                vulkan_descriptor_pool;
+        VkSampleCountFlagBits           vulkan_max_sample_count_bits;
+        //VkSampleCountFlags              vulkan_max_sample_count;
 
         // Swapchain
         VkImage                         vulkan_swapchain_images[k_max_swapchain_images];
@@ -364,6 +366,7 @@ namespace Magnefu
         TextureHandle                   depth_texture;
 
         static const uint32_t           k_max_frames = 3;
+        
 
         // Windows specific
         VkSurfaceKHR                    vulkan_window_surface;

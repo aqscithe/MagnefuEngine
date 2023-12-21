@@ -23,6 +23,14 @@
 namespace Magnefu
 {
 
+    namespace SampleCount
+    {
+        enum Enum
+        {
+
+        };
+    }
+
     namespace ColorWriteEnabled 
     {
         enum Enum 
