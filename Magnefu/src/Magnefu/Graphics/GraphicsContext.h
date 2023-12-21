@@ -119,8 +119,7 @@ namespace Magnefu
 
     struct GraphicsContext : public Service 
     {
-
-        static GraphicsContext* instance();
+        MF_DECLARE_SERVICE(GraphicsContext);
 
         static void* get_window_handle();
 

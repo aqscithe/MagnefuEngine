@@ -260,6 +260,10 @@ namespace Magnefu
 
     static GLFWwindow* glfw_window;
 
+    static GraphicsContext s_gpu_context;
+
+    GraphicsContext* GraphicsContext::Instance() { return &s_gpu_context; }
+
     void* GraphicsContext::get_window_handle() { return (void*)glfw_window; }
 
     PFN_vkSetDebugUtilsObjectNameEXT    pfnSetDebugUtilsObjectNameEXT;
@@ -1029,7 +1033,7 @@ namespace Magnefu
         image_info.extent.depth = creation.depth;
         image_info.mipLevels = creation.mipmaps;
         image_info.arrayLayers = 1;
-        image_info.samples = VK_SAMPLE_COUNT_1_BIT;
+        image_info.samples = gpu.vulkan_max_sample_count_bits;
         image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
 
         const bool is_render_target = (creation.flags & TextureFlags::RenderTarget_mask) == TextureFlags::RenderTarget_mask;
@@ -1936,7 +1940,7 @@ namespace Magnefu
         // Color attachment
         VkAttachmentDescription color_attachment = {};
         color_attachment.format = gpu.vulkan_surface_format.format;
-        color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        color_attachment.samples = gpu.vulkan_max_sample_count_bits;
         color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -1952,7 +1956,7 @@ namespace Magnefu
         VkAttachmentDescription depth_attachment{};
         Texture* depth_texture_vk = gpu.access_texture(gpu.depth_texture);
         depth_attachment.format = depth_texture_vk->vk_format;
-        depth_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        depth_attachment.samples = gpu.vulkan_max_sample_count_bits;
         depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depth_attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         depth_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -2122,7 +2126,7 @@ namespace Magnefu
         for (; c < output.num_color_formats; ++c) {
             VkAttachmentDescription& color_attachment = color_attachments[c];
             color_attachment.format = output.color_formats[c];
-            color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+            color_attachment.samples = gpu.vulkan_max_sample_count_bits;
             color_attachment.loadOp = color_op;
             color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             color_attachment.stencilLoadOp = stencil_op;
@@ -2142,7 +2146,7 @@ namespace Magnefu
         if (output.depth_stencil_format != VK_FORMAT_UNDEFINED) {
 
             depth_attachment.format = output.depth_stencil_format;
-            depth_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+            depth_attachment.samples = gpu.vulkan_max_sample_count_bits;
             depth_attachment.loadOp = depth_op;
             depth_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             depth_attachment.stencilLoadOp = stencil_op;
@@ -2484,7 +2488,7 @@ namespace Magnefu
 
     template<class T>
     constexpr const T& clamp(const T& v, const T& lo, const T& hi) {
-        MF_CORE_ASSERT(!(hi < lo));
+        MF_CORE_ASSERT(!(hi < lo), "How high can you get? How low can you go?");
         return (v < lo) ? lo : (hi < v) ? hi : v;
     }
 

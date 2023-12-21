@@ -105,12 +105,12 @@ static void CleanupVulkanWindow()
 	ImGui_ImplVulkanH_DestroyWindow(s_Instance, s_Device, &s_MainWindowData, s_Allocator);
 }
 
-static void SetupImGuiVulkanPrimitives(ImGui_ImplVulkanH_Window* wd, Magnefu::VulkanContext* context)
+static void SetupImGuiVulkanPrimitives(ImGui_ImplVulkanH_Window* wd, Magnefu::GraphicsContext* gpu)
 {
 	wd->ImageCount = s_MinImageCount;
-	wd->SurfaceFormat = std::any_cast<VkSurfaceFormatKHR>(context->GetContextInfo("SurfaceFormat"));
-	wd->Surface = std::any_cast<VkSurfaceKHR>(context->GetContextInfo("Surface"));
-	wd->PresentMode = std::any_cast<VkPresentModeKHR>(context->GetContextInfo("PresentMode"));
+	wd->SurfaceFormat = gpu->vulkan_surface_format;
+	wd->Surface = gpu->vulkan_window_surface;
+	wd->PresentMode = gpu->vulkan_present_mode;
 	wd->Swapchain = std::any_cast<VkSwapchainKHR>(context->GetContextInfo("SwapChain"));
 	VkExtent2D swapChainExtent = std::any_cast<VkExtent2D>(context->GetContextInfo("SwapChainExtent"));
 	wd->Width = swapChainExtent.width;
