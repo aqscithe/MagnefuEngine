@@ -1,5 +1,6 @@
 #include "EditorLayer.h"
 
+
 #include "imgui/imgui.h"
 
 // should put imgui editor flags in a struct
@@ -23,7 +24,7 @@ static double s_deltaTime = 1.0;
 EditorLayer::EditorLayer() :
 	Layer("Editor"),
 	m_Camera(std::static_pointer_cast<Magnefu::SceneCamera>(Magnefu::Application::Get().GetWindow().GetSceneCamera())),
-	m_PushConstants(),
+	//m_PushConstants(),
 	m_AreaLightPoints(),
 	m_AreaLights(),
 	current_path(std::filesystem::current_path()),
@@ -43,63 +44,7 @@ EditorLayer::EditorLayer() :
 	//Magnefu::MeshComponent& mesh = entity.AddComponent<Magnefu::MeshComponent>(Mesh_Name);
 	//Magnefu::TransformComponent transform = entity.AddComponent<Magnefu::TransformComponent>(Maths::vec3(0.f), Maths::vec3(0.f), Maths::vec3(1.f));
 
-	m_GraphicsContext = app.GetWindow().GetGraphicsContext();
-
-
-	// Set colors for window background, text, headers, etc.
-
-
-	// -- Set Area Light Info -- //
-
-	app.SetAreaLightVertices(
-		{
-			-8.0f, 2.4f, -1.0f, 0.f ,
-			-8.0f, 2.4f,  1.0f, 0.f ,
-			-8.0f, 0.4f,  1.0f, 0.f ,
-			-8.0f, 0.4f, -1.0f, 0.f
-		});
-
-	// Get number of area light instances in the scene
-	// Area Lights are currently at index 1
-	/*m_AreaLightCount = sceneObjs[1].GetInstanceCount();
-
-	app.SetAreaLightCount(m_AreaLightCount);
-
-	for (int areaLight = 0; areaLight < m_AreaLightCount; areaLight++)
-	{
-		auto& light = m_AreaLights[areaLight];
-		light.Intensity = 4.f;
-		light.Color = Maths::vec3(1.f);
-		light.Translation = Maths::vec3(0.f);
-		light.TwoSided = 1;
-	}*/
-
-	// ------------------------------ //
-
-	m_PushConstants.Roughness = 0.7f;
-
-
-	// -- Initialize Instanced Materials -- //
-	/*for (int object = 0; object < sceneObjs.count(); object++)
-	{
-
-		if (sceneObjs[object].IsInstanced())
-		{
-			int instanceCount = sceneObjs[object].GetInstanceCount();
-			auto& material = sceneObjs[object].GetMaterialDataInstanced();
-
-			for (int instance = 0; instance < instanceCount; instance++)
-			{
-				material.Translation[instance] = Maths::vec3(0.0);
-				material.Rotation[instance] = Maths::vec3(0.0);
-				material.Scale[instance] = Maths::vec3(1.0);
-				material.AngleOfRot[instance] = 0.f;
-
-			}
-
-		}
-
-	}*/
+	
 }
 
 void EditorLayer::OnAttach()
@@ -116,19 +61,7 @@ void EditorLayer::OnUpdate(double deltaTime)
 {
 	s_deltaTime = deltaTime;
 	m_Camera->ProcessInput(deltaTime);
-	m_GraphicsContext->SetPushConstants(m_PushConstants);
-	//Magnefu::Application::Get().SetAreaLightData(m_AreaLights);
-
-	//auto& sceneObjs = Magnefu::Application::Get().GetSceneObjects();
-
-	////// Getting material applied to area light geometry
-	//auto& material = sceneObjs[1].GetMaterialDataInstanced();
-	//int instanceCount = sceneObjs[1].GetInstanceCount();
-
-	//for (int instance = 0; instance < instanceCount; instance++)
-	//{
-	//	material.Translation[instance] = m_AreaLights[instance].Translation;
-	//}
+	//m_GraphicsContext->SetPushConstants(m_PushConstants);
 }
 
 void EditorLayer::OnEvent(Magnefu::Event& e)
@@ -428,124 +361,6 @@ void EditorLayer::ShowScene()
 
 
 
-
-void EditorLayer::ShowTemp()
-{
-	//auto& sceneObjs = Magnefu::Application::Get().GetSceneObjects();
-
-	//ImGui::Begin("Scene");
-	//ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
-	//if (ImGui::BeginTabBar("Scene", tab_bar_flags))
-	//{
-	//	if (ImGui::BeginTabItem("Objects"))
-	//	{
-	//		for (int object = 0; object < sceneObjs.count(); object++)
-	//		{
-
-	//			// -- TODO: DETERMINE IF OBJECT IS INSTANCED -- //
-	//			if (sceneObjs[object].IsInstanced())
-	//			{
-	//				int instanceCount = sceneObjs[object].GetInstanceCount();
-	//				auto& material = sceneObjs[object].GetMaterialDataInstanced();
-
-	//				for (int instance = 0; instance < instanceCount; instance++)
-	//				{
-	//					char label_i[32];
-	//					snprintf(label_i, sizeof(label_i), "Object %d Instance %d Pos", object, instance);
-	//					ImGui::SliderFloat3(label_i, material.Translation[instance].e, -500.f, 500.f);
-
-	//					snprintf(label_i, sizeof(label_i), "Object %d Instance %d Rotation", object, instance);
-	//					ImGui::SliderFloat3(label_i, material.Rotation[instance].e, 0.f, 1.f);
-
-	//					snprintf(label_i, sizeof(label_i), "Object %d Instance %d Rot Angle", object, instance);
-	//					ImGui::SliderFloat3(label_i, &material.AngleOfRot[instance], -360.f, 360.f);
-
-	//					snprintf(label_i, sizeof(label_i), "Object %d Instance %d Scale", object, instance);
-	//					ImGui::SliderFloat3(label_i, material.Scale[instance].e, 0.f, 1.f);
-	//				}
-	//			}
-	//			else
-	//			{
-	//				auto& material = sceneObjs[object].GetMaterialData();
-
-	//				char label[32];
-
-	//				snprintf(label, sizeof(label), "Object %d Pos", object);
-	//				ImGui::SliderFloat3(label, material.Translation.e, -500.f, 500.f);
-
-	//				snprintf(label, sizeof(label), "Object %d Rot", object);
-	//				ImGui::SliderFloat3(label, material.Rotation.e, 0.f, 1.f);
-
-	//				snprintf(label, sizeof(label), "Object %d Angle", object);
-	//				ImGui::SliderFloat(label, &material.AngleOfRot, -360.f, 360.f);
-
-	//				snprintf(label, sizeof(label), "Object %d Scale", object);
-	//				ImGui::SliderFloat3(label, material.Scale.e, 0.f, 1.f);
-
-	//				snprintf(label, sizeof(label), "Object %d Tint", object);
-	//				ImGui::ColorEdit3(label, material.Tint.e);
-
-	//				snprintf(label, sizeof(label), "Object %d Opacity", object);
-	//				ImGui::SliderFloat(label, &material.Opacity, 0.f, 1.f);
-
-	//				snprintf(label, sizeof(label), "Object %d Reflectance", object);
-	//				ImGui::SliderFloat(label, &material.Reflectance, 0.f, 5.f, "%.2f");
-	//			}
-
-
-
-	//			ImGui::Separator();
-	//		}
-	//		ImGui::EndTabItem();
-	//	}
-
-	//	if (ImGui::BeginTabItem("Area Lights"))
-	//	{
-	//		for (int areaLight = 0; areaLight < m_AreaLightCount; areaLight++)
-	//		{
-	//			char label[32];
-
-	//			auto& light = m_AreaLights[areaLight];
-
-	//			snprintf(label, sizeof(label), "AreaLight %d Color", areaLight);
-	//			ImGui::ColorEdit3(label, light.Color.e);
-
-	//			snprintf(label, sizeof(label), "AreaLight %d Translation", areaLight);
-	//			ImGui::SliderFloat3(label, light.Translation.e, -1000, 1000, "%.2f");
-
-	//			snprintf(label, sizeof(label), "AreaLight %d Intensity", areaLight);
-	//			ImGui::SliderFloat(label, &light.Intensity, 0.f, 20.f, "%.2f");
-
-	//			snprintf(label, sizeof(label), "AreaLight %d Two-Sided", areaLight);
-	//			ImGui::SliderInt(label, &light.TwoSided, 0, 1);
-	//		}
-
-	//		ImGui::EndTabItem();
-	//	}
-
-	//	if (ImGui::BeginTabItem("Push Constants"))
-	//	{
-	//		ImGui::Text("CAMERA");
-	//		ImGui::Separator();
-	//		ImGui::LabelText("Camera Position", "%.2f, %.2f, %.2f", m_Camera->GetData().Position.x, m_Camera->GetData().Position.y, m_Camera->GetData().Position.z);
-
-	//		ImGui::Text("LIGHT DATA");
-	//		ImGui::Separator();
-
-	//		ImGui::Text("Area Light");
-	//		ImGui::Separator();
-
-
-	//		ImGui::SliderFloat("Test Roughness", &m_PushConstants.Roughness, 0.f, 1.f);
-
-
-	//		ImGui::EndTabItem();
-	//	}
-	//	ImGui::EndTabBar();
-	//}
-	//ImGui::End();
-}
-
 void EditorLayer::ShowResourceBrowser()
 {
 	if (ImGui::Begin("Resource Browser"))
@@ -812,13 +627,13 @@ void EditorLayer::ShowMemoryStats()
 	{
 		if (ImGui::Button("Update Memory Stats"))
 		{
-			Magnefu::Application::Get().GetWindow().GetGraphicsContext()->CalculateMemoryStats();
+			Magnefu::Application::Get().GetGraphicsContext().CalculateMemoryStats();
 		}
 		
 		Magnefu::Application::Get().GetMemoryService().imguiDraw();
 		
 		auto [blockCount, blockBytes, allocCount, allocBytes, usage, budget] = 
-			Magnefu::Application::Get().GetWindow().GetGraphicsContext()->GetMemoryStats();
+			Magnefu::Application::Get().GetGraphicsContext().GetMemoryStats();
 
 		ImGui::SeparatorText("VMA STATISTICS");
 

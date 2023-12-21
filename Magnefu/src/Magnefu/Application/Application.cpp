@@ -44,7 +44,6 @@ namespace Magnefu
         // -- Create Managers ------------------------------------------- //
 
         // Create Resource Manager
-        m_RM = Scope<ResourceManager>(ResourceManager::Create());
 
         // Create Scene Manager
         m_SceneManager = Scope<SceneManager>(SceneManager::Create());
@@ -55,61 +54,8 @@ namespace Magnefu
             m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
         }
-        m_Minimized = false;
-
-        
 
 
-        m_BufferResourceThread.join();
-
-        // -- Global RenderPass -- //
-        /*m_RenderPassGlobals = m_RM->CreateBindGroup({
-            .DebugName  = "Render Pass Globals",
-            .LayoutType = BindingLayoutType::LAYOUT_RENDERPASS,
-            .Layout     = DEFAULT_RENDERPASS_BINDING_LAYOUT,
-            .Textures   = {
-                .LTC1 = {
-                    "LTC1Texture",
-                    0,
-                    TextureType::LTC1,
-                    TextureTiling::IMAGE_TILING_OPTIMAL,
-                    TextureFormat::FORMAT_R32G32B32A32_SFLOAT,
-                },
-                .LTC2 = {
-                    "LTC2Texture",
-                    0,
-                    TextureType::LTC2,
-                    TextureTiling::IMAGE_TILING_OPTIMAL,
-                    TextureFormat::FORMAT_R32G32B32A32_SFLOAT,
-                }},
-            .Buffers    = RenderPassUniformBufferDesc
-        });*/
-
-        // -- Scene Objects -- //
-
-        
-
-        // need to get info on whether the object is textured from
-        // MODEL_PATHS
-
-
-
-        
-
-        // NON AREA LIGHTS
-        /*for (auto& light : m_PointLights)
-        {
-            light.LightEnabled = 1;
-            light.MaxLightDist = 200.f;
-            light.RadiantFlux = 10.f;
-            light.LightPos = { 235.f, 65.f, 20.f };
-            light.LightColor = Maths::vec3(1.0f);
-        }*/
-
-
-        m_Window->GetGraphicsContext()->TempSecondaryInit();
-
-        m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);
 
 	}

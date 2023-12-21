@@ -7,11 +7,29 @@
     <Filter Include="src\Magnefu">
       <UniqueIdentifier>{5F31081E-CBE6-8013-54DB-7AEAC08F7717}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Magnefu\Application">
+      <UniqueIdentifier>{A273DBCF-0EAB-2367-17B5-878A836B4A60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Magnefu\Application\Camera">
+      <UniqueIdentifier>{DA5D18E5-C683-E24B-AFC9-67179B8E0718}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Magnefu\Application\Events">
+      <UniqueIdentifier>{46753AEB-329B-0452-1BE1-891D07A6291E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Magnefu\Application\ImGui">
+      <UniqueIdentifier>{4C9AC89A-B8B2-AFC4-815F-3F5EED36445E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Magnefu\Application\Scene">
+      <UniqueIdentifier>{3F92789B-ABAA-5FC5-7457-EF5EE02EF45E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Magnefu\Application\Windows">
+      <UniqueIdentifier>{DC9F6B9E-4883-7ADE-5186-A81ABDE8402F}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Magnefu\Core">
       <UniqueIdentifier>{1709E250-0302-01A3-2C34-E627188CE0AE}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Magnefu\Core\Events">
-      <UniqueIdentifier>{1BB57D94-87EC-C52B-90F6-294FFCACEC24}</UniqueIdentifier>
+    <Filter Include="src\Magnefu\Core\Debug">
+      <UniqueIdentifier>{CD48AA1B-B942-D36D-A2AF-697E8E4839DA}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Magnefu\Core\Maths">
       <UniqueIdentifier>{C33E4B1C-AF38-746E-98A5-0A7F843EDADA}</UniqueIdentifier>
@@ -19,41 +37,11 @@
     <Filter Include="src\Magnefu\Core\MemoryAllocation">
       <UniqueIdentifier>{4568BC48-B1D6-11C8-FABF-CCC7666D0764}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Magnefu\Core\Physics">
-      <UniqueIdentifier>{8933B953-7558-08D4-9EA3-ED638A2707F2}</UniqueIdentifier>
+    <Filter Include="src\Magnefu\Graphics">
+      <UniqueIdentifier>{7FF4AE07-6B83-38D1-14A2-4CCC00104977}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Magnefu\Debug">
-      <UniqueIdentifier>{15872F6D-819D-2D03-CA14-B924366AFE8A}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Magnefu\ImGui">
-      <UniqueIdentifier>{C9F18D6D-3508-8C03-7E7F-1725EAD45C8B}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Magnefu\Renderer">
-      <UniqueIdentifier>{E56F4663-D1FE-CF2C-7A1D-E427668BE0D2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Magnefu\Renderer\Platform">
-      <UniqueIdentifier>{D95D1540-4576-FC69-0E23-8C037AFA9003}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Magnefu\Renderer\Platform\Vulkan">
-      <UniqueIdentifier>{393DA7D7-2524-69CF-CE74-CFECBA3AE235}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Magnefu\Renderer\Platform\Windows">
-      <UniqueIdentifier>{13D1ABFD-7F95-AAED-48FB-DAB7B47E4623}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Magnefu\ResourceManagement">
-      <UniqueIdentifier>{33EDE1FF-1F13-AC66-0859-3132F41DD132}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Magnefu\Scene">
-      <UniqueIdentifier>{BCE93D6E-2800-3C04-7177-C725DDCC0C8C}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Platform">
-      <UniqueIdentifier>{21CA02E5-0D2D-9289-B6B2-CA3FA2F45D0C}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Platform\Vulkan">
-      <UniqueIdentifier>{81084748-ED69-2456-76D7-6A08E2375B15}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Platform\Windows">
-      <UniqueIdentifier>{5B054582-4794-CE4B-F0B2-E246DC20DFF1}</UniqueIdentifier>
+    <Filter Include="src\Magnefu\Graphics\ResourceManagement">
+      <UniqueIdentifier>{539C01B9-BF2B-C3A3-C827-A4BB3436FEAF}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor">
       <UniqueIdentifier>{B3738122-9F15-ACF8-88D0-BF4C74113349}</UniqueIdentifier>
@@ -232,37 +220,106 @@
     <Filter Include="vendor\vulkan\include\vulkan">
       <UniqueIdentifier>{466BFFCF-3226-EF7B-DBDD-67C6C777390C}</UniqueIdentifier>
     </Filter>
+    <Filter Include="vendor\wyhash">
+      <UniqueIdentifier>{D63E592C-42FF-D462-0B3A-1EE077B9193F}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Magnefu\Magnefu.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\Magnefu\Application\Application.h">
-      <Filter>src\Magnefu</Filter>
+      <Filter>src\Magnefu\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Camera\Camera.h">
+      <Filter>src\Magnefu\Application\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Camera\SceneCamera.h">
+      <Filter>src\Magnefu\Application\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Entrypoint.h">
+      <Filter>src\Magnefu\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Events\ApplicationEvent.h">
+      <Filter>src\Magnefu\Application\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Events\Event.h">
+      <Filter>src\Magnefu\Application\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Events\Input.h">
+      <Filter>src\Magnefu\Application\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Events\KeyCodes.h">
+      <Filter>src\Magnefu\Application\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Events\KeyEvent.h">
+      <Filter>src\Magnefu\Application\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Events\MouseButtonCodes.h">
+      <Filter>src\Magnefu\Application\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Events\MouseEvent.h">
+      <Filter>src\Magnefu\Application\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiDefs.h">
+      <Filter>src\Magnefu\Application\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiService.hpp">
+      <Filter>src\Magnefu\Application\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Layer.h">
+      <Filter>src\Magnefu\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\LayerStack.h">
+      <Filter>src\Magnefu\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Scene\Components.h">
+      <Filter>src\Magnefu\Application\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Scene\Entity.h">
+      <Filter>src\Magnefu\Application\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Scene\Scene.h">
+      <Filter>src\Magnefu\Application\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Scene\SceneManager.h">
+      <Filter>src\Magnefu\Application\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Windows\Window.h">
+      <Filter>src\Magnefu\Application\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Windows\WindowsInput.h">
+      <Filter>src\Magnefu\Application\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Windows\WindowsWindow.h">
+      <Filter>src\Magnefu\Application\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Array.h">
+      <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Core\Assertions.h">
       <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Events\ApplicationEvent.h">
-      <Filter>src\Magnefu\Core\Events</Filter>
+    <ClInclude Include="src\Magnefu\Core\Bit.hpp">
+      <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Events\Event.h">
-      <Filter>src\Magnefu\Core\Events</Filter>
+    <ClInclude Include="src\Magnefu\Core\Blob.hpp">
+      <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Events\Input.h">
-      <Filter>src\Magnefu\Core\Events</Filter>
+    <ClInclude Include="src\Magnefu\Core\BlobSerialization.hpp">
+      <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Events\KeyCodes.h">
-      <Filter>src\Magnefu\Core\Events</Filter>
+    <ClInclude Include="src\Magnefu\Core\Color.hpp">
+      <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Events\KeyEvent.h">
-      <Filter>src\Magnefu\Core\Events</Filter>
+    <ClInclude Include="src\Magnefu\Core\DataStructures.hpp">
+      <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Events\MouseButtonCodes.h">
-      <Filter>src\Magnefu\Core\Events</Filter>
+    <ClInclude Include="src\Magnefu\Core\Debug\Instrumentor.h">
+      <Filter>src\Magnefu\Core\Debug</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Events\MouseEvent.h">
-      <Filter>src\Magnefu\Core\Events</Filter>
+    <ClInclude Include="src\Magnefu\Core\File.hpp">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\HashMap.hpp">
+      <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Core\Log.h">
       <Filter>src\Magnefu\Core</Filter>
@@ -300,6 +357,21 @@
     <ClInclude Include="src\Magnefu\Core\NumGen.h">
       <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Numerics.hpp">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Platform.hpp">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Process.hpp">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\RelativeDataStructures.hpp">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\ResourceManager.hpp">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\Magnefu\Core\Service.hpp">
       <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
@@ -309,50 +381,56 @@
     <ClInclude Include="src\Magnefu\Core\Span.h">
       <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\Typedefs.hpp">
+    <ClInclude Include="src\Magnefu\Core\String.hpp">
       <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\Debug\Instrumentor.h">
-      <Filter>src\Magnefu\Debug</Filter>
+    <ClInclude Include="src\Magnefu\Core\Time.hpp">
+      <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Entrypoint.h">
+    <ClInclude Include="src\Magnefu\Graphics\CommandBuffer.hpp">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\GPUEnum.hpp">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\GPUProfiler.hpp">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\GPUResources.hpp">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\GraphicsContext.h">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\LTCMatrix.h">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\Light.h">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\Material.h">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\Mesh.h">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\RenderConstants.h">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\Renderer.hpp">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\ResourceManagement\Handle.h">
+      <Filter>src\Magnefu\Graphics\ResourceManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\ResourceManagement\ResourcePaths.h">
+      <Filter>src\Magnefu\Graphics\ResourceManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\VulkanCommon.h">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Magnefu.h">
       <Filter>src\Magnefu</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiLayer.h">
-      <Filter>src\Magnefu\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Layer.h">
-      <Filter>src\Magnefu</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\LayerStack.h">
-      <Filter>src\Magnefu</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Camera\Camera.h">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Camera\SceneCamera.h">
-      <Filter>src\Magnefu\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Scene\Components.h">
-      <Filter>src\Magnefu\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Scene\Entity.h">
-      <Filter>src\Magnefu\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Scene\Scene.h">
-      <Filter>src\Magnefu\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Scene\SceneManager.h">
-      <Filter>src\Magnefu\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Windows\Window.h">
-      <Filter>src\Magnefu</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Windows\WindowsInput.h">
-      <Filter>src\Platform\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Windows\WindowsWindow.h">
-      <Filter>src\Platform\Windows</Filter>
     </ClInclude>
     <ClInclude Include="src\mfpch.h">
       <Filter>src</Filter>
@@ -3033,31 +3111,58 @@
     <ClInclude Include="vendor\vulkan\include\vulkan\vulkan_xlib_xrandr.h">
       <Filter>vendor\vulkan\include\vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiDefs.h" />
-    <ClInclude Include="src\Magnefu\Core\Array.h" />
-    <ClInclude Include="src\Magnefu\Core\HashMap.hpp" />
-    <ClInclude Include="vendor\wyhash\wyhash.h" />
-    <ClInclude Include="src\Magnefu\Core\Bit.hpp" />
-    <ClInclude Include="src\Magnefu\Core\File.hpp" />
-    <ClInclude Include="src\Magnefu\Core\String.hpp" />
-    <ClInclude Include="src\Magnefu\Core\BlobSerialization.hpp" />
-    <ClInclude Include="src\Magnefu\Core\Blob.hpp" />
-    <ClInclude Include="src\Magnefu\Core\RelativeDataStructures.hpp" />
-    <ClInclude Include="src\Magnefu\Core\Time.hpp" />
-    <ClInclude Include="src\Magnefu\Core\Process.hpp" />
-    <ClInclude Include="src\Magnefu\Graphics\GraphicsContext.h" />
-    <ClInclude Include="src\Magnefu\Graphics\GPUResources.hpp" />
-    <ClInclude Include="src\Magnefu\Graphics\ResourceManagement\Handle.h" />
-    <ClInclude Include="src\Magnefu\Core\DataStructures.hpp" />
-    <ClInclude Include="src\Magnefu\Graphics\GPUEnum.hpp" />
-    <ClInclude Include="src\Magnefu\Graphics\CommandBuffer.hpp" />
-    <ClInclude Include="src\Magnefu\Graphics\GPUProfiler.hpp" />
-    <ClInclude Include="src\Magnefu\Graphics\Renderer.hpp" />
-    <ClInclude Include="src\Magnefu\Core\ResourceManager.hpp" />
+    <ClInclude Include="vendor\wyhash\wyhash.h">
+      <Filter>vendor\wyhash</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application\Application.cpp">
-      <Filter>src\Magnefu</Filter>
+      <Filter>src\Magnefu\Application</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Application\Camera\Camera.cpp">
+      <Filter>src\Magnefu\Application\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Application\Camera\SceneCamera.cpp">
+      <Filter>src\Magnefu\Application\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Application\ImGui\ImGuiBuild.cpp">
+      <Filter>src\Magnefu\Application\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Application\ImGui\ImGuiService.cpp">
+      <Filter>src\Magnefu\Application\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Application\Layer.cpp">
+      <Filter>src\Magnefu\Application</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Application\LayerStack.cpp">
+      <Filter>src\Magnefu\Application</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Application\Scene\Entity.cpp">
+      <Filter>src\Magnefu\Application\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Application\Scene\Scene.cpp">
+      <Filter>src\Magnefu\Application\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Application\Scene\SceneManager.cpp">
+      <Filter>src\Magnefu\Application\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Application\Windows\WindowsInput.cpp">
+      <Filter>src\Magnefu\Application\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Application\Windows\WindowsWindow.cpp">
+      <Filter>src\Magnefu\Application\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\BlobSerialization.cpp">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\Color.cpp">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\DataStructures.cpp">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\File.cpp">
+      <Filter>src\Magnefu\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Core\Log.cpp">
       <Filter>src\Magnefu\Core</Filter>
@@ -3089,38 +3194,44 @@
     <ClCompile Include="src\Magnefu\Core\NumGen.cpp">
       <Filter>src\Magnefu\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\ImGui\ImGuiBuild.cpp">
-      <Filter>src\Magnefu\ImGui</Filter>
+    <ClCompile Include="src\Magnefu\Core\Numerics.cpp">
+      <Filter>src\Magnefu\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\ImGui\ImGuiLayer.cpp">
-      <Filter>src\Magnefu\ImGui</Filter>
+    <ClCompile Include="src\Magnefu\Core\Process.cpp">
+      <Filter>src\Magnefu\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\Layer.cpp">
-      <Filter>src\Magnefu</Filter>
+    <ClCompile Include="src\Magnefu\Core\ResourceManager.cpp">
+      <Filter>src\Magnefu\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\LayerStack.cpp">
-      <Filter>src\Magnefu</Filter>
+    <ClCompile Include="src\Magnefu\Core\String.cpp">
+      <Filter>src\Magnefu\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\Camera\Camera.cpp">
-      <Filter>src\Magnefu\Renderer</Filter>
+    <ClCompile Include="src\Magnefu\Core\Time.cpp">
+      <Filter>src\Magnefu\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\Camera\SceneCamera.cpp">
-      <Filter>src\Magnefu\Renderer</Filter>
+    <ClCompile Include="src\Magnefu\Graphics\CommandBuffer.cpp">
+      <Filter>src\Magnefu\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\Scene\Entity.cpp">
-      <Filter>src\Magnefu\Scene</Filter>
+    <ClCompile Include="src\Magnefu\Graphics\GPUProfiler.cpp">
+      <Filter>src\Magnefu\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\Scene\Scene.cpp">
-      <Filter>src\Magnefu\Scene</Filter>
+    <ClCompile Include="src\Magnefu\Graphics\GPUResources.cpp">
+      <Filter>src\Magnefu\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\Scene\SceneManager.cpp">
-      <Filter>src\Magnefu\Scene</Filter>
+    <ClCompile Include="src\Magnefu\Graphics\GraphicsContext.cpp">
+      <Filter>src\Magnefu\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\Windows\WindowsInput.cpp">
-      <Filter>src\Platform\Windows</Filter>
+    <ClCompile Include="src\Magnefu\Graphics\Light.cpp">
+      <Filter>src\Magnefu\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\Windows\WindowsWindow.cpp">
-      <Filter>src\Platform\Windows</Filter>
+    <ClCompile Include="src\Magnefu\Graphics\Material.cpp">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Graphics\Renderer.cpp">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Graphics\VulkanCommon.cpp">
+      <Filter>src\Magnefu\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\mfpch.cpp">
       <Filter>src</Filter>
@@ -3155,18 +3266,6 @@
     <ClCompile Include="vendor\vulkan\include\glm\detail\glm.cpp">
       <Filter>vendor\vulkan\include\glm\detail</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Core\File.cpp" />
-    <ClCompile Include="src\Magnefu\Core\String.cpp" />
-    <ClCompile Include="src\Magnefu\Core\BlobSerialization.cpp" />
-    <ClCompile Include="src\Magnefu\Core\Time.cpp" />
-    <ClCompile Include="src\Magnefu\Core\Process.cpp" />
-    <ClCompile Include="src\Magnefu\Graphics\GraphicsContext.cpp" />
-    <ClCompile Include="src\Magnefu\Graphics\GPUResources.cpp" />
-    <ClCompile Include="src\Magnefu\Core\DataStructures.cpp" />
-    <ClCompile Include="src\Magnefu\Graphics\CommandBuffer.cpp" />
-    <ClCompile Include="src\Magnefu\Graphics\GPUProfiler.cpp" />
-    <ClCompile Include="src\Magnefu\Graphics\Renderer.cpp" />
-    <ClCompile Include="src\Magnefu\Core\ResourceManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\vulkan\include\spirv-headers\spirv.hpp11">

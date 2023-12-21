@@ -2,7 +2,7 @@
 
 
 // -- Core Includes ----------------- //
-#include "Magnefu/Core/Typedefs.hpp"
+#include "Magnefu/Core/Platform.hpp"
 
 #if !defined(_MSC_VER)
 // NOTE(marco): avoid conflicts with X header...

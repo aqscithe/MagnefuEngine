@@ -30,6 +30,15 @@ namespace Magnefu
 	struct GPUTimestampManager;
 	struct GraphicsContext;
 
+    struct VMAMemoryStats
+    {
+        u32 blockCount;
+        u32 allocationCount;
+        u64 blockBytes;
+        u64 allocationBytes;
+        u64 usage;
+        u64 budget;
+    };
 
 
 	struct GPUTimestamp
@@ -242,6 +251,10 @@ namespace Magnefu
         void                            pop_gpu_timestamp(CommandBuffer* command_buffer);
 
 
+        // -- VMA Info ----------------------------------------------------------------------------------------------------- //
+        void                            CalculateMemoryStats();
+        VMAMemoryStats                  GetMemoryStats();
+
         // -- Instant methods ---------------------------------------------------------------------------------------------- //
         void                            destroy_buffer_instant(ResourceHandle buffer);
         void                            destroy_texture_instant(ResourceHandle texture);
@@ -253,6 +266,7 @@ namespace Magnefu
         void                            destroy_shader_state_instant(ResourceHandle shader);
 
         void                            update_descriptor_set_instant(const DescriptorSetUpdate& update);
+
 
         
 
@@ -380,6 +394,7 @@ namespace Magnefu
         u32                             vulkan_image_index;
 
         VmaAllocator                    vma_allocator;
+        VmaBudget                       vma_budget;
 
         // These are dynamic - so that workload can be handled correctly.
         Array<ResourceUpdate>           resource_deletion_queue;

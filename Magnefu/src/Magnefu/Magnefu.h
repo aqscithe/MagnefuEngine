@@ -2,7 +2,7 @@
 
 // -- Application Includes ---------//
 #include "Magnefu/Application/Application.h"
-#include "Magnefu/Application/ImGui/ImGuiLayer.h"
+#include "Magnefu/Application/ImGui/ImGuiService.hpp"
 #include "Magnefu/Application/Layer.h"
 
 #include "Magnefu/Application/Events/Input.h"
@@ -22,11 +22,7 @@
 #include "Magnefu/Graphics/RenderConstants.h"
 #include "Magnefu/Graphics/Light.h"
 #include "Magnefu/Graphics/Material.h"
-#include "Magnefu/Graphics/Buffer.h"
-#include "Magnefu/Graphics/Shader.h"
-#include "Magnefu/Graphics/Texture.h"
 #include "Magnefu/Graphics/GraphicsContext.h"
-#include "Magnefu/Graphics/BindGroup.h"
 
 
 

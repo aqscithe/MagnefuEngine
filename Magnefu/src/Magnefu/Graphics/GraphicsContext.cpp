@@ -3258,6 +3258,30 @@ namespace Magnefu
         vkCmdWriteTimestamp(command_buffer->vk_command_buffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, vulkan_timestamp_query_pool, query_index);
     }
 
+    void GraphicsContext::CalculateMemoryStats()
+    {
+        //vmaCalculateStatistics(m_VmaAllocator, &m_VulkanMemory.TotalStats);
+        vmaGetHeapBudgets(vma_allocator, &vma_budget);
+    }
+
+    VMAMemoryStats GraphicsContext::GetMemoryStats()
+    {
+        CalculateMemoryStats();
+
+        auto& vulkanStats = vma_budget.statistics;
+        auto& vulkanBudget = vma_budget;
+        VMAMemoryStats stats;
+
+        stats.blockCount = vulkanStats.blockCount;
+        stats.blockBytes = (uint64_t)vulkanStats.blockBytes;
+        stats.allocationCount = vulkanStats.allocationCount;
+        stats.allocationBytes = (uint64_t)vulkanStats.allocationBytes;
+        stats.usage = vulkanBudget.usage;
+        stats.budget = vulkanBudget.budget;
+
+        return stats;
+    }
+
 
     // Utility methods //////////////////////////////////////////////////////////////
 

@@ -159,6 +159,7 @@ project "Editor"
     includedirs {
         "Magnefu/src",
         "Magnefu/vendor",
+        "Magnefu/vendor/vulkan/include",  -- TODO: Other projects shouldn't have access to Graphics API code
         "Magnefu/vendor/spdlog/include",
         "Magnefu/src/Maths",
         "%{prj.name}/src",

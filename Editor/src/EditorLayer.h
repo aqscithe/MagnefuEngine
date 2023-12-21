@@ -25,7 +25,6 @@ private:
 		void ShowControlsWindow();
 		void ShowFramerateOverlay();
 		void ShowScene();
-		void ShowTemp();
 		void ShowResourceBrowser();
 		void ShowEntityListWindow();
 		void ShowComponentWindow();
@@ -42,7 +41,7 @@ private:
 	private:
 		Magnefu::Ref<Magnefu::SceneCamera>                  m_Camera;
 		Magnefu::GraphicsContext* m_GraphicsContext;
-		Magnefu::PushConstants                              m_PushConstants;
+		//Magnefu::PushConstants                              m_PushConstants;
 		//Array<Magnefu::SceneObject>& m_SceneObjects;
 		int                                                 m_AreaLightCount;
 		Maths::mat4                                         m_AreaLightPoints;
