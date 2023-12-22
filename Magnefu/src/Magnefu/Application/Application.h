@@ -17,78 +17,139 @@
 
 
 
-
 namespace Magnefu
 {
-	struct Draw
+
+	struct ServiceManager;
+
+	struct ApplicationConfiguration
 	{
-		
-	};
 
-	class  Application
+		u32                         width;
+		u32                         height;
+
+		cstring                     name = nullptr;
+
+		bool                        init_base_services = false;
+
+		ApplicationConfiguration& w(u32 value) { width = value; return *this; }
+		ApplicationConfiguration& h(u32 value) { height = value; return *this; }
+		ApplicationConfiguration& name_(cstring value) { name = value; return *this; }
+
+	}; // struct ApplicationConfiguration
+
+	struct Application
 	{
-	public:
-		Application();
-		Application(const Application&) = delete;
-		Application& operator=(const Application&) = delete;
+		// 
+		virtual void                create(const ApplicationConfiguration& configuration) {}
+		virtual void                destroy() {}
+		virtual bool                main_loop() { return false; }
 
-		virtual ~Application();
+		// Fixed update. Can be called more than once compared to rendering.
+		virtual void                fixed_update(f32 delta) {}
+		// Variable time update. Called only once per frame.
+		virtual void                variable_update(f32 delta) {}
+		// Rendering with optional interpolation factor.
+		virtual void                render(f32 interpolation) {}
+		// Per frame begin/end.
+		virtual void                frame_begin() {}
+		virtual void                frame_end() {}
 
-		virtual void Run();
+		virtual void				PushLayer(Layer* layer) = 0;
+		virtual void				PushOverlay(Layer* overlay) = 0;
 
-		void OnEvent(Event& event);
-		void OnUpdate(float deltaTime);
+		virtual bool				OnWindowClose(WindowCloseEvent& e) = 0;
+		virtual bool				OnWindowResize(WindowResizeEvent& e) = 0;
 
-		void PushLayer(Layer* layer);
-		void PushOverlay(Layer* overlay);
+		void                        Run(const ApplicationConfiguration& configuration);
 
-		inline Window& GetWindow() { return *m_Window; }
+		ServiceManager* service_manager = nullptr;
+		SceneManager* scene_manager = nullptr;
+		LayerStack* layer_stack = nullptr;
 
-		// -- Managers -- //
-
-
-		inline SceneManager& GetSceneManager() { return *m_SceneManager; }
-
-		// -- Services -- //
-		inline MemoryService& GetMemoryService() { return *MemoryService::Instance(); }
-		inline GraphicsContext& GetGraphicsContext() { return *GraphicsContext::Instance(); }
-
-
-		// -- SCENES -- //
-		
-
-
-		inline static Application& Get() { return *s_Instance; }
-
-		
-
-	private:
-		bool OnWindowClose(WindowCloseEvent& e);
-		bool OnWindowResize(WindowResizeEvent& e);
-	
-
-	private:
-
-		// Try not to have any Array<T> members in this class as
-		// the memory service is initialized in its constructor
-		// but any arrays' default constructor will need its memory
-		// allocator. class member constructors are called
-		// BEFORE their owning object's constructor is called
-
-		static Application* s_Instance;
-
-		LayerStack m_LayerStack;
-		Scope<Window> m_Window;
-
-		Scope<SceneManager> m_SceneManager;
-
-		bool m_Running;
-		bool m_Minimized;
-
-
-		
-	};
+	}; // struct Application
 
 	// to be defined in client
 	Application* CreateApplication();
-}
+
+} // namespace
+
+
+
+
+
+//namespace Magnefu
+//{
+//	struct Draw
+//	{
+//		
+//	};
+//
+//	class  Application
+//	{
+//	public:
+//		Application();
+//		Application(const Application&) = delete;
+//		Application& operator=(const Application&) = delete;
+//
+//		virtual ~Application();
+//
+//		virtual void Run();
+//
+//		void OnEvent(Event& event);
+//		void OnUpdate(float deltaTime);
+//
+//		void PushLayer(Layer* layer);
+//		void PushOverlay(Layer* overlay);
+//
+//		inline Window& GetWindow() { return *m_Window; }
+//
+//		// -- Managers -- //
+//
+//
+//		inline SceneManager& GetSceneManager() { return *m_SceneManager; }
+//
+//		// -- Services -- //
+//		inline MemoryService& GetMemoryService() { return *MemoryService::Instance(); }
+//		inline GraphicsContext& GetGraphicsContext() { return *GraphicsContext::Instance(); }
+//
+//
+//		// -- SCENES -- //
+//		
+//
+//
+//		inline static Application& Get() { return *s_Instance; }
+//
+//		
+//
+//	private:
+//		bool OnWindowClose(WindowCloseEvent& e);
+//		bool OnWindowResize(WindowResizeEvent& e);
+//	
+//
+//	private:
+//
+//		// Try not to have any Array<T> members in this class as
+//		// the memory service is initialized in its constructor
+//		// but any arrays' default constructor will need its memory
+//		// allocator. class member constructors are called
+//		// BEFORE their owning object's constructor is called
+//
+//		static Application* s_Instance;
+//
+//		LayerStack m_LayerStack;
+//		Scope<Window> m_Window;
+//
+//		Scope<SceneManager> m_SceneManager;
+//
+//		bool m_Running;
+//		bool m_Minimized;
+//
+//
+//		
+//	};
+//
+//	// to be defined in client
+//	Application* CreateApplication();
+//}
+

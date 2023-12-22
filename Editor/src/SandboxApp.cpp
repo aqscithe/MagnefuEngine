@@ -1,4 +1,4 @@
-#include "EditorApp.h"
+#include "SandboxApp.h"
 
 
 #include "imgui/imgui.h"
@@ -21,8 +21,8 @@ static const uint32_t MAX_SCENES = 1;
 
 static double s_deltaTime = 1.0;
 
-EditorLayer::EditorLayer() :
-	Layer("Editor"),
+SandboxLayer::SandboxLayer() :
+	Layer("Sandbox"),
 	m_Camera(std::static_pointer_cast<Magnefu::SceneCamera>(Magnefu::Application::Get().GetWindow().GetSceneCamera())),
 	current_path(std::filesystem::current_path()),
 	m_ActiveScene(nullptr),
@@ -44,34 +44,34 @@ EditorLayer::EditorLayer() :
 
 }
 
-void EditorLayer::OnAttach()
+void SandboxLayer::OnAttach()
 {
 	m_Camera->SetDefaultProps();
 }
 
-void EditorLayer::OnDetach()
+void SandboxLayer::OnDetach()
 {
 
 }
 
-void EditorLayer::OnUpdate(double deltaTime)
+void SandboxLayer::OnUpdate(double deltaTime)
 {
 	s_deltaTime = deltaTime;
 	m_Camera->ProcessInput(deltaTime);
 	//m_GraphicsContext->SetPushConstants(m_PushConstants);
 }
 
-void EditorLayer::OnEvent(Magnefu::Event& e)
+void SandboxLayer::OnEvent(Magnefu::Event& e)
 {
 
 }
 
-void EditorLayer::OnRender()
+void SandboxLayer::OnRender()
 {
 
 }
 
-void EditorLayer::OnGUIRender()
+void SandboxLayer::OnGUIRender()
 {
 	/*
 	if (show_demo_window)
@@ -96,7 +96,7 @@ void EditorLayer::OnGUIRender()
 
 }
 
-void EditorLayer::ShowApplicationMenuBar()
+void SandboxLayer::ShowApplicationMenuBar()
 {
 	if (ImGui::BeginMainMenuBar()) {
 		// File menu
@@ -180,7 +180,7 @@ void EditorLayer::ShowApplicationMenuBar()
 	}
 }
 
-void EditorLayer::ShowNewSceneDialog()
+void SandboxLayer::ShowNewSceneDialog()
 {
 
 	if (openNewSceneDialog)
@@ -210,7 +210,7 @@ void EditorLayer::ShowNewSceneDialog()
 	}
 }
 
-void EditorLayer::ShowCameraSettingsWindow()
+void SandboxLayer::ShowCameraSettingsWindow()
 {
 	if (!openCameraSettingsWindow) { return; }
 
@@ -264,7 +264,7 @@ void EditorLayer::ShowCameraSettingsWindow()
 
 }
 
-void EditorLayer::ShowRendererSettingsWindow()
+void SandboxLayer::ShowRendererSettingsWindow()
 {
 	//if (!openRendererSettingsWindow) { return; }
 
@@ -276,7 +276,7 @@ void EditorLayer::ShowRendererSettingsWindow()
 		ImGui::End();*/
 }
 
-void EditorLayer::ShowControlsWindow()
+void SandboxLayer::ShowControlsWindow()
 {
 	if (!openControlsWindow) { return; }
 
@@ -301,7 +301,7 @@ void EditorLayer::ShowControlsWindow()
 
 }
 
-void EditorLayer::ShowFramerateOverlay()
+void SandboxLayer::ShowFramerateOverlay()
 {
 	if (!showFramerate) { return; }
 
@@ -343,7 +343,7 @@ void EditorLayer::ShowFramerateOverlay()
 }
 
 
-void EditorLayer::ShowScene()
+void SandboxLayer::ShowScene()
 {
 	ShowEntityListWindow();
 	ShowResourceBrowser();
@@ -358,7 +358,7 @@ void EditorLayer::ShowScene()
 
 
 
-void EditorLayer::ShowResourceBrowser()
+void SandboxLayer::ShowResourceBrowser()
 {
 	if (ImGui::Begin("Resource Browser"))
 	{
@@ -407,7 +407,7 @@ void EditorLayer::ShowResourceBrowser()
 
 
 
-void EditorLayer::ShowEntityListWindow()
+void SandboxLayer::ShowEntityListWindow()
 {
 	if (ImGui::Begin("Entities"))
 	{
@@ -445,7 +445,7 @@ void EditorLayer::ShowEntityListWindow()
 	ImGui::End();
 }
 
-void EditorLayer::ShowAddComponentWidget()
+void SandboxLayer::ShowAddComponentWidget()
 {
 	// Combo Boxes are also called "Dropdown" in other systems
 		// Expose flags as checkbox for the demo
@@ -504,7 +504,7 @@ void EditorLayer::ShowAddComponentWidget()
 	}
 }
 
-void EditorLayer::ShowMeshComponentWidget()
+void SandboxLayer::ShowMeshComponentWidget()
 {
 	static int currentMesh = -1; // -1: no selection
 
@@ -545,7 +545,7 @@ void EditorLayer::ShowMeshComponentWidget()
 
 
 
-void EditorLayer::ShowComponentWindow()
+void SandboxLayer::ShowComponentWindow()
 {
 	if (ImGui::Begin("Components"))
 	{
@@ -590,7 +590,7 @@ void EditorLayer::ShowComponentWindow()
 	ImGui::End();
 }
 
-void EditorLayer::CreateNewScene()
+void SandboxLayer::CreateNewScene()
 {
 	auto& sceneManager = Magnefu::Application::Get().GetSceneManager();
 
@@ -616,7 +616,7 @@ void EditorLayer::CreateNewScene()
 	m_ActiveScene = sceneManager.CreateScene(name);
 }
 
-void EditorLayer::ShowMemoryStats()
+void SandboxLayer::ShowMemoryStats()
 {
 	if (!showMemoryStatsWindow) { return; }
 
@@ -674,19 +674,89 @@ void EditorLayer::ShowMemoryStats()
 }
 
 
+// -- Sandbox App -------------------------------------------------------------------------- //
 
-Editor::Editor()
+
+// The app constructor is where I push the layers I want to use in that app.
+Sandbox::Sandbox()
 {
-	PushLayer(new EditorLayer());
+	// initialize layerstack
+	layer_stack = new Magnefu::LayerStack();
+
+
+	// Push layers - 1st layer is on bottom
+	PushLayer(new SandboxLayer());
+	// will eventually have an EditorLayer
+	// may even have more specific layers like Physics Collisions and AI...
+	// this is how updates can be controlled separately
 }
 
-Editor::~Editor()
+
+Sandbox::~Sandbox()
+{
+	delete layer_stack;
+}
+
+
+void Sandbox::create(const Magnefu::ApplicationConfiguration& configuration)
+{
+	using namespace Magnefu;
+
+	time_service_init();
+	LogService::Instance()->Init(nullptr);
+	MemoryService::Instance()->Init(nullptr);
+	service_manager = Magnefu::ServiceManager::instance;
+
+	service_manager->init(&Magnefu::MemoryService::Instance()->systemAllocator);
+
+	// window
+	WindowConfiguration wconf{ configuration.width, configuration.height, configuration.name, &MemoryService::Instance()->systemAllocator };
+	window = &s_window;
+	window->init(&wconf);
+
+	// input
+	input = service_manager->get<InputService>();
+	input->init(&MemoryService::Instance()->systemAllocator);
+
+	// graphics
+	DeviceCreation dc;
+	dc.set_window(window->width, window->height, window->platform_handle).set_allocator(&MemoryService::Instance()->systemAllocator);
+
+	GraphicsContext* gpu = service_manager->get<GraphicsContext>();
+	gpu->init(dc);
+
+	// Callback register
+	window->register_os_messages_callback(input_os_messages_callback, input);
+
+	// App specific create ////////////////////////////////////////////////
+	renderer = service_manager->get<Renderer>();
+
+	RendererCreation rc{ gpu, &MemoryService::Instance()->systemAllocator };
+	renderer->init(rc);
+
+	// imgui backend
+	imgui = service_manager->get<ImGuiService>();
+	imgui->Init(renderer);
+
+	MF_CORE_INFO("Sandbox Application created successfully!");
+}
+
+void Sandbox::destroy()
 {
 
 }
+
+bool Sandbox::main_loop()
+{
+	return false;
+}
+
+
+
+
 
 
 Magnefu::Application* Magnefu::CreateApplication()
 {
-	return new Editor();
+	return new Sandbox();
 }

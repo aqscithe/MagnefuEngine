@@ -10,26 +10,13 @@
 int main(int argc, char** argv)
 {
 	MF_PROFILE_BEGIN_SESSION("Magnefu Startup", "Magnefu-Startup.json");
-
-	// -- Init Services ------------------------------------------- //
-
-	Magnefu::time_service_init();
-	Magnefu::LogService::Instance()->Init(nullptr);
-	Magnefu::MemoryService::Instance()->Init(nullptr);
-
-
 	auto app = Magnefu::CreateApplication();
-
 	MF_PROFILE_END_SESSION();
-
 
 
 	MF_PROFILE_BEGIN_SESSION("Magnefu Runtime", "Magnefu-Runtime.json");
-
-	app->Run();
-
+	app->Run({1920, 1080, "default-config", true});
 	MF_PROFILE_END_SESSION();
-
 
 
 	MF_PROFILE_BEGIN_SESSION("Magnefu Shutdown", "Magnefu-Shutdown.json");
