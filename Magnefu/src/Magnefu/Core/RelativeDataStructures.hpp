@@ -2,7 +2,7 @@
 
 
 // -- Core Includes -- //
-#include "Magnefu/Core/Typedefs.hpp"
+#include "Magnefu/Core/Platform.hpp"
 #include "Magnefu/Core/MemoryAllocation/Memory.hpp"
 #include "Magnefu/Core/Array.h"
 

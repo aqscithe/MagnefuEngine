@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Magnefu/Core/Events/Input.h"
+#include "Magnefu/Application/Events/Input.h"
 
 
 namespace Magnefu

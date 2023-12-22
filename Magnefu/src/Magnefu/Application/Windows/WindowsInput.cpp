@@ -1,7 +1,7 @@
 #include "mfpch.h"
 #include "WindowsInput.h"
 #include "WindowsWindow.h"
-#include "Magnefu/Application.h"
+#include "Magnefu/Application/Application.h"
 
 #include "GLFW/glfw3.h"
 

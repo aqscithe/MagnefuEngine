@@ -12,7 +12,8 @@
 #include "Magnefu/Graphics/GraphicsContext.h"
 
 // -- Core Includes ---------------------------------- //
-
+#include "Magnefu/Core/Log.h"
+#include "Magnefu/Core/Time.hpp"
 
 
 
@@ -56,7 +57,7 @@ namespace Magnefu
         }
 
 
-        PushOverlay(m_ImGuiLayer);
+        PushOverlay(ImGuiService::Instance());
 
 	}
 
@@ -121,9 +122,6 @@ namespace Magnefu
 	{        
         MF_PROFILE_FUNCTION();
 
-        GraphicsContext* GraphicsContext = m_Window->GetGraphicsContext();
-
-
         // TODO: Create setting to switch between locked and unlocked frame rate
         //m_TimeStep.Init();
 
@@ -146,8 +144,7 @@ namespace Magnefu
 
 
             // -- Start ImGui Frame -- //
-            if (m_ImGuiLayer)
-                m_ImGuiLayer->BeginFrame();
+            ImGuiService::Instance()->BeginFrame();
 
 
             // -- Game Logic Here -- //
@@ -163,18 +160,16 @@ namespace Magnefu
             // -- End ImGui Frame -- //
             // This constructs the draw data for the ImGui frame, 
             // but doesn't actually submit any draw commands. 
-            if (m_ImGuiLayer)
-                m_ImGuiLayer->EndFrame();
+            //ImGuiService::Instance()->Render(GraphicsContext::Instance()->command_buffers[0]);
 
 
             // -- Start Vulkan command buffer recording -- //
             // -- Issue draw calls for game objects and imgui widgets-- //
-            GraphicsContext->DrawFrame();
+            //GraphicsContext->DrawFrame();
 
         }   
         m_Window->OnFinish();
 
-        delete GraphicsContext;
     }
 
       

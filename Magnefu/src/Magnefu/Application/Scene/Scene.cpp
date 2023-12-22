@@ -25,7 +25,7 @@ namespace Magnefu
 
 	
 
-	Scene::Scene(std::string& name) :
+	Scene::Scene(cstring name) :
 		m_Name(name)
 	{
 		// -- Connect Entity Listeners -- //
@@ -205,16 +205,14 @@ namespace Magnefu
 
 	
 
-	Scene* Scene::Create(std::string& name)
+	Scene* Scene::Create(cstring name)
 	{
 		return new Scene(name);
 	}
 
-	Entity& Scene::CreateEntity(std::string& name)
+	Entity& Scene::CreateEntity(cstring name)
 	{
-
-		m_Entities.emplace_back(new Entity(m_Registry.create(), this, name));
-
+		m_Entities.push(new Entity(m_Registry.create(), this, name));
 		return *m_Entities.back();
 	}
 

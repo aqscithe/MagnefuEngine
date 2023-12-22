@@ -6,6 +6,8 @@
 // -- other Includes -------------- //
 
 
+#define MF_IMGUI
+
 namespace Magnefu
 {
 	// -- Memory Methods -- //

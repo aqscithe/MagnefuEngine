@@ -50,11 +50,12 @@ namespace Magnefu
 
 	class  ImGuiService : public Layer, Service
 	{
-		MF_DECLARE_SERVICE(ImGuiService);
 
 	public:
 		ImGuiService();
 		~ImGuiService();
+
+		MF_DECLARE_SERVICE(ImGuiService);
 
 		void                            Init(void* configuration) override;
 		void                            Shutdown() override;

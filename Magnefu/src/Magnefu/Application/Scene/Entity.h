@@ -23,7 +23,7 @@ namespace Magnefu
 	{
 	public:
 		Entity() = default;
-		Entity(entt::entity entity, Scene* scene, std::string& name) :
+		Entity(entt::entity entity, Scene* scene, cstring name) :
 			m_EntityHandle(entity), m_Scene(scene), m_Name(name)
 		{}
 
@@ -32,7 +32,7 @@ namespace Magnefu
 
 		~Entity();
 
-		inline const std::string& GetName() const { return m_Name; }
+		inline const cstring GetName() const { return m_Name; }
 
 		void* GetTransformComponent();
 		void* GetMeshComponent();
@@ -63,7 +63,7 @@ namespace Magnefu
 		}*/
 
 	private:
-		std::string m_Name;
+		cstring m_Name;
 		entt::entity m_EntityHandle;
 		Scene* m_Scene;
 	};

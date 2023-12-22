@@ -9,7 +9,7 @@
 // -- Core Includes ---------------------------------- //
 #include "Magnefu/Core/Assertions.h"
 
-
+#include <vector>
 
 namespace Magnefu
 {

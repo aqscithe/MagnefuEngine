@@ -12,6 +12,7 @@
 
 // -- Core ------------------------- //
 #include "Magnefu/Core/Assertions.h"
+#include "Magnefu/Core/SmartPointers.h"
 
 
 

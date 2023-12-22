@@ -28,13 +28,13 @@ namespace Magnefu
 		static SceneManager* Create();
 
 
-		bool NameExists(std::string& newName);
-		Scene* CreateScene(std::string& name);
-		inline std::vector<Scope<Scene>>& GetScenes() { return m_Scenes; }
+		bool NameExists(cstring newName);
+		Scene* CreateScene(cstring name);
+		inline Array<Scene*>& GetScenes() { return m_Scenes; }
 
 	private:
 
-		std::vector<Scope<Scene>> m_Scenes;
-		std::unordered_set<std::string> m_SceneNames;
+		Array<Scene*> m_Scenes;
+		std::unordered_set<cstring> m_SceneNames;
 	};
 }

@@ -185,7 +185,7 @@ namespace Magnefu
         VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME,
         // Platform specific extension
     #ifdef VK_USE_PLATFORM_WIN32_KHR
-            VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+            "VK_KHR_win32_surface",
     #elif defined(VK_USE_PLATFORM_MACOS_MVK)
             VK_MVK_MACOS_SURFACE_EXTENSION_NAME,
     #elif defined(VK_USE_PLATFORM_XCB_KHR)
@@ -755,7 +755,7 @@ namespace Magnefu
         // Allocate queued command buffers array
         queued_command_buffers = (CommandBuffer**)(gpu_timestamp_manager + 1);
         CommandBuffer** correctly_allocated_buffer = (CommandBuffer**)(memory + sizeof(GPUTimestampManager));
-        MF_CORE_ASSERT((queued_command_buffers == correctly_allocated_buffer), "Wrong calculations for queued command buffers arrays. Should be {}, but it is {}.", correctly_allocated_buffer, queued_command_buffers);
+        MF_CORE_ASSERT((queued_command_buffers == correctly_allocated_buffer), "Wrong calculations for queued command buffers arrays.");
 
         vulkan_image_index = 0;
         current_frame = 1;

@@ -22,7 +22,8 @@ namespace Magnefu
 	{
 		// Number to be determined by saved scene files
 		// Default reservation of 1
-		m_Scenes.reserve(SCENE_COUNT);
+		// TODO: Get this info from glTF file
+		m_Scenes.set_capacity(SCENE_COUNT);
 	}
 
 	SceneManager::~SceneManager()
@@ -35,14 +36,15 @@ namespace Magnefu
 		return new SceneManager();
 	}
 
-    Scene* SceneManager::CreateScene(std::string& name)
+    Scene* SceneManager::CreateScene(cstring name)
     {
         //TODO: ERROR HANDLING to ensure name is not in use
 		m_SceneNames.emplace(name);
-        return m_Scenes.emplace_back(Scene::Create(name)).get();
+		m_Scenes.push(Scene::Create(name));
+		return m_Scenes.back();
     }
 
-	bool SceneManager::NameExists(std::string& newName)
+	bool SceneManager::NameExists(cstring newName)
 	{
 		// O(1) Time
 		return m_SceneNames.find(newName) != m_SceneNames.end();

@@ -5,6 +5,9 @@
 
 // -- Core Includes ------------------------ //
 #include "Magnefu/Core/DataStructures.hpp"
+#include "Magnefu/Core/MemoryAllocation/Memory.hpp"
+#include "Magnefu/Core/Array.h"
+#include "Magnefu/Core/String.hpp"
 
 
 #if (_MSC_VER)

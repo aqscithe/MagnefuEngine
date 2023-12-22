@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Application.h"
+#include "Magnefu/Core/Debug/Instrumentor.h"
+#include "Magnefu/Core/Time.hpp"
 
 
 #ifdef MF_PLATFORM_WINDOWS

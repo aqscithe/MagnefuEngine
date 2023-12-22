@@ -213,7 +213,6 @@
     <ClInclude Include="src\Magnefu\Graphics\Renderer.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\ResourceManagement\Handle.h" />
     <ClInclude Include="src\Magnefu\Graphics\ResourceManagement\ResourcePaths.h" />
-    <ClInclude Include="src\Magnefu\Graphics\VulkanCommon.h" />
     <ClInclude Include="src\Magnefu\Magnefu.h" />
     <ClInclude Include="src\mfpch.h" />
     <ClInclude Include="vendor\GLAD\include\KHR\khrplatform.h" />
@@ -1123,6 +1122,7 @@
     <ClCompile Include="src\Magnefu\Application\Scene\SceneManager.cpp" />
     <ClCompile Include="src\Magnefu\Application\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Magnefu\Application\Windows\WindowsWindow.cpp" />
+    <ClCompile Include="src\Magnefu\Core\Bit.cpp" />
     <ClCompile Include="src\Magnefu\Core\BlobSerialization.cpp" />
     <ClCompile Include="src\Magnefu\Core\Color.cpp" />
     <ClCompile Include="src\Magnefu\Core\DataStructures.cpp" />
@@ -1149,7 +1149,6 @@
     <ClCompile Include="src\Magnefu\Graphics\Light.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\Material.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\Renderer.cpp" />
-    <ClCompile Include="src\Magnefu\Graphics\VulkanCommon.cpp" />
     <ClCompile Include="src\mfpch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

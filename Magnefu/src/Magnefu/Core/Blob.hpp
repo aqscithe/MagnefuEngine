@@ -1,7 +1,7 @@
 #pragma once
 
 // -- Core Includes -- //
-#include "Magnefu/Core/Typedefs.hpp"
+#include "Magnefu/Core/Platform.hpp"
 
 namespace Magnefu
 {

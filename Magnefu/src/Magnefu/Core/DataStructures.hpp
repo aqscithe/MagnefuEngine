@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Magnefu/Core/Log.h"
 
 namespace Magnefu
 {
@@ -56,6 +57,7 @@ namespace Magnefu
     {
         if (free_indices_head != 0) 
         {
+
             MF_CORE_WARN("Resource pool has unfreed resources.");
 
             for (u32 i = 0; i < free_indices_head; ++i) 

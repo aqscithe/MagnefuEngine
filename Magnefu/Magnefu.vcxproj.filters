@@ -426,9 +426,6 @@
     <ClInclude Include="src\Magnefu\Graphics\ResourceManagement\ResourcePaths.h">
       <Filter>src\Magnefu\Graphics\ResourceManagement</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Graphics\VulkanCommon.h">
-      <Filter>src\Magnefu\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="src\Magnefu\Magnefu.h">
       <Filter>src\Magnefu</Filter>
     </ClInclude>
@@ -3230,9 +3227,6 @@
     <ClCompile Include="src\Magnefu\Graphics\Renderer.cpp">
       <Filter>src\Magnefu\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Graphics\VulkanCommon.cpp">
-      <Filter>src\Magnefu\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="src\mfpch.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -3266,6 +3260,7 @@
     <ClCompile Include="vendor\vulkan\include\glm\detail\glm.cpp">
       <Filter>vendor\vulkan\include\glm\detail</Filter>
     </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\Bit.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\vulkan\include\spirv-headers\spirv.hpp11">

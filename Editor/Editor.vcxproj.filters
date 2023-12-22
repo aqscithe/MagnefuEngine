@@ -132,15 +132,9 @@
     <ClInclude Include="src\EditorApp.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\EditorLayer.h">
-      <Filter>src</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\EditorApp.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\EditorLayer.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

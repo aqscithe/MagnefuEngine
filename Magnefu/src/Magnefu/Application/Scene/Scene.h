@@ -3,6 +3,8 @@
 // -- vendor Includes --------------- //
 #include "entt.hpp"	
 
+#include "Magnefu/Core/Array.h"
+
 namespace Magnefu
 {
 	class Entity;
@@ -11,20 +13,20 @@ namespace Magnefu
 	{
 		public:
 
-			Scene(std::string& name);
+			Scene(cstring name);
 			Scene(const Scene&) = delete;
 			Scene& operator=(const Scene&) = delete;
 			~Scene();
 
-			static Scene* Create(std::string& name);
+			static Scene* Create(cstring name);
 
-			Entity& CreateEntity(std::string& name);
+			Entity& CreateEntity(cstring name);
 
 			inline entt::registry& GetRegistry() { return m_Registry; }
 
-			inline std::vector<Scope<Entity>>& GetEntities() { return m_Entities; }
+			inline Array<Entity*>& GetEntities() { return m_Entities; }
 
-			inline const std::string& GetName() const { return m_Name; }
+			inline const cstring GetName() const { return m_Name; }
 
 
 
@@ -83,7 +85,7 @@ namespace Magnefu
 
 		entt::registry m_Registry;
 		entt::observer m_Observer;
-		std::string m_Name;
-		std::vector<Scope<Entity>> m_Entities;
+		cstring m_Name;
+		Array<Entity*> m_Entities;
 	};
 }
