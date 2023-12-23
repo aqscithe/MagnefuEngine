@@ -20,24 +20,32 @@
 
 namespace Magnefu
 {
-	struct WindowProps
-	{
-	public:
-		std::string Title;
-		uint16_t Width, Height;
 
-		WindowProps(const std::string& title = "Magnefu Engine", uint16_t width = 1920, uint16_t height = 1080) :
-			Title(title), Width(width), Height(height) {}
-	};
+	struct WindowConfiguration 
+	{
+
+		u32             width;
+		u32             height;
+
+		cstring         name;
+
+		Allocator* allocator;
+
+	}; // struct WindowConfiguration
+
+	typedef void        (*OsMessagesCallback)(void* os_event, void* user_data);
 
 	// interface system representing a desktop sytem based window
 
-	class  Window
+	class  Window : public Service
 	{
 	public:
 		using EventCallbackFn = std::function<void(Event& event)>;
 
 		virtual ~Window() {}
+
+		void            Init(void* configuration) override;
+		void            Shutdown() override;
 
 		virtual void OnUpdate() = 0;
 		virtual void DrawFrame() = 0;
@@ -50,6 +58,13 @@ namespace Magnefu
 		virtual uint16_t GetHeight() const = 0;
 		virtual void* GetNativeWindow() const = 0;
 
+		virtual void            set_fullscreen(bool value) = 0;
+
+		void            handle_os_messages();
+		void            register_os_messages_callback(OsMessagesCallback callback, void* user_data);
+		void            unregister_os_messages_callback(OsMessagesCallback callback);
+		virtual void            center_mouse(bool dragging) = 0;
+
 
 		// Window attributes
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
@@ -61,5 +76,22 @@ namespace Magnefu
 		virtual void CloseWindow() = 0;
 
 		static Window* Create(const WindowProps& props = WindowProps());
+
+
+	public:
+
+		Array<OsMessagesCallback> os_messages_callbacks;
+		Array<void*>    os_messages_callbacks_data;
+
+		void*			platform_handle = nullptr;
+		bool            requested_exit = false;
+		bool            resized = false;
+		bool            minimized = false;
+
+		u32             width = 0;
+		u32             height = 0;
+		f32             display_refresh = 1.0f / 60.0f;
+
+		static constexpr cstring    k_name = "Magnefu_Window_Service";
 	};
 }
