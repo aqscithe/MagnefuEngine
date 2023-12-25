@@ -34,9 +34,6 @@ namespace Magnefu
 	}; // struct WindowConfiguration
 
 	
-
-	typedef void        (*OsMessagesCallback)(void* os_event, void* user_data);
-
 	// interface system representing a desktop sytem based window
 
 	class  Window : public Service
@@ -51,22 +48,22 @@ namespace Magnefu
 			u32 Height;
 		};
 
-		virtual ~Window() {}
-
-		void            Init(void* configuration) override;
-		void            Shutdown() override;
+		virtual ~Window() = 0;
 
 		
-		uint16_t GetWidth() const { return width; }
-		uint16_t GetHeight() const { return height; }
+		uint16_t		GetWidth() const { return width; }
+		uint16_t		GetHeight() const { return height; }
 
+		void*			GetWindowHandle() const { return platform_handle; }
+
+		void			SetEventCallback(const EventCallbackFn& callback) { window_data.EventCallback = callback; }
 		
 
-		virtual void        SetFullscreen(bool value);
-		virtual void        CenterMouse(bool dragging);
+		virtual void    SetFullscreen(bool value)  = 0;
+		virtual void    CenterMouse(bool dragging) = 0;
 
 
-		virtual void SetEventCallback(const EventCallbackFn& callback) { window_data.EventCallback = callback; }
+		
 		
 		// -- DONT KNOW IF I WILL KEEP THESES
 		virtual void* GetNativeWindow() const {};
@@ -77,7 +74,7 @@ namespace Magnefu
 		virtual void DrawFrame() {};
 		virtual void OnImGuiRender() {};
 
-	public:
+	protected:
 
 		void*			platform_handle = nullptr;
 		bool            requested_exit = false;

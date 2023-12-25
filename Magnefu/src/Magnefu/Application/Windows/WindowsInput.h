@@ -1,13 +1,14 @@
 #pragma once
 
-#include "Magnefu/Application/Events/Input.h"
+#include "Magnefu/Application/Input/Input.h"
 
 
 namespace Magnefu
 {
-	class WindowsInput : public Input
+	class WindowsInput : public InputService
 	{
 	protected:
+		void Init(void* config) override;
 		bool IsKeyPressedImpl(int keycode) override;
 		bool IsKeyReleasedImpl(int keycode) override;
 

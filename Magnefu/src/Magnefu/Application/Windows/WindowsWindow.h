@@ -8,9 +8,13 @@ namespace Magnefu
 	class WindowsWindow : public Window
 	{
 	public:
-		~WindowsWindow() {};
+		~WindowsWindow() override {};
 
+		void Init(void* config) override;
+		void Shutdown() override;
 
+		void        SetFullscreen(bool value) override;
+		void        CenterMouse(bool dragging) override;
 
 	private:	
 

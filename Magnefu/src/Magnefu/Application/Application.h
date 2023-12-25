@@ -67,6 +67,13 @@ namespace Magnefu
 		virtual bool				OnWindowLostFocus(WindowLostFocusEvent& e);
 
 
+		// -- Getter Methods -------------------------------- //
+		static Application* Get() { return s_Instance; }
+
+		virtual void* GetWindow() {};
+
+
+
 		void                        Run(const ApplicationConfiguration& configuration);
 
 	protected:
@@ -75,9 +82,11 @@ namespace Magnefu
 		SceneManager* scene_manager = nullptr;
 		LayerStack* layer_stack = nullptr;
 
-		bool minimized = false;
-		bool running = true;
+		bool is_minimized = false;
+		bool is_running = true;
+		bool has_focus = true;
 
+		static Application* s_Instance;
 
 
 	}; // struct Application

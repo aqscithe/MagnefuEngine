@@ -23,9 +23,13 @@
 
 namespace Magnefu
 {
+	Application* Application::s_Instance = nullptr;
+
 
 	void Application::Run(const ApplicationConfiguration& configuration) 
 	{
+		MF_CORE_ASSERT(!s_Instance, "Application instance already exists.");
+		s_Instance = this;
 
 		create(configuration);
 		main_loop();
@@ -57,7 +61,7 @@ namespace Magnefu
 
 	bool Application::OnWindowClose(WindowCloseEvent& e)
 	{
-		running = false;
+		is_running = false;
 		return true;
 	}
 
@@ -65,26 +69,29 @@ namespace Magnefu
 	{
 		if (e.GetWidth() == 0 || e.GetHeight() == 0)
 		{
-		    minimized = true;
+		    is_minimized = true;
 		    return false;
 		}
 
-		minimized = false;
+		is_minimized = false;
 		return true;
 	}
 
 	bool Application::OnWindowMoved(WindowMovedEvent& e)
 	{
+
 		return true;
 	}
 
 	bool Application::OnWindowFocus(WindowFocusEvent& e)
 	{
+		has_focus = true;
 		return true;
 	}
 
 	bool Application::OnWindowLostFocus(WindowLostFocusEvent& e)
 	{
+		has_focus = false;
 		return true;
 	}
 
