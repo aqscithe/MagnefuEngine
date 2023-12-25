@@ -19,6 +19,7 @@
 
 namespace Magnefu
 {
+#define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
 
 	struct ServiceManager;
 
@@ -55,17 +56,29 @@ namespace Magnefu
 		virtual void                frame_begin() {}
 		virtual void                frame_end() {}
 
-		virtual void				PushLayer(Layer* layer) = 0;
-		virtual void				PushOverlay(Layer* overlay) = 0;
+		virtual void				PushLayer(Layer* layer);
+		virtual void				PushOverlay(Layer* overlay) {}
 
-		virtual bool				OnWindowClose(WindowCloseEvent& e) = 0;
-		virtual bool				OnWindowResize(WindowResizeEvent& e) = 0;
+		virtual void				OnEvent(Event& event);
+		virtual bool				OnWindowClose(WindowCloseEvent& e);
+		virtual bool				OnWindowResize(WindowResizeEvent& e);
+		virtual bool				OnWindowMoved(WindowMovedEvent& e);
+		virtual bool				OnWindowFocus(WindowFocusEvent& e);
+		virtual bool				OnWindowLostFocus(WindowLostFocusEvent& e);
+
 
 		void                        Run(const ApplicationConfiguration& configuration);
+
+	protected:
 
 		ServiceManager* service_manager = nullptr;
 		SceneManager* scene_manager = nullptr;
 		LayerStack* layer_stack = nullptr;
+
+		bool minimized = false;
+		bool running = true;
+
+
 
 	}; // struct Application
 

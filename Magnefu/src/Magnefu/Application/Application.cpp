@@ -23,7 +23,6 @@
 
 namespace Magnefu
 {
-#define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
 
 	void Application::Run(const ApplicationConfiguration& configuration) 
 	{
@@ -33,152 +32,65 @@ namespace Magnefu
 		destroy();
 	}
 
- //   //static const int THREAD_POOL_WORKERS = 2;
+	void Application::PushLayer(Layer* layer)
+	{
+		layer_stack->PushLayer(layer);
+		layer->OnAttach();
+	}
 
- //   Application* Application::s_Instance = nullptr;
+	void Application::OnEvent(Event& event)
+	{
+		EventDispatcher dispatcher(event);
+		dispatcher.Dispatch <WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
+		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
+		dispatcher.Dispatch<WindowMovedEvent>(BIND_EVENT_FN(Application::OnWindowMoved));
+		dispatcher.Dispatch<WindowFocusEvent>(BIND_EVENT_FN(Application::OnWindowFocus));
+		dispatcher.Dispatch<WindowLostFocusEvent>(BIND_EVENT_FN(Application::OnWindowLostFocus));
 
- //   
+		for (auto it = layer_stack->end(); it != layer_stack->begin(); )
+		{
+			(*--it)->OnEvent(event);
+			if (event.IsHandled())
+				break;
+		}
+	}
 
+	bool Application::OnWindowClose(WindowCloseEvent& e)
+	{
+		running = false;
+		return true;
+	}
 
-	//Application::Application()
-	//{
- //       MF_PROFILE_FUNCTION();
+	bool Application::OnWindowResize(WindowResizeEvent& e)
+	{
+		if (e.GetWidth() == 0 || e.GetHeight() == 0)
+		{
+		    minimized = true;
+		    return false;
+		}
 
+		minimized = false;
+		return true;
+	}
 
- //       // Set Application Instance
- //       MF_CORE_ASSERT(!s_Instance, "Application instance already exists.");
- //       s_Instance = this;
+	bool Application::OnWindowMoved(WindowMovedEvent& e)
+	{
+		return true;
+	}
 
+	bool Application::OnWindowFocus(WindowFocusEvent& e)
+	{
+		return true;
+	}
 
- //       // -- Create Managers ------------------------------------------- //
+	bool Application::OnWindowLostFocus(WindowLostFocusEvent& e)
+	{
+		return true;
+	}
 
- //       // Create Resource Manager
+	
 
- //       // Create Scene Manager
- //       m_SceneManager = Scope<SceneManager>(SceneManager::Create());
-
- //       {
- //           MF_PROFILE_SCOPE("Window Creation");
- //           m_Window = Scope<Window>(Window::Create());
- //           m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
-
- //       }
-
-
- //       PushOverlay(ImGuiService::Instance());
-
-	//}
-
-	//Application::~Application()
-	//{
- //       
-	//}
-
- //   
- //   bool Application::OnWindowClose(WindowCloseEvent& e)
- //   {
- //       m_Running = false;
- //       return true;
- //   }
-
- //   bool Application::OnWindowResize(WindowResizeEvent& e)
- //   {
- //       if (e.GetWidth() == 0 || e.GetHeight() == 0)
- //       {
- //           m_Minimized = true;
- //           return false;
- //       }
-
- //       m_Minimized = false;
- //       return false;
- //   }
-
- //   void Application::PushLayer(Layer* layer)
- //   {
- //       m_LayerStack.PushLayer(layer);
- //       layer->OnAttach();
- //   }
-
- //   void Application::PushOverlay(Layer* overlay)
- //   {
- //       m_LayerStack.PushOverlay(overlay);
- //       overlay->OnAttach();
- //   }
-
-
- //   void Application::OnEvent(Event& event)
- //   {
- //       EventDispatcher dispatcher(event);
- //       dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
- //       dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
-
- //       for (auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )
- //       {
- //           (*--it)->OnEvent(event);
- //           if (event.IsHandled())
- //               break;
- //       }
- //   }
-
- //   void Application::OnUpdate(float deltaTime)
- //   {
-
- //   }
-
-
-	//void Application::Run()
-	//{        
- //       MF_PROFILE_FUNCTION();
-
- //       // TODO: Create setting to switch between locked and unlocked frame rate
- //       //m_TimeStep.Init();
-
- //       auto lastTime = Magnefu::time_now();
-
-
- //      MF_CORE_INFO("STARTING FIRST LOOP");
-
- //       while (m_Running)
- //       {
- //           MF_PROFILE_SCOPE("Run Loop");
-
- //           //m_TimeStep.CalculateDeltaTime();
- //           auto currentTime = Magnefu::time_now();
- //           auto deltaTime = Magnefu::time_delta_milliseconds(lastTime, currentTime);
- //           lastTime = currentTime;
-
- //           // -- Poll and Handle Events -- //
- //           m_Window->OnUpdate();
-
-
- //           // -- Start ImGui Frame -- //
- //           ImGuiService::Instance()->BeginFrame();
-
-
- //           // -- Game Logic Here -- //
- //           for (Layer* layer : m_LayerStack)
- //               layer->OnUpdate(deltaTime);
-
-
- //           // -- ImGui Widget Updates -- //
- //           for (Layer* layer : m_LayerStack)
- //               layer->OnGUIRender();
-
-
- //           // -- End ImGui Frame -- //
- //           // This constructs the draw data for the ImGui frame, 
- //           // but doesn't actually submit any draw commands. 
- //           //ImGuiService::Instance()->Render(GraphicsContext::Instance()->command_buffers[0]);
-
-
- //           // -- Start Vulkan command buffer recording -- //
- //           // -- Issue draw calls for game objects and imgui widgets-- //
- //           //GraphicsContext->DrawFrame();
-
- //       }   
- //       m_Window->OnFinish();
-
- //   }
+ 
 
       
 }

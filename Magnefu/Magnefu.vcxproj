@@ -196,6 +196,7 @@
     <ClInclude Include="src\Magnefu\Core\RelativeDataStructures.hpp" />
     <ClInclude Include="src\Magnefu\Core\ResourceManager.hpp" />
     <ClInclude Include="src\Magnefu\Core\Service.hpp" />
+    <ClInclude Include="src\Magnefu\Core\ServiceManager.hpp" />
     <ClInclude Include="src\Magnefu\Core\SmartPointers.h" />
     <ClInclude Include="src\Magnefu\Core\Span.h" />
     <ClInclude Include="src\Magnefu\Core\String.hpp" />
@@ -1120,6 +1121,7 @@
     <ClCompile Include="src\Magnefu\Application\Scene\Entity.cpp" />
     <ClCompile Include="src\Magnefu\Application\Scene\Scene.cpp" />
     <ClCompile Include="src\Magnefu\Application\Scene\SceneManager.cpp" />
+    <ClCompile Include="src\Magnefu\Application\Windows\Window.cpp" />
     <ClCompile Include="src\Magnefu\Application\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Magnefu\Application\Windows\WindowsWindow.cpp" />
     <ClCompile Include="src\Magnefu\Core\Bit.cpp" />
@@ -1140,6 +1142,7 @@
     <ClCompile Include="src\Magnefu\Core\Numerics.cpp" />
     <ClCompile Include="src\Magnefu\Core\Process.cpp" />
     <ClCompile Include="src\Magnefu\Core\ResourceManager.cpp" />
+    <ClCompile Include="src\Magnefu\Core\ServiceManager.cpp" />
     <ClCompile Include="src\Magnefu\Core\String.cpp" />
     <ClCompile Include="src\Magnefu\Core\Time.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\CommandBuffer.cpp" />

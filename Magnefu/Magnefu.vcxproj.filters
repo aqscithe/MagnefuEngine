@@ -3111,6 +3111,7 @@
     <ClInclude Include="vendor\wyhash\wyhash.h">
       <Filter>vendor\wyhash</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\ServiceManager.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application\Application.cpp">
@@ -3261,6 +3262,8 @@
       <Filter>vendor\vulkan\include\glm\detail</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Core\Bit.cpp" />
+    <ClCompile Include="src\Magnefu\Core\ServiceManager.cpp" />
+    <ClCompile Include="src\Magnefu\Application\Windows\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\vulkan\include\spirv-headers\spirv.hpp11">

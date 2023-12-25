@@ -19,9 +19,11 @@ static Magnefu::MacWindow s_window;
 #endif
 
 // Callbacks
+
+// I should use my own event system...
 static void input_os_messages_callback(void* os_event, void* user_data)
 {
-	Magnefu::InputService* input = (raptor::InputService*)user_data;
+	Magnefu::InputService* input = (Magnefu::InputService*)user_data;
 	input->on_event(os_event);
 }
 
@@ -52,16 +54,19 @@ void Sandbox::create(const Magnefu::ApplicationConfiguration& configuration)
 	using namespace Magnefu;
 
 	time_service_init();
-	LogService::Instance()->Init(nullptr);
+
+ 	LogService::Instance()->Init(nullptr);
 	MemoryService::Instance()->Init(nullptr);
 	service_manager = Magnefu::ServiceManager::instance;
 
 	service_manager->init(&Magnefu::MemoryService::Instance()->systemAllocator);
+	//service_manager->get<LogService>();
 
 	// window
 	WindowConfiguration wconf{ configuration.width, configuration.height, configuration.name, &MemoryService::Instance()->systemAllocator };
 	window = &s_window;
-	window->init(&wconf);
+	window->Init(&wconf);
+	window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
 	// input
 	input = service_manager->get<InputService>();
@@ -74,8 +79,6 @@ void Sandbox::create(const Magnefu::ApplicationConfiguration& configuration)
 	GraphicsContext* gpu = service_manager->get<GraphicsContext>();
 	gpu->init(dc);
 
-	// Callback register
-	window->register_os_messages_callback(input_os_messages_callback, input);
 
 	// App specific create ////////////////////////////////////////////////
 	renderer = service_manager->get<Renderer>();
@@ -92,17 +95,28 @@ void Sandbox::create(const Magnefu::ApplicationConfiguration& configuration)
 
 void Sandbox::destroy()
 {
+	using namespace Magnefu;
 
+	MF_CORE_INFO("Sandbox Shutdown");
+
+	// Shutdown services
+	imgui->Shutdown();
+	input->Shutdown();
+	renderer->shutdown();
+	window->Shutdown();
+
+	time_service_shutdown();
+
+	service_manager->shutdown();
+
+	MemoryService::Instance()->Shutdown();
+	LogService::Instance()->Shutdown();
 }
 
 bool Sandbox::main_loop()
 {
 	return false;
 }
-
-
-
-
 
 
 Magnefu::Application* Magnefu::CreateApplication()
