@@ -66,9 +66,8 @@ namespace Magnefu
 		
 		
 		// -- DONT KNOW IF I WILL KEEP THESES
-		virtual void* GetNativeWindow() const {};
 		virtual void OnFinish() {};
-		virtual bool IsVSync() {};
+		//virtual bool IsVSync() {};
 		virtual void CloseWindow() {};
 		virtual void OnUpdate() {};
 		virtual void DrawFrame() {};

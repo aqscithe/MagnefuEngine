@@ -67,12 +67,12 @@ namespace Magnefu
 	#define MF_CORE_CRITICAL(...)  ::Magnefu::LogService::GetCoreLogger()->critical(__VA_ARGS__)
 
 
-	#define MF_ERROR(...)          ::Magnefu::LogService::GetClientLogger()->error(__VA_ARGS__)
-	#define MF_WARN(...)           ::Magnefu::LogService::GetClientLogger()->warn(__VA_ARGS__)
-	#define MF_INFO(...)           ::Magnefu::LogService::GetClientLogger()->info(__VA_ARGS__)
-	#define MF_DEBUG(...)          ::Magnefu::LogService::GetClientLogger()->debug(__VA_ARGS__)
-	#define MF_TRACE(...)          ::Magnefu::LogService::GetClientLogger()->trace(__VA_ARGS__)
-	#define MF_CRITICAL(...)       ::Magnefu::LogService::GetClientLogger()->critical(__VA_ARGS__)
+	#define MF_APP_ERROR(...)          ::Magnefu::LogService::GetClientLogger()->error(__VA_ARGS__)
+	#define MF_APP_WARN(...)           ::Magnefu::LogService::GetClientLogger()->warn(__VA_ARGS__)
+	#define MF_APP_INFO(...)           ::Magnefu::LogService::GetClientLogger()->info(__VA_ARGS__)
+	#define MF_APP_DEBUG(...)          ::Magnefu::LogService::GetClientLogger()->debug(__VA_ARGS__)
+	#define MF_APP_TRACE(...)          ::Magnefu::LogService::GetClientLogger()->trace(__VA_ARGS__)
+	#define MF_APP_CRITICAL(...)       ::Magnefu::LogService::GetClientLogger()->critical(__VA_ARGS__)
 #else
 	#define MF_CORE_ERROR(...)   
 	#define MF_CORE_WARN(...)      
@@ -82,10 +82,10 @@ namespace Magnefu
 	#define MF_CORE_CRITICAL(...)
 
 
-	#define MF_ERROR(...)        
-	#define MF_WARN(...)         
-	#define MF_INFO(...)         
-	#define MF_DEBUG(...)        
-	#define MF_TRACE(...)        
-	#define MF_CRITICAL(...)     
+	#define MF_APP_ERROR(...)        
+	#define MF_APP_WARN(...)         
+	#define MF_APP_INFO(...)         
+	#define MF_APP_DEBUG(...)        
+	#define MF_APP_TRACE(...)        
+	#define MF_APP_CRITICAL(...)     
 #endif

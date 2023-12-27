@@ -12,7 +12,7 @@
 
 namespace Magnefu
 {
-	class  Layer
+	struct  Layer
 	{
 	public:
 		Layer(const std::string& name = "Layer");

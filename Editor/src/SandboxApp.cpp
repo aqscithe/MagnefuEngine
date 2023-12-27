@@ -57,12 +57,12 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	WindowConfiguration wconf{ configuration.width, configuration.height, configuration.name, &MemoryService::Instance()->systemAllocator };
 	window = &s_window;
 	window->Init(&wconf);
-	window->SetEventCallback(BIND_EVENT_FN(Sandbox::OnEvent));
+	window->SetEventCallback(BIND_EVENT_FN(this, Sandbox::OnEvent));
 
 	// input
 	input = service_manager->get<InputService>();
 	input->Init(&MemoryService::Instance()->systemAllocator);
-	input->SetEventCallback(BIND_EVENT_FN(Sandbox::OnEvent));
+	input->SetEventCallback(BIND_EVENT_FN(this, Sandbox::OnEvent));
 
 	// graphics
 	DeviceCreation dc;
@@ -134,18 +134,20 @@ void Sandbox::OnEvent(Magnefu::Event& event)
 	using namespace Magnefu;
 
 	EventDispatcher dispatcher(event);
-	dispatcher.Dispatch <WindowCloseEvent>(BIND_EVENT_FN(Sandbox::OnWindowClose));
-	dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Sandbox::OnWindowResize));
-	dispatcher.Dispatch<WindowMovedEvent>(BIND_EVENT_FN(Sandbox::OnWindowMoved));
-	dispatcher.Dispatch<WindowFocusEvent>(BIND_EVENT_FN(Sandbox::OnWindowFocus));
-	dispatcher.Dispatch<WindowLostFocusEvent>(BIND_EVENT_FN(Sandbox::OnWindowLostFocus));
+	dispatcher.Dispatch <WindowCloseEvent>(BIND_EVENT_FN(this, Sandbox::OnWindowClose));
+	dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(this, Sandbox::OnWindowResize));
+	dispatcher.Dispatch<WindowMovedEvent>(BIND_EVENT_FN(this,Sandbox::OnWindowMoved));
+	dispatcher.Dispatch<WindowFocusEvent>(BIND_EVENT_FN(this, Sandbox::OnWindowFocus));
+	dispatcher.Dispatch<WindowLostFocusEvent>(BIND_EVENT_FN(this,Sandbox::OnWindowLostFocus));
 
-	dispatcher.Dispatch<KeyEvent>(BIND_EVENT_FN(InputService::OnEvent));
-	dispatcher.Dispatch<MouseButtonEvent>(BIND_EVENT_FN(InputService::OnEvent));
-	dispatcher.Dispatch<MouseMovedEvent>(BIND_EVENT_FN(InputService::OnEvent));
-	dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FN(InputService::OnEvent));
-	dispatcher.Dispatch<GamepadConnectedEvent>(BIND_EVENT_FN(InputService::OnEvent));
-	dispatcher.Dispatch<GamepadDisconnectedEvent>(BIND_EVENT_FN(InputService::OnEvent));
+	dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(input, InputService::OnEvent));
+	dispatcher.Dispatch<KeyReleasedEvent>(BIND_EVENT_FN(input, InputService::OnEvent));
+	dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FN(input, InputService::OnEvent));
+	dispatcher.Dispatch<MouseButtonReleasedEvent>(BIND_EVENT_FN(input, InputService::OnEvent));
+	dispatcher.Dispatch<MouseMovedEvent>(BIND_EVENT_FN(input, InputService::OnEvent));
+	dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FN(input, InputService::OnEvent));
+	dispatcher.Dispatch<GamepadConnectedEvent>(BIND_EVENT_FN(input, InputService::OnEvent));
+	dispatcher.Dispatch<GamepadDisconnectedEvent>(BIND_EVENT_FN(input, InputService::OnEvent));
 
 	
 

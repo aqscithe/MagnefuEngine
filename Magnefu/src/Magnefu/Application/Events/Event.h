@@ -8,6 +8,7 @@
 
 // -- Core Includes ---------------------------------- //
 #include "Magnefu/Core/Assertions.h"
+#include "Magnefu/Core/Platform.hpp"
 
 
 // -- Other Includes ----------------------- //

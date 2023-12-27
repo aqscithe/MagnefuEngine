@@ -1,11 +1,16 @@
 #pragma once
 
 // -- Application Includes ---------//
+#include "Magnefu/Application/Events/GamepadEvent.h"
+#include "Magnefu/Application/Events/KeyEvent.h"
+#include "Magnefu/Application/Events/MouseEvent.h"
 
-// -- Graphics Includes --------------------- //
 #include "GamepadCodes.h"
 #include "MouseButtonCodes.h"
 #include "KeyCodes.h"
+
+// -- Graphics Includes --------------------- //
+
 
 
 // -- Core Includes ---------------------------------- //
@@ -166,6 +171,7 @@ namespace Magnefu
 
 	struct InputService : public Service 
 	{
+		using EventCallbackFn = std::function<void(Event&)>;
 
 		MF_DECLARE_SERVICE(InputService);
 
@@ -191,7 +197,7 @@ namespace Magnefu
 		void                            DebugUI();
 
 		void                            NewFrame();            // Called before message handling
-		void                            OnEvent(Event& e);
+		bool                            OnEvent(Event& e);
 
 		bool                            IsTriggered(InputHandle action) const;
 		f32                             IsReadValue1D(InputHandle action) const;
@@ -212,6 +218,7 @@ namespace Magnefu
 		void                            AddVector2D(InputHandle action, DevicePart device_up, uint16_t button_up, DevicePart device_down, uint16_t button_down, DevicePart device_left, uint16_t button_left, DevicePart device_right, uint16_t button_right, bool repeat = true);
 
 		void							SetEventCallback(const EventCallbackFn& callback);
+		inline void						SetHasFocus(bool value) { has_focus = value; }
 
 	public:
 

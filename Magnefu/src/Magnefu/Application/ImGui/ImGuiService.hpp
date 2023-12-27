@@ -48,7 +48,7 @@ namespace Magnefu
 
 
 
-	class  ImGuiService : public Layer, Service
+	struct  ImGuiService : public Layer, Service
 	{
 
 	public:

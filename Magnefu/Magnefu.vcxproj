@@ -152,6 +152,7 @@
     <ClInclude Include="src\Magnefu\Application\Entrypoint.h" />
     <ClInclude Include="src\Magnefu\Application\Events\ApplicationEvent.h" />
     <ClInclude Include="src\Magnefu\Application\Events\Event.h" />
+    <ClInclude Include="src\Magnefu\Application\Events\GamepadEvent.h" />
     <ClInclude Include="src\Magnefu\Application\Events\OSEvent.h" />
     <ClInclude Include="src\Magnefu\Application\Input\GamepadCodes.h" />
     <ClInclude Include="src\Magnefu\Application\Input\Input.h" />

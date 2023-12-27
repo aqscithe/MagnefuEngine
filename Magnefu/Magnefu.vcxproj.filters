@@ -3114,6 +3114,7 @@
     <ClInclude Include="src\Magnefu\Core\ServiceManager.hpp" />
     <ClInclude Include="src\Magnefu\Application\Input\GamepadCodes.h" />
     <ClInclude Include="src\Magnefu\Application\Events\OSEvent.h" />
+    <ClInclude Include="src\Magnefu\Application\Events\GamepadEvent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application\Application.cpp">

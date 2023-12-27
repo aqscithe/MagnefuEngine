@@ -526,25 +526,27 @@ namespace Magnefu
         return mouse_drag_distance[button] > k_mouse_drag_min_distance;
     }
 
-    void InputService::OnEvent(Event& event) 
+    bool InputService::OnEvent(Event& event) 
     {
         s_input_backend.OnEvent(event, keys, MF_KEY_COUNT, gamepads, k_max_gamepads, has_focus);
+
+        return true;
     }
 
     bool InputService::IsTriggered(InputHandle action) const {
-        MF_CORE_ASSERT(action < actions.count(), "Action not available");
+        MF_CORE_ASSERT((action < actions.count()), "Action not available");
         return actions[action].Triggered();
     }
 
     f32 InputService::IsReadValue1D(InputHandle action) const 
     {
-        MF_CORE_ASSERT(action < actions.count(), "Action not available");
+        MF_CORE_ASSERT((action < actions.count()), "Action not available");
         return actions[action].ReadValue1D();
     }
 
     InputVector2 InputService::IsReadValue2D(InputHandle action) const 
     {
-        MF_CORE_ASSERT(action < actions.count(), "Action not available");
+        MF_CORE_ASSERT((action < actions.count()), "Action not available");
         return actions[action].ReadValue2D();
     }
 
@@ -1182,8 +1184,8 @@ namespace Magnefu
 
     InputBinding& InputBinding::SetHandles(InputHandle action_map, InputHandle action) {
         // Don't expect this to have more than 256.
-        MF_CORE_ASSERT(action_map < 256, "Exceeded allotted number of action maps");
-        MF_CORE_ASSERT(action < 16636, "Exceeded allotted number of actions");
+        MF_CORE_ASSERT((action_map < 256), "Exceeded allotted number of action maps");
+        MF_CORE_ASSERT((action < 16636), "Exceeded allotted number of actions");
 
         action_map_index = (u8)action_map;
         action_index = (u16)action;

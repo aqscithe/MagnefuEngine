@@ -6,6 +6,10 @@ namespace Magnefu
 {
 
     struct Service;
+    struct Renderer;
+    struct ImGuiService;
+    struct InputService;
+    struct GraphicsContext;
 
     struct ServiceManager 
     {

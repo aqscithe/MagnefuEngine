@@ -111,7 +111,7 @@ namespace Magnefu
 
 	void SceneCamera::ProcessInput(double deltaTime)
 	{
-		double cameraSpeed = m_Data.Speed * deltaTime;
+		/*double cameraSpeed = m_Data.Speed * deltaTime;
 		double forwardMovement = 0.0;
 		if (Input::IsKeyPressed(MF_KEY_W) || Input::IsKeyPressed(MF_KEY_UP))
 			forwardMovement += cameraSpeed;
@@ -129,15 +129,15 @@ namespace Magnefu
 		if (Input::IsKeyPressed(MF_KEY_E))
 			verticalMovement += cameraSpeed;
 		if (Input::IsKeyPressed(MF_KEY_Q))
-			verticalMovement -= cameraSpeed;
+			verticalMovement -= cameraSpeed;*/
 
 
-		m_Data.Position.x += Maths::sin(m_Data.Yaw) * forwardMovement;
+		/*m_Data.Position.x += Maths::sin(m_Data.Yaw) * forwardMovement;
 		m_Data.Position.z -= Maths::cos(m_Data.Yaw) * forwardMovement;
 		m_Data.Position.x += Maths::cos(m_Data.Yaw) * strafeMovement;
 		m_Data.Position.z += Maths::sin(m_Data.Yaw) * strafeMovement;
 		m_Data.Position.y -= Maths::sin(m_Data.Pitch) * forwardMovement;
-		m_Data.Position.y += verticalMovement;
+		m_Data.Position.y += verticalMovement;*/
 	}
 
 

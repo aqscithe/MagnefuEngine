@@ -19,7 +19,8 @@
 
 namespace Magnefu
 {
-#define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
+//#define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
+#define BIND_EVENT_FN(instance, func) std::bind(&func, instance, std::placeholders::_1)
 
 	struct ServiceManager;
 
@@ -59,19 +60,19 @@ namespace Magnefu
 		virtual void				PushLayer(Layer* layer);
 		virtual void				PushOverlay(Layer* overlay) {}
 
-		virtual void				OnEvent(Event& event) {};
-		virtual bool				OnWindowClose(WindowCloseEvent& e) {};
-		virtual bool				OnWindowResize(WindowResizeEvent& e) {};
-		virtual bool				OnWindowMoved(WindowMovedEvent& e) {};
-		virtual bool				OnWindowFocus(WindowFocusEvent& e) {};
-		virtual bool				OnWindowLostFocus(WindowLostFocusEvent& e) {};
+		virtual void				OnEvent(Event& event) { };
+		virtual bool				OnWindowClose(WindowCloseEvent& e) { return false; };
+		virtual bool				OnWindowResize(WindowResizeEvent& e) { return false; };
+		virtual bool				OnWindowMoved(WindowMovedEvent& e) {return false;};
+		virtual bool				OnWindowFocus(WindowFocusEvent& e) {return false;};
+		virtual bool				OnWindowLostFocus(WindowLostFocusEvent& e) { return false; };
 
 
 
 		// -- Getter Methods -------------------------------- //
 		static Application* Get() { return s_Instance; }
 
-		virtual void* GetWindow() {};
+		virtual void* GetWindow() { return nullptr; }
 
 
 
