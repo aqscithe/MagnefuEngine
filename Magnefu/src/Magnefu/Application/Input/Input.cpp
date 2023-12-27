@@ -721,52 +721,53 @@ namespace Magnefu
 
             switch (input_binding.device) 
             {
-            case DEVICE_KEYBOARD:
-            {
-                bool key_value = input_binding.repeat ? IsKeyDown((Keys)input_binding.button) : IsKeyJustPressed((Keys)input_binding.button, false);
-                input_binding.value = key_value ? 1.0f : 0.0f;
-                break;
-            }
-
-            case DEVICE_GAMEPAD:
-            {
-                Gamepad& gamepad = gamepads[0];
-                if (gamepad.handle == nullptr)
+                case DEVICE_KEYBOARD:
                 {
+                    bool key_value = input_binding.repeat ? IsKeyDown((Keys)input_binding.button) : IsKeyJustPressed((Keys)input_binding.button, false);
+                    input_binding.value = key_value ? 1.0f : 0.0f;
                     break;
                 }
 
-                const float min_deadzone = input_binding.min_deadzone;
-                const float max_deadzone = input_binding.max_deadzone;
+                case DEVICE_GAMEPAD:
+                {
+                    Gamepad& gamepad = gamepads[0];
+                    if (gamepad.handle == nullptr)
+                    {
+                        break;
+                    }
 
-                switch (input_binding.device_part) 
-                {
-                case DEVICE_PART_GAMEPAD_AXIS:
-                {
-                    input_binding.value = gamepad.axis[input_binding.button];
-                    input_binding.value = fabs(input_binding.value) < min_deadzone ? 0.0f : input_binding.value;
-                    input_binding.value = fabs(input_binding.value) > max_deadzone ? (input_binding.value < 0 ? -1.0f : 1.0f) : input_binding.value;
+                    const float min_deadzone = input_binding.min_deadzone;
+                    const float max_deadzone = input_binding.max_deadzone;
 
-                    break;
-                }
-                case DEVICE_PART_GAMEPAD_BUTTONS:
-                {
-                    //input_binding.value = gamepad.buttons[ input_binding.button ];
-                    input_binding.value = input_binding.repeat ? gamepad.is_button_down((GamepadButtons)input_binding.button) : gamepad.is_button_just_pressed((GamepadButtons)input_binding.button);
-                    break;
-                }
-                /*case InputBinding::GAMEPAD_HAT:
-                {
-                    input_binding.value = gamepad.hats[ input_binding.button ];
-                    break;
-                }*/
+                    switch (input_binding.device_part) 
+                    {
+                        case DEVICE_PART_GAMEPAD_AXIS:
+                        {
+                            input_binding.value = gamepad.axis[input_binding.button];
+                            input_binding.value = fabs(input_binding.value) < min_deadzone ? 0.0f : input_binding.value;
+                            input_binding.value = fabs(input_binding.value) > max_deadzone ? (input_binding.value < 0 ? -1.0f : 1.0f) : input_binding.value;
 
+                            break;
+                        }
+                        case DEVICE_PART_GAMEPAD_BUTTONS:
+                        {
+                            //input_binding.value = gamepad.buttons[ input_binding.button ];
+                            input_binding.value = input_binding.repeat ? gamepad.IsButtonDown((GamepadButtons)input_binding.button) : gamepad.IsButtonJustPressed((GamepadButtons)input_binding.button);
+                            break;
+                        }
+                        /*case InputBinding::GAMEPAD_HAT:
+                        {
+                            input_binding.value = gamepad.hats[ input_binding.button ];
+                            break;
+                        }*/
+
+                    }
                 }
-            }
             }
         }
 
-        for (u32 k = 0; k < bindings.size; k++) {
+        for (u32 k = 0; k < bindings.count(); k++) 
+        {
             InputBinding& input_binding = bindings[k];
 
             if (input_binding.is_part_of_composite)
@@ -774,53 +775,54 @@ namespace Magnefu
 
             InputAction& input_action = actions[input_binding.action_index];
 
-            switch (input_binding.type) {
-            case BINDING_TYPE_BUTTON:
+            switch (input_binding.type) 
             {
-                input_action.value.x = fmax(input_action.value.x, input_binding.value ? 1.0f : 0.0f);
-                break;
-            }
+                case BINDING_TYPE_BUTTON:
+                {
+                    input_action.value.x = fmax(input_action.value.x, input_binding.value ? 1.0f : 0.0f);
+                    break;
+                }
 
-            case BINDING_TYPE_AXIS_1D:
-            {
-                input_action.value.x = input_binding.value != 0.f ? input_binding.value : input_action.value.x;
-                break;
-            }
+                case BINDING_TYPE_AXIS_1D:
+                {
+                    input_action.value.x = input_binding.value != 0.f ? input_binding.value : input_action.value.x;
+                    break;
+                }
 
-            case BINDING_TYPE_AXIS_2D:
-            {
-                // Retrieve following 2 bindings
-                InputBinding& input_binding_x = bindings[++k];
-                InputBinding& input_binding_y = bindings[++k];
+                case BINDING_TYPE_AXIS_2D:
+                {
+                    // Retrieve following 2 bindings
+                    InputBinding& input_binding_x = bindings[++k];
+                    InputBinding& input_binding_y = bindings[++k];
 
-                input_action.value.x = input_binding_x.value != 0.0f ? input_binding_x.value : input_action.value.x;
-                input_action.value.y = input_binding_y.value != 0.0f ? input_binding_y.value : input_action.value.y;
+                    input_action.value.x = input_binding_x.value != 0.0f ? input_binding_x.value : input_action.value.x;
+                    input_action.value.y = input_binding_y.value != 0.0f ? input_binding_y.value : input_action.value.y;
 
-                break;
-            }
+                    break;
+                }
 
-            case BINDING_TYPE_VECTOR_1D:
-            {
-                // Retrieve following 2 bindings
-                InputBinding& input_binding_pos = bindings[++k];
-                InputBinding& input_binding_neg = bindings[++k];
+                case BINDING_TYPE_VECTOR_1D:
+                {
+                    // Retrieve following 2 bindings
+                    InputBinding& input_binding_pos = bindings[++k];
+                    InputBinding& input_binding_neg = bindings[++k];
 
-                input_action.value.x = input_binding_pos.value ? input_binding_pos.value : input_binding_neg.value ? -input_binding_neg.value : input_action.value.x;
-                break;
-            }
+                    input_action.value.x = input_binding_pos.value ? input_binding_pos.value : input_binding_neg.value ? -input_binding_neg.value : input_action.value.x;
+                    break;
+                }
 
-            case BINDING_TYPE_VECTOR_2D:
-            {
-                // Retrieve following 4 bindings
-                InputBinding& input_binding_up = bindings[++k];
-                InputBinding& input_binding_down = bindings[++k];
-                InputBinding& input_binding_left = bindings[++k];
-                InputBinding& input_binding_right = bindings[++k];
+                case BINDING_TYPE_VECTOR_2D:
+                {
+                    // Retrieve following 4 bindings
+                    InputBinding& input_binding_up = bindings[++k];
+                    InputBinding& input_binding_down = bindings[++k];
+                    InputBinding& input_binding_left = bindings[++k];
+                    InputBinding& input_binding_right = bindings[++k];
 
-                input_action.value.x = input_binding_right.value ? 1.0f : input_binding_left.value ? -1.0f : input_action.value.x;
-                input_action.value.y = input_binding_up.value ? 1.0f : input_binding_down.value ? -1.0f : input_action.value.y;
-                break;
-            }
+                    input_action.value.x = input_binding_right.value ? 1.0f : input_binding_left.value ? -1.0f : input_action.value.x;
+                    input_action.value.y = input_binding_up.value ? 1.0f : input_binding_down.value ? -1.0f : input_action.value.y;
+                    break;
+                }
             }
         }
 
@@ -953,5 +955,208 @@ namespace Magnefu
             }
         }
         */
+    }
+
+#include "imgui/imgui.h"
+
+    void InputService::DebugUI() 
+    {
+
+        if (ImGui::Begin("Input")) 
+        {
+            ImGui::Text("Has focus %u", has_focus ? 1 : 0);
+
+            if (ImGui::TreeNode("Devices")) 
+            {
+                ImGui::Separator();
+                if (ImGui::TreeNode("Gamepads")) 
+                {
+                    for (u32 i = 0; i < k_max_gamepads; ++i) 
+                    {
+                        const Gamepad& g = gamepads[i];
+                        ImGui::Text("Name: %s, id %d, index %u", g.name, g.id, g.index);
+                        // Attached gamepad
+                        if (g.IsAttached()) 
+                        {
+                            ImGui::NewLine();
+                            ImGui::Columns(GAMEPAD_AXIS_COUNT);
+                            for (u32 gi = 0; gi < GAMEPAD_AXIS_COUNT; gi++) 
+                            {
+                                ImGui::Text("%s", GamepadAxisNames()[gi]);
+                                ImGui::NextColumn();
+                            }
+                            for (u32 gi = 0; gi < GAMEPAD_AXIS_COUNT; gi++) 
+                            {
+                                ImGui::Text("%f", g.axis[gi]);
+                                ImGui::NextColumn();
+                            }
+                            ImGui::NewLine();
+                            ImGui::Columns(GAMEPAD_BUTTON_COUNT);
+                            for (u32 gi = 0; gi < GAMEPAD_BUTTON_COUNT; gi++) 
+                            {
+                                ImGui::Text("%s", GamepadButtonNames()[gi]);
+                                ImGui::NextColumn();
+                            }
+                            ImGui::Columns(GAMEPAD_BUTTON_COUNT);
+                            for (u32 gi = 0; gi < GAMEPAD_BUTTON_COUNT; gi++) 
+                            {
+                                ImGui::Text("%u", g.buttons[gi]);
+                                ImGui::NextColumn();
+                            }
+
+                            ImGui::Columns(1);
+                        }
+                        ImGui::Separator();
+                    }
+                    ImGui::TreePop();
+                }
+
+                ImGui::Separator();
+                if (ImGui::TreeNode("Mouse")) {
+                    ImGui::Text("Position     %f,%f", mouse_position.x, mouse_position.y);
+                    ImGui::Text("Previous pos %f,%f", previous_mouse_position.x, previous_mouse_position.y);
+
+                    ImGui::Separator();
+
+                    for (u32 i = 0; i < MOUSE_BUTTONS_COUNT; i++) {
+                        ImGui::Text("Button %u", i);
+                        ImGui::SameLine();
+                        ImGui::Text("Clicked Position     %4.1f,%4.1f", mouse_clicked_position[i].x, mouse_clicked_position[i].y);
+                        ImGui::SameLine();
+                        ImGui::Text("Button %u, Previous %u", mouse_buttons[i], previous_mouse_buttons[i]);
+                        ImGui::SameLine();
+                        ImGui::Text("Drag %f", mouse_drag_distance[i]);
+
+                        ImGui::Separator();
+                    }
+                    ImGui::TreePop();
+                }
+
+                ImGui::Separator();
+                if (ImGui::TreeNode("Keyboard")) {
+                    for (u32 i = 0; i < MF_KEY_LAST; i++) {
+
+                    }
+                    ImGui::TreePop();
+                }
+                ImGui::TreePop();
+            }
+
+            if (ImGui::TreeNode("Actions")) {
+
+                for (u32 j = 0; j < actions.count(); j++) {
+                    const InputAction& input_action = actions[j];
+                    ImGui::Text("Action %s, x %2.3f y %2.3f", input_action.name, input_action.value.x, input_action.value.y);
+                }
+
+                ImGui::TreePop();
+            }
+
+            if (ImGui::TreeNode("Bindings")) {
+                for (u32 k = 0; k < bindings.count(); k++) {
+                    const InputBinding& binding = bindings[k];
+                    const InputAction& parent_action = actions[binding.action_index];
+
+                    cstring button_name = "";
+                    switch (binding.device_part) {
+                    case DEVICE_PART_KEYBOARD:
+                    {
+                        button_name = KeyNames()[binding.button];
+                        break;
+                    }
+                    case DEVICE_PART_MOUSE:
+                    {
+                        break;
+                    }
+                    case DEVICE_PART_GAMEPAD_AXIS:
+                    {
+                        break;
+                    }
+                    case DEVICE_PART_GAMEPAD_BUTTONS:
+                    {
+                        break;
+                    }
+                    }
+
+                    switch (binding.type) {
+                    case BINDING_TYPE_VECTOR_1D:
+                    {
+                        ImGui::Text("Binding action %s, type %s, value %f, composite %u, part of composite %u, button %s", parent_action.name, "vector 1d", binding.value, binding.is_composite, binding.is_part_of_composite, button_name);
+                        break;
+                    }
+                    case BINDING_TYPE_VECTOR_2D:
+                    {
+                        ImGui::Text("Binding action %s, type %s, value %f, composite %u, part of composite %u", parent_action.name, "vector 2d", binding.value, binding.is_composite, binding.is_part_of_composite);
+                        break;
+                    }
+                    case BINDING_TYPE_AXIS_1D:
+                    {
+                        ImGui::Text("Binding action %s, type %s, value %f, composite %u, part of composite %u", parent_action.name, "axis 1d", binding.value, binding.is_composite, binding.is_part_of_composite);
+                        break;
+                    }
+                    case BINDING_TYPE_AXIS_2D:
+                    {
+                        ImGui::Text("Binding action %s, type %s, value %f, composite %u, part of composite %u", parent_action.name, "axis 2d", binding.value, binding.is_composite, binding.is_part_of_composite);
+                        break;
+                    }
+                    case BINDING_TYPE_BUTTON:
+                    {
+                        ImGui::Text("Binding action %s, type %s, value %f, composite %u, part of composite %u, button %s", parent_action.name, "button", binding.value, binding.is_composite, binding.is_part_of_composite, button_name);
+                        break;
+                    }
+                    }
+                }
+
+                ImGui::TreePop();
+            }
+
+        }
+        ImGui::End();
+    }
+
+    // InputAction /////////////////////////////////////////////////////////
+
+    bool InputAction::Triggered() const 
+    {
+        return value.x != 0.0f;
+    }
+
+    float InputAction::ReadValue1D() const 
+    {
+        return value.x;
+    }
+
+    InputVector2 InputAction::ReadValue2D() const 
+    {
+        return value;
+    }
+
+
+    InputBinding& InputBinding::Set(BindingType type_, Device device_, DevicePart device_part_, u16 button_, u8 is_composite_, u8 is_part_of_composite_, u8 repeat_) {
+        type = type_;
+        device = device_;
+        device_part = device_part_;
+        button = button_;
+        is_composite = is_composite_;
+        is_part_of_composite = is_part_of_composite_;
+        repeat = repeat_;
+        return *this;
+    }
+
+    InputBinding& InputBinding::SetDeadZones(f32 min, f32 max) {
+        min_deadzone = min;
+        max_deadzone = max;
+        return *this;
+    }
+
+    InputBinding& InputBinding::SetHandles(InputHandle action_map, InputHandle action) {
+        // Don't expect this to have more than 256.
+        MF_CORE_ASSERT(action_map < 256, "Exceeded allotted number of action maps");
+        MF_CORE_ASSERT(action < 16636, "Exceeded allotted number of actions");
+
+        action_map_index = (u8)action_map;
+        action_index = (u16)action;
+
+        return *this;
     }
 }
