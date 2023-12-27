@@ -21,13 +21,8 @@ static const uint32_t MAX_SCENES = 1;
 static double s_deltaTime = 1.0;
 
 SandboxLayer::SandboxLayer() :
-	Layer("Sandbox"),
-	m_Camera(std::static_pointer_cast<Magnefu::SceneCamera>(Magnefu::Application::Get().GetWindow().GetSceneCamera())),
-	current_path(std::filesystem::current_path()),
-	m_ActiveScene(nullptr),
-	m_SelectedEntity(nullptr)
+	Layer("Sandbox")
 {
-	Magnefu::Application& app = Magnefu::Application::Get();
 	//auto& scenes = app.GetScenes();
 
 
@@ -45,7 +40,7 @@ SandboxLayer::SandboxLayer() :
 
 void SandboxLayer::OnAttach()
 {
-	m_Camera->SetDefaultProps();
+	/*m_Camera->SetDefaultProps();*/
 }
 
 void SandboxLayer::OnDetach()
@@ -55,14 +50,50 @@ void SandboxLayer::OnDetach()
 
 void SandboxLayer::OnUpdate(double deltaTime)
 {
-	s_deltaTime = deltaTime;
-	m_Camera->ProcessInput(deltaTime);
+	/*s_deltaTime = deltaTime;
+	m_Camera->ProcessInput(deltaTime);*/
 	//m_GraphicsContext->SetPushConstants(m_PushConstants);
 }
 
 void SandboxLayer::OnEvent(Magnefu::Event& e)
 {
+	auto type = e.GetEventType();
 
+	switch (type)
+	{
+	case Magnefu::EventType::None:
+		break;
+	case Magnefu::EventType::WindowClose:
+		break;
+	case Magnefu::EventType::WindowResize:
+		break;
+	case Magnefu::EventType::WindowFocus:
+		break;
+	case Magnefu::EventType::WindowLostFocus:
+		break;
+	case Magnefu::EventType::WindowMoved:
+		break;
+	case Magnefu::EventType::AppTick:
+		break;
+	case Magnefu::EventType::AppUpdate:
+		break;
+	case Magnefu::EventType::AppRender:
+		break;
+	case Magnefu::EventType::KeyPressed:
+		break;
+	case Magnefu::EventType::KeyReleased:
+		break;
+	case Magnefu::EventType::MouseButtonPressed:
+		break;
+	case Magnefu::EventType::MouseButtonReleased:
+		break;
+	case Magnefu::EventType::MouseMoved:
+		break;
+	case Magnefu::EventType::MouseScrolled:
+		break;
+	default:
+		break;
+	}
 }
 
 void SandboxLayer::OnRender()
@@ -79,7 +110,7 @@ void SandboxLayer::OnGUIRender()
 	}*/
 
 
-	ShowApplicationMenuBar();
+	/*ShowApplicationMenuBar();
 	ShowNewSceneDialog();
 	ShowCameraSettingsWindow();
 	ShowRendererSettingsWindow();
@@ -90,7 +121,7 @@ void SandboxLayer::OnGUIRender()
 	if (m_ActiveScene)
 	{
 		ShowScene();
-	}
+	}*/
 
 
 }
@@ -120,7 +151,7 @@ void SandboxLayer::ShowApplicationMenuBar()
 			}
 			if (ImGui::MenuItem("Exit", "Esc", false, true))
 			{
-				Magnefu::Application::Get().GetWindow().CloseWindow();
+				//Magnefu::Application::Get().GetWindow().CloseWindow();
 			}
 			ImGui::EndMenu();
 		}
@@ -209,59 +240,59 @@ void SandboxLayer::ShowNewSceneDialog()
 	}
 }
 
-void SandboxLayer::ShowCameraSettingsWindow()
-{
-	if (!openCameraSettingsWindow) { return; }
-
-	auto& camera = Magnefu::Application::Get().GetWindow().GetSceneCamera();
-
-	if (ImGui::Begin("Camera Details", &openCameraSettingsWindow, ImGuiWindowFlags_NoCollapse))
-	{
-		ImGui::SeparatorText("MATRICES");
-
-		ImGui::Text("View");
-		ImGui::Text("\t%.1f\t%.1f\t%.1f\t%.1f", camera->GetView().e[0], camera->GetView().e[1], camera->GetView().e[2], camera->GetView().e[3]);
-		ImGui::Text("\t%.1f\t%.1f\t%.1f\t%.1f", camera->GetView().e[4], camera->GetView().e[5], camera->GetView().e[6], camera->GetView().e[7]);
-		ImGui::Text("\t%.1f\t%.1f\t%.1f\t%.1f", camera->GetView().e[8], camera->GetView().e[9], camera->GetView().e[10], camera->GetView().e[11]);
-		ImGui::Text("\t%.1f\t%.1f\t%.1f\t%.1f", camera->GetView().e[12], camera->GetView().e[13], camera->GetView().e[14], camera->GetView().e[15]);
-
-		ImGui::SeparatorText("ORIENTATION");
-
-		ImGui::SliderFloat3("Position", camera->GetData().Position.e, -10.f, 10.f);
-		ImGui::Text("Yaw: %.2f", camera->GetData().Yaw);
-		ImGui::Text("Pitch: %.2f", camera->GetData().Pitch);
-
-		ImGui::SeparatorText("PROPERTIES");
-
-
-		ImGui::Text("Type: ");
-		if (ImGui::Selectable("\tPerspective", camera->IsPerspective()))
-		{
-			camera->GetData().Type = Magnefu::CameraType::Perspective;
-			camera->GetData().Near = 0.01f;
-			camera->SetOrtho(false);
-		}
-
-		if (ImGui::Selectable("\tOrthographic", camera->IsOrtho()))
-		{
-			camera->GetData().Type = Magnefu::CameraType::Orthographic;
-			camera->GetData().Near = 2.97f;
-			camera->SetPerspective(false);
-		}
-
-		ImGui::Text("Aspect Ration: %f", &camera->GetData().AspectRatio);
-		ImGui::SliderFloat("FOV", &camera->GetData().FOV, 45.f, 100.f);
-		ImGui::SliderFloat("Near", &camera->GetData().Near, 0.01f, 10.f);
-		ImGui::SliderFloat("Far", &camera->GetData().Far, 700.f, 1000.f);
-		ImGui::SliderFloat("Speed", &camera->GetData().Speed, 15.f, 100.f);
-		ImGui::SliderFloat3("Position", camera->GetData().Position.e, -500.f, 500.f);
-		ImGui::SliderFloat("Pitch", &camera->GetData().Pitch, -360.f, 360.f);
-		ImGui::SliderFloat("Yaw", &camera->GetData().Yaw, -360.f, 360.f);
-
-		ImGui::End();
-	}
-
-}
+//void SandboxLayer::ShowCameraSettingsWindow()
+//{
+//	if (!openCameraSettingsWindow) { return; }
+//
+//	auto& camera = Magnefu::Application::Get().GetWindow().GetSceneCamera();
+//
+//	if (ImGui::Begin("Camera Details", &openCameraSettingsWindow, ImGuiWindowFlags_NoCollapse))
+//	{
+//		ImGui::SeparatorText("MATRICES");
+//
+//		ImGui::Text("View");
+//		ImGui::Text("\t%.1f\t%.1f\t%.1f\t%.1f", camera->GetView().e[0], camera->GetView().e[1], camera->GetView().e[2], camera->GetView().e[3]);
+//		ImGui::Text("\t%.1f\t%.1f\t%.1f\t%.1f", camera->GetView().e[4], camera->GetView().e[5], camera->GetView().e[6], camera->GetView().e[7]);
+//		ImGui::Text("\t%.1f\t%.1f\t%.1f\t%.1f", camera->GetView().e[8], camera->GetView().e[9], camera->GetView().e[10], camera->GetView().e[11]);
+//		ImGui::Text("\t%.1f\t%.1f\t%.1f\t%.1f", camera->GetView().e[12], camera->GetView().e[13], camera->GetView().e[14], camera->GetView().e[15]);
+//
+//		ImGui::SeparatorText("ORIENTATION");
+//
+//		ImGui::SliderFloat3("Position", camera->GetData().Position.e, -10.f, 10.f);
+//		ImGui::Text("Yaw: %.2f", camera->GetData().Yaw);
+//		ImGui::Text("Pitch: %.2f", camera->GetData().Pitch);
+//
+//		ImGui::SeparatorText("PROPERTIES");
+//
+//
+//		ImGui::Text("Type: ");
+//		if (ImGui::Selectable("\tPerspective", camera->IsPerspective()))
+//		{
+//			camera->GetData().Type = Magnefu::CameraType::Perspective;
+//			camera->GetData().Near = 0.01f;
+//			camera->SetOrtho(false);
+//		}
+//
+//		if (ImGui::Selectable("\tOrthographic", camera->IsOrtho()))
+//		{
+//			camera->GetData().Type = Magnefu::CameraType::Orthographic;
+//			camera->GetData().Near = 2.97f;
+//			camera->SetPerspective(false);
+//		}
+//
+//		ImGui::Text("Aspect Ration: %f", &camera->GetData().AspectRatio);
+//		ImGui::SliderFloat("FOV", &camera->GetData().FOV, 45.f, 100.f);
+//		ImGui::SliderFloat("Near", &camera->GetData().Near, 0.01f, 10.f);
+//		ImGui::SliderFloat("Far", &camera->GetData().Far, 700.f, 1000.f);
+//		ImGui::SliderFloat("Speed", &camera->GetData().Speed, 15.f, 100.f);
+//		ImGui::SliderFloat3("Position", camera->GetData().Position.e, -500.f, 500.f);
+//		ImGui::SliderFloat("Pitch", &camera->GetData().Pitch, -360.f, 360.f);
+//		ImGui::SliderFloat("Yaw", &camera->GetData().Yaw, -360.f, 360.f);
+//
+//		ImGui::End();
+//	}
+//
+//}
 
 void SandboxLayer::ShowRendererSettingsWindow()
 {
@@ -357,317 +388,317 @@ void SandboxLayer::ShowScene()
 
 
 
-void SandboxLayer::ShowResourceBrowser()
-{
-	if (ImGui::Begin("Resource Browser"))
-	{
-
-		static char buffer[256] = "";
-
-		// Button or item to go up one level
-		if (ImGui::Button(".."))
-		{
-			current_path = current_path.parent_path();
-		}
-
-		// Input field for typing out the directory
-		if (ImGui::InputText("Go to", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
-		{
-			std::filesystem::path new_path(buffer);
-			if (std::filesystem::exists(new_path) && std::filesystem::is_directory(new_path))
-			{
-				current_path = new_path;
-			}
-			else
-			{
-				// Handle invalid path
-			}
-		}
-
-		for (const auto& entry : std::filesystem::directory_iterator(current_path))
-		{
-			if (ImGui::Selectable(entry.path().filename().string().c_str()))
-			{
-				if (entry.is_directory())
-				{
-					// Change directory
-					current_path = entry.path();
-				}
-				else
-				{
-					// Handle file selection
-				}
-			}
-		}
-	}
-	ImGui::End();
-}
-
-
-
-
-void SandboxLayer::ShowEntityListWindow()
-{
-	if (ImGui::Begin("Entities"))
-	{
-		if (m_ActiveScene)
-		{
-			for (auto& entity : m_ActiveScene->GetEntities())
-			{
-				if (ImGui::Selectable(entity->GetName(), m_SelectedEntity == entity))
-				{
-					m_SelectedEntity = entity; // Update the selected entity
-				}
-
-
-				// Display Entity Node
-				/*if (ImGui::TreeNode(entity->GetName().c_str()))
-				{
-
-					ImGui::TreePop();
-				}*/
-			}
-
-
-		}
-
-		if (ImGui::Button("+"))
-		{
-			if (m_ActiveScene)
-			{
-				cstring name = "Entity" + m_ActiveScene->GetEntities().count();
-				m_ActiveScene->CreateEntity(name);
-			}
-
-		}
-	}
-	ImGui::End();
-}
-
-void SandboxLayer::ShowAddComponentWidget()
-{
-	// Combo Boxes are also called "Dropdown" in other systems
-		// Expose flags as checkbox for the demo
-	//static ImGuiComboFlags flags = 0;
-	//ImGui::CheckboxFlags("ImGuiComboFlags_PopupAlignLeft", &flags, ImGuiComboFlags_PopupAlignLeft);
-	//ImGui::SameLine(); 
-	//if (ImGui::CheckboxFlags("ImGuiComboFlags_NoArrowButton", &flags, ImGuiComboFlags_NoArrowButton))
-	//	flags &= ~ImGuiComboFlags_NoPreview;     // Clear the other flag, as we cannot combine both
-	//if (ImGui::CheckboxFlags("ImGuiComboFlags_NoPreview", &flags, ImGuiComboFlags_NoPreview))
-	//	flags &= ~ImGuiComboFlags_NoArrowButton; // Clear the other flag, as we cannot combine both
-
-
-	if (ImGui::BeginCombo("Add Component", currentComponent >= 0 ? COMPONENT_TYPES[currentComponent] : "None"))
-	{
-		for (int i = 0; i < IM_ARRAYSIZE(COMPONENT_TYPES); i++)
-		{
-			bool isSelected = (currentComponent == i);
-			if (ImGui::Selectable(COMPONENT_TYPES[i], isSelected))
-			{
-				currentComponent = i;
-			}
-			if (isSelected)
-			{
-				ImGui::SetItemDefaultFocus();
-			}
-		}
-		ImGui::EndCombo();
-	}
-
-
-	if (currentComponent >= 0)
-	{
-		if (ImGui::Button("Add"))
-		{
-			// Add the selected component type to the entity
-			if (currentComponent == 0) // TransformComponent
-			{
-				if (!m_SelectedEntity->Contains<Magnefu::TransformComponent>())
-				{
-					m_SelectedEntity->AddComponent<Magnefu::TransformComponent>();
-				}
-			}
-			else if (currentComponent == 1)  // MeshComponent
-			{
-				showMeshComponentWidget = true;
-			}
-			currentComponent = -1; // Reset selection
-		}
-
-		if (ImGui::Button("Cancel"))
-		{
-			currentComponent = -1; // Reset selection on cancel
-			//showComponentCombo = false; 
-			showMeshComponentWidget = false;
-		}
-	}
-}
-
-void SandboxLayer::ShowMeshComponentWidget()
-{
-	static int currentMesh = -1; // -1: no selection
-
-	// Assuming you have a function to get all mesh names
-	//std::vector<std::string> meshNames = GetAllMeshNames();
-	std::vector<std::string> meshNames = { "Corridor", "SantaHat", "Cat", "TV", "Tower", "VictorianPainting" };
-
-	if (ImGui::BeginCombo("Select Mesh", currentMesh >= 0 ? meshNames[currentMesh].c_str() : "None"))
-	{
-		for (int i = 0; i < meshNames.size(); i++)
-		{
-			bool isSelected = (currentMesh == i);
-			if (ImGui::Selectable(meshNames[i].c_str(), isSelected))
-			{
-				currentMesh = i;
-			}
-			if (isSelected)
-			{
-				ImGui::SetItemDefaultFocus();
-			}
-		}
-		ImGui::EndCombo();
-	}
-
-	if (currentMesh >= 0)
-	{
-		if (ImGui::Button("Add MeshComponent"))
-		{
-			if (!m_SelectedEntity->Contains<Magnefu::MeshComponent>())
-			{
-				// Add MeshComponent to the entity with the selected mesh
-				m_SelectedEntity->AddComponent<Magnefu::MeshComponent>(meshNames[currentMesh]);
-				currentMesh = -1; // Reset selection
-			}
-		}
-	}
-}
-
-
-
-void SandboxLayer::ShowComponentWindow()
-{
-	if (ImGui::Begin("Components"))
-	{
-		if (m_SelectedEntity)
-		{
-			// TODO: Entity needs a GetComponents() function
-			// or does it?
-
-
-			// Display details for each component of the entity
-			if (Magnefu::TransformComponent* transform = static_cast<Magnefu::TransformComponent*>(m_SelectedEntity->GetTransformComponent()))
-			{
-				// Display transform component details
-				ImGui::Text("TRANSFORM");
-				ImGui::SliderFloat3("Position", transform->Position().e, -1000, 1000, "%.2f");
-				ImGui::SliderFloat3("Rotation", transform->Rotation().e, -360, 360, "%.2f");
-				ImGui::SliderFloat3("Scale", transform->Scale().e, 0.1, 100, "%.2f");
-				ImGui::Separator();
-			}
-			if (Magnefu::MeshComponent* transform = static_cast<Magnefu::MeshComponent*>(m_SelectedEntity->GetMeshComponent()))
-			{
-				// Display mesh component details
-				ImGui::Text("MESH");
-				ImGui::Separator();
-			}
-
-			ShowAddComponentWidget();
-
-			//if (ImGui::Button("Add Component"))
-			//{
-			//	showComponentCombo = true; // Set flag to open the combo box
-			//	
-			//}
-		}
-		else
-		{
-			ImGui::Text("No Entity Selected");
-		}
-
-
-	}
-	ImGui::End();
-}
-
-void SandboxLayer::CreateNewScene()
-{
-	auto& sceneManager = Magnefu::Application::Get().GetSceneManager();
-
-	if (sceneManager.GetScenes().count() >= MAX_SCENES)
-	{
-		MF_WARN("Reached Max Scene Count: {}", MAX_SCENES);
-		return;
-	}
-
-	// Handle the creation of the new scene with the name in sceneNameBuffer
-	cstring name = sceneNameBuffer;
-
-	while (sceneManager.NameExists(name))
-	{
-		// Append number to name if it already exists
-		name = sceneNameBuffer;
-		name += duplicateNameAppend;
-		duplicateNameAppend++;
-
-	}
-	duplicateNameAppend = 0;
-
-	m_ActiveScene = sceneManager.CreateScene(name);
-}
-
-void SandboxLayer::ShowMemoryStats()
-{
-	if (!showMemoryStatsWindow) { return; }
-
-	if (ImGui::Begin("Memory Stats", &showMemoryStatsWindow, ImGuiWindowFlags_NoCollapse))
-	{
-		if (ImGui::Button("Update Memory Stats"))
-		{
-			Magnefu::Application::Get().GetGraphicsContext().CalculateMemoryStats();
-		}
-
-		Magnefu::Application::Get().GetMemoryService().imguiDraw();
-
-		auto [blockCount, blockBytes, allocCount, allocBytes, usage, budget] =
-			Magnefu::Application::Get().GetGraphicsContext().GetMemoryStats();
-
-		ImGui::SeparatorText("VMA STATISTICS");
-
-		ImGui::Text("Block Count: %d", blockCount);
-		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Number of `VkDeviceMemory` objects - Vulkan memory blocks allocated."); }
-
-		ImGui::Text("Block Bytes: %llu", blockBytes);
-		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Number of bytes allocated in `VkDeviceMemory` blocks."); }
-
-		ImGui::Text("Allocation Count: %d", allocCount);
-		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Number of #VmaAllocation objects allocated."); }
-
-		ImGui::Text("Allocation Bytes: %llu", allocBytes);
-		if (ImGui::IsItemHovered())
-		{
-			ImGui::SetTooltip("Total number of bytes occupied by all #VmaAllocation objects. \n\
-				Difference `(blockBytes - allocationBytes)` is the amount of memory allocated\n\
-				from Vulkan but unused by any #VmaAllocation.");
-		}
-
-		ImVec4 color = usage > (0.8f * budget) ? ImVec4(1.0f, 0.0f, 0.0f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-		ImGui::TextColored(color, "Usage: %llu", usage);
-		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Estimated current memory usage of the program, in bytes."); }
-
-		ImGui::Text("Budget: %llu", budget);
-		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Estimated amount of memory available to the program, in bytes."); }
-
-		ImVec4 originalColor = ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram];
-		ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram] = ImVec4(0.2f, 0.9f, 0.4f, 1.0f);
-
-		ImGui::ProgressBar((float)usage / budget, ImVec2(0.0f, 0.0f), "Byte Usage");
-		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("%llu bytes remaining", budget - usage); }
-
-		ImGui::ProgressBar((float)allocBytes / blockBytes, ImVec2(0.0f, 0.0f), "VmaAllocation Byte Usage");
-		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("%d bytes remaining", blockBytes - allocBytes); }
-		ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram] = originalColor;
-
-
-		ImGui::End();
-	}
-}
+//void SandboxLayer::ShowResourceBrowser()
+//{
+//	if (ImGui::Begin("Resource Browser"))
+//	{
+//
+//		static char buffer[256] = "";
+//
+//		// Button or item to go up one level
+//		if (ImGui::Button(".."))
+//		{
+//			current_path = current_path.parent_path();
+//		}
+//
+//		// Input field for typing out the directory
+//		if (ImGui::InputText("Go to", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
+//		{
+//			std::filesystem::path new_path(buffer);
+//			if (std::filesystem::exists(new_path) && std::filesystem::is_directory(new_path))
+//			{
+//				current_path = new_path;
+//			}
+//			else
+//			{
+//				// Handle invalid path
+//			}
+//		}
+//
+//		for (const auto& entry : std::filesystem::directory_iterator(current_path))
+//		{
+//			if (ImGui::Selectable(entry.path().filename().string().c_str()))
+//			{
+//				if (entry.is_directory())
+//				{
+//					// Change directory
+//					current_path = entry.path();
+//				}
+//				else
+//				{
+//					// Handle file selection
+//				}
+//			}
+//		}
+//	}
+//	ImGui::End();
+//}
+//
+//
+//
+//
+//void SandboxLayer::ShowEntityListWindow()
+//{
+//	if (ImGui::Begin("Entities"))
+//	{
+//		if (m_ActiveScene)
+//		{
+//			for (auto& entity : m_ActiveScene->GetEntities())
+//			{
+//				if (ImGui::Selectable(entity->GetName(), m_SelectedEntity == entity))
+//				{
+//					m_SelectedEntity = entity; // Update the selected entity
+//				}
+//
+//
+//				// Display Entity Node
+//				/*if (ImGui::TreeNode(entity->GetName().c_str()))
+//				{
+//
+//					ImGui::TreePop();
+//				}*/
+//			}
+//
+//
+//		}
+//
+//		if (ImGui::Button("+"))
+//		{
+//			if (m_ActiveScene)
+//			{
+//				cstring name = "Entity" + m_ActiveScene->GetEntities().count();
+//				m_ActiveScene->CreateEntity(name);
+//			}
+//
+//		}
+//	}
+//	ImGui::End();
+//}
+//
+//void SandboxLayer::ShowAddComponentWidget()
+//{
+//	// Combo Boxes are also called "Dropdown" in other systems
+//		// Expose flags as checkbox for the demo
+//	//static ImGuiComboFlags flags = 0;
+//	//ImGui::CheckboxFlags("ImGuiComboFlags_PopupAlignLeft", &flags, ImGuiComboFlags_PopupAlignLeft);
+//	//ImGui::SameLine(); 
+//	//if (ImGui::CheckboxFlags("ImGuiComboFlags_NoArrowButton", &flags, ImGuiComboFlags_NoArrowButton))
+//	//	flags &= ~ImGuiComboFlags_NoPreview;     // Clear the other flag, as we cannot combine both
+//	//if (ImGui::CheckboxFlags("ImGuiComboFlags_NoPreview", &flags, ImGuiComboFlags_NoPreview))
+//	//	flags &= ~ImGuiComboFlags_NoArrowButton; // Clear the other flag, as we cannot combine both
+//
+//
+//	if (ImGui::BeginCombo("Add Component", currentComponent >= 0 ? COMPONENT_TYPES[currentComponent] : "None"))
+//	{
+//		for (int i = 0; i < IM_ARRAYSIZE(COMPONENT_TYPES); i++)
+//		{
+//			bool isSelected = (currentComponent == i);
+//			if (ImGui::Selectable(COMPONENT_TYPES[i], isSelected))
+//			{
+//				currentComponent = i;
+//			}
+//			if (isSelected)
+//			{
+//				ImGui::SetItemDefaultFocus();
+//			}
+//		}
+//		ImGui::EndCombo();
+//	}
+//
+//
+//	if (currentComponent >= 0)
+//	{
+//		if (ImGui::Button("Add"))
+//		{
+//			// Add the selected component type to the entity
+//			if (currentComponent == 0) // TransformComponent
+//			{
+//				if (!m_SelectedEntity->Contains<Magnefu::TransformComponent>())
+//				{
+//					m_SelectedEntity->AddComponent<Magnefu::TransformComponent>();
+//				}
+//			}
+//			else if (currentComponent == 1)  // MeshComponent
+//			{
+//				showMeshComponentWidget = true;
+//			}
+//			currentComponent = -1; // Reset selection
+//		}
+//
+//		if (ImGui::Button("Cancel"))
+//		{
+//			currentComponent = -1; // Reset selection on cancel
+//			//showComponentCombo = false; 
+//			showMeshComponentWidget = false;
+//		}
+//	}
+//}
+//
+//void SandboxLayer::ShowMeshComponentWidget()
+//{
+//	static int currentMesh = -1; // -1: no selection
+//
+//	// Assuming you have a function to get all mesh names
+//	//std::vector<std::string> meshNames = GetAllMeshNames();
+//	std::vector<std::string> meshNames = { "Corridor", "SantaHat", "Cat", "TV", "Tower", "VictorianPainting" };
+//
+//	if (ImGui::BeginCombo("Select Mesh", currentMesh >= 0 ? meshNames[currentMesh].c_str() : "None"))
+//	{
+//		for (int i = 0; i < meshNames.size(); i++)
+//		{
+//			bool isSelected = (currentMesh == i);
+//			if (ImGui::Selectable(meshNames[i].c_str(), isSelected))
+//			{
+//				currentMesh = i;
+//			}
+//			if (isSelected)
+//			{
+//				ImGui::SetItemDefaultFocus();
+//			}
+//		}
+//		ImGui::EndCombo();
+//	}
+//
+//	if (currentMesh >= 0)
+//	{
+//		if (ImGui::Button("Add MeshComponent"))
+//		{
+//			if (!m_SelectedEntity->Contains<Magnefu::MeshComponent>())
+//			{
+//				// Add MeshComponent to the entity with the selected mesh
+//				m_SelectedEntity->AddComponent<Magnefu::MeshComponent>(meshNames[currentMesh]);
+//				currentMesh = -1; // Reset selection
+//			}
+//		}
+//	}
+//}
+//
+//
+//
+//void SandboxLayer::ShowComponentWindow()
+//{
+//	if (ImGui::Begin("Components"))
+//	{
+//		if (m_SelectedEntity)
+//		{
+//			// TODO: Entity needs a GetComponents() function
+//			// or does it?
+//
+//
+//			// Display details for each component of the entity
+//			if (Magnefu::TransformComponent* transform = static_cast<Magnefu::TransformComponent*>(m_SelectedEntity->GetTransformComponent()))
+//			{
+//				// Display transform component details
+//				ImGui::Text("TRANSFORM");
+//				ImGui::SliderFloat3("Position", transform->Position().e, -1000, 1000, "%.2f");
+//				ImGui::SliderFloat3("Rotation", transform->Rotation().e, -360, 360, "%.2f");
+//				ImGui::SliderFloat3("Scale", transform->Scale().e, 0.1, 100, "%.2f");
+//				ImGui::Separator();
+//			}
+//			if (Magnefu::MeshComponent* transform = static_cast<Magnefu::MeshComponent*>(m_SelectedEntity->GetMeshComponent()))
+//			{
+//				// Display mesh component details
+//				ImGui::Text("MESH");
+//				ImGui::Separator();
+//			}
+//
+//			ShowAddComponentWidget();
+//
+//			//if (ImGui::Button("Add Component"))
+//			//{
+//			//	showComponentCombo = true; // Set flag to open the combo box
+//			//	
+//			//}
+//		}
+//		else
+//		{
+//			ImGui::Text("No Entity Selected");
+//		}
+//
+//
+//	}
+//	ImGui::End();
+//}
+//
+//void SandboxLayer::CreateNewScene()
+//{
+//	auto& sceneManager = Magnefu::Application::Get().GetSceneManager();
+//
+//	if (sceneManager.GetScenes().count() >= MAX_SCENES)
+//	{
+//		MF_WARN("Reached Max Scene Count: {}", MAX_SCENES);
+//		return;
+//	}
+//
+//	// Handle the creation of the new scene with the name in sceneNameBuffer
+//	cstring name = sceneNameBuffer;
+//
+//	while (sceneManager.NameExists(name))
+//	{
+//		// Append number to name if it already exists
+//		name = sceneNameBuffer;
+//		name += duplicateNameAppend;
+//		duplicateNameAppend++;
+//
+//	}
+//	duplicateNameAppend = 0;
+//
+//	m_ActiveScene = sceneManager.CreateScene(name);
+//}
+//
+//void SandboxLayer::ShowMemoryStats()
+//{
+//	if (!showMemoryStatsWindow) { return; }
+//
+//	if (ImGui::Begin("Memory Stats", &showMemoryStatsWindow, ImGuiWindowFlags_NoCollapse))
+//	{
+//		if (ImGui::Button("Update Memory Stats"))
+//		{
+//			Magnefu::Application::Get().GetGraphicsContext().CalculateMemoryStats();
+//		}
+//
+//		Magnefu::Application::Get().GetMemoryService().imguiDraw();
+//
+//		auto [blockCount, blockBytes, allocCount, allocBytes, usage, budget] =
+//			Magnefu::Application::Get().GetGraphicsContext().GetMemoryStats();
+//
+//		ImGui::SeparatorText("VMA STATISTICS");
+//
+//		ImGui::Text("Block Count: %d", blockCount);
+//		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Number of `VkDeviceMemory` objects - Vulkan memory blocks allocated."); }
+//
+//		ImGui::Text("Block Bytes: %llu", blockBytes);
+//		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Number of bytes allocated in `VkDeviceMemory` blocks."); }
+//
+//		ImGui::Text("Allocation Count: %d", allocCount);
+//		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Number of #VmaAllocation objects allocated."); }
+//
+//		ImGui::Text("Allocation Bytes: %llu", allocBytes);
+//		if (ImGui::IsItemHovered())
+//		{
+//			ImGui::SetTooltip("Total number of bytes occupied by all #VmaAllocation objects. \n\
+//				Difference `(blockBytes - allocationBytes)` is the amount of memory allocated\n\
+//				from Vulkan but unused by any #VmaAllocation.");
+//		}
+//
+//		ImVec4 color = usage > (0.8f * budget) ? ImVec4(1.0f, 0.0f, 0.0f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+//		ImGui::TextColored(color, "Usage: %llu", usage);
+//		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Estimated current memory usage of the program, in bytes."); }
+//
+//		ImGui::Text("Budget: %llu", budget);
+//		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Estimated amount of memory available to the program, in bytes."); }
+//
+//		ImVec4 originalColor = ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram];
+//		ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram] = ImVec4(0.2f, 0.9f, 0.4f, 1.0f);
+//
+//		ImGui::ProgressBar((float)usage / budget, ImVec2(0.0f, 0.0f), "Byte Usage");
+//		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("%llu bytes remaining", budget - usage); }
+//
+//		ImGui::ProgressBar((float)allocBytes / blockBytes, ImVec2(0.0f, 0.0f), "VmaAllocation Byte Usage");
+//		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("%d bytes remaining", blockBytes - allocBytes); }
+//		ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram] = originalColor;
+//
+//
+//		ImGui::End();
+//	}
+//}

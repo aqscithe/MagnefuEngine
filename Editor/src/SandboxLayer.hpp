@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SandboxApp.hpp"
+#include "Magnefu/Magnefu.h"
 
 
 class SandboxLayer : public Magnefu::Layer
@@ -37,16 +37,16 @@ private:
 
 
 private:
-	Magnefu::Ref<Magnefu::SceneCamera>                  m_Camera;
-	Magnefu::GraphicsContext* m_GraphicsContext;
-	//Magnefu::PushConstants                              m_PushConstants;
-	//Array<Magnefu::SceneObject>& m_SceneObjects;
-	int                                                 m_AreaLightCount;
-	Maths::mat4                                         m_AreaLightPoints;
-	std::array<Magnefu::AreaLight, Magnefu::MAX_AREA_LIGHTS>  m_AreaLights;
+	//Magnefu::Ref<Magnefu::SceneCamera>                  m_Camera;
+	//Magnefu::GraphicsContext* m_GraphicsContext;
+	////Magnefu::PushConstants                              m_PushConstants;
+	////Array<Magnefu::SceneObject>& m_SceneObjects;
+	//int                                                 m_AreaLightCount;
+	//Maths::mat4                                         m_AreaLightPoints;
+	//std::array<Magnefu::AreaLight, Magnefu::MAX_AREA_LIGHTS>  m_AreaLights;
 
-	std::filesystem::path current_path;
+	//std::filesystem::path current_path;
 
-	Magnefu::Scene* m_ActiveScene;
-	Magnefu::Entity* m_SelectedEntity;
+	//Magnefu::Scene* m_ActiveScene;
+	//Magnefu::Entity* m_SelectedEntity;
 };

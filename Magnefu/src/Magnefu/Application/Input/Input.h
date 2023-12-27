@@ -4,6 +4,8 @@
 
 // -- Graphics Includes --------------------- //
 #include "GamepadCodes.h"
+#include "MouseButtonCodes.h"
+#include "KeyCodes.h"
 
 
 // -- Core Includes ---------------------------------- //
@@ -40,12 +42,12 @@ namespace Magnefu
 		BINDING_TYPE_BUTTON_TWO_MOD
 	}; // enum Type
 
-	// Utility methods ////////////////////////////////////////////////////////
-	Device                              device_from_part(DevicePart part);
+	// Utility methods ------------------------------------------------- //
+	Device                              DeviceFromPart(DevicePart part);
 
-	cstring* gamepad_axis_names();
-	cstring* gamepad_button_names();
-	cstring* mouse_button_names();
+	cstring*							GamepadAxisNames();
+	cstring*							GamepadButtonNames();
+	cstring*							MouseButtonNames();
 
 
 	//
@@ -70,9 +72,9 @@ namespace Magnefu
 		u32                             index;
 		i32                             id;
 
-		bool                            is_attached() const { return id >= 0; }
-		bool                            is_button_down(GamepadButtons button) { return buttons[button]; }
-		bool                            is_button_just_pressed(GamepadButtons button) { return (buttons[button] && !previous_buttons[button]); }
+		bool                            IsAttached() const { return id >= 0; }
+		bool                            IsButtonDown(GamepadButtons button) { return buttons[button]; }
+		bool                            IsButtonJustPressed(GamepadButtons button) { return (buttons[button] && !previous_buttons[button]); }
 	}; // struct Gamepad
 
 	//
@@ -102,9 +104,9 @@ namespace Magnefu
 		f32                             min_deadzone = 0.10f;
 		f32                             max_deadzone = 0.95f;
 
-		InputBinding& set(BindingType type, Device device, DevicePart device_part, u16 button, u8 is_composite, u8 is_part_of_composite, u8 repeat);
-		InputBinding& set_deadzones(f32 min, f32 max);
-		InputBinding& set_handles(InputHandle action_map, InputHandle action);
+		InputBinding& Set(BindingType type, Device device, DevicePart device_part, u16 button, u8 is_composite, u8 is_part_of_composite, u8 repeat);
+		InputBinding& SetDeadZones(f32 min, f32 max);
+		InputBinding& SetHandles(InputHandle action_map, InputHandle action);
 
 	}; // struct InputBinding
 
@@ -112,9 +114,9 @@ namespace Magnefu
 	struct InputAction 
 	{
 
-		bool                            triggered() const;
-		f32                             read_value_1d() const;
-		InputVector2                    read_value_2d() const;
+		bool                            Triggered() const;
+		f32                             ReadValue1D() const;
+		InputVector2                    ReadValue2D() const;
 
 		InputVector2                    value;
 		InputHandle                     action_map;
@@ -165,57 +167,44 @@ namespace Magnefu
 
 		// -- Keys ------------------------------------------------------------------ //
 
-		bool                            is_key_down(Keys key);
-		bool                            is_key_just_pressed(Keys key, bool repeat = false);
-		bool                            is_key_just_released(Keys key);
-
-		static bool IsKeyPressed(int keycode) { return s_Instance->IsKeyPressedImpl(keycode); }	
-		static bool IsKeyReleased(int keycode) { return s_Instance->IsKeyReleasedImpl(keycode); }
-		//static bool IsKeyDown(int keycode) { return s_Instance->IsKeyDownImpl(keycode, bool repeat = false); }
+		bool                            IsKeyDown(Keys key);
+		bool                            IsKeyJustPressed(Keys key, bool repeat = false);
+		bool                            IsKeyJustReleased(Keys key);
 
 		// -- Mouse ------------------------------------------------------------------ //
 
-		bool                            is_mouse_down(MouseButtons button);
-		bool                            is_mouse_clicked(MouseButtons button);
-		bool                            is_mouse_released(MouseButtons button);
-		bool                            is_mouse_dragging(MouseButtons button);
+		bool                            IsMouseDown(MouseButtons button);
+		bool                            IsMouseClicked(MouseButtons button);
+		bool                            IsMouseReleased(MouseButtons button);
+		bool                            IsMouseDragging(MouseButtons button);
 
-		static bool IsMouseButtonPressed(int keycode) { return s_Instance->IsMouseButtonPressedImpl(keycode); }
-		static bool IsMouseButtonReleased(int keycode) { return s_Instance->IsMouseButtonReleasedImpl(keycode); }
 
-		void                            update(f32 delta);
+		void                            Update(f32 delta);
 
-		void                            debug_ui();
+		void                            DebugUI();
 
-		void                            new_frame();            // Called before message handling
-		void                            on_event(void* input_event);
+		void                            NewFrame();            // Called before message handling
+		void                            OnEvent(Event& e);
 
-		bool                            is_triggered(InputHandle action) const;
-		f32                             is_read_value_1d(InputHandle action) const;
-		InputVector2                    is_read_value_2d(InputHandle action) const;
+		bool                            IsTriggered(InputHandle action) const;
+		f32                             IsReadValue1D(InputHandle action) const;
+		InputVector2                    IsReadValue2D(InputHandle action) const;
 
 		// Create methods used to create the actual input
-		InputHandle                     create_action_map(const InputActionMapCreation& creation);
-		InputHandle                     create_action(const InputActionCreation& creation);
+		InputHandle                     CreateActionMap(const InputActionMapCreation& creation);
+		InputHandle                     CreateAction(const InputActionCreation& creation);
 
 		// Find methods using name
-		InputHandle                     find_action_map(cstring name) const;
-		InputHandle                     find_action(cstring name) const;
+		InputHandle                     FindActionMap(cstring name) const;
+		InputHandle                     FindAction(cstring name) const;
 
-		void                            add_button(InputHandle action, DevicePart device, uint16_t button, bool repeat = false);
-		void                            add_axis_1d(InputHandle action, DevicePart device, uint16_t axis, float min_deadzone, float max_deadzone);
-		void                            add_axis_2d(InputHandle action, DevicePart device, uint16_t x_axis, uint16_t y_axis, float min_deadzone, float max_deadzone);
-		void                            add_vector_1d(InputHandle action, DevicePart device_pos, uint16_t button_pos, DevicePart device_neg, uint16_t button_neg, bool repeat = true);
-		void                            add_vector_2d(InputHandle action, DevicePart device_up, uint16_t button_up, DevicePart device_down, uint16_t button_down, DevicePart device_left, uint16_t button_left, DevicePart device_right, uint16_t button_right, bool repeat = true);
+		void                            AddButton(InputHandle action, DevicePart device, uint16_t button, bool repeat = false);
+		void                            AddAxis1D(InputHandle action, DevicePart device, uint16_t axis, float min_deadzone, float max_deadzone);
+		void                            AddAxis2D(InputHandle action, DevicePart device, uint16_t x_axis, uint16_t y_axis, float min_deadzone, float max_deadzone);
+		void                            AddVector1D(InputHandle action, DevicePart device_pos, uint16_t button_pos, DevicePart device_neg, uint16_t button_neg, bool repeat = true);
+		void                            AddVector2D(InputHandle action, DevicePart device_up, uint16_t button_up, DevicePart device_down, uint16_t button_down, DevicePart device_left, uint16_t button_left, DevicePart device_right, uint16_t button_right, bool repeat = true);
 
-	protected:
-		virtual bool IsKeyPressedImpl(int keycode) = 0;
-		virtual bool IsKeyReleasedImpl(int keycode) = 0;
-		virtual bool IsMouseButtonPressedImpl(int buttoncode) = 0;
-		virtual bool IsMouseButtonReleasedImpl(int buttoncode) = 0;
-		virtual std::pair<float, float> GetMousePositionImpl() = 0;
-		virtual float GetMouseXImpl() = 0;
-		virtual float GetMouseYImpl() = 0;
+	
 
 	public:
 
@@ -227,44 +216,20 @@ namespace Magnefu
 
 		Gamepad                         gamepads[k_max_gamepads];
 
-		u8                              keys[KEY_COUNT];
-		u8                              previous_keys[KEY_COUNT];
+		u8                              keys[MF_KEY_COUNT];
+		u8                              previous_keys[MF_KEY_COUNT];
 
 		InputVector2                    mouse_position;
 		InputVector2                    previous_mouse_position;
 		InputVector2                    mouse_clicked_position[MOUSE_BUTTONS_COUNT];
-		u8                              mouse_button[MOUSE_BUTTONS_COUNT];
-		u8                              previous_mouse_button[MOUSE_BUTTONS_COUNT];
+		u8                              mouse_buttons[MOUSE_BUTTONS_COUNT];
+		u8                              previous_mouse_buttons[MOUSE_BUTTONS_COUNT];
 		f32                             mouse_drag_distance[MOUSE_BUTTONS_COUNT];
 
 		bool                            has_focus;
 
 		static constexpr cstring        k_name = "Magnefu_Input_Service";
-		static InputService* s_Instance;
 
 	}; // struct InputService
 
-
-
-	/*class  Input
-	{
-	public:
-		
-		
-		static std::pair<float, float> GetMousePostion() { return s_Instance->GetMousePositionImpl(); }
-		static float GetMouseX() { return s_Instance->GetMouseXImpl(); }
-		static float GetMouseY() { return s_Instance->GetMouseYImpl(); }
-
-	protected:
-		virtual bool IsKeyPressedImpl(int keycode) = 0;
-		virtual bool IsKeyReleasedImpl(int keycode) = 0;
-		virtual bool IsMouseButtonPressedImpl(int buttoncode) = 0;
-		virtual bool IsMouseButtonReleasedImpl(int buttoncode) = 0;
-		virtual std::pair<float, float> GetMousePositionImpl() = 0;
-		virtual float GetMouseXImpl() = 0;
-		virtual float GetMouseYImpl() = 0;
-
-	private:
-		static Input* s_Instance;
-	};*/
 }

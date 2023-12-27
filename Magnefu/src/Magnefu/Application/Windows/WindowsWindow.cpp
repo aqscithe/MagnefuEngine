@@ -153,33 +153,33 @@ namespace Magnefu
 			});
 
 		glfwSetKeyCallback(s_Window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
+		{
+			WindowUserPointer& data = *(WindowUserPointer*)glfwGetWindowUserPointer(window);
+
+			switch (action)
 			{
-				WindowUserPointer& data = *(WindowUserPointer*)glfwGetWindowUserPointer(window);
-
-
-		switch (action)
-		{
-		case GLFW_PRESS:
-		{
-			KeyPressedEvent event(key, 0);
-			data.EventCallback(event);
-			break;
-		}
-		case GLFW_REPEAT:
-		{
-			// GLFW doesn't provide a repeat count
-			KeyPressedEvent event(key, 1);
-			data.EventCallback(event);
-			break;
-		}
-		case GLFW_RELEASE:
-		{
-			KeyReleasedEvent event(key);
-			data.EventCallback(event);
-			break;
-		}
-		}
-			});
+				case GLFW_PRESS:
+				{
+					KeyPressedEvent event(key, scancode, action, 0);
+					data.EventCallback(event);
+					break;
+				}
+				case GLFW_REPEAT:
+				{
+					// GLFW doesn't provide a repeat count
+					// 1 to indicate repeated event (key was held down)
+					KeyPressedEvent event(key, scancode, action, 1);
+					data.EventCallback(event);
+					break;
+				}
+				case GLFW_RELEASE:
+				{
+					KeyReleasedEvent event(key, scancode, action);
+					data.EventCallback(event);
+					break;
+				}
+			}
+		});
 
 		glfwSetMouseButtonCallback(s_Window, [](GLFWwindow* window, int button, int action, int mods)
 			{

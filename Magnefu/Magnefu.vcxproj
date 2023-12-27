@@ -152,10 +152,12 @@
     <ClInclude Include="src\Magnefu\Application\Entrypoint.h" />
     <ClInclude Include="src\Magnefu\Application\Events\ApplicationEvent.h" />
     <ClInclude Include="src\Magnefu\Application\Events\Event.h" />
-    <ClInclude Include="src\Magnefu\Application\Events\Input.h" />
-    <ClInclude Include="src\Magnefu\Application\Events\KeyCodes.h" />
+    <ClInclude Include="src\Magnefu\Application\Events\OSEvent.h" />
+    <ClInclude Include="src\Magnefu\Application\Input\GamepadCodes.h" />
+    <ClInclude Include="src\Magnefu\Application\Input\Input.h" />
+    <ClInclude Include="src\Magnefu\Application\Input\KeyCodes.h" />
     <ClInclude Include="src\Magnefu\Application\Events\KeyEvent.h" />
-    <ClInclude Include="src\Magnefu\Application\Events\MouseButtonCodes.h" />
+    <ClInclude Include="src\Magnefu\Application\Input\MouseButtonCodes.h" />
     <ClInclude Include="src\Magnefu\Application\Events\MouseEvent.h" />
     <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiDefs.h" />
     <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiService.hpp" />
@@ -1116,6 +1118,7 @@
     <ClCompile Include="src\Magnefu\Application\Camera\SceneCamera.cpp" />
     <ClCompile Include="src\Magnefu\Application\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\Magnefu\Application\ImGui\ImGuiService.cpp" />
+    <ClCompile Include="src\Magnefu\Application\Input\Input.cpp" />
     <ClCompile Include="src\Magnefu\Application\Layer.cpp" />
     <ClCompile Include="src\Magnefu\Application\LayerStack.cpp" />
     <ClCompile Include="src\Magnefu\Application\Scene\Entity.cpp" />

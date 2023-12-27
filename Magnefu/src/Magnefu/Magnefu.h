@@ -5,10 +5,9 @@
 #include "Magnefu/Application/Application.h"
 #include "Magnefu/Application/ImGui/ImGuiService.hpp"
 #include "Magnefu/Application/Layer.h"
+#include "Magnefu/Application/LayerStack.h"
 
-#include "Magnefu/Application/Events/Input.h"
-#include "Magnefu/Application/Events/KeyCodes.h"
-#include "Magnefu/Application/Events/MouseButtonCodes.h"
+#include "Magnefu/Application/Input/Input.h"
 
 #include "Magnefu/Application/Scene/Scene.h"
 #include "Magnefu/Application/Scene/Entity.h"

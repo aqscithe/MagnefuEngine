@@ -1,18 +1,5 @@
 #pragma once
 
-//#define MF_MOUSE_BUTTON_NONE     -1
-//#define MF_MOUSE_BUTTON_1         0
-//#define MF_MOUSE_BUTTON_2         1
-//#define MF_MOUSE_BUTTON_3         2
-//#define MF_MOUSE_BUTTON_4         3
-//#define MF_MOUSE_BUTTON_5         4
-//#define MF_MOUSE_BUTTON_6         5
-//#define MF_MOUSE_BUTTON_7         6
-//#define MF_MOUSE_BUTTON_8         7
-//#define MF_MOUSE_BUTTON_LAST      MF_MOUSE_BUTTON_8
-//#define MF_MOUSE_BUTTON_LEFT      MF_MOUSE_BUTTON_1
-//#define MF_MOUSE_BUTTON_RIGHT     MF_MOUSE_BUTTON_2
-//#define MF_MOUSE_BUTTON_MIDDLE    MF_MOUSE_BUTTON_3
 
 namespace Magnefu
 {
@@ -27,11 +14,11 @@ namespace Magnefu
 		MOUSE_BUTTON_6,
 		MOUSE_BUTTON_7,
 		MOUSE_BUTTON_8,
-		MOUSE_BUTTON_LAST = MOUSE_BUTTON_8,
 		MOUSE_BUTTON_LEFT = MOUSE_BUTTON_1,
 		MOUSE_BUTTON_RIGHT = MOUSE_BUTTON_2,
 		MOUSE_BUTTON_MIDDLE = MOUSE_BUTTON_3,
-		MOUSE_BOTTON_COUNT
+		MOUSE_BUTTON_LAST = MOUSE_BUTTON_8,
+		MOUSE_BUTTONS_COUNT
 	};
 }
 

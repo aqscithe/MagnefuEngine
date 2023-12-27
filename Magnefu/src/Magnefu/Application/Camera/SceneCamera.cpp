@@ -6,8 +6,8 @@
 
 
 // -- Application Includes ------------- //
-#include "Magnefu/Application/Events/Input.h"
-#include "Magnefu/Application/Events/KeyCodes.h"
+#include "Magnefu/Application/Input/Input.h"
+#include "Magnefu/Application/Input/KeyCodes.h"
 
 
 // -- Vendor Includes -------------- //

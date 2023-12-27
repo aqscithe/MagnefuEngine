@@ -1,7 +1,6 @@
 #include "SandboxApp.hpp"
+#include "SandboxLayer.hpp"
 
-
-class SandboxLayer;
 
 // -- Sandbox App -------------------------------------------------------------------------- //
 
@@ -21,25 +20,17 @@ static Magnefu::MacWindow s_window;
 // Callbacks
 
 // I should use my own event system...
-static void input_os_messages_callback(void* os_event, void* user_data)
-{
-	Magnefu::InputService* input = (Magnefu::InputService*)user_data;
-	input->on_event(os_event);
-}
+//static void input_os_messages_callback(Magnefu::Event& e, void* user_data)
+//{
+//	Magnefu::InputService* input = (Magnefu::InputService*)user_data;
+//	input->OnEvent(e);
+//}
 
 
 // The app constructor is where I push the layers I want to use in that app.
 Sandbox::Sandbox()
 {
-	// initialize layerstack
-	layer_stack = new Magnefu::LayerStack();
-
-
-	// Push layers - 1st layer is on bottom
-	PushLayer(new SandboxLayer());
-	// will eventually have an EditorLayer
-	// may even have more specific layers like Physics Collisions and AI...
-	// this is how updates can be controlled separately
+	
 }
 
 
@@ -49,7 +40,7 @@ Sandbox::~Sandbox()
 }
 
 
-void Sandbox::create(const Magnefu::ApplicationConfiguration& configuration)
+void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 {
 	using namespace Magnefu;
 
@@ -66,15 +57,15 @@ void Sandbox::create(const Magnefu::ApplicationConfiguration& configuration)
 	WindowConfiguration wconf{ configuration.width, configuration.height, configuration.name, &MemoryService::Instance()->systemAllocator };
 	window = &s_window;
 	window->Init(&wconf);
-	window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
+	window->SetEventCallback(BIND_EVENT_FN(Sandbox::OnEvent));
 
 	// input
 	input = service_manager->get<InputService>();
-	input->init(&MemoryService::Instance()->systemAllocator);
+	input->Init(&MemoryService::Instance()->systemAllocator);
 
 	// graphics
 	DeviceCreation dc;
-	dc.set_window(window->width, window->height, window->platform_handle).set_allocator(&MemoryService::Instance()->systemAllocator);
+	dc.set_window(window->GetWidth(), window->GetHeight(), window->GetWindowHandle()).set_allocator(&MemoryService::Instance()->systemAllocator);
 
 	GraphicsContext* gpu = service_manager->get<GraphicsContext>();
 	gpu->init(dc);
@@ -90,10 +81,23 @@ void Sandbox::create(const Magnefu::ApplicationConfiguration& configuration)
 	imgui = service_manager->get<ImGuiService>();
 	imgui->Init(renderer);
 
+
+	// -- Initialize layer stack and push layers -------------- //
+	layer_stack = new Magnefu::LayerStack();
+	layer_stack->PushLayer(new SandboxLayer());
+	layer_stack->PushOverlay(imgui);
+
+	// will eventually have an EditorLayer
+	// may even have more specific layers like Physics Collisions and AI...
+	// this is how updates can be controlled separately
+
+	// TODO: How should i give the app access to its layer and overlay?
+
+
 	MF_CORE_INFO("Sandbox Application created successfully!");
 }
 
-void Sandbox::destroy()
+void Sandbox::Destroy()
 {
 	using namespace Magnefu;
 
@@ -113,7 +117,7 @@ void Sandbox::destroy()
 	LogService::Instance()->Shutdown();
 }
 
-bool Sandbox::main_loop()
+bool Sandbox::MainLoop()
 {
 	return false;
 }
@@ -122,4 +126,66 @@ bool Sandbox::main_loop()
 Magnefu::Application* Magnefu::CreateApplication()
 {
 	return new Sandbox();
+}
+
+void Sandbox::OnEvent(Magnefu::Event& event)
+{
+	using namespace Magnefu;
+
+	EventDispatcher dispatcher(event);
+	dispatcher.Dispatch <WindowCloseEvent>(BIND_EVENT_FN(Sandbox::OnWindowClose));
+	dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Sandbox::OnWindowResize));
+	dispatcher.Dispatch<WindowMovedEvent>(BIND_EVENT_FN(Sandbox::OnWindowMoved));
+	dispatcher.Dispatch<WindowFocusEvent>(BIND_EVENT_FN(Sandbox::OnWindowFocus));
+	dispatcher.Dispatch<WindowLostFocusEvent>(BIND_EVENT_FN(Sandbox::OnWindowLostFocus));
+
+	dispatcher.Dispatch<KeyEvent>(BIND_EVENT_FN(InputService::OnEvent));
+	dispatcher.Dispatch<MouseButtonEvent>(BIND_EVENT_FN(InputService::OnEvent));
+	dispatcher.Dispatch<MouseMovedEvent>(BIND_EVENT_FN(InputService::OnEvent));
+	dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FN(InputService::OnEvent));
+	
+
+	for (auto it = layer_stack->end(); it != layer_stack->begin(); )
+	{
+		(*--it)->OnEvent(event);
+		if (event.IsHandled())
+			break;
+	}
+}
+
+bool Sandbox::OnWindowClose(Magnefu::WindowCloseEvent& e)
+{
+	is_running = false;
+
+	return true;
+}
+
+bool Sandbox::OnWindowResize(Magnefu::WindowResizeEvent& e)
+{
+	if (e.GetWidth() == 0 || e.GetHeight() == 0)
+	{
+		is_minimized = true;
+		return true;
+	}
+
+	is_minimized = false;
+	return true;
+}
+
+bool Sandbox::OnWindowMoved(Magnefu::WindowMovedEvent& e)
+{
+
+	return true;
+}
+
+bool Sandbox::OnWindowFocus(Magnefu::WindowFocusEvent& e)
+{
+	input->SetHasFocus(true);
+	return true;
+}
+
+bool Sandbox::OnWindowLostFocus(Magnefu::WindowLostFocusEvent& e)
+{
+	input->SetHasFocus(false);
+	return true;
 }

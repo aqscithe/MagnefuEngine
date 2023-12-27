@@ -243,16 +243,16 @@
     <ClInclude Include="src\Magnefu\Application\Events\Event.h">
       <Filter>src\Magnefu\Application\Events</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Events\Input.h">
+    <ClInclude Include="src\Magnefu\Application\Input\Input.h">
       <Filter>src\Magnefu\Application\Events</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Events\KeyCodes.h">
+    <ClInclude Include="src\Magnefu\Application\Input\KeyCodes.h">
       <Filter>src\Magnefu\Application\Events</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Application\Events\KeyEvent.h">
       <Filter>src\Magnefu\Application\Events</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Events\MouseButtonCodes.h">
+    <ClInclude Include="src\Magnefu\Application\Input\MouseButtonCodes.h">
       <Filter>src\Magnefu\Application\Events</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Application\Events\MouseEvent.h">
@@ -3112,6 +3112,8 @@
       <Filter>vendor\wyhash</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Core\ServiceManager.hpp" />
+    <ClInclude Include="src\Magnefu\Application\Input\GamepadCodes.h" />
+    <ClInclude Include="src\Magnefu\Application\Events\OSEvent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application\Application.cpp">
@@ -3264,6 +3266,7 @@
     <ClCompile Include="src\Magnefu\Core\Bit.cpp" />
     <ClCompile Include="src\Magnefu\Core\ServiceManager.cpp" />
     <ClCompile Include="src\Magnefu\Application\Windows\Window.cpp" />
+    <ClCompile Include="src\Magnefu\Application\Input\Input.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\vulkan\include\spirv-headers\spirv.hpp11">
