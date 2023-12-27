@@ -14,8 +14,11 @@
 #include "Magnefu/Core/MemoryAllocation/Memory.hpp"
 
 
+
 namespace Magnefu
 {
+	
+
 	enum Device : u8 
 	{
 		DEVICE_KEYBOARD,
@@ -62,9 +65,13 @@ namespace Magnefu
 	//
 	struct Gamepad 
 	{
+		using EventCallbackFn = std::function<void(Event&)>;
+
 		f32                             axis[GAMEPAD_AXIS_COUNT];
 		u8                              buttons[GAMEPAD_BUTTON_COUNT];
 		u8                              previous_buttons[GAMEPAD_BUTTON_COUNT];
+
+		EventCallbackFn					EventCallback;
 
 		void*							handle;
 		cstring                         name;
@@ -204,7 +211,7 @@ namespace Magnefu
 		void                            AddVector1D(InputHandle action, DevicePart device_pos, uint16_t button_pos, DevicePart device_neg, uint16_t button_neg, bool repeat = true);
 		void                            AddVector2D(InputHandle action, DevicePart device_up, uint16_t button_up, DevicePart device_down, uint16_t button_down, DevicePart device_left, uint16_t button_left, DevicePart device_right, uint16_t button_right, bool repeat = true);
 
-	
+		void							SetEventCallback(const EventCallbackFn& callback);
 
 	public:
 

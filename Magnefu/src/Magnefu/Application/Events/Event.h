@@ -24,6 +24,7 @@ namespace Magnefu {
 		AppTick, AppUpdate, AppRender,
 		KeyPressed, KeyReleased,
 		MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled,
+		GamepadConnected, GamepadDisconnected,
 		OS
 	};
 
@@ -37,7 +38,8 @@ namespace Magnefu {
 		EventCategoryKeyboard    = BIT(2),
 		EventCategoryMouse		 = BIT(3),
 		EventCategoryMouseButton = BIT(4),
-		EventCategoryOS          = BIT(5)
+		EventCategoryGamepad     = BIT(5),
+		EventCategoryOS          = BIT(6)
 	};
 
 #define EVENT_CLASS_TYPE(type)  static EventType GetStaticType() { return EventType::##type; } \

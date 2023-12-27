@@ -11,7 +11,6 @@
 #include "Magnefu/Application/Input/KeyCodes.h"
 #include "Magnefu/Application/Camera/Camera.h"
 
-
 // -- Graphics Includes ---------------------- //
 #include "Magnefu/Graphics/GraphicsContext.h"
 
@@ -36,6 +35,7 @@ namespace Magnefu
 	{
 		MF_CORE_ERROR("GLFW Error: {0} | {1}", code, msg);
 	}
+
 
 	static f32 GLFWGetMonitorRefresh()
 	{

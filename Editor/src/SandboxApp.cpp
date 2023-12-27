@@ -62,6 +62,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	// input
 	input = service_manager->get<InputService>();
 	input->Init(&MemoryService::Instance()->systemAllocator);
+	input->SetEventCallback(BIND_EVENT_FN(Sandbox::OnEvent));
 
 	// graphics
 	DeviceCreation dc;
@@ -143,6 +144,9 @@ void Sandbox::OnEvent(Magnefu::Event& event)
 	dispatcher.Dispatch<MouseButtonEvent>(BIND_EVENT_FN(InputService::OnEvent));
 	dispatcher.Dispatch<MouseMovedEvent>(BIND_EVENT_FN(InputService::OnEvent));
 	dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FN(InputService::OnEvent));
+	dispatcher.Dispatch<GamepadConnectedEvent>(BIND_EVENT_FN(InputService::OnEvent));
+	dispatcher.Dispatch<GamepadDisconnectedEvent>(BIND_EVENT_FN(InputService::OnEvent));
+
 	
 
 	for (auto it = layer_stack->end(); it != layer_stack->begin(); )

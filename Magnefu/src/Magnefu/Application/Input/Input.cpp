@@ -7,6 +7,11 @@
 #include "Magnefu/Application/Application.h"
 #include "Magnefu/Application/Windows/WindowsWindow.h"
 
+#include "Magnefu//Application/Events/Event.h"
+#include "Magnefu/Application/Events/GamepadEvent.h"
+#include "Magnefu/Application/Input/KeyCodes.h"
+#include "Magnefu/Application/Input/GamepadCodes.h"
+
 #include <cmath>
 
 #define INPUT_BACKEND_GLFW
@@ -39,14 +44,19 @@ namespace Magnefu
 
 #if defined (INPUT_BACKEND_GLFW)
 
-    static void GLFWJoystickCallback(int joy, int event) 
+    static void GLFWJoystickCallback(int joy, int action) 
     {
-        if (event == GLFW_CONNECTED) 
+        Gamepad& pad = *(Gamepad*)glfwGetJoystickUserPointer(joy);
+
+        if (action == GLFW_CONNECTED) 
         {
-            // Joystick connected
+            GamepadConnectedEvent event(joy);
+            pad.EventCallback(event);
         }
-        else if (event == GLFW_DISCONNECTED) {
-            // Joystick disconnected
+        else if (action == GLFW_DISCONNECTED) 
+        {
+            GamepadDisconnectedEvent event(joy);
+            pad.EventCallback(event);
         }
     }
 
@@ -60,7 +70,7 @@ namespace Magnefu
         if (glfwGetGamepadState(index, &state))
         {
             glfwSetJoystickUserPointer(index, &gamepad);
-            glfwSetJoystickCallback(GLFWJoystickCallback);
+            
 
             gamepad.index = index;
             gamepad.id = index;
@@ -88,6 +98,7 @@ namespace Magnefu
     // InputBackendSDL ----------------------------------------------- //
     void InputBackend::Init(Gamepad* gamepads, u32 num_gamepads) 
     {
+        glfwSetJoystickCallback(GLFWJoystickCallback);
 
         for (u32 i = 0; i < num_gamepads; i++) {
             gamepads[i].index = u32_max;
@@ -184,29 +195,36 @@ namespace Magnefu
                 break;
             }
            
-            // TODO: Handle mouse button and movement events
-                
-            /*case Magnefu::EventType::MouseButtonPressed:
+            // Mouse button updates handled by InputBackend::GetMouseState
+            //case Magnefu::EventType::MouseButtonPressed:
+            //{
+            //    //MouseButtonPressedEvent& mouse_event = *(MouseButtonPressedEvent*)&event;
+            //    
+            //    break;
+            //}
+            //    
+            //case Magnefu::EventType::MouseButtonReleased:
+            //{
+            //    //MouseButtonReleasedEvent& mouse_event = *(MouseButtonReleasedEvent*)&event;
+            //    
+            //    break;
+            //}
+
+            //case Magnefu::EventType::MouseMoved:
+            //    break;
+            //case Magnefu::EventType::MouseScrolled:
+            //    break;
+
+            case Magnefu::EventType::GamepadConnected:
             {
-                MouseButtonPressedEvent& mouse_event = *(MouseButtonPressedEvent*)&event;
-                i32 button = mouse_event.GetButtonCode();
-                if (button >= 0 && button < (i32)MOUSE_BUTTONS_COUNT)
-                    mouse_buttons[button] = true;
+                MF_CORE_INFO("Gamepad Added");
+                //int32_t index = 
+                //
+                //            init_gamepad(index, gamepads[index]);
                 break;
             }
-                
-            case Magnefu::EventType::MouseButtonReleased:
-            {
-                MouseButtonReleasedEvent& mouse_event = *(MouseButtonReleasedEvent*)&event;
-                i32 button = mouse_event.GetButtonCode();
-                if (button >= 0 && button < (i32)MOUSE_BUTTONS_COUNT)
-                    mouse_buttons[button] = false;
+            case Magnefu::EventType::GamepadDisconnected:
                 break;
-            }
-            case Magnefu::EventType::MouseMoved:
-                break;
-            case Magnefu::EventType::MouseScrolled:
-                break;*/
 
             default:
                 break;
@@ -647,6 +665,14 @@ namespace Magnefu
 
     }
 
+    void InputService::SetEventCallback(const EventCallbackFn& callback)
+    {
+        for (u32 gamepad = 0; gamepad < k_max_gamepads; gamepad++)
+        {
+            gamepads[gamepad].EventCallback = callback;
+        }
+    }
+
     void InputService::NewFrame() 
     {
         // Cache previous frame keys.
@@ -1012,7 +1038,8 @@ namespace Magnefu
                 }
 
                 ImGui::Separator();
-                if (ImGui::TreeNode("Mouse")) {
+                if (ImGui::TreeNode("Mouse")) 
+                {
                     ImGui::Text("Position     %f,%f", mouse_position.x, mouse_position.y);
                     ImGui::Text("Previous pos %f,%f", previous_mouse_position.x, previous_mouse_position.y);
 
@@ -1033,8 +1060,10 @@ namespace Magnefu
                 }
 
                 ImGui::Separator();
-                if (ImGui::TreeNode("Keyboard")) {
-                    for (u32 i = 0; i < MF_KEY_LAST; i++) {
+                if (ImGui::TreeNode("Keyboard")) 
+                {
+                    for (u32 i = 0; i < MF_KEY_LAST; i++) 
+                    {
 
                     }
                     ImGui::TreePop();
@@ -1042,9 +1071,11 @@ namespace Magnefu
                 ImGui::TreePop();
             }
 
-            if (ImGui::TreeNode("Actions")) {
+            if (ImGui::TreeNode("Actions")) 
+            {
 
-                for (u32 j = 0; j < actions.count(); j++) {
+                for (u32 j = 0; j < actions.count(); j++) 
+                {
                     const InputAction& input_action = actions[j];
                     ImGui::Text("Action %s, x %2.3f y %2.3f", input_action.name, input_action.value.x, input_action.value.y);
                 }
