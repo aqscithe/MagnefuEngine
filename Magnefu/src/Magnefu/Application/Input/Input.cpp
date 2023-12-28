@@ -12,7 +12,6 @@
 #include "Magnefu/Application/Input/KeyCodes.h"
 #include "Magnefu/Application/Input/GamepadCodes.h"
 
-#include <cmath>
 
 #define INPUT_BACKEND_GLFW
 
@@ -23,8 +22,10 @@
 
 #endif // INPUT_BACKEND_GLFW
 
+#include "imgui/imgui.h"
 
-    
+
+#include <cmath>
 
 namespace Magnefu
 {
@@ -195,6 +196,7 @@ namespace Magnefu
                 break;
             }
            
+            
             // Mouse button updates handled by InputBackend::GetMouseState
             //case Magnefu::EventType::MouseButtonPressed:
             //{
@@ -985,10 +987,11 @@ namespace Magnefu
         */
     }
 
-#include "imgui/imgui.h"
-
+//
+    
     void InputService::DebugUI() 
     {
+
 
         if (ImGui::Begin("Input")) 
         {
@@ -1085,58 +1088,62 @@ namespace Magnefu
                 ImGui::TreePop();
             }
 
-            if (ImGui::TreeNode("Bindings")) {
-                for (u32 k = 0; k < bindings.count(); k++) {
+            if (ImGui::TreeNode("Bindings")) 
+            {
+                for (u32 k = 0; k < bindings.count(); k++) 
+                {
                     const InputBinding& binding = bindings[k];
                     const InputAction& parent_action = actions[binding.action_index];
 
                     cstring button_name = "";
-                    switch (binding.device_part) {
-                    case DEVICE_PART_KEYBOARD:
+                    switch (binding.device_part) 
                     {
-                        button_name = KeyNames()[binding.button];
-                        break;
-                    }
-                    case DEVICE_PART_MOUSE:
-                    {
-                        break;
-                    }
-                    case DEVICE_PART_GAMEPAD_AXIS:
-                    {
-                        break;
-                    }
-                    case DEVICE_PART_GAMEPAD_BUTTONS:
-                    {
-                        break;
-                    }
+                        case DEVICE_PART_KEYBOARD:
+                        {
+                            button_name = KeyNames()[binding.button];
+                            break;
+                        }
+                        case DEVICE_PART_MOUSE:
+                        {
+                            break;
+                        }
+                        case DEVICE_PART_GAMEPAD_AXIS:
+                        {
+                            break;
+                        }
+                        case DEVICE_PART_GAMEPAD_BUTTONS:
+                        {
+                            break;
+                        }
                     }
 
-                    switch (binding.type) {
-                    case BINDING_TYPE_VECTOR_1D:
+                    switch (binding.type) 
                     {
-                        ImGui::Text("Binding action %s, type %s, value %f, composite %u, part of composite %u, button %s", parent_action.name, "vector 1d", binding.value, binding.is_composite, binding.is_part_of_composite, button_name);
-                        break;
-                    }
-                    case BINDING_TYPE_VECTOR_2D:
-                    {
-                        ImGui::Text("Binding action %s, type %s, value %f, composite %u, part of composite %u", parent_action.name, "vector 2d", binding.value, binding.is_composite, binding.is_part_of_composite);
-                        break;
-                    }
-                    case BINDING_TYPE_AXIS_1D:
-                    {
-                        ImGui::Text("Binding action %s, type %s, value %f, composite %u, part of composite %u", parent_action.name, "axis 1d", binding.value, binding.is_composite, binding.is_part_of_composite);
-                        break;
-                    }
-                    case BINDING_TYPE_AXIS_2D:
-                    {
-                        ImGui::Text("Binding action %s, type %s, value %f, composite %u, part of composite %u", parent_action.name, "axis 2d", binding.value, binding.is_composite, binding.is_part_of_composite);
-                        break;
-                    }
-                    case BINDING_TYPE_BUTTON:
-                    {
-                        ImGui::Text("Binding action %s, type %s, value %f, composite %u, part of composite %u, button %s", parent_action.name, "button", binding.value, binding.is_composite, binding.is_part_of_composite, button_name);
-                        break;
-                    }
+                        case BINDING_TYPE_VECTOR_1D:
+                        {
+                            ImGui::Text("Binding action %s, type %s, value %f, composite %u, part of composite %u, button %s", parent_action.name, "vector 1d", binding.value, binding.is_composite, binding.is_part_of_composite, button_name);
+                            break;
+                        }
+                        case BINDING_TYPE_VECTOR_2D:
+                        {
+                            ImGui::Text("Binding action %s, type %s, value %f, composite %u, part of composite %u", parent_action.name, "vector 2d", binding.value, binding.is_composite, binding.is_part_of_composite);
+                            break;
+                        }
+                        case BINDING_TYPE_AXIS_1D:
+                        {
+                            ImGui::Text("Binding action %s, type %s, value %f, composite %u, part of composite %u", parent_action.name, "axis 1d", binding.value, binding.is_composite, binding.is_part_of_composite);
+                            break;
+                        }
+                        case BINDING_TYPE_AXIS_2D:
+                        {
+                            ImGui::Text("Binding action %s, type %s, value %f, composite %u, part of composite %u", parent_action.name, "axis 2d", binding.value, binding.is_composite, binding.is_part_of_composite);
+                            break;
+                        }
+                        case BINDING_TYPE_BUTTON:
+                        {
+                            ImGui::Text("Binding action %s, type %s, value %f, composite %u, part of composite %u, button %s", parent_action.name, "button", binding.value, binding.is_composite, binding.is_part_of_composite, button_name);
+                            break;
+                        }
                     }
                 }
 
@@ -1176,13 +1183,15 @@ namespace Magnefu
         return *this;
     }
 
-    InputBinding& InputBinding::SetDeadZones(f32 min, f32 max) {
+    InputBinding& InputBinding::SetDeadZones(f32 min, f32 max) 
+    {
         min_deadzone = min;
         max_deadzone = max;
         return *this;
     }
 
-    InputBinding& InputBinding::SetHandles(InputHandle action_map, InputHandle action) {
+    InputBinding& InputBinding::SetHandles(InputHandle action_map, InputHandle action) 
+    {
         // Don't expect this to have more than 256.
         MF_CORE_ASSERT((action_map < 256), "Exceeded allotted number of action maps");
         MF_CORE_ASSERT((action < 16636), "Exceeded allotted number of actions");

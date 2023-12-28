@@ -101,7 +101,7 @@ namespace Magnefu
 
 		DeviceCreation& set_window(u32 width, u32 height, void* handle);
 		DeviceCreation& set_allocator(Allocator* allocator);
-		DeviceCreation& set_linear_allocator(StackAllocator* allocator);
+		DeviceCreation& set_stack_allocator(StackAllocator* allocator);
 
 
 		// -- Members ----------------------------------------------------- //

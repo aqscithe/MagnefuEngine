@@ -45,12 +45,15 @@ namespace Magnefu
         MF_CORE_INFO("Memory Service Init");
         MemoryServiceConfiguration* memory_configuration = static_cast<MemoryServiceConfiguration*>(configuration);
         systemAllocator.init(memory_configuration ? memory_configuration->maxDynamicSize : s_size);
+
+        tempStackAllocator.init(mfmega(3));
         
     }
 
     void MemoryService::Shutdown() {
 
         systemAllocator.shutdown();
+        tempStackAllocator.shutdown();
 
         MF_CORE_INFO("Memory Service Shutdown\n");
     }

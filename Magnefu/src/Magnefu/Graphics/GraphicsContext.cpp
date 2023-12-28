@@ -179,13 +179,12 @@ namespace Magnefu
 //#define VULKAN_SYNCHRONIZATION_VALIDATION
 
     static const char* s_requested_extensions[] = {
-        VK_KHR_SURFACE_EXTENSION_NAME,
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
         VK_EXT_MEMORY_BUDGET_EXTENSION_NAME,
         VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME,
         // Platform specific extension
     #ifdef VK_USE_PLATFORM_WIN32_KHR
-            "VK_KHR_win32_surface",
+            //"VK_KHR_win32_surface",
     #elif defined(VK_USE_PLATFORM_MACOS_MVK)
             VK_MVK_MACOS_SURFACE_EXTENSION_NAME,
     #elif defined(VK_USE_PLATFORM_XCB_KHR)
@@ -207,8 +206,8 @@ namespace Magnefu
     #endif // VK_USE_PLATFORM_WIN32_KHR
 
     #if defined (VULKAN_DEBUG_REPORT)
-        VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
-        VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+        //VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
+        //VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
     #endif // VULKAN_DEBUG_REPORT
     };
 
@@ -309,40 +308,49 @@ namespace Magnefu
     bool GraphicsContext::check_device_extension_support(VkPhysicalDevice physical_device)
     {
         // TODO: Check device extension support
-    //    uint32_t extensionCount;
-    //    vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extensionCount, nullptr);
+        uint32_t extensionCount;
+        vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extensionCount, nullptr);
 
-    //    Array<VkExtensionProperties> availableExtensions(allocator, extensionCount);
-    //    
-    //    vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extensionCount, availableExtensions.begin());
-
-    //std::set<const char*>
-    //    Array<const char*> requiredExtensions(allocator, sizeof(s_requested_extensions) / sizeof(const char*));
-    //    requiredExtensions = s_requested_extensions;
-
-    //    //// add necessary device extensions here:
-    //    //if (m_APIVersion == VK_API_VERSION_1_0)
-    //    //{
-    //    //    requiredExtensions.insert(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
-    //    //    requiredExtensions.insert(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
-    //    //    requiredExtensions.insert(VK_KHR_BIND_MEMORY_2_EXTENSION_NAME);
-    //    //}
-
-    //    //if (m_APIVersion < VK_API_VERSION_1_2)
-    //    //    requiredExtensions.insert(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME);
-
-    //    requiredExtensions.push(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME);
+        Array<VkExtensionProperties> availableExtensions(allocator, extensionCount, extensionCount);
+        
+        vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extensionCount, availableExtensions.begin());
 
 
+        Array<cstring> deviceExtensions(allocator, s_requested_extensions, s_requested_extensions + ArraySize(s_requested_extensions));
+        std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+        
 
+        uint32_t apiVersion;
+        if (vkEnumerateInstanceVersion(&apiVersion) == VK_SUCCESS) 
+        {
 
-    //    for (const auto& extension : availableExtensions) 
-    //    {
-    //        
-    //    }
+            if (apiVersion == VK_API_VERSION_1_0)
+            {
+                requiredExtensions.insert(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
+                requiredExtensions.insert(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
+                requiredExtensions.insert(VK_KHR_BIND_MEMORY_2_EXTENSION_NAME);
+            }
 
-    //    return requiredExtensions.empty();
-        return true;
+            if (apiVersion < VK_API_VERSION_1_2)
+            {
+                requiredExtensions.insert(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME);
+            }
+              
+        }
+        else
+        {
+            MF_CORE_ERROR("Failed to enumerate the api instance version.");
+        }
+
+        MF_CORE_DEBUG("AVAILABLE EXTENSIONS: ");
+        for (const auto& extension : availableExtensions) 
+        {     
+            requiredExtensions.erase(extension.extensionName);
+            MF_CORE_DEBUG("\t{}", extension.extensionName);
+        }
+
+        return requiredExtensions.empty();
+
     }
 
     SwapChainSupportDetails GraphicsContext::query_swapchain_support(VkPhysicalDevice physical_device)
@@ -395,7 +403,7 @@ namespace Magnefu
         application_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         application_info.pEngineName = "Magnefu Engine - Vulkan";
         application_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-        application_info.apiVersion = VK_MAKE_VERSION(1, 2, 0);
+        application_info.apiVersion = VK_API_VERSION_1_3;
 
         // Get GLFW extensions
         u32 glfwExtensionCount = 0;
@@ -403,13 +411,6 @@ namespace Magnefu
         glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
         std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-        
-        sizet requsted_ext_count = ArraySize(s_requested_extensions);
-
-        for (size_t ext = 0; ext < requsted_ext_count; ext++)
-        {
-            extensions.push_back(s_requested_extensions[ext]);
-        }
 
         VkInstanceCreateInfo instanceCreateInfo{};
         instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -449,6 +450,10 @@ namespace Magnefu
 
         swapchain_width = creation.width;
         swapchain_height = creation.height;
+
+        
+
+        
 
         // -- Choose Extensions --------------------------------------------------------------------------- //
 #ifdef VULKAN_DEBUG_REPORT
@@ -491,9 +496,18 @@ namespace Magnefu
 
                 // Create new debug utils callback
                 PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vulkan_instance, "vkCreateDebugUtilsMessengerEXT");
-                VkDebugUtilsMessengerCreateInfoEXT debug_messenger_create_info = create_debug_utils_messenger_info();
 
-                vkCreateDebugUtilsMessengerEXT(vulkan_instance, &debug_messenger_create_info, vulkan_allocation_callbacks, &vulkan_debug_utils_messenger);
+                if (vkCreateDebugUtilsMessengerEXT != nullptr)
+                {
+                    VkDebugUtilsMessengerCreateInfoEXT debug_messenger_create_info = create_debug_utils_messenger_info();
+
+                    vkCreateDebugUtilsMessengerEXT(vulkan_instance, &debug_messenger_create_info, vulkan_allocation_callbacks, &vulkan_debug_utils_messenger);
+                }
+                else
+                {
+                    MF_CORE_DEBUG("vkCreateDebugUtilsMessengerEXT - VK_ERROR_EXTENSION_NOT_PRESENT");
+                }
+                
             }
         }
 #endif
@@ -522,9 +536,13 @@ namespace Magnefu
         for (u32 i = 0; i < num_physical_device; ++i) 
         {
             VkPhysicalDevice physical_device = gpus[i];
+
+            // DEVICE PROPERTIES
             vkGetPhysicalDeviceProperties(physical_device, &vulkan_physical_properties);
 
             vulkan_physical_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+
+            // DEVICE FEATURES
             vkGetPhysicalDeviceFeatures2(physical_device, &vulkan_physical_features);
 
             bool swapchainAdequate = false;
@@ -600,9 +618,12 @@ namespace Magnefu
         device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
         device_create_info.queueCreateInfoCount = ArraySize(queue_info);
         device_create_info.pQueueCreateInfos = queue_info;
-        device_create_info.enabledExtensionCount = extensions.size();
-        device_create_info.ppEnabledExtensionNames = extensions.data();
-        device_create_info.pNext = &vulkan_physical_features;
+        device_create_info.pEnabledFeatures = &vulkan_physical_features.features;
+        device_create_info.enabledExtensionCount = ArraySize(s_requested_extensions);
+        device_create_info.ppEnabledExtensionNames = s_requested_extensions;
+        device_create_info.pNext = nullptr; 
+        device_create_info.enabledLayerCount = ArraySize(s_requested_layers);
+        device_create_info.ppEnabledLayerNames = s_requested_layers;
 
         result = vkCreateDevice(vulkan_physical_device, &device_create_info, vulkan_allocation_callbacks, &vulkan_device);
         check(result, "Failed to create vulkan logical device");
@@ -623,6 +644,9 @@ namespace Magnefu
 
         VkSampleCountFlags vulkan_max_sample_count = vulkan_physical_properties.limits.framebufferColorSampleCounts & vulkan_physical_properties.limits.framebufferDepthSampleCounts;
 
+#if 1
+        vulkan_max_sample_count_bits = VK_SAMPLE_COUNT_1_BIT;
+#else
         if (vulkan_max_sample_count & VK_SAMPLE_COUNT_64_BIT) { vulkan_max_sample_count_bits = VK_SAMPLE_COUNT_64_BIT; }
         else if (vulkan_max_sample_count & VK_SAMPLE_COUNT_32_BIT) { vulkan_max_sample_count_bits = VK_SAMPLE_COUNT_32_BIT; }
         else if (vulkan_max_sample_count & VK_SAMPLE_COUNT_16_BIT) { vulkan_max_sample_count_bits = VK_SAMPLE_COUNT_16_BIT; }
@@ -631,6 +655,7 @@ namespace Magnefu
         else if (vulkan_max_sample_count & VK_SAMPLE_COUNT_2_BIT)  { vulkan_max_sample_count_bits = VK_SAMPLE_COUNT_2_BIT; }
         else { vulkan_max_sample_count_bits = VK_SAMPLE_COUNT_1_BIT; }
 
+#endif
         //// Select Surface Format
         //const TextureFormat::Enum swapchain_formats[] = { TextureFormat::B8G8R8A8_UNORM, TextureFormat::R8G8B8A8_UNORM, TextureFormat::B8G8R8X8_UNORM, TextureFormat::B8G8R8X8_UNORM };
         const VkFormat surface_image_formats[] = { VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM };
@@ -684,6 +709,7 @@ namespace Magnefu
         allocatorInfo.physicalDevice = vulkan_physical_device;
         allocatorInfo.device = vulkan_device;
         allocatorInfo.instance = vulkan_instance;
+
 
         result = vmaCreateAllocator(&allocatorInfo, &vma_allocator);
         check(result, "Failed to create VMA Allocator");
@@ -1688,8 +1714,11 @@ namespace Magnefu
         create_info.minFilter = creation.min_filter;
         create_info.magFilter = creation.mag_filter;
         create_info.mipmapMode = creation.mip_filter;
-        create_info.anisotropyEnable = 0;
-        create_info.compareEnable = 0;
+        create_info.minLod = 0.f;
+        create_info.anisotropyEnable = vulkan_physical_features.features.samplerAnisotropy;
+        create_info.maxAnisotropy = vulkan_physical_properties.limits.maxSamplerAnisotropy;
+        create_info.compareEnable = VK_FALSE;
+        create_info.compareOp = VK_COMPARE_OP_ALWAYS;
         create_info.unnormalizedCoordinates = 0;
         create_info.borderColor = VkBorderColor::VK_BORDER_COLOR_INT_OPAQUE_WHITE;
         // TODO:
@@ -1701,7 +1730,7 @@ namespace Magnefu
         VkBorderColor           borderColor;
         VkBool32                unnormalizedCoordinates;*/
 
-        vkCreateSampler(vulkan_device, &create_info, vulkan_allocation_callbacks, &sampler->vk_sampler);
+        check(vkCreateSampler(vulkan_device, &create_info, vulkan_allocation_callbacks, &sampler->vk_sampler), "Failed to create sampler");
 
         set_resource_name(VK_OBJECT_TYPE_SAMPLER, (u64)sampler->vk_sampler, creation.name);
 
@@ -1946,11 +1975,11 @@ namespace Magnefu
         color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        color_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        color_attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
         VkAttachmentReference color_attachment_ref = {};
         color_attachment_ref.attachment = 0;
-        color_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        color_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // b/c of MSAA
 
         // Depth attachment
         VkAttachmentDescription depth_attachment{};
@@ -1968,19 +1997,46 @@ namespace Magnefu
         depth_attachment_ref.attachment = 1;
         depth_attachment_ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
+        /*VkAttachmentDescription colorAttachmentResolve{};
+        colorAttachmentResolve.format = gpu.vulkan_surface_format.format;
+        colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
+        colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+        VkAttachmentReference colorAttachmentResolveRef{};
+        colorAttachmentResolveRef.attachment = 2;
+        colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;*/
+
 
         VkSubpassDescription subpass{};
         subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpass.colorAttachmentCount = 1;
         subpass.pColorAttachments = &color_attachment_ref;
         subpass.pDepthStencilAttachment = &depth_attachment_ref;
+        //subpass.pResolveAttachments = &colorAttachmentResolveRef;
 
-        VkAttachmentDescription attachments[] = { color_attachment, depth_attachment };
+        // Subpass Dependencies
+        VkSubpassDependency dependency{};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+
+        VkAttachmentDescription attachments[] = { color_attachment, depth_attachment }; //, colorAttachmentResolve };
         VkRenderPassCreateInfo render_pass_info = { VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
-        render_pass_info.attachmentCount = 2;
+        render_pass_info.attachmentCount = ArraySize(attachments);
         render_pass_info.pAttachments = attachments;
         render_pass_info.subpassCount = 1;
         render_pass_info.pSubpasses = &subpass;
+        render_pass_info.dependencyCount = 1;
+        render_pass_info.pDependencies = &dependency;
 
         check(vkCreateRenderPass(gpu.vulkan_device, &render_pass_info, nullptr, &render_pass->vk_render_pass), "Failed to create renderpass");
 
@@ -1994,8 +2050,10 @@ namespace Magnefu
         framebuffer_info.height = gpu.swapchain_height;
         framebuffer_info.layers = 1;
 
-        VkImageView framebuffer_attachments[2];
+
+        VkImageView framebuffer_attachments[3];
         framebuffer_attachments[1] = depth_texture_vk->vk_image_view;
+        // color image view?
 
         for (size_t i = 0; i < gpu.vulkan_swapchain_image_count; i++) {
             framebuffer_attachments[0] = gpu.vulkan_swapchain_image_views[i];
@@ -2459,7 +2517,12 @@ namespace Magnefu
 
     void GraphicsContext::set_resource_name(VkObjectType type, u64 handle, const char* name) {
 
-        if (!debug_utils_extension_present) {
+        /*if (!debug_utils_extension_present) {
+            return;
+        }*/
+
+        if (pfnSetDebugUtilsObjectNameEXT == nullptr) 
+        {
             return;
         }
         VkDebugUtilsObjectNameInfoEXT name_info = { VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT };
@@ -2513,7 +2576,7 @@ namespace Magnefu
             swapchain_extent.height = clamp(swapchain_extent.height, surface_capabilities.minImageExtent.height, surface_capabilities.maxImageExtent.height);
         }
 
-        MF_CORE_INFO("Create swapchain {} {} saved {} {}, min image {}", swapchain_extent.width, swapchain_extent.height, swapchain_width, swapchain_height, surface_capabilities.minImageCount);
+        MF_CORE_INFO("Create swapchain {} {} saved {} {}, min image count {}, max image count {}", swapchain_extent.width, swapchain_extent.height, swapchain_width, swapchain_height, surface_capabilities.minImageCount, surface_capabilities.maxImageCount);
 
         swapchain_width = (u16)swapchain_extent.width;
         swapchain_height = (u16)swapchain_extent.height;
@@ -3036,7 +3099,7 @@ namespace Magnefu
 
         static VkPresentModeKHR supported_mode_allocated[8];
         vkGetPhysicalDeviceSurfacePresentModesKHR(vulkan_physical_device, vulkan_window_surface, &supported_count, NULL);
-        MF_CORE_ASSERT(supported_count < 8, "Supported present modes < 8");
+        MF_CORE_ASSERT((supported_count < 8), "Supported present modes > 8");
         vkGetPhysicalDeviceSurfacePresentModesKHR(vulkan_physical_device, vulkan_window_surface, &supported_count, supported_mode_allocated);
 
         bool mode_found = false;
@@ -3477,7 +3540,7 @@ namespace Magnefu
         return *this;
     }
 
-    DeviceCreation& DeviceCreation::set_linear_allocator(StackAllocator* allocator) {
+    DeviceCreation& DeviceCreation::set_stack_allocator(StackAllocator* allocator) {
         temporary_allocator = allocator;
         return *this;
     }

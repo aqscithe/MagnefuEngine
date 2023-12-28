@@ -3268,6 +3268,7 @@
     <ClCompile Include="src\Magnefu\Core\ServiceManager.cpp" />
     <ClCompile Include="src\Magnefu\Application\Windows\Window.cpp" />
     <ClCompile Include="src\Magnefu\Application\Input\Input.cpp" />
+    <ClCompile Include="src\Magnefu\Application\Input\KeyCodes.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\vulkan\include\spirv-headers\spirv.hpp11">

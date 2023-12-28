@@ -252,7 +252,7 @@ namespace Magnefu
 
         VkFilter                        min_filter = VK_FILTER_NEAREST;
         VkFilter                        mag_filter = VK_FILTER_NEAREST;
-        VkSamplerMipmapMode             mip_filter = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+        VkSamplerMipmapMode             mip_filter = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 
         VkSamplerAddressMode            address_mode_u = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         VkSamplerAddressMode            address_mode_v = VK_SAMPLER_ADDRESS_MODE_REPEAT;

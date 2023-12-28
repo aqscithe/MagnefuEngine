@@ -13,6 +13,7 @@
 
 // -- Other Includes ----------------------- //
 #include <string>
+#include <iostream>
 
 namespace Magnefu {
 

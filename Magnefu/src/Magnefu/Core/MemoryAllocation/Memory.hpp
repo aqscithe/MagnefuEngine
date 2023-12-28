@@ -192,6 +192,7 @@ namespace Magnefu
 		LinearAllocator             scratchAllocator;
 		HeapAllocator               systemAllocator;
 
+		StackAllocator				tempStackAllocator;
 		
 		// Test allocators.
 		void                        test();

@@ -14,7 +14,6 @@
 #include "Magnefu/Application/Scene/Components.h"
 #include "Magnefu/Application/Scene/SceneManager.h"
 
-#include "Magnefu/Application/Windows/Window.h"
 #include "Magnefu/Application/Windows/WindowsWindow.h"
 #include "Magnefu/Application/Camera/Camera.h"
 #include "Magnefu/Application/Camera/SceneCamera.h"

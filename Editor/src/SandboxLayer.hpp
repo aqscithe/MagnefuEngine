@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Magnefu/Magnefu.h"
+#include "Magnefu/Application/Events/Event.h"
+#include "Magnefu/Application/Layer.h"
 
 
 class SandboxLayer : public Magnefu::Layer
@@ -18,20 +19,20 @@ public:
 private:
 	void ShowApplicationMenuBar();
 	void ShowNewSceneDialog();
-	void ShowCameraSettingsWindow();
+	//void ShowCameraSettingsWindow();
 	void ShowRendererSettingsWindow();
 	void ShowControlsWindow();
 	void ShowFramerateOverlay();
 	void ShowScene();
-	void ShowResourceBrowser();
-	void ShowEntityListWindow();
-	void ShowComponentWindow();
-	void ShowAddComponentWidget();
-	void ShowMeshComponentWidget();
-	void ShowMemoryStats();
+	//void ShowResourceBrowser();
+	//void ShowEntityListWindow();
+	//void ShowComponentWindow();
+	//void ShowAddComponentWidget();
+	//void ShowMeshComponentWidget();
+	//void ShowMemoryStats();
 
 private:
-	void CreateNewScene();
+	//void CreateNewScene();
 
 
 

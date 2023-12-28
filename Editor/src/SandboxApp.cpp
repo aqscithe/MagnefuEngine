@@ -1,7 +1,6 @@
 #include "SandboxApp.hpp"
 #include "SandboxLayer.hpp"
 
-
 // -- Sandbox App -------------------------------------------------------------------------- //
 
 #if defined(MF_PLATFORM_WINDOWS)
@@ -66,7 +65,9 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 
 	// graphics
 	DeviceCreation dc;
-	dc.set_window(window->GetWidth(), window->GetHeight(), window->GetWindowHandle()).set_allocator(&MemoryService::Instance()->systemAllocator);
+	dc.set_window(window->GetWidth(), window->GetHeight(), window->GetWindowHandle()).
+		set_allocator(&MemoryService::Instance()->systemAllocator).
+		set_stack_allocator(&MemoryService::Instance()->tempStackAllocator);
 
 	GraphicsContext* gpu = service_manager->get<GraphicsContext>();
 	gpu->init(dc);
@@ -79,8 +80,10 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	renderer->init(rc);
 
 	// imgui backend
+	ImGuiServiceConfiguration config{ gpu, window->GetWindowHandle() };
 	imgui = service_manager->get<ImGuiService>();
-	imgui->Init(renderer);
+	//imgui->Init(renderer);
+	imgui->Init(&config);
 
 
 	// -- Initialize layer stack and push layers -------------- //

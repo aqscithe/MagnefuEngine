@@ -48,7 +48,7 @@ namespace Magnefu
 			u32 Height;
 		};
 
-		virtual ~Window() = 0;
+		virtual ~Window() = default;
 
 		
 		uint16_t		GetWidth() const { return width; }

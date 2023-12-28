@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Magnefu/Magnefu.h"
-
 #include <filesystem>
 
 
@@ -18,15 +17,19 @@ class Sandbox : public Magnefu::Application
 		 void                Destroy() override;
 		 bool                MainLoop() override;
 
+
+		 // Remember i need to call glfwpollevents at some point during run loop
+		 // 
+		 
 		// Fixed update. Can be called more than once compared to rendering.
-		 void                FixedUpdate(f32 delta) override;
+		 //void                FixedUpdate(f32 delta) override;
 		// Variable time update. Called only once per frame.
-		 void                VariableUpdate(f32 delta) override;
+		 //void                VariableUpdate(f32 delta) override;
 		// Rendering with optional interpolation factor.
-		 void                Render(f32 interpolation) override;
+		// void                Render(f32 interpolation) override;
 		// Per frame begin/end.
-		 void                BeginFrame() override;
-		 void                EndFrame() override;
+		 //void                BeginFrame() override;
+		 //void                EndFrame() override;
 
 
 		 void				OnEvent(Magnefu::Event& event) ;
@@ -37,7 +40,7 @@ class Sandbox : public Magnefu::Application
 		 bool				OnWindowLostFocus(Magnefu::WindowLostFocusEvent& e);
 
 
-		 void                        on_resize(u32 new_width, u32 new_height);
+		 //void                        on_resize(u32 new_width, u32 new_height);
 
 		 void*						GetWindow() override { return (void*)window; }
 

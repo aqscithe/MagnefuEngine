@@ -225,7 +225,7 @@ void SandboxLayer::ShowNewSceneDialog()
 
 		if (ImGui::Button("OK"))
 		{
-			CreateNewScene();
+			//CreateNewScene();
 			ImGui::CloseCurrentPopup();
 		}
 
@@ -375,7 +375,7 @@ void SandboxLayer::ShowFramerateOverlay()
 
 void SandboxLayer::ShowScene()
 {
-	ShowEntityListWindow();
+	/*ShowEntityListWindow();
 	ShowResourceBrowser();
 
 	ShowComponentWindow();
@@ -383,7 +383,7 @@ void SandboxLayer::ShowScene()
 	if (showMeshComponentWidget)
 	{
 		ShowMeshComponentWidget();
-	}
+	}*/
 }
 
 
