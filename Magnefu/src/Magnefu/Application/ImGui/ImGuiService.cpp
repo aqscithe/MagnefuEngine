@@ -540,7 +540,7 @@ namespace Magnefu
 		gpu->destroy_texture(g_font_texture);
 
 
-		ImGui_ImplVulkan_Shutdown();
+		//ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
 	}

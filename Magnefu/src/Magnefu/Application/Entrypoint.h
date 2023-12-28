@@ -23,11 +23,6 @@ int main(int argc, char** argv)
 
 	delete app;
 
-	// -- Shutdown Services ------------------------------------------- //
-
-	Magnefu::MemoryService::Instance()->Shutdown();
-	Magnefu::LogService::Instance()->Shutdown();
-
 	MF_PROFILE_END_SESSION();
 }
 
