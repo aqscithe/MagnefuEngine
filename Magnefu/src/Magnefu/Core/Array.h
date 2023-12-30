@@ -3,6 +3,7 @@
 
 // -- Core Includes ---------------------------------- //
 #include "MemoryAllocation/Memory.hpp"
+#include "Platform.hpp"
 #include "Assertions.h"
 
 // -- other Includes -------------- //
@@ -74,6 +75,7 @@ namespace Magnefu
 
 		bool		empty() { return size <= 0; }
 
+		u32			get_index(const T& value);
 		u32			count() const;
 		u32         size_in_bytes() const;
 		u32         capacity_in_bytes() const;
@@ -229,6 +231,20 @@ namespace Magnefu
 	{
 		MF_CORE_ASSERT((size > 0), "Empty array");
 		size--;
+	}
+
+	template<typename T>
+	inline u32 Array<T>::get_index(const T& value)
+	{
+		for (u32 index = 0; index < size; index++)
+		{
+			if (data[index] == value)
+			{
+				return index;
+			}
+		}
+
+		return (u32)-1;
 	}
 
 	template<typename T>

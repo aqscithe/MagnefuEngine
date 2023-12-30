@@ -178,13 +178,14 @@ namespace Magnefu
 
 //#define VULKAN_SYNCHRONIZATION_VALIDATION
 
-    static const char* s_requested_extensions[] = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        VK_EXT_MEMORY_BUDGET_EXTENSION_NAME,
-        VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME,
+    // Vulkan INSTANCE Extensions
+    static const char* s_requested_extensions[] = 
+    {
+        VK_KHR_SURFACE_EXTENSION_NAME,      // Also obtained through glfwGetRequiredInstanceExtensions
         // Platform specific extension
     #ifdef VK_USE_PLATFORM_WIN32_KHR
-            //"VK_KHR_win32_surface",
+            "VK_KHR_win32_surface",         // Also obtained through glfwGetRequiredInstanceExtensions
+            //VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
     #elif defined(VK_USE_PLATFORM_MACOS_MVK)
             VK_MVK_MACOS_SURFACE_EXTENSION_NAME,
     #elif defined(VK_USE_PLATFORM_XCB_KHR)
@@ -206,9 +207,18 @@ namespace Magnefu
     #endif // VK_USE_PLATFORM_WIN32_KHR
 
     #if defined (VULKAN_DEBUG_REPORT)
-        //VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
-        //VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+        VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
+        VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
     #endif // VULKAN_DEBUG_REPORT
+    };
+
+    // Vulkan LOGICAL DEVICE Extensions
+    static const char* device_extensions[] =
+    {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        VK_EXT_MEMORY_BUDGET_EXTENSION_NAME,
+        VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME
+        //VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME
     };
 
     static const char* s_requested_layers[] = {
@@ -316,7 +326,7 @@ namespace Magnefu
         vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extensionCount, availableExtensions.begin());
 
 
-        Array<cstring> deviceExtensions(allocator, s_requested_extensions, s_requested_extensions + ArraySize(s_requested_extensions));
+        Array<cstring> deviceExtensions(allocator, device_extensions, device_extensions + ArraySize(device_extensions));
         std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
         
 
@@ -405,12 +415,21 @@ namespace Magnefu
         application_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
         application_info.apiVersion = VK_API_VERSION_1_3;
 
-        // Get GLFW extensions
-        u32 glfwExtensionCount = 0;
-        const char** glfwExtensions;
-        glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
-        std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+        // No longer necessary. The needed glfw extensions are included in s_requested_extensions
+
+        // Get GLFW extensions
+        //u32 glfwExtensionCount = 0;
+        //const char** glfwExtensions;
+        //glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+        //std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+        //// Add requested extensions to extensions vector
+        //u32 requested_extension_count = (u32)ArraySize(s_requested_extensions);
+        //for (size_t index = 0; index < requested_extension_count; index++)
+        //{
+        //    extensions.push_back(s_requested_extensions[index]);
+        //}
 
         VkInstanceCreateInfo instanceCreateInfo{};
         instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -420,12 +439,14 @@ namespace Magnefu
 #if defined(VULKAN_DEBUG_REPORT)
         instanceCreateInfo.enabledLayerCount = (u32)ArraySize(s_requested_layers);
         instanceCreateInfo.ppEnabledLayerNames = s_requested_layers;
+
+        
 #else
         instanceCreateInfo.enabledLayerCount = 0;
         instanceCreateInfo.ppEnabledLayerNames = nullptr;
 #endif
-        instanceCreateInfo.enabledExtensionCount = extensions.size();
-        instanceCreateInfo.ppEnabledExtensionNames = extensions.data();
+        instanceCreateInfo.enabledExtensionCount = (u32)ArraySize(s_requested_extensions);
+        instanceCreateInfo.ppEnabledExtensionNames = s_requested_extensions;
 
 
 #if defined(VULKAN_DEBUG_REPORT)
@@ -605,6 +626,8 @@ namespace Magnefu
 
         // -- Create logical device -------------------------------------------- //
 
+        // Just enabled VK_KHR_swapchain
+
         const float queue_priority[] = { 1.0f };
         VkDeviceQueueCreateInfo queue_info[1] = {};
         queue_info[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -619,8 +642,8 @@ namespace Magnefu
         device_create_info.queueCreateInfoCount = ArraySize(queue_info);
         device_create_info.pQueueCreateInfos = queue_info;
         device_create_info.pEnabledFeatures = &vulkan_physical_features.features;
-        device_create_info.enabledExtensionCount = ArraySize(s_requested_extensions);
-        device_create_info.ppEnabledExtensionNames = s_requested_extensions;
+        device_create_info.enabledExtensionCount = (u32)ArraySize(device_extensions);
+        device_create_info.ppEnabledExtensionNames = device_extensions;
         device_create_info.pNext = nullptr; 
         device_create_info.enabledLayerCount = ArraySize(s_requested_layers);
         device_create_info.ppEnabledLayerNames = s_requested_layers;
@@ -2022,13 +2045,13 @@ namespace Magnefu
         //subpass.pResolveAttachments = &colorAttachmentResolveRef;
 
         // Subpass Dependencies
-        VkSubpassDependency dependency{};
+        /*VkSubpassDependency dependency{};
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
         dependency.dstSubpass = 0;
         dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         dependency.srcAccessMask = 0;
         dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;*/
 
 
         VkAttachmentDescription attachments[] = { color_attachment, depth_attachment }; //, colorAttachmentResolve };
@@ -2037,8 +2060,8 @@ namespace Magnefu
         render_pass_info.pAttachments = attachments;
         render_pass_info.subpassCount = 1;
         render_pass_info.pSubpasses = &subpass;
-        render_pass_info.dependencyCount = 1;
-        render_pass_info.pDependencies = &dependency;
+        //render_pass_info.dependencyCount = 1;
+        //render_pass_info.pDependencies = &dependency;
 
         check(vkCreateRenderPass(gpu.vulkan_device, &render_pass_info, nullptr, &render_pass->vk_render_pass), "Failed to create renderpass");
 
@@ -2257,7 +2280,7 @@ namespace Magnefu
 
         VkRenderPass vk_render_pass;
         check(vkCreateRenderPass(gpu.vulkan_device, &render_pass_info, nullptr, &vk_render_pass), "failed to create renderpass");
-
+        
         gpu.set_resource_name(VK_OBJECT_TYPE_RENDER_PASS, (u64)vk_render_pass, name);
 
         return vk_render_pass;
@@ -2517,13 +2540,10 @@ namespace Magnefu
         shaders.release_resource(shader);
     }
 
-    void GraphicsContext::set_resource_name(VkObjectType type, u64 handle, const char* name) {
+    void GraphicsContext::set_resource_name(VkObjectType type, u64 handle, const char* name) 
+    {
 
-        /*if (!debug_utils_extension_present) {
-            return;
-        }*/
-
-        if (pfnSetDebugUtilsObjectNameEXT == nullptr) 
+        if (!debug_utils_extension_present || pfnSetDebugUtilsObjectNameEXT == nullptr)
         {
             return;
         }

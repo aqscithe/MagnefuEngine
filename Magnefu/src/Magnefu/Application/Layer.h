@@ -15,7 +15,7 @@ namespace Magnefu
 	struct  Layer
 	{
 	public:
-		Layer(const std::string& name = "Layer");
+		Layer(cstring name = "Layer");
 		virtual ~Layer();
 
 		virtual void OnAttach() {}
@@ -25,9 +25,9 @@ namespace Magnefu
 		virtual void OnGUIRender() {}
 		virtual void OnEvent(Event& event) {}
 
-		inline const std::string& GetName() const { return m_DebugName; }
+		inline cstring GetName() const { return m_DebugName; }
 	protected:
-		std::string m_DebugName;
+		cstring m_DebugName;
 		bool m_Enabled;
 
 	};

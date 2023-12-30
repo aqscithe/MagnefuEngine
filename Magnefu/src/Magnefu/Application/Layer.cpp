@@ -17,7 +17,7 @@
 
 namespace Magnefu
 {
-	Layer::Layer(const std::string& name) :
+	Layer::Layer(cstring name) :
 		m_DebugName(name)
 	{
 

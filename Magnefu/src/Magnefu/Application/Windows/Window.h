@@ -51,8 +51,11 @@ namespace Magnefu
 		virtual ~Window() = default;
 
 		
-		uint16_t		GetWidth() const { return width; }
-		uint16_t		GetHeight() const { return height; }
+		u32				GetWidth() const { return width; }
+		u32				GetHeight() const { return height; }
+
+		void			SetWidth(u32 width_) { width = width_; }
+		void			SetHeight(u32 height_) { height = height_; }
 
 		void*			GetWindowHandle() const { return platform_handle; }
 
@@ -62,23 +65,26 @@ namespace Magnefu
 		virtual void    SetFullscreen(bool value)  = 0;
 		virtual void    CenterMouse(bool dragging) = 0;
 
-
+		virtual void	PollEvents() = 0;
 		
 		
 		// -- DONT KNOW IF I WILL KEEP THESES
-		virtual void OnFinish() {};
-		//virtual bool IsVSync() {};
-		virtual void CloseWindow() {};
-		virtual void OnUpdate() {};
-		virtual void DrawFrame() {};
-		virtual void OnImGuiRender() {};
+		//virtual void OnFinish() {};
+		////virtual bool IsVSync() {};
+		//virtual void CloseWindow() {};
+		//virtual void OnUpdate() {};
+		//virtual void DrawFrame() {};
+		//virtual void OnImGuiRender() {};
 
-	protected:
-
+	public:
 		void*			platform_handle = nullptr;
 		bool            requested_exit = false;
 		bool            resized = false;
 		bool            minimized = false;
+
+	protected:
+
+		
 
 		u32             width = 0;
 		u32             height = 0;

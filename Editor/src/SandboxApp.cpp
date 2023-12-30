@@ -1,6 +1,9 @@
 #include "SandboxApp.hpp"
 #include "SandboxLayer.hpp"
 
+
+#include "imgui/imgui.h"
+
 // -- Sandbox App -------------------------------------------------------------------------- //
 
 #if defined(MF_PLATFORM_WINDOWS)
@@ -16,15 +19,6 @@ static Magnefu::MacWindow s_window;
 
 #endif
 
-// Callbacks
-
-// I should use my own event system...
-//static void input_os_messages_callback(Magnefu::Event& e, void* user_data)
-//{
-//	Magnefu::InputService* input = (Magnefu::InputService*)user_data;
-//	input->OnEvent(e);
-//}
-
 
 // The app constructor is where I push the layers I want to use in that app.
 Sandbox::Sandbox()
@@ -35,7 +29,7 @@ Sandbox::Sandbox()
 
 Sandbox::~Sandbox()
 {
-	delete layer_stack;
+	
 }
 
 
@@ -50,7 +44,9 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	service_manager = Magnefu::ServiceManager::instance;
 
 	service_manager->init(&Magnefu::MemoryService::Instance()->systemAllocator);
-	//service_manager->get<LogService>();
+
+	layer_stack = new Magnefu::LayerStack();
+	layer_stack->PushLayer(new SandboxLayer());
 
 	// window
 	WindowConfiguration wconf{ configuration.width, configuration.height, configuration.name, &MemoryService::Instance()->systemAllocator };
@@ -82,14 +78,14 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	// imgui backend
 	ImGuiServiceConfiguration config{ gpu, window->GetWindowHandle() };
 	imgui = service_manager->get<ImGuiService>();
+	layer_stack->PushOverlay(imgui);
 	//imgui->Init(renderer);
 	imgui->Init(&config);
 
 
-	// -- Initialize layer stack and push layers -------------- //
-	layer_stack = new Magnefu::LayerStack();
-	layer_stack->PushLayer(new SandboxLayer());
-	layer_stack->PushOverlay(imgui);
+	
+	
+	
 
 	// will eventually have an EditorLayer
 	// may even have more specific layers like Physics Collisions and AI...
@@ -105,13 +101,17 @@ void Sandbox::Destroy()
 {
 	using namespace Magnefu;
 
-	MF_CORE_INFO("Sandbox Shutdown");
+	MF_CORE_INFO("Begin Sandbox Shutdown...");
+
+	// Need to handle deletion of layers
 
 	// Shutdown services
 	imgui->Shutdown();
 	input->Shutdown();
 	renderer->shutdown();
 	window->Shutdown();
+
+	delete layer_stack;
 
 	time_service_shutdown();
 
@@ -123,6 +123,78 @@ void Sandbox::Destroy()
 
 bool Sandbox::MainLoop()
 {
+	using namespace Magnefu;
+
+	accumulator = 0.0;
+	auto start_time = time_now();
+
+	while (!window->requested_exit)
+	{
+		if (!window->minimized)
+		{
+			renderer->begin_frame();
+		}
+
+		input->NewFrame();
+
+		window->PollEvents();
+
+		if (window->resized)
+		{
+			renderer->resize_swapchain(window->GetWidth(), window->GetHeight());
+
+			window->resized = false;
+		}
+
+		imgui->BeginFrame();
+		
+		auto end_time = time_now();
+		f32 delta_time = (f32)time_delta_seconds(start_time, end_time);
+		start_time = end_time;
+
+		accumulator += delta_time;
+
+		input->Update(delta_time);
+
+		while (accumulator >= step)
+		{
+			FixedUpdate(delta_time);
+
+			accumulator -= step;
+		}
+
+		VariableUpdate(delta_time);
+
+		if (!window->minimized)
+		{
+			MemoryService::Instance()->imguiDraw();
+			auto* gpu_commands = renderer->get_command_buffer(QueueType::Graphics, true);
+			
+			gpu_commands->push_marker("Frame");
+
+			
+			const f32 interpolation_factor = Maths::clamp(0.0f, 1.0f, (f32)(accumulator / step));
+			Render(interpolation_factor);
+
+			//imgui->Render(renderer, *gpu_commands);
+			imgui->Render(*gpu_commands);
+
+			gpu_commands->pop_marker();
+
+			// Send commands to GPU
+			renderer->queue_command_buffer(gpu_commands);
+
+			renderer->end_frame();
+		}
+		else
+		{
+			ImGui::Render();
+		}
+
+		// Prepare for next frame if anything must be done.
+		EndFrame();
+	}
+
 	return false;
 }
 
@@ -164,20 +236,25 @@ void Sandbox::OnEvent(Magnefu::Event& event)
 
 bool Sandbox::OnWindowClose(Magnefu::WindowCloseEvent& e)
 {
-	is_running = false;
+	window->requested_exit = true;
 
 	return true;
-}
+} 
 
 bool Sandbox::OnWindowResize(Magnefu::WindowResizeEvent& e)
 {
+	window->SetHeight(e.GetHeight());
+	window->SetWidth(e.GetWidth());
+
 	if (e.GetWidth() == 0 || e.GetHeight() == 0)
 	{
-		is_minimized = true;
+		window->minimized = true;
 		return true;
 	}
 
-	is_minimized = false;
+	window->minimized = false;
+	window->resized = true;
+
 	return true;
 }
 

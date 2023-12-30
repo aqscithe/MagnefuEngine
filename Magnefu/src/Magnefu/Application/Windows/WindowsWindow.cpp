@@ -96,7 +96,7 @@ namespace Magnefu
 
 
 
-		MF_CORE_DEBUG("A framebuffer resize event");
+		//MF_CORE_DEBUG("A framebuffer resize event: {} x {}", width, height);
 			});
 
 
@@ -110,7 +110,7 @@ namespace Magnefu
 		data.EventCallback(event); // What does this line actually do?
 
 
-		MF_CORE_DEBUG("A window resize event {} x {}", width, height);
+		//MF_CORE_DEBUG("A window resize event {} x {}", width, height);
 
 			});
 
@@ -270,6 +270,12 @@ namespace Magnefu
 		{
 			glfwSetInputMode(s_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		}
+	}
+
+	void WindowsWindow::PollEvents()
+	{
+		glfwPollEvents();
+		
 	}
 
 

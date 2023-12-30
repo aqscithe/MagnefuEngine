@@ -15,6 +15,7 @@ namespace Magnefu
 
 		void        SetFullscreen(bool value) override;
 		void        CenterMouse(bool dragging) override;
+		void		PollEvents() override;
 
 	private:	
 

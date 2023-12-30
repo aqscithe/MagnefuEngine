@@ -26,6 +26,7 @@
 #include "Magnefu/Graphics/Material.h"
 #include "Magnefu/Graphics/GraphicsContext.h"
 #include "Magnefu/Graphics/Renderer.hpp"
+#include "Magnefu/Graphics/CommandBuffer.hpp"
 
 
 
@@ -39,3 +40,4 @@
 #include "Magnefu/Core/MemoryAllocation/Memory.hpp"
 #include "Magnefu/Core/SmartPointers.h"
 #include "Magnefu/Core/ServiceManager.hpp"
+#include "Magnefu/Core/Maths/MathsCommon.h"

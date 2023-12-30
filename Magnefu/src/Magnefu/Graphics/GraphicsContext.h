@@ -355,6 +355,9 @@ namespace Magnefu
 
         static constexpr cstring        k_name = "Magnefu_GPU_Service";
 
+        // -- ImGui ------------------ //
+        VkRenderPass                    imgui_render_pass;
+
 
         VkAllocationCallbacks*          vulkan_allocation_callbacks;
         VkInstance                      vulkan_instance;
