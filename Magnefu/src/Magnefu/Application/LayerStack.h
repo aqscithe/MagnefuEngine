@@ -29,6 +29,6 @@ namespace Magnefu
 
 	private:
 		Array<Layer*> m_Layers;
-		uint32_t m_LayerInsertIndex = 0;
+		u32 m_LayerInsertIndex = 0;
 	};
 }

@@ -3,18 +3,24 @@
 #include "Magnefu/Application/Events/Event.h"
 #include "Magnefu/Application/Layer.h"
 
+// -- Bascially everything menu related is in the overlay.
+// The overlay layer is for everything that should be for things that should
+// consume events first, should a mouse click occur
 
-class SandboxLayer : public Magnefu::Layer
+
+class Overlay : public Magnefu::Layer
 {
 public:
-	SandboxLayer();
+	Overlay();
 
 	void OnAttach() override;
 	void OnDetach() override;
-	void OnUpdate(double deltaTime) override;
-	void OnRender() override;
-	void OnGUIRender() override;
-	void OnEvent(Magnefu::Event& e);
+	void OnEvent(Magnefu::Event& e) override;
+
+	void Update(float deltatime) override;
+	void DrawGUI() override;
+
+
 
 private:
 	void ShowApplicationMenuBar();
@@ -34,20 +40,18 @@ private:
 private:
 	//void CreateNewScene();
 
-
+	void BlockEvents(bool block) { m_block_events = block; }
 
 
 private:
 	//Magnefu::Ref<Magnefu::SceneCamera>                  m_Camera;
 	//Magnefu::GraphicsContext* m_GraphicsContext;
 	////Magnefu::PushConstants                              m_PushConstants;
-	////Array<Magnefu::SceneObject>& m_SceneObjects;
-	//int                                                 m_AreaLightCount;
-	//Maths::mat4                                         m_AreaLightPoints;
-	//std::array<Magnefu::AreaLight, Magnefu::MAX_AREA_LIGHTS>  m_AreaLights;
 
 	//std::filesystem::path current_path;
 
 	//Magnefu::Scene* m_ActiveScene;
 	//Magnefu::Entity* m_SelectedEntity;
+
+	bool m_block_events = true;
 };

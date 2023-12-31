@@ -18,17 +18,18 @@ namespace Magnefu
 		Layer(cstring name = "Layer");
 		virtual ~Layer();
 
-		virtual void OnAttach() {}
-		virtual void OnDetach() {}
-		virtual void OnUpdate(double deltaTime) {}
-		virtual void OnRender() {}
-		virtual void OnGUIRender() {}
-		virtual void OnEvent(Event& event) {}
+		
+		virtual void OnAttach() = 0;
+		virtual void OnDetach() = 0;
+		virtual void OnEvent(Event& event) = 0;
 
-		inline cstring GetName() const { return m_DebugName; }
+		virtual void Update(float deltaTime) = 0;
+		virtual void DrawGUI() = 0;
+
+		inline cstring GetName() const { return m_debug_name; }
 	protected:
-		cstring m_DebugName;
-		bool m_Enabled;
+		cstring m_debug_name;
+		bool m_enabled;
 
 	};
 }

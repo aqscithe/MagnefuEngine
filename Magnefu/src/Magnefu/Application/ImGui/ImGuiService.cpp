@@ -115,9 +115,7 @@ Magnefu::ImGuiService* Magnefu::ImGuiService::Instance()
 
 namespace Magnefu
 {
-#define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
-	ImGuiService::ImGuiService() :
-		Layer("ImGuiService")
+	ImGuiService::ImGuiService()
 	{
 
 	}
@@ -1162,32 +1160,6 @@ namespace Magnefu
 
 	void imgui_log_draw() {
 		s_imgui_log.Draw("Log", &s_imgui_log_open);
-	}
-
-	void ImGuiService::OnAttach()
-	{
-
-	}
-
-	void ImGuiService::OnDetach()
-	{
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext();
-	}
-
-	void ImGuiService::OnEvent(Event& e)
-	{
-		if (m_BlockEvents)
-		{
-			ImGuiIO& io = ImGui::GetIO();
-			e.m_Handled |= e.IsInCategory(EventCategoryMouse) & io.WantCaptureMouse;
-			e.m_Handled |= e.IsInCategory(EventCategoryKeyboard) & io.WantCaptureKeyboard;
-
-			//MF_CORE_DEBUG("{}", e.ToString());
-		}
-		
-		
-
 	}
 
 }

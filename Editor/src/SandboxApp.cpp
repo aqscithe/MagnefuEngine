@@ -1,8 +1,12 @@
 #include "SandboxApp.hpp"
-#include "SandboxLayer.hpp"
+
+// -- Layer Includes ---------------- //
+#include "AppLayers/SandboxLayer.hpp"
+#include "AppLayers/Overlay.hpp"
 
 
 #include "imgui/imgui.h"
+
 
 // -- Sandbox App -------------------------------------------------------------------------- //
 
@@ -44,9 +48,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	service_manager = Magnefu::ServiceManager::instance;
 
 	service_manager->init(&Magnefu::MemoryService::Instance()->systemAllocator);
-
-	layer_stack = new Magnefu::LayerStack();
-	layer_stack->PushLayer(new SandboxLayer());
+	
 
 	// window
 	WindowConfiguration wconf{ configuration.width, configuration.height, configuration.name, &MemoryService::Instance()->systemAllocator };
@@ -78,13 +80,8 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	// imgui backend
 	ImGuiServiceConfiguration config{ gpu, window->GetWindowHandle() };
 	imgui = service_manager->get<ImGuiService>();
-	layer_stack->PushOverlay(imgui);
 	//imgui->Init(renderer);
 	imgui->Init(&config);
-
-
-	
-	
 	
 
 	// will eventually have an EditorLayer
@@ -92,6 +89,10 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	// this is how updates can be controlled separately
 
 	// TODO: How should i give the app access to its layer and overlay?
+
+	layer_stack = new Magnefu::LayerStack();
+	layer_stack->PushLayer(new SandboxLayer());
+	layer_stack->PushOverlay(new Overlay());
 
 
 	MF_CORE_INFO("Sandbox Application created successfully!");
@@ -123,10 +124,8 @@ void Sandbox::Destroy()
 
 bool Sandbox::MainLoop()
 {
-	using namespace Magnefu;
-
 	accumulator = 0.0;
-	auto start_time = time_now();
+	auto start_time = Magnefu::time_now();
 
 	while (!window->requested_exit)
 	{
@@ -148,8 +147,8 @@ bool Sandbox::MainLoop()
 
 		imgui->BeginFrame();
 		
-		auto end_time = time_now();
-		f32 delta_time = (f32)time_delta_seconds(start_time, end_time);
+		auto end_time = Magnefu::time_now();
+		f32 delta_time = (f32)Magnefu::time_delta_seconds(start_time, end_time);
 		start_time = end_time;
 
 		accumulator += delta_time;
@@ -167,8 +166,10 @@ bool Sandbox::MainLoop()
 
 		if (!window->minimized)
 		{
-			MemoryService::Instance()->imguiDraw();
-			auto* gpu_commands = renderer->get_command_buffer(QueueType::Graphics, true);
+
+			DrawGUI();
+
+			auto* gpu_commands = renderer->get_command_buffer(Magnefu::QueueType::Graphics, true);
 			
 			gpu_commands->push_marker("Frame");
 
@@ -196,6 +197,21 @@ bool Sandbox::MainLoop()
 	}
 
 	return false;
+}
+
+void Sandbox::DrawGUI()
+{
+	using namespace Magnefu;
+
+
+	// Not sure imgui
+	for (auto it = layer_stack->end(); it != layer_stack->begin(); )
+	{
+		(*--it)->DrawGUI();
+	}
+
+	// Do all imgui drawing should be done here?
+	Magnefu::MemoryService::Instance()->imguiDraw();
 }
 
 

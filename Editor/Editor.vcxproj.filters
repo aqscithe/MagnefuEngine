@@ -132,13 +132,15 @@
     <ClInclude Include="src\SandboxApp.hpp">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\SandboxLayer.hpp" />
+    <ClInclude Include="src\AppLayers\SandboxLayer.hpp" />
+    <ClInclude Include="src\AppLayers\Overlay.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\SandboxApp.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\SandboxLayer.cpp" />
+    <ClCompile Include="src\AppLayers\SandboxLayer.cpp" />
+    <ClCompile Include="src\AppLayers\Overlay.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\materials\12221_Cat_v1_l3.mtl">

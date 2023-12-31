@@ -48,7 +48,7 @@ namespace Magnefu
 
 
 
-	struct  ImGuiService : public Layer, Service
+	struct  ImGuiService : public Service
 	{
 
 	public:
@@ -68,29 +68,6 @@ namespace Magnefu
 
 		void                            SetStyle(ImGuiStyles style);
 
-		void OnAttach() override;
-		
-		void OnDetach() override;
-		void OnEvent(Event&) override;
-		/*void OnRender() override;
-
-		void BeginFrame();
-		void EndFrame();
-		void RecreateImageResources();
-		void RecordAndSubmitCommandBuffer(uint32_t imageIndex);
-
-		void BlockEvents(bool block) { m_BlockEvents = block; }
-
-		void SetDarkThemeColors();
-
-		uint32_t GetActiveWidgetID() const;*/
-
-
-
-		
-
-		
-
 		
 
 
@@ -98,9 +75,6 @@ namespace Magnefu
 		GraphicsContext* gpu;
 
 		static constexpr cstring        k_name = "Magnefu_ImGui_Service";
-		
-		bool m_BlockEvents = true;
-		
 	};
 
 

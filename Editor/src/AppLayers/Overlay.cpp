@@ -1,4 +1,5 @@
-#include "SandboxLayer.hpp"
+#include "Overlay.hpp"
+#include "Magnefu/Application/Events/Event.h"
 #include "imgui/imgui.h"
 
 
@@ -20,8 +21,8 @@ static const uint32_t MAX_SCENES = 1;
 
 static double s_deltaTime = 1.0;
 
-SandboxLayer::SandboxLayer() :
-	Layer("Sandbox")
+Overlay::Overlay() :
+	Layer("Overlay")
 {
 	//auto& scenes = app.GetScenes();
 
@@ -38,24 +39,19 @@ SandboxLayer::SandboxLayer() :
 
 }
 
-void SandboxLayer::OnAttach()
+void Overlay::OnAttach()
 {
 	/*m_Camera->SetDefaultProps();*/
 }
 
-void SandboxLayer::OnDetach()
+void Overlay::OnDetach()
 {
 
 }
 
-void SandboxLayer::OnUpdate(double deltaTime)
-{
-	/*s_deltaTime = deltaTime;
-	m_Camera->ProcessInput(deltaTime);*/
-	//m_GraphicsContext->SetPushConstants(m_PushConstants);
-}
 
-void SandboxLayer::OnEvent(Magnefu::Event& e)
+
+void Overlay::OnEvent(Magnefu::Event& e)
 {
 	auto type = e.GetEventType();
 
@@ -94,14 +90,33 @@ void SandboxLayer::OnEvent(Magnefu::Event& e)
 	default:
 		break;
 	}
+
+
+	// Setting certain events as handled by the overlay
+	// For example, if the menu is showing and the user clicks on a button,
+	// there is no need for the in-game character to perform an action
+
+	if (m_block_events)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		e.m_Handled |= e.IsInCategory(Magnefu::EventCategoryMouse) & io.WantCaptureMouse;
+		e.m_Handled |= e.IsInCategory(Magnefu::EventCategoryKeyboard) & io.WantCaptureKeyboard;
+
+		//MF_CORE_DEBUG("{}", e.ToString());
+	}
 }
 
-void SandboxLayer::OnRender()
+
+
+void Overlay::Update(float deltatime)
 {
 
+
 }
 
-void SandboxLayer::OnGUIRender()
+
+
+void Overlay::DrawGUI()
 {
 	/*
 	if (show_demo_window)
@@ -122,11 +137,11 @@ void SandboxLayer::OnGUIRender()
 	{
 		ShowScene();
 	}*/
-
-
 }
 
-void SandboxLayer::ShowApplicationMenuBar()
+
+
+void Overlay::ShowApplicationMenuBar()
 {
 	if (ImGui::BeginMainMenuBar()) {
 		// File menu
@@ -210,7 +225,7 @@ void SandboxLayer::ShowApplicationMenuBar()
 	}
 }
 
-void SandboxLayer::ShowNewSceneDialog()
+void Overlay::ShowNewSceneDialog()
 {
 
 	if (openNewSceneDialog)
@@ -240,7 +255,7 @@ void SandboxLayer::ShowNewSceneDialog()
 	}
 }
 
-//void SandboxLayer::ShowCameraSettingsWindow()
+//void Overlay::ShowCameraSettingsWindow()
 //{
 //	if (!openCameraSettingsWindow) { return; }
 //
@@ -294,7 +309,7 @@ void SandboxLayer::ShowNewSceneDialog()
 //
 //}
 
-void SandboxLayer::ShowRendererSettingsWindow()
+void Overlay::ShowRendererSettingsWindow()
 {
 	//if (!openRendererSettingsWindow) { return; }
 
@@ -306,7 +321,7 @@ void SandboxLayer::ShowRendererSettingsWindow()
 		ImGui::End();*/
 }
 
-void SandboxLayer::ShowControlsWindow()
+void Overlay::ShowControlsWindow()
 {
 	if (!openControlsWindow) { return; }
 
@@ -331,7 +346,7 @@ void SandboxLayer::ShowControlsWindow()
 
 }
 
-void SandboxLayer::ShowFramerateOverlay()
+void Overlay::ShowFramerateOverlay()
 {
 	if (!showFramerate) { return; }
 
@@ -373,7 +388,7 @@ void SandboxLayer::ShowFramerateOverlay()
 }
 
 
-void SandboxLayer::ShowScene()
+void Overlay::ShowScene()
 {
 	/*ShowEntityListWindow();
 	ShowResourceBrowser();
@@ -388,7 +403,7 @@ void SandboxLayer::ShowScene()
 
 
 
-//void SandboxLayer::ShowResourceBrowser()
+//void Overlay::ShowResourceBrowser()
 //{
 //	if (ImGui::Begin("Resource Browser"))
 //	{
@@ -437,7 +452,7 @@ void SandboxLayer::ShowScene()
 //
 //
 //
-//void SandboxLayer::ShowEntityListWindow()
+//void Overlay::ShowEntityListWindow()
 //{
 //	if (ImGui::Begin("Entities"))
 //	{
@@ -475,7 +490,7 @@ void SandboxLayer::ShowScene()
 //	ImGui::End();
 //}
 //
-//void SandboxLayer::ShowAddComponentWidget()
+//void Overlay::ShowAddComponentWidget()
 //{
 //	// Combo Boxes are also called "Dropdown" in other systems
 //		// Expose flags as checkbox for the demo
@@ -534,7 +549,7 @@ void SandboxLayer::ShowScene()
 //	}
 //}
 //
-//void SandboxLayer::ShowMeshComponentWidget()
+//void Overlay::ShowMeshComponentWidget()
 //{
 //	static int currentMesh = -1; // -1: no selection
 //
@@ -575,7 +590,7 @@ void SandboxLayer::ShowScene()
 //
 //
 //
-//void SandboxLayer::ShowComponentWindow()
+//void Overlay::ShowComponentWindow()
 //{
 //	if (ImGui::Begin("Components"))
 //	{
@@ -620,7 +635,7 @@ void SandboxLayer::ShowScene()
 //	ImGui::End();
 //}
 //
-//void SandboxLayer::CreateNewScene()
+//void Overlay::CreateNewScene()
 //{
 //	auto& sceneManager = Magnefu::Application::Get().GetSceneManager();
 //
@@ -646,7 +661,7 @@ void SandboxLayer::ShowScene()
 //	m_ActiveScene = sceneManager.CreateScene(name);
 //}
 //
-//void SandboxLayer::ShowMemoryStats()
+//void Overlay::ShowMemoryStats()
 //{
 //	if (!showMemoryStatsWindow) { return; }
 //

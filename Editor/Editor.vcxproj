@@ -143,12 +143,14 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\AppLayers\Overlay.hpp" />
     <ClInclude Include="src\SandboxApp.hpp" />
-    <ClInclude Include="src\SandboxLayer.hpp" />
+    <ClInclude Include="src\AppLayers\SandboxLayer.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\AppLayers\Overlay.cpp" />
     <ClCompile Include="src\SandboxApp.cpp" />
-    <ClCompile Include="src\SandboxLayer.cpp" />
+    <ClCompile Include="src\AppLayers\SandboxLayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\materials\12221_Cat_v1_l3.mtl" />

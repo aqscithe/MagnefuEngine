@@ -18,7 +18,7 @@
 namespace Magnefu
 {
 	Layer::Layer(cstring name) :
-		m_DebugName(name)
+		m_debug_name(name)
 	{
 
 	}

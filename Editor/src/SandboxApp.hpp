@@ -13,9 +13,11 @@ class Sandbox : public Magnefu::Application
 		Sandbox();
 		~Sandbox();
 
-		 void                Create(const Magnefu::ApplicationConfiguration& configuration) override;
-		 void                Destroy() override;
-		 bool                MainLoop() override;
+		 void               Create(const Magnefu::ApplicationConfiguration& configuration) override;
+		 void               Destroy() override;
+		 bool               MainLoop() override;
+
+		 void				DrawGUI() override;
 
 
 		 // Remember i need to call glfwpollevents at some point during run loop

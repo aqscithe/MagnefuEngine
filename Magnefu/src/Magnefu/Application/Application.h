@@ -57,6 +57,8 @@ namespace Magnefu
 		virtual void                BeginFrame() {}
 		virtual void                EndFrame() {}
 
+		virtual void				DrawGUI() {}
+
 		virtual void				PushLayer(Layer* layer);
 		virtual void				PushOverlay(Layer* overlay) {}
 
