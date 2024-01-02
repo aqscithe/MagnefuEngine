@@ -169,7 +169,8 @@ namespace Magnefu {
 #endif // _WIN64
     }
 
-    void directory_current(Directory* directory) {
+    void directory_current(Directory* directory) 
+    {
 #if defined(_WIN64)
         DWORD written_chars = GetCurrentDirectoryA(k_max_path, directory->path);
         directory->path[written_chars] = 0;

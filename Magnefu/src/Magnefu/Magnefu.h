@@ -27,6 +27,7 @@
 #include "Magnefu/Graphics/GraphicsContext.h"
 #include "Magnefu/Graphics/Renderer.hpp"
 #include "Magnefu/Graphics/CommandBuffer.hpp"
+#include "Magnefu/Graphics/GPUProfiler.hpp"
 
 
 

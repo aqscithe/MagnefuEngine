@@ -20,9 +20,4 @@ public:
 
 
 private:
-	//Magnefu::Ref<Magnefu::SceneCamera>                  m_Camera;
-	//Magnefu::GraphicsContext* m_GraphicsContext;
-	//int                                                 m_AreaLightCount;
-	//Maths::mat4                                         m_AreaLightPoints;
-	//std::array<Magnefu::AreaLight, Magnefu::MAX_AREA_LIGHTS>  m_AreaLights;
 };

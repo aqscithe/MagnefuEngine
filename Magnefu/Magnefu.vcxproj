@@ -180,6 +180,7 @@
     <ClInclude Include="src\Magnefu\Core\DataStructures.hpp" />
     <ClInclude Include="src\Magnefu\Core\Debug\Instrumentor.h" />
     <ClInclude Include="src\Magnefu\Core\File.hpp" />
+    <ClInclude Include="src\Magnefu\Core\glTF.hpp" />
     <ClInclude Include="src\Magnefu\Core\HashMap.hpp" />
     <ClInclude Include="src\Magnefu\Core\Log.h" />
     <ClInclude Include="src\Magnefu\Core\Maths\MathsCommon.h" />
@@ -256,6 +257,7 @@
     <ClInclude Include="vendor\GLFW\src\wl_platform.h" />
     <ClInclude Include="vendor\GLFW\src\x11_platform.h" />
     <ClInclude Include="vendor\GLFW\src\xkb_unicode.h" />
+    <ClInclude Include="vendor\json\json.hpp" />
     <ClInclude Include="vendor\SOIL2\include\SOIL2\SOIL2.h" />
     <ClInclude Include="vendor\entt\include\entt.hpp" />
     <ClInclude Include="vendor\glm\common.hpp" />
@@ -1134,6 +1136,7 @@
     <ClCompile Include="src\Magnefu\Core\Color.cpp" />
     <ClCompile Include="src\Magnefu\Core\DataStructures.cpp" />
     <ClCompile Include="src\Magnefu\Core\File.cpp" />
+    <ClCompile Include="src\Magnefu\Core\glTF.cpp" />
     <ClCompile Include="src\Magnefu\Core\Log.cpp" />
     <ClCompile Include="src\Magnefu\Core\Maths\Matrices.cpp" />
     <ClCompile Include="src\Magnefu\Core\Maths\Quaternion.cpp" />

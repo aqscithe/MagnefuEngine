@@ -174,7 +174,10 @@ namespace Magnefu
 
     // Enable this to add debugging capabilities.
     // https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_EXT_debug_utils.html
+
 #define VULKAN_DEBUG_REPORT
+#define VULKAN_MEMORY_BUDGETS
+#define VULKAN_MEMORY_PRIORITY
 
 //#define VULKAN_SYNCHRONIZATION_VALIDATION
 
@@ -216,8 +219,14 @@ namespace Magnefu
     static const char* device_extensions[] =
     {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+
+#if defined(VULKAN_MEMORY_BUDGETS)
         VK_EXT_MEMORY_BUDGET_EXTENSION_NAME,
+#endif
+
+#if defined(VULKAN_MEMORY_PRIORITY)
         VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME
+#endif
         //VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME
     };
 
@@ -396,7 +405,8 @@ namespace Magnefu
     {
 
         MF_CORE_INFO("Gpu Device init");
-        
+
+
         allocator = creation.allocator;
         temporary_allocator = creation.temporary_allocator;
         string_buffer.init(1024 * 1024, creation.allocator);
@@ -733,6 +743,16 @@ namespace Magnefu
         allocatorInfo.device = vulkan_device;
         allocatorInfo.instance = vulkan_instance;
 
+        //allocatorInfo.flags = VMA_ALLOCATOR_CREATE_KHR_DEDICATED_ALLOCATION_BIT | VMA_ALLOCATOR_CREATE_KHR_BIND_MEMORY2_BIT | VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
+
+#if defined(VULKAN_MEMORY_BUDGETS)
+        allocatorInfo.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
+#endif
+
+#if defined(VULKAN_MEMORY_PRIORITY)
+        allocatorInfo.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_PRIORITY_BIT;
+#endif
+
 
         result = vmaCreateAllocator(&allocatorInfo, &vma_allocator);
         check(result, "Failed to create VMA Allocator");
@@ -870,6 +890,9 @@ namespace Magnefu
 
         // Init render pass cache
         render_pass_cache.init(allocator, 16);
+
+        
+        
     }
 
     void GraphicsContext::shutdown() {

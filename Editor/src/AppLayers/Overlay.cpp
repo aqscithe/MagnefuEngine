@@ -1,5 +1,11 @@
 #include "Overlay.hpp"
+
+
 #include "Magnefu/Application/Events/Event.h"
+
+#include "Magnefu/Core/MemoryAllocation/Memory.hpp"
+
+
 #include "imgui/imgui.h"
 
 
@@ -24,6 +30,11 @@ static double s_deltaTime = 1.0;
 Overlay::Overlay() :
 	Layer("Overlay")
 {
+	// What should run in constructor vs OnAttach?
+	m_gpu = Magnefu::GraphicsContext::Instance();
+
+	/*m_Camera->SetDefaultProps();*/
+
 	//auto& scenes = app.GetScenes();
 
 
@@ -41,7 +52,8 @@ Overlay::Overlay() :
 
 void Overlay::OnAttach()
 {
-	/*m_Camera->SetDefaultProps();*/
+	
+	
 }
 
 void Overlay::OnDetach()
@@ -125,18 +137,18 @@ void Overlay::DrawGUI()
 	}*/
 
 
-	/*ShowApplicationMenuBar();
+	ShowApplicationMenuBar();
 	ShowNewSceneDialog();
-	ShowCameraSettingsWindow();
+	//ShowCameraSettingsWindow();
 	ShowRendererSettingsWindow();
 	ShowControlsWindow();
 	ShowFramerateOverlay();
 	ShowMemoryStats();
 
-	if (m_ActiveScene)
+	if (m_active_scene)
 	{
 		ShowScene();
-	}*/
+	}
 }
 
 
@@ -403,55 +415,55 @@ void Overlay::ShowScene()
 
 
 
-//void Overlay::ShowResourceBrowser()
-//{
-//	if (ImGui::Begin("Resource Browser"))
-//	{
-//
-//		static char buffer[256] = "";
-//
-//		// Button or item to go up one level
-//		if (ImGui::Button(".."))
-//		{
-//			current_path = current_path.parent_path();
-//		}
-//
-//		// Input field for typing out the directory
-//		if (ImGui::InputText("Go to", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
-//		{
-//			std::filesystem::path new_path(buffer);
-//			if (std::filesystem::exists(new_path) && std::filesystem::is_directory(new_path))
-//			{
-//				current_path = new_path;
-//			}
-//			else
-//			{
-//				// Handle invalid path
-//			}
-//		}
-//
-//		for (const auto& entry : std::filesystem::directory_iterator(current_path))
-//		{
-//			if (ImGui::Selectable(entry.path().filename().string().c_str()))
-//			{
-//				if (entry.is_directory())
-//				{
-//					// Change directory
-//					current_path = entry.path();
-//				}
-//				else
-//				{
-//					// Handle file selection
-//				}
-//			}
-//		}
-//	}
-//	ImGui::End();
-//}
-//
-//
-//
-//
+void Overlay::ShowResourceBrowser()
+{
+	if (ImGui::Begin("Resource Browser"))
+	{
+
+		static char buffer[256] = "";
+
+		// Button or item to go up one level
+		if (ImGui::Button(".."))
+		{
+			current_path = current_path.parent_path();
+		}
+
+		// Input field for typing out the directory
+		if (ImGui::InputText("Go to", buffer, sizeof(buffer), ImGuiInputTextFlags_EnterReturnsTrue))
+		{
+			std::filesystem::path new_path(buffer);
+			if (std::filesystem::exists(new_path) && std::filesystem::is_directory(new_path))
+			{
+				current_path = new_path;
+			}
+			else
+			{
+				// Handle invalid path
+			}
+		}
+
+		for (const auto& entry : std::filesystem::directory_iterator(current_path))
+		{
+			if (ImGui::Selectable(entry.path().filename().string().c_str()))
+			{
+				if (entry.is_directory())
+				{
+					// Change directory
+					current_path = entry.path();
+				}
+				else
+				{
+					// Handle file selection
+				}
+			}
+		}
+	}
+	ImGui::End();
+}
+
+
+
+
 //void Overlay::ShowEntityListWindow()
 //{
 //	if (ImGui::Begin("Entities"))
@@ -660,60 +672,62 @@ void Overlay::ShowScene()
 //
 //	m_ActiveScene = sceneManager.CreateScene(name);
 //}
-//
-//void Overlay::ShowMemoryStats()
-//{
-//	if (!showMemoryStatsWindow) { return; }
-//
-//	if (ImGui::Begin("Memory Stats", &showMemoryStatsWindow, ImGuiWindowFlags_NoCollapse))
-//	{
-//		if (ImGui::Button("Update Memory Stats"))
-//		{
-//			Magnefu::Application::Get().GetGraphicsContext().CalculateMemoryStats();
-//		}
-//
-//		Magnefu::Application::Get().GetMemoryService().imguiDraw();
-//
-//		auto [blockCount, blockBytes, allocCount, allocBytes, usage, budget] =
-//			Magnefu::Application::Get().GetGraphicsContext().GetMemoryStats();
-//
-//		ImGui::SeparatorText("VMA STATISTICS");
-//
-//		ImGui::Text("Block Count: %d", blockCount);
-//		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Number of `VkDeviceMemory` objects - Vulkan memory blocks allocated."); }
-//
-//		ImGui::Text("Block Bytes: %llu", blockBytes);
-//		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Number of bytes allocated in `VkDeviceMemory` blocks."); }
-//
-//		ImGui::Text("Allocation Count: %d", allocCount);
-//		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Number of #VmaAllocation objects allocated."); }
-//
-//		ImGui::Text("Allocation Bytes: %llu", allocBytes);
-//		if (ImGui::IsItemHovered())
-//		{
-//			ImGui::SetTooltip("Total number of bytes occupied by all #VmaAllocation objects. \n\
-//				Difference `(blockBytes - allocationBytes)` is the amount of memory allocated\n\
-//				from Vulkan but unused by any #VmaAllocation.");
-//		}
-//
-//		ImVec4 color = usage > (0.8f * budget) ? ImVec4(1.0f, 0.0f, 0.0f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-//		ImGui::TextColored(color, "Usage: %llu", usage);
-//		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Estimated current memory usage of the program, in bytes."); }
-//
-//		ImGui::Text("Budget: %llu", budget);
-//		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Estimated amount of memory available to the program, in bytes."); }
-//
-//		ImVec4 originalColor = ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram];
-//		ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram] = ImVec4(0.2f, 0.9f, 0.4f, 1.0f);
-//
-//		ImGui::ProgressBar((float)usage / budget, ImVec2(0.0f, 0.0f), "Byte Usage");
-//		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("%llu bytes remaining", budget - usage); }
-//
-//		ImGui::ProgressBar((float)allocBytes / blockBytes, ImVec2(0.0f, 0.0f), "VmaAllocation Byte Usage");
-//		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("%d bytes remaining", blockBytes - allocBytes); }
-//		ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram] = originalColor;
-//
-//
-//		ImGui::End();
-//	}
-//}
+
+void Overlay::ShowMemoryStats()
+{
+	using namespace Magnefu;
+
+	if (!showMemoryStatsWindow) { return; }
+
+	if (ImGui::Begin("Memory Stats", &showMemoryStatsWindow, ImGuiWindowFlags_NoCollapse))
+	{
+		if (ImGui::Button("Update Memory Stats"))
+		{
+			m_gpu->CalculateMemoryStats();
+		}
+
+		MemoryService::Instance()->imguiDraw();
+
+		auto [blockCount, blockBytes, allocCount, allocBytes, usage, budget] =
+			m_gpu->GetMemoryStats();
+
+		ImGui::SeparatorText("VMA STATISTICS");
+
+		ImGui::Text("Block Count: %d", blockCount);
+		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Number of `VkDeviceMemory` objects - Vulkan memory blocks allocated."); }
+
+		ImGui::Text("Block Bytes: %llu", blockBytes);
+		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Number of bytes allocated in `VkDeviceMemory` blocks."); }
+
+		ImGui::Text("Allocation Count: %d", allocCount);
+		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Number of #VmaAllocation objects allocated."); }
+
+		ImGui::Text("Allocation Bytes: %llu", allocBytes);
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip("Total number of bytes occupied by all #VmaAllocation objects. \n\
+				Difference `(blockBytes - allocationBytes)` is the amount of memory allocated\n\
+				from Vulkan but unused by any #VmaAllocation.");
+		}
+
+		ImVec4 color = usage > (0.8f * budget) ? ImVec4(1.0f, 0.0f, 0.0f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+		ImGui::TextColored(color, "Usage: %llu", usage);
+		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Estimated current memory usage of the program, in bytes."); }
+
+		ImGui::Text("Budget: %llu", budget);
+		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("Estimated amount of memory available to the program, in bytes."); }
+
+		ImVec4 originalColor = ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram];
+		ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram] = ImVec4(0.2f, 0.9f, 0.4f, 1.0f);
+
+		ImGui::ProgressBar((float)usage / budget, ImVec2(0.0f, 0.0f), "Byte Usage");
+		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("%llu bytes remaining", budget - usage); }
+
+		ImGui::ProgressBar((float)allocBytes / blockBytes, ImVec2(0.0f, 0.0f), "VmaAllocation Byte Usage");
+		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("%d bytes remaining", blockBytes - allocBytes); }
+		ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram] = originalColor;
+
+
+		ImGui::End();
+	}
+}

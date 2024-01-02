@@ -46,7 +46,7 @@ namespace Magnefu
         MemoryServiceConfiguration* memory_configuration = static_cast<MemoryServiceConfiguration*>(configuration);
         systemAllocator.init(memory_configuration ? memory_configuration->maxDynamicSize : s_size);
 
-        tempStackAllocator.init(mfmega(3));
+        tempStackAllocator.init( mfmega( 8 ) );
         
     }
 

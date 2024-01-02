@@ -134,6 +134,7 @@
     </ClInclude>
     <ClInclude Include="src\AppLayers\SandboxLayer.hpp" />
     <ClInclude Include="src\AppLayers\Overlay.hpp" />
+    <ClInclude Include="src\SandboxPrimitives.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\SandboxApp.cpp">

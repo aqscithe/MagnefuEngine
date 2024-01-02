@@ -3115,6 +3115,8 @@
     <ClInclude Include="src\Magnefu\Application\Input\GamepadCodes.h" />
     <ClInclude Include="src\Magnefu\Application\Events\OSEvent.h" />
     <ClInclude Include="src\Magnefu\Application\Events\GamepadEvent.h" />
+    <ClInclude Include="src\Magnefu\Core\glTF.hpp" />
+    <ClInclude Include="vendor\json\json.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application\Application.cpp">
@@ -3269,6 +3271,7 @@
     <ClCompile Include="src\Magnefu\Application\Windows\Window.cpp" />
     <ClCompile Include="src\Magnefu\Application\Input\Input.cpp" />
     <ClCompile Include="src\Magnefu\Application\Input\KeyCodes.cpp" />
+    <ClCompile Include="src\Magnefu\Core\glTF.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\vulkan\include\spirv-headers\spirv.hpp11">

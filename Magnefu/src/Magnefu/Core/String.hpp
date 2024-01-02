@@ -92,4 +92,4 @@ namespace Magnefu
     }; // struct StringArray
 
 
-} // namespace raptor
+} // namespace 

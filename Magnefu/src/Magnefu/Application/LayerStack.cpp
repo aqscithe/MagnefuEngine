@@ -30,16 +30,23 @@ namespace Magnefu
 	{
 		m_Layers.push(layer);
 		m_LayerInsertIndex++;
+
+		layer->OnAttach();
 	}
 
 	void LayerStack::PushOverlay(Layer* overlay)
 	{
 		m_Layers.push(overlay);
+
+		overlay->OnAttach();
 	}
 
 	void LayerStack::PopLayer(Layer* layer)
 	{
+		layer->OnDetach();
+
 		u32 index = m_Layers.get_index(layer);
+
 		m_Layers.delete_swap(index);
 		m_LayerInsertIndex--;
 		
@@ -47,6 +54,7 @@ namespace Magnefu
 
 	void LayerStack::PopOverlay(Layer* overlay)
 	{
+		overlay->OnDetach();
 		u32 index = m_Layers.get_index(overlay);
 		m_Layers.delete_swap(index);
 	}

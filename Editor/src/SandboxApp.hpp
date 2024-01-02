@@ -59,6 +59,9 @@ public:
 		 Magnefu::Renderer* renderer = nullptr;
 		 Magnefu::ImGuiService* imgui = nullptr;
 
+		 Magnefu::ResourceManager rm;
+		 Magnefu::GPUProfiler gpu_profiler;
+
 
 #if defined(MF_PLATFORM_WINDOWS)
 
