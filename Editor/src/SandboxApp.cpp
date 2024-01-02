@@ -546,7 +546,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 
 				if (material.pbr_metallic_roughness != nullptr) {
 					if (material.pbr_metallic_roughness->base_color_factor_count != 0) {
-						MF_ASSERT(material.pbr_metallic_roughness->base_color_factor_count == 4, "Color factor should be 4.");
+						MF_ASSERT((material.pbr_metallic_roughness->base_color_factor_count == 4), "Color factor should be 4.");
 
 						mesh_draw.material_data.base_color_factor = {
 							material.pbr_metallic_roughness->base_color_factor[0],
@@ -753,6 +753,8 @@ void Sandbox::Destroy()
 	imgui->Shutdown();
 	input->Shutdown();
 
+	gpu_profiler.shutdown();
+
 	rm.shutdown();
 	renderer->shutdown();
 
@@ -766,6 +768,7 @@ void Sandbox::Destroy()
 	// NOTE(marco): we can't destroy this sooner as textures and buffers
 	// hold a pointer to the names stored here
 	gltf_free(scene);
+
 
 	window->Shutdown();
 

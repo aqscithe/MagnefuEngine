@@ -20,6 +20,7 @@
     #define GLFW_INCLUDE_VULKAN
     #include <GLFW/glfw3.h>
 
+
 #endif // INPUT_BACKEND_GLFW
 
 #include "imgui/imgui.h"
@@ -125,6 +126,146 @@ namespace Magnefu
         
     }
 
+    
+
+
+
+    static i32 ToMFKeyCode(i32 key) 
+    {
+        switch (key) 
+        {
+        case GLFW_KEY_UNKNOWN:        return MF_KEY_UNKNOWN;
+        case GLFW_KEY_SPACE:          return MF_KEY_SPACE;
+        case GLFW_KEY_APOSTROPHE:     return MF_KEY_APOSTROPHE;
+        case GLFW_KEY_COMMA:          return MF_KEY_COMMA;
+        case GLFW_KEY_MINUS:          return MF_KEY_MINUS;
+        case GLFW_KEY_PERIOD:         return MF_KEY_PERIOD;
+        case GLFW_KEY_SLASH:          return MF_KEY_SLASH;
+        case GLFW_KEY_0:              return MF_KEY_0;
+        case GLFW_KEY_1:              return MF_KEY_1;
+        case GLFW_KEY_2:              return MF_KEY_2;
+        case GLFW_KEY_3:              return MF_KEY_3;
+        case GLFW_KEY_4:              return MF_KEY_4;
+        case GLFW_KEY_5:              return MF_KEY_5;
+        case GLFW_KEY_6:              return MF_KEY_6;
+        case GLFW_KEY_7:              return MF_KEY_7;
+        case GLFW_KEY_8:              return MF_KEY_8;
+        case GLFW_KEY_9:              return MF_KEY_9;
+            
+
+            // Alphabetical keys
+        case GLFW_KEY_A:                return MF_KEY_A;
+        case GLFW_KEY_B:                return MF_KEY_B;
+        case GLFW_KEY_C:                return MF_KEY_C;
+        case GLFW_KEY_D:                return MF_KEY_D;
+        case GLFW_KEY_E:                return MF_KEY_E;
+        case GLFW_KEY_F:                return MF_KEY_F;
+        case GLFW_KEY_G:                return MF_KEY_G;
+        case GLFW_KEY_H:                return MF_KEY_H;
+        case GLFW_KEY_I:                return MF_KEY_I;
+        case GLFW_KEY_J:                return MF_KEY_J;
+        case GLFW_KEY_K:                return MF_KEY_K;
+        case GLFW_KEY_L:                return MF_KEY_L;
+        case GLFW_KEY_M:                return MF_KEY_M;
+        case GLFW_KEY_N:                return MF_KEY_N;
+        case GLFW_KEY_O:                return MF_KEY_O;
+        case GLFW_KEY_P:                return MF_KEY_P;
+        case GLFW_KEY_Q:                return MF_KEY_Q;
+        case GLFW_KEY_R:                return MF_KEY_R;
+        case GLFW_KEY_S:                return MF_KEY_S;
+        case GLFW_KEY_T:                return MF_KEY_T;
+        case GLFW_KEY_U:                return MF_KEY_U;
+        case GLFW_KEY_V:                return MF_KEY_V;
+        case GLFW_KEY_W:                return MF_KEY_W;
+        case GLFW_KEY_X:                return MF_KEY_X;
+        case GLFW_KEY_Y:                return MF_KEY_Y;
+        case GLFW_KEY_Z:                return MF_KEY_Z;
+
+            // Function keys
+        case GLFW_KEY_F1:               return MF_KEY_F1;
+        case GLFW_KEY_F2:               return MF_KEY_F2;
+        case GLFW_KEY_F3:               return MF_KEY_F3;
+        case GLFW_KEY_F4:               return MF_KEY_F4;
+        case GLFW_KEY_F5:               return MF_KEY_F5;
+        case GLFW_KEY_F6:               return MF_KEY_F6;
+        case GLFW_KEY_F7:               return MF_KEY_F7;
+        case GLFW_KEY_F8:               return MF_KEY_F8;
+        case GLFW_KEY_F9:               return MF_KEY_F9;
+        case GLFW_KEY_F10:              return MF_KEY_F10;
+        case GLFW_KEY_F11:              return MF_KEY_F11;
+        case GLFW_KEY_F12:              return MF_KEY_F12;
+            
+        //                                return MF_KEY_F13;
+        //                                return MF_KEY_F14;
+        //                                return MF_KEY_F15;
+        //                                return MF_KEY_F16;
+        //                                return MF_KEY_F17;
+        //                                return MF_KEY_F18;
+        //                                return MF_KEY_F19;
+        //                                return MF_KEY_F20;
+        //                                return MF_KEY_F21;
+        //                                return MF_KEY_F22;
+        //                                return MF_KEY_F23;
+        //                                return MF_KEY_F24;
+
+
+            // Control keys
+        case GLFW_KEY_ESCAPE:             return MF_KEY_ESCAPE;
+        case GLFW_KEY_ENTER:              return MF_KEY_RETURN;
+        case GLFW_KEY_TAB:                return MF_KEY_TAB;
+        case GLFW_KEY_BACKSPACE:          return MF_KEY_BACKSPACE;
+        case GLFW_KEY_INSERT:               return MF_KEY_INSERT;
+        case GLFW_KEY_DELETE:               return MF_KEY_DELETE;
+        case GLFW_KEY_RIGHT:                return MF_KEY_RIGHT;
+        case GLFW_KEY_LEFT:                 return MF_KEY_LEFT;
+        case GLFW_KEY_DOWN:                 return MF_KEY_DOWN;
+        case GLFW_KEY_UP:                   return MF_KEY_UP;
+        case GLFW_KEY_PAGE_UP:              return MF_KEY_PAGEUP;
+        case GLFW_KEY_PAGE_DOWN:            return MF_KEY_PAGEDOWN;
+        case GLFW_KEY_CAPS_LOCK:        return MF_KEY_CAPSLOCK;
+        case GLFW_KEY_NUM_LOCK:         return MF_KEY_NUMLOCKCLEAR;
+        case GLFW_KEY_SCROLL_LOCK:      return MF_KEY_SCROLLLOCK;
+        case GLFW_KEY_PRINT_SCREEN:     return MF_KEY_PRINTSCREEN;
+        case GLFW_KEY_PAUSE:            return MF_KEY_PAUSE;
+
+            // Numeric keypad
+        case GLFW_KEY_KP_0:               return MF_KEY_KP_0;
+        case GLFW_KEY_KP_1:               return MF_KEY_KP_1;
+        case GLFW_KEY_KP_2:                 return MF_KEY_KP_2;
+        case GLFW_KEY_KP_3:                 return MF_KEY_KP_3;
+        case GLFW_KEY_KP_4:                 return MF_KEY_KP_4;
+        case GLFW_KEY_KP_5:                 return MF_KEY_KP_5;
+        case GLFW_KEY_KP_6:                 return MF_KEY_KP_6;
+        case GLFW_KEY_KP_7:                 return MF_KEY_KP_7;
+        case GLFW_KEY_KP_8:                 return MF_KEY_KP_8;
+        case GLFW_KEY_KP_9:                 return MF_KEY_KP_9;
+        case GLFW_KEY_KP_DECIMAL:           return MF_KEY_KP_DECIMAL;
+        case GLFW_KEY_KP_DIVIDE:            return MF_KEY_KP_DIVIDE;
+        case GLFW_KEY_KP_MULTIPLY:          return MF_KEY_KP_MULTIPLY;
+        case GLFW_KEY_KP_SUBTRACT:          return MF_KEY_KP_MINUS;
+        case GLFW_KEY_KP_ADD:               return MF_KEY_KP_PLUS;
+        case GLFW_KEY_KP_ENTER:             return MF_KEY_KP_ENTER;
+        case GLFW_KEY_KP_EQUAL:             return MF_KEY_KP_EQUALS;
+
+            // Modifier keys
+        case GLFW_KEY_LEFT_SHIFT:         return MF_KEY_LSHIFT;
+        case GLFW_KEY_LEFT_CONTROL:       return MF_KEY_LCTRL;
+        case GLFW_KEY_LEFT_ALT:             return MF_KEY_LALT;
+        case GLFW_KEY_LEFT_SUPER:           return MF_KEY_LSUPER;
+        case GLFW_KEY_RIGHT_SHIFT:          return MF_KEY_RSHIFT;
+        case GLFW_KEY_RIGHT_CONTROL:        return MF_KEY_RCTRL;
+        case GLFW_KEY_RIGHT_ALT:            return MF_KEY_RALT;
+        case GLFW_KEY_RIGHT_SUPER:          return MF_KEY_RSUPER;
+        case GLFW_KEY_MENU:                 return MF_KEY_MENU;
+            // ... Continue for other modifier keys
+
+            // Add cases for any other keys you're interested in
+
+        default: return MF_KEY_UNKNOWN;
+        }
+    }
+
+
     static u32 ToGLFWMouseButton(MouseButtons button) 
     {
         switch (button)
@@ -190,7 +331,7 @@ namespace Magnefu
             {
                 KeyEvent& key_event = *(KeyEvent*)&event;
 
-                i32 key = key_event.GetScancode();
+                i32 key = ToMFKeyCode(key_event.GetKeyCode());
                 if (key >= 0 && key < (i32)num_keys)
                     keys[key] = (key_event.GetAction() == GLFW_PRESS);
                 break;
