@@ -240,7 +240,7 @@ namespace Magnefu
 		u8                              previous_mouse_buttons[MOUSE_BUTTONS_COUNT];
 		f32                             mouse_drag_distance[MOUSE_BUTTONS_COUNT];
 
-		bool                            has_focus;
+		bool                            has_focus = true;
 
 		static constexpr cstring        k_name = "Magnefu_Input_Service";
 

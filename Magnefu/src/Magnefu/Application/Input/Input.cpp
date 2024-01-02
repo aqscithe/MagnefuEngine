@@ -333,7 +333,11 @@ namespace Magnefu
 
                 i32 key = ToMFKeyCode(key_event.GetKeyCode());
                 if (key >= 0 && key < (i32)num_keys)
+                {
                     keys[key] = (key_event.GetAction() == GLFW_PRESS);
+                    //MF_CORE_DEBUG("Key event. Keycode: {} | Scancode: {}", key, key_event.GetScancode());
+                }
+                    
                 break;
             }
            

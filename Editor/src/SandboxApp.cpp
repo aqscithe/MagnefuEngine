@@ -7,8 +7,6 @@
 #include "SandboxPrimitives.hpp"
 
 // -- Graphics --------------------------- //
-#include "Magnefu/Graphics/GPUProfiler.hpp"
-#include "Magnefu/Graphics/Renderer.hpp"
 
 
 // -- Core -------------------------- //
@@ -33,6 +31,10 @@ static Magnefu::LinuxWindow s_window;
 static Magnefu::MacWindow s_window;
 
 #endif
+
+static Magnefu::ResourceManager s_rm;
+static Magnefu::GPUProfiler s_gpu_profiler;
+
 
 // ----------------------------------------------------------------------------------------------------------- //
 
@@ -137,11 +139,13 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	GraphicsContext* gpu = service_manager->get<GraphicsContext>();
 	gpu->init(dc);
 
-	//ResourceManager rm;
-	rm.init(&MemoryService::Instance()->systemAllocator, nullptr);
+	//ResourceManager
+	rm = &s_rm;
+	rm->init(&MemoryService::Instance()->systemAllocator, nullptr);
 
-	//GPUProfiler gpu_profiler;
-	gpu_profiler.init(&MemoryService::Instance()->systemAllocator, 100);
+	//GPUProfiler
+	gpu_profiler = &s_gpu_profiler;
+	gpu_profiler->init(&MemoryService::Instance()->systemAllocator, 100);
 
 
 	// -- App specific create --------------------------------------------------- //
@@ -149,7 +153,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 
 	RendererCreation rc{ gpu, &MemoryService::Instance()->systemAllocator };
 	renderer->init(rc);
-	renderer->set_loaders(&rm);
+	renderer->set_loaders(rm);
 
 	// imgui backend
 	ImGuiServiceConfiguration config{ gpu, window->GetWindowHandle() };
@@ -753,9 +757,9 @@ void Sandbox::Destroy()
 	imgui->Shutdown();
 	input->Shutdown();
 
-	gpu_profiler.shutdown();
+	gpu_profiler->shutdown();
 
-	rm.shutdown();
+	rm->shutdown();
 	renderer->shutdown();
 
 	samplers.shutdown();
@@ -808,9 +812,8 @@ bool Sandbox::MainLoop()
 		{
 			renderer->begin_frame();
 		}
-
-		input->NewFrame();
-
+		
+		
 		window->PollEvents();
 
 		if (window->resized)
@@ -828,7 +831,8 @@ bool Sandbox::MainLoop()
 
 		accumulator += delta_time;
 
-		
+
+		input->NewFrame();
 		input->Update(delta_time);
 
 		while (accumulator >= step)
@@ -849,7 +853,7 @@ bool Sandbox::MainLoop()
 
 		if (ImGui::Begin("GPU")) 
 		{
-			gpu_profiler.imgui_draw();
+			gpu_profiler->imgui_draw();
 		}
 		ImGui::End();
 
@@ -985,7 +989,7 @@ bool Sandbox::MainLoop()
 
 			gpu_commands->pop_marker();
 
-			gpu_profiler.update(*gpu);
+			gpu_profiler->update(*gpu);
 
 			// Send commands to GPU
 			renderer->queue_command_buffer(gpu_commands);
@@ -1017,6 +1021,22 @@ void Sandbox::DrawGUI()
 
 	// Part of overlay
 	//Magnefu::MemoryService::Instance()->imguiDraw();
+}
+
+void Sandbox::FixedUpdate(f32 delta)
+{
+}
+
+void Sandbox::VariableUpdate(f32 delta)
+{
+}
+
+void Sandbox::BeginFrame()
+{
+}
+
+void Sandbox::EndFrame()
+{
 }
 
 

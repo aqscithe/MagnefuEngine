@@ -4,13 +4,16 @@
 #include "Events/ApplicationEvent.h"
 #include "Events/MouseEvent.h"
 #include "Events/KeyEvent.h"
-#include "Windows/Window.h"
+#include "Windows/WindowsWindow.h"
 #include "LayerStack.h"
 #include "ImGui/ImGuiService.hpp"
+#include "Input/Input.h"
 #include "Scene/SceneManager.h"
 
 
 // -- Graphics Includes --------------------- //
+#include "Magnefu/Graphics/Renderer.hpp"
+#include "Magnefu/Graphics/GPUProfiler.hpp"
 
 
 // -- Core Includes ---------------------------------- //
@@ -75,6 +78,7 @@ namespace Magnefu
 		static Application* Get() { return s_Instance; }
 
 		virtual void* GetWindow() { return nullptr; }
+		virtual ServiceManager* GetServiceManager() { return service_manager; }
 
 
 
@@ -85,6 +89,27 @@ namespace Magnefu
 		ServiceManager* service_manager = nullptr;
 		SceneManager* scene_manager = nullptr;
 		LayerStack* layer_stack = nullptr;
+
+		InputService* input = nullptr;
+		Renderer* renderer = nullptr;
+		ImGuiService* imgui = nullptr;
+
+		ResourceManager* rm = nullptr;
+		GPUProfiler* gpu_profiler = nullptr;
+
+
+#if defined(MF_PLATFORM_WINDOWS)
+
+		WindowsWindow* window = nullptr;
+
+#elif defined(MF_PLATFORM_LINUX)
+		// TODO: Setup an application window implementation for OS other than Microsoft Windows
+		LinuxWindow* window = nullptr;
+
+#elif defined(MF_PLATFORM_MAC)
+		MacWindow* window = nullptr;
+
+#endif
 
 		static Application* s_Instance;
 
