@@ -141,11 +141,17 @@ namespace Magnefu
         void                            shutdown();
 
 
+        // Helper methods
+        static void                     fill_write_descriptor_sets(GraphicsContext& gpu, const DesciptorSetLayout* descriptor_set_layout, VkDescriptorSet vk_descriptor_set,
+            VkWriteDescriptorSet* descriptor_write, VkDescriptorBufferInfo* buffer_info, VkDescriptorImageInfo* image_info,
+            VkSampler vk_default_sampler, u32& num_resources, const ResourceHandle* resources, const SamplerHandle* samplers, const u16* bindings);
+
+
         // Creation/Destruction of resources ------------------------------------------------- //
 
         BufferHandle                    create_buffer(const BufferCreation& creation);
         TextureHandle                   create_texture(const TextureCreation& creation);
-        PipelineHandle                  create_pipeline(const PipelineCreation& creation);
+        PipelineHandle                  create_pipeline(const PipelineCreation& creation, const char* cache_path = nullptr);
         SamplerHandle                   create_sampler(const SamplerCreation& creation);
         DescriptorSetLayoutHandle       create_descriptor_set_layout(const DescriptorSetLayoutCreation& creation);
         DescriptorSetHandle             create_descriptor_set(const DescriptorSetCreation& creation);
@@ -300,6 +306,10 @@ namespace Magnefu
         const RenderPass* access_render_pass(RenderPassHandle render_pass) const;
 
 
+        DescriptorSetLayoutHandle get_descriptor_set_layout(PipelineHandle pipeline_handle, int layout_index);
+        DescriptorSetLayoutHandle get_descriptor_set_layout(PipelineHandle pipeline_handle, int layout_index) const;
+
+
         // -- Members -------------------------------------------------------- //
 
         ResourcePool                    buffers;
@@ -368,6 +378,9 @@ namespace Magnefu
         VkQueue                         vulkan_queue;
         uint32_t                        vulkan_queue_family;
         VkDescriptorPool                vulkan_descriptor_pool;
+        VkDescriptorPool                vulkan_bindless_descriptor_pool;
+        VkDescriptorSetLayout           vulkan_bindless_descriptor_set_layout;
+        VkDescriptorSet                 vulkan_bindless_descriptor_set;
         VkSampleCountFlagBits           vulkan_max_sample_count_bits;
         //VkSampleCountFlags              vulkan_max_sample_count;
 
@@ -405,13 +418,15 @@ namespace Magnefu
         // These are dynamic - so that workload can be handled correctly.
         Array<ResourceUpdate>           resource_deletion_queue;
         Array<DescriptorSetUpdate>      descriptor_set_updates;
+        // [TAG: BINDLESS]
+        Array<ResourceUpdate>           texture_to_update_bindless;
+
 
         f32                             gpu_timestamp_frequency;
         bool                            gpu_timestamp_reset = true;
         bool                            debug_utils_extension_present = false;
 
         char                            vulkan_binaries_path[512];
-
 
     }; // struct Device
 

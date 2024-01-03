@@ -15,15 +15,12 @@
 #include "Magnefu/Application/Scene/SceneManager.h"
 
 #include "Magnefu/Application/Windows/WindowsWindow.h"
-#include "Magnefu/Application/Camera/Camera.h"
-#include "Magnefu/Application/Camera/SceneCamera.h"
 
 
 
 // -- Graphics Includes --------------------- //
 #include "Magnefu/Graphics/RenderConstants.h"
 #include "Magnefu/Graphics/Light.h"
-#include "Magnefu/Graphics/Material.h"
 #include "Magnefu/Graphics/GraphicsContext.h"
 #include "Magnefu/Graphics/Renderer.hpp"
 #include "Magnefu/Graphics/CommandBuffer.hpp"

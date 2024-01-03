@@ -145,10 +145,10 @@ void Overlay::DrawGUI()
 	ShowFramerateOverlay();
 	ShowMemoryStats();
 
-	if (m_active_scene)
+	/*if (m_active_scene)
 	{
 		ShowScene();
-	}
+	}*/
 }
 
 

@@ -15,7 +15,7 @@ int main(int argc, char** argv)
 
 
 	MF_PROFILE_BEGIN_SESSION("Magnefu Runtime", "Magnefu-Runtime.json");
-	app->Run({1920, 1080, "default-config", true});
+	app->Run({1920, 1080, "Magnefu", true});
 	MF_PROFILE_END_SESSION();
 
 

@@ -48,7 +48,7 @@ layout (set = 1, binding = 10) uniform sampler3D global_textures_3d[];
 // Alias textures to use the same binding point, as bindless texture is shared
 // between all kind of textures: 1d, 2d, 3d.
 
-
+nonuniformEXT uint texture_index;
 
 
 layout (location = 0) in vec2 vTexcoord0;

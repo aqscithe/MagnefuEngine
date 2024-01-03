@@ -15,14 +15,55 @@ namespace Magnefu
         current_render_pass = nullptr;
         current_pipeline = nullptr;
         current_command = 0;
+
+        vkResetDescriptorPool(gpu->vulkan_device, vk_descriptor_pool, 0);
+
+        u32 resource_count = descriptor_sets.free_indices_head;
+        for (u32 i = 0; i < resource_count; ++i) {
+            DesciptorSet* v_descriptor_set = (DesciptorSet*)descriptor_sets.access_resource(i);
+
+            if (v_descriptor_set) {
+                // Contains the allocation for all the resources, binding and samplers arrays.
+                mffree(v_descriptor_set->resources, gpu->allocator);
+            }
+            descriptor_sets.release_resource(i);
+        }
     }
 
 
     void CommandBuffer::init(QueueType::Enum type_, u32 buffer_size_, u32 submit_size, bool baked_) 
     {
-        this->type = type_;
-        this->buffer_size = buffer_size_;
-        this->baked = baked_;
+        // TODO(marco): are these still needed?
+        type = type_;
+        buffer_size = buffer_size_;
+        baked = baked_;
+
+        ////////  Create Descriptor Pools
+        static const u32 k_global_pool_elements = 128;
+        VkDescriptorPoolSize pool_sizes[] =
+        {
+            { VK_DESCRIPTOR_TYPE_SAMPLER, k_global_pool_elements },
+            { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, k_global_pool_elements },
+            { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, k_global_pool_elements },
+            { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, k_global_pool_elements },
+            { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, k_global_pool_elements },
+            { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, k_global_pool_elements },
+            { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, k_global_pool_elements },
+            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, k_global_pool_elements },
+            { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, k_global_pool_elements },
+            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, k_global_pool_elements },
+            { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, k_global_pool_elements}
+        };
+        VkDescriptorPoolCreateInfo pool_info = {};
+        pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+        pool_info.maxSets = k_global_pool_elements * ArraySize(pool_sizes);
+        pool_info.poolSizeCount = (u32)ArraySize(pool_sizes);
+        pool_info.pPoolSizes = pool_sizes;
+        VkResult result = vkCreateDescriptorPool(gpu->vulkan_device, &pool_info, gpu->vulkan_allocation_callbacks, &vk_descriptor_pool);
+        MF_CORE_ASSERT(result, "Failed to create descriptor pool");
+
+        descriptor_sets.init(gpu->allocator, 256, sizeof(DesciptorSet));
 
         reset();
     }
@@ -31,16 +72,72 @@ namespace Magnefu
     {
 
         is_recording = false;
+
+        reset();
+
+        descriptor_sets.shutdown();
+
+        vkDestroyDescriptorPool(gpu->vulkan_device, vk_descriptor_pool, gpu->vulkan_allocation_callbacks);
     }
 
-    void CommandBuffer::bind_pass(RenderPassHandle handle_) 
+    DescriptorSetHandle CommandBuffer::create_descriptor_set(const DescriptorSetCreation& creation)
+    {
+        DescriptorSetHandle handle = { descriptor_sets.obtain_resource() };
+        if (handle.index == k_invalid_index) {
+            return handle;
+        }
+
+        DesciptorSet* descriptor_set = (DesciptorSet*)descriptor_sets.access_resource(handle.index);
+        const DesciptorSetLayout* descriptor_set_layout = gpu->access_descriptor_set_layout(creation.layout);
+
+        // Allocate descriptor set
+        VkDescriptorSetAllocateInfo alloc_info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+        alloc_info.descriptorPool = vk_descriptor_pool;
+        alloc_info.descriptorSetCount = 1;
+        alloc_info.pSetLayouts = &descriptor_set_layout->vk_descriptor_set_layout;
+
+        VkResult result = vkAllocateDescriptorSets(gpu->vulkan_device, &alloc_info, &descriptor_set->vk_descriptor_set);
+        MF_CORE_ASSERT(result == VK_SUCCESS, "failed to allocate descriptor sets");
+
+        // Cache data
+        u8* memory = mfallocam((sizeof(ResourceHandle) + sizeof(SamplerHandle) + sizeof(u16)) * creation.num_resources, gpu->allocator);
+        descriptor_set->resources = (ResourceHandle*)memory;
+        descriptor_set->samplers = (SamplerHandle*)(memory + sizeof(ResourceHandle) * creation.num_resources);
+        descriptor_set->bindings = (u16*)(memory + (sizeof(ResourceHandle) + sizeof(SamplerHandle)) * creation.num_resources);
+        descriptor_set->num_resources = creation.num_resources;
+        descriptor_set->layout = descriptor_set_layout;
+
+        // Update descriptor set
+        VkWriteDescriptorSet descriptor_write[8];
+        VkDescriptorBufferInfo buffer_info[8];
+        VkDescriptorImageInfo image_info[8];
+
+        Sampler* vk_default_sampler = gpu->access_sampler(gpu->default_sampler);
+
+        u32 num_resources = creation.num_resources;
+        GraphicsContext::fill_write_descriptor_sets(*gpu, descriptor_set_layout, descriptor_set->vk_descriptor_set, descriptor_write, buffer_info, image_info, vk_default_sampler->vk_sampler,
+            num_resources, creation.resources, creation.samplers, creation.bindings);
+
+        // Cache resources
+        for (u32 r = 0; r < creation.num_resources; r++) {
+            descriptor_set->resources[r] = creation.resources[r];
+            descriptor_set->samplers[r] = creation.samplers[r];
+            descriptor_set->bindings[r] = creation.bindings[r];
+        }
+
+        vkUpdateDescriptorSets(gpu->vulkan_device, num_resources, descriptor_write, 0, nullptr);
+
+        return handle;
+    }
+
+    void CommandBuffer::bind_pass(RenderPassHandle handle_)
     {
 
         //if ( !is_recording )
         {
             is_recording = true;
 
-            RenderPass* render_pass = gpu_context->access_render_pass(handle_);
+            RenderPass* render_pass = gpu->access_render_pass(handle_);
 
             // Begin/End render pass are valid only for graphics render passes.
             if (current_render_pass && (current_render_pass->type != RenderPassType::Compute) && (render_pass != current_render_pass)) {
@@ -49,7 +146,7 @@ namespace Magnefu
 
             if (render_pass != current_render_pass && (render_pass->type != RenderPassType::Compute)) {
                 VkRenderPassBeginInfo render_pass_begin{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
-                render_pass_begin.framebuffer = render_pass->type == RenderPassType::Swapchain ? gpu_context->vulkan_swapchain_framebuffers[gpu_context->vulkan_image_index] : render_pass->vk_frame_buffer;
+                render_pass_begin.framebuffer = render_pass->type == RenderPassType::Swapchain ? gpu->vulkan_swapchain_framebuffers[gpu->vulkan_image_index] : render_pass->vk_frame_buffer;
                 render_pass_begin.renderPass = render_pass->vk_render_pass;
 
                 render_pass_begin.renderArea.offset = { 0, 0 };
@@ -69,7 +166,7 @@ namespace Magnefu
 
     void CommandBuffer::bind_pipeline(PipelineHandle handle_) {
 
-        Pipeline* pipeline = gpu_context->access_pipeline(handle_);
+        Pipeline* pipeline = gpu->access_pipeline(handle_);
         vkCmdBindPipeline(vk_command_buffer, pipeline->vk_bind_point, pipeline->vk_pipeline);
 
         // Cache pipeline
@@ -78,13 +175,13 @@ namespace Magnefu
 
     void CommandBuffer::bind_vertex_buffer(BufferHandle handle_, u32 binding, u32 offset) {
 
-        Buffer* buffer = gpu_context->access_buffer(handle_);
+        Buffer* buffer = gpu->access_buffer(handle_);
         VkDeviceSize offsets[] = { offset };
 
         VkBuffer vk_buffer = buffer->vk_buffer;
         // TODO: add global vertex buffer ?
         if (buffer->parent_buffer.index != k_invalid_index) {
-            Buffer* parent_buffer = gpu_context->access_buffer(buffer->parent_buffer);
+            Buffer* parent_buffer = gpu->access_buffer(buffer->parent_buffer);
             vk_buffer = parent_buffer->vk_buffer;
             offsets[0] = buffer->global_offset;
         }
@@ -92,18 +189,18 @@ namespace Magnefu
         vkCmdBindVertexBuffers(vk_command_buffer, binding, 1, &vk_buffer, offsets);
     }
 
-    void CommandBuffer::bind_index_buffer(BufferHandle handle_, u32 offset_, VkIndexType index_type) {
+    void CommandBuffer::bind_index_buffer(BufferHandle handle_, u32 offset_) {
 
-        Buffer* buffer = gpu_context->access_buffer(handle_);
+        Buffer* buffer = gpu->access_buffer(handle_);
 
         VkBuffer vk_buffer = buffer->vk_buffer;
         VkDeviceSize offset = offset_;
         if (buffer->parent_buffer.index != k_invalid_index) {
-            Buffer* parent_buffer = gpu_context->access_buffer(buffer->parent_buffer);
+            Buffer* parent_buffer = gpu->access_buffer(buffer->parent_buffer);
             vk_buffer = parent_buffer->vk_buffer;
             offset = buffer->global_offset;
         }
-        vkCmdBindIndexBuffer(vk_command_buffer, vk_buffer, offset, index_type);
+        vkCmdBindIndexBuffer(vk_command_buffer, vk_buffer, offset, VkIndexType::VK_INDEX_TYPE_UINT16);
     }
 
     void CommandBuffer::bind_descriptor_set(DescriptorSetHandle* handles, u32 num_lists, u32* offsets, u32 num_offsets) {
@@ -113,7 +210,7 @@ namespace Magnefu
         num_offsets = 0;
 
         for (u32 l = 0; l < num_lists; ++l) {
-            DesciptorSet* descriptor_set = gpu_context->access_descriptor_set(handles[l]);
+            DesciptorSet* descriptor_set = gpu->access_descriptor_set(handles[l]);
             vk_descriptor_sets[l] = descriptor_set->vk_descriptor_set;
 
             // Search for dynamic buffers
@@ -125,7 +222,7 @@ namespace Magnefu
                     // Search for the actual buffer offset
                     const u32 resource_index = descriptor_set->bindings[i];
                     ResourceHandle buffer_handle = descriptor_set->resources[resource_index];
-                    Buffer* buffer = gpu_context->access_buffer({ buffer_handle });
+                    Buffer* buffer = gpu->access_buffer({ buffer_handle });
 
                     offsets_cache[num_offsets++] = buffer->global_offset;
                 }
@@ -135,6 +232,48 @@ namespace Magnefu
         const u32 k_first_set = 0;
         vkCmdBindDescriptorSets(vk_command_buffer, current_pipeline->vk_bind_point, current_pipeline->vk_pipeline_layout, k_first_set,
             num_lists, vk_descriptor_sets, num_offsets, offsets_cache);
+
+        if (gpu->bindless_supported)
+        {
+            vkCmdBindDescriptorSets(vk_command_buffer, current_pipeline->vk_bind_point, current_pipeline->vk_pipeline_layout, 1,
+                1, &gpu->vulkan_bindless_descriptor_set, 0, nullptr);
+        }
+    }
+
+    void CommandBuffer::bind_local_descriptor_set(DescriptorSetHandle* handles, u32 num_lists, u32* offsets, u32 num_offsets)
+    {
+        // TODO:
+        u32 offsets_cache[8];
+        num_offsets = 0;
+
+        for (u32 l = 0; l < num_lists; ++l) {
+            DesciptorSet* descriptor_set = (DesciptorSet*)descriptor_sets.access_resource(handles[l].index);
+            vk_descriptor_sets[l] = descriptor_set->vk_descriptor_set;
+
+            // Search for dynamic buffers
+            const DesciptorSetLayout* descriptor_set_layout = descriptor_set->layout;
+            for (u32 i = 0; i < descriptor_set_layout->num_bindings; ++i) {
+                const DescriptorBinding& rb = descriptor_set_layout->bindings[i];
+
+                if (rb.type == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
+                    // Search for the actual buffer offset
+                    const u32 resource_index = descriptor_set->bindings[i];
+                    ResourceHandle buffer_handle = descriptor_set->resources[resource_index];
+                    Buffer* buffer = gpu->access_buffer({ buffer_handle });
+
+                    offsets_cache[num_offsets++] = buffer->global_offset;
+                }
+            }
+        }
+
+        const u32 k_first_set = 0;
+        vkCmdBindDescriptorSets(vk_command_buffer, current_pipeline->vk_bind_point, current_pipeline->vk_pipeline_layout, k_first_set,
+            num_lists, vk_descriptor_sets, num_offsets, offsets_cache);
+
+        if (gpu->bindless_supported) {
+            vkCmdBindDescriptorSets(vk_command_buffer, current_pipeline->vk_bind_point, current_pipeline->vk_pipeline_layout, 1,
+                1, &gpu->vulkan_bindless_descriptor_set, 0, nullptr);
+        }
     }
 
     void CommandBuffer::set_viewport(const Viewport* viewport) 
@@ -165,10 +304,10 @@ namespace Magnefu
             }
             else 
             {
-                vk_viewport.width = gpu_context->swapchain_width * 1.f;
+                vk_viewport.width = gpu->swapchain_width * 1.f;
                 // Invert Y with negative height and proper offset - Vulkan has unique Clipping Y.
-                vk_viewport.y = gpu_context->swapchain_height * 1.f;
-                vk_viewport.height = -gpu_context->swapchain_height * 1.f;
+                vk_viewport.y = gpu->swapchain_height * 1.f;
+                vk_viewport.height = -gpu->swapchain_height * 1.f;
             }
             vk_viewport.minDepth = 0.0f;
             vk_viewport.maxDepth = 1.0f;
@@ -191,8 +330,8 @@ namespace Magnefu
         else {
             vk_scissor.offset.x = 0;
             vk_scissor.offset.y = 0;
-            vk_scissor.extent.width = gpu_context->swapchain_width;
-            vk_scissor.extent.height = gpu_context->swapchain_height;
+            vk_scissor.extent.width = gpu->swapchain_width;
+            vk_scissor.extent.height = gpu->swapchain_height;
         }
 
         vkCmdSetScissor(vk_command_buffer, 0, 1, &vk_scissor);
@@ -227,7 +366,7 @@ namespace Magnefu
     void CommandBuffer::draw_indirect(BufferHandle buffer_handle, u32 offset, u32 stride) 
     {
 
-        Buffer* buffer = gpu_context->access_buffer(buffer_handle);
+        Buffer* buffer = gpu->access_buffer(buffer_handle);
 
         VkBuffer vk_buffer = buffer->vk_buffer;
         VkDeviceSize vk_offset = offset;
@@ -237,7 +376,7 @@ namespace Magnefu
 
     void CommandBuffer::draw_indexed_indirect(BufferHandle buffer_handle, u32 offset, u32 stride) 
     {
-        Buffer* buffer = gpu_context->access_buffer(buffer_handle);
+        Buffer* buffer = gpu->access_buffer(buffer_handle);
 
         VkBuffer vk_buffer = buffer->vk_buffer;
         VkDeviceSize vk_offset = offset;
@@ -247,7 +386,7 @@ namespace Magnefu
 
     void CommandBuffer::dispatch_indirect(BufferHandle buffer_handle, u32 offset) 
     {
-        Buffer* buffer = gpu_context->access_buffer(buffer_handle);
+        Buffer* buffer = gpu->access_buffer(buffer_handle);
 
         VkBuffer vk_buffer = buffer->vk_buffer;
         VkDeviceSize vk_offset = offset;
@@ -281,7 +420,7 @@ namespace Magnefu
 
             for (u32 i = 0; i < barrier.num_image_barriers; ++i) {
 
-                Texture* texture_vulkan = gpu_context->access_texture(barrier.image_barriers[i].texture);
+                Texture* texture_vulkan = gpu->access_texture(barrier.image_barriers[i].texture);
 
                 VkImageMemoryBarrier& vk_barrier = image_barriers[i];
                 const bool is_color = !TextureFormat::has_depth_or_stencil(texture_vulkan->vk_format);
@@ -328,7 +467,7 @@ namespace Magnefu
                 VkBufferMemoryBarrier& vk_barrier = buffer_memory_barriers[i];
                 vk_barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 
-                Buffer* buffer = gpu_context->access_buffer(barrier.memory_barriers[i].buffer);
+                Buffer* buffer = gpu->access_buffer(barrier.memory_barriers[i].buffer);
 
                 vk_barrier.buffer = buffer->vk_buffer;
                 vk_barrier.offset = 0;
@@ -430,7 +569,7 @@ namespace Magnefu
         for (u32 i = 0; i < barrier.num_image_barriers; ++i) 
         {
 
-            Texture* texture_vulkan = gpu_context->access_texture(barrier.image_barriers[i].texture);
+            Texture* texture_vulkan = gpu->access_texture(barrier.image_barriers[i].texture);
 
             VkImageMemoryBarrier& vk_barrier = image_barriers[i];
             vk_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -474,7 +613,7 @@ namespace Magnefu
             VkBufferMemoryBarrier& vk_barrier = buffer_memory_barriers[i];
             vk_barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 
-            Buffer* buffer = gpu_context->access_buffer(barrier.memory_barriers[i].buffer);
+            Buffer* buffer = gpu->access_buffer(barrier.memory_barriers[i].buffer);
 
             vk_barrier.buffer = buffer->vk_buffer;
             vk_barrier.offset = 0;
@@ -491,7 +630,7 @@ namespace Magnefu
 
     void CommandBuffer::fill_buffer(BufferHandle buffer, u32 offset, u32 size, u32 data) 
     {
-        Buffer* vk_buffer = gpu_context->access_buffer(buffer);
+        Buffer* vk_buffer = gpu->access_buffer(buffer);
 
         vkCmdFillBuffer(vk_command_buffer, vk_buffer->vk_buffer, VkDeviceSize(offset), size ? VkDeviceSize(size) : VkDeviceSize(vk_buffer->size), data);
     }
@@ -499,23 +638,23 @@ namespace Magnefu
     void CommandBuffer::push_marker(const char* name) 
     {
 
-        gpu_context->push_gpu_timestamp(this, name);
+        gpu->push_gpu_timestamp(this, name);
 
-        if (!gpu_context->debug_utils_extension_present)
+        if (!gpu->debug_utils_extension_present)
             return;
 
-        gpu_context->push_marker(vk_command_buffer, name);
+        gpu->push_marker(vk_command_buffer, name);
     }
 
     void CommandBuffer::pop_marker() 
     {
 
-        gpu_context->pop_gpu_timestamp(this);
+        gpu->pop_gpu_timestamp(this);
 
-        if (!gpu_context->debug_utils_extension_present)
+        if (!gpu->debug_utils_extension_present)
             return;
 
-        gpu_context->pop_marker(vk_command_buffer);
+        gpu->pop_marker(vk_command_buffer);
     }
 
 

@@ -125,7 +125,7 @@ namespace Magnefu
             cmd.commandBufferCount = 1;
             check(vkAllocateCommandBuffers(gpu->vulkan_device, &cmd, &command_buffers[i].vk_command_buffer), "Failed to allocated command buffers");
 
-            command_buffers[i].gpu_context = gpu;
+            command_buffers[i].gpu = gpu;
             command_buffers[i].handle = i;
             command_buffers[i].reset();
         }
@@ -293,6 +293,9 @@ namespace Magnefu
 
     static sizet            s_ubo_alignment = 256;
     static sizet            s_ssbo_alignemnt = 256;
+
+    static const u32        k_bindless_texture_binding = 10;
+    static const u32        k_max_bindless_resources = 1024;
 
     bool GraphicsContext::get_family_queue(VkPhysicalDevice physical_device) 
     {
@@ -568,16 +571,10 @@ namespace Magnefu
         {
             VkPhysicalDevice physical_device = gpus[i];
 
-            // DEVICE PROPERTIES
             vkGetPhysicalDeviceProperties(physical_device, &vulkan_physical_properties);
 
-            vulkan_physical_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-
-            // DEVICE FEATURES
-            vkGetPhysicalDeviceFeatures2(physical_device, &vulkan_physical_features);
-
             bool swapchainAdequate = false;
-            bool extensionsSupported = check_device_extension_support(physical_device);
+            bool extensionsSupported = check_device_extension_support(physical_device); // checking REQUIRED extensions
 
             if (extensionsSupported)
             {
@@ -587,7 +584,7 @@ namespace Magnefu
 
             if (vulkan_physical_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) 
             {
-                if (get_family_queue(physical_device) && extensionsSupported && swapchainAdequate && vulkan_physical_features.features.samplerAnisotropy) 
+                if (get_family_queue(physical_device) && extensionsSupported && swapchainAdequate) 
                 {
                     // NOTE(marco): prefer discrete GPU over integrated one, stop at first discrete GPU that has
                     // present capabilities
@@ -632,9 +629,26 @@ namespace Magnefu
 
         s_ubo_alignment = vulkan_physical_properties.limits.minUniformBufferOffsetAlignment;
         s_ssbo_alignemnt = vulkan_physical_properties.limits.minStorageBufferOffsetAlignment;
+        
+
+        //vulkan_physical_features.features.samplerAnisotropy
+        //
+
+
+        // Query bindless extension, called Descriptor Indexing (https://www.khronos.org/registry/vulkan/specs/1.3-extensions/man/html/VK_EXT_descriptor_indexing.html)
+        VkPhysicalDeviceDescriptorIndexingFeatures indexing_features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES, nullptr };
+        vulkan_physical_features = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, &indexing_features };
+
+        vkGetPhysicalDeviceFeatures2(vulkan_physical_device, &vulkan_physical_features);
+        // For the feature to be correctly working, we need both the possibility to partially bind a descriptor,
+        // as some entries in the bindless array will be empty, and SpirV runtime descriptors.
+        bindless_supported = indexing_features.descriptorBindingPartiallyBound && indexing_features.runtimeDescriptorArray;
+        // TODO: remove when finished with bindless
+        //bindless_supported = false;
 
 
         // -- Create logical device -------------------------------------------- //
+
 
         // Just enabled VK_KHR_swapchain
 
@@ -647,16 +661,26 @@ namespace Magnefu
 
         // Enable all features: just pass the physical features 2 struct.
 
+
         VkDeviceCreateInfo device_create_info = {};
         device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
         device_create_info.queueCreateInfoCount = ArraySize(queue_info);
         device_create_info.pQueueCreateInfos = queue_info;
-        device_create_info.pEnabledFeatures = &vulkan_physical_features.features;
+        //device_create_info.pEnabledFeatures = &vulkan_physical_features.features;
         device_create_info.enabledExtensionCount = (u32)ArraySize(device_extensions);
         device_create_info.ppEnabledExtensionNames = device_extensions;
-        device_create_info.pNext = nullptr; 
         device_create_info.enabledLayerCount = ArraySize(s_requested_layers);
         device_create_info.ppEnabledLayerNames = s_requested_layers;
+        device_create_info.pNext = &vulkan_physical_features;
+
+        if (bindless_supported) 
+        {
+            indexing_features.descriptorBindingPartiallyBound = VK_TRUE;
+            indexing_features.runtimeDescriptorArray = VK_TRUE;
+
+            vulkan_physical_features.pNext = &indexing_features;
+        }
+
 
         result = vkCreateDevice(vulkan_physical_device, &device_create_info, vulkan_allocation_callbacks, &vulkan_device);
         check(result, "Failed to create vulkan logical device");
@@ -757,7 +781,7 @@ namespace Magnefu
         result = vmaCreateAllocator(&allocatorInfo, &vma_allocator);
         check(result, "Failed to create VMA Allocator");
 
-        ////////  Create pools
+        // --  Create pools ----------------------------------------------- //
         static const u32 k_global_pool_elements = 128;
         VkDescriptorPoolSize pool_sizes[] =
         {
@@ -783,6 +807,92 @@ namespace Magnefu
         pool_info.pPoolSizes = pool_sizes;
         result = vkCreateDescriptorPool(vulkan_device, &pool_info, vulkan_allocation_callbacks, &vulkan_descriptor_pool);
         check(result, "Fialed to create descriptor pool");
+
+        // Bindless pool
+        VkDescriptorPoolSize pool_sizes_bindless[] =
+        {
+            {
+                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                k_max_bindless_resources
+            },
+            {
+                VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+                k_max_bindless_resources
+            }
+        };
+
+        const u32 pool_sizes_bindless_count = (u32)ArraySize(pool_sizes_bindless);
+        VkDescriptorPoolCreateInfo pool_info_bindless = {};
+        pool_info_bindless.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        pool_info_bindless.flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT_EXT;
+        pool_info_bindless.maxSets = k_max_bindless_resources * pool_sizes_bindless_count;
+        pool_info_bindless.poolSizeCount = pool_sizes_bindless_count;
+        pool_info_bindless.pPoolSizes = pool_sizes_bindless;
+        result = vkCreateDescriptorPool(vulkan_device, &pool_info_bindless, vulkan_allocation_callbacks, &vulkan_bindless_descriptor_pool);
+        check(result, "Failed to create descriptor pool");
+
+
+        VkDescriptorSetLayoutBinding vk_binding[4];
+        for (u32 i = 0; i < (u32)ArraySize(vk_binding); i++)
+        {
+            vk_binding[i] = {};
+        }
+
+        VkDescriptorSetLayoutBinding& image_sampler_binding = vk_binding [ 0 ];
+        image_sampler_binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        image_sampler_binding.descriptorCount = k_max_bindless_resources;
+        image_sampler_binding.binding = k_bindless_texture_binding;
+        image_sampler_binding.pImmutableSamplers = nullptr;
+        image_sampler_binding.stageFlags = 0;
+
+        VkDescriptorSetLayoutBinding& storage_binding = vk_binding [ 1 ];
+        storage_binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        storage_binding.descriptorCount = k_max_bindless_resources;
+        storage_binding.binding = k_bindless_texture_binding + 1;
+        storage_binding.pImmutableSamplers = nullptr;
+        storage_binding.stageFlags = 0;
+
+        VkDescriptorSetLayoutCreateInfo layout_info{};
+        layout_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        layout_info.bindingCount = pool_sizes_bindless_count;
+        layout_info.pBindings = vk_binding;
+        layout_info.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT;
+
+        VkDescriptorBindingFlags bindless_flags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT_EXT | /*VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT_EXT |*/ VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT_EXT;
+
+        VkDescriptorBindingFlags binding_flags[4];
+        binding_flags[0] = bindless_flags;
+        binding_flags[1] = bindless_flags;
+        binding_flags[2] = 0;
+        binding_flags[3] = 0;
+
+        VkDescriptorSetLayoutBindingFlagsCreateInfoEXT extended_info{};
+        extended_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT;
+        extended_info.bindingCount = pool_sizes_bindless_count;
+        extended_info.pBindingFlags = binding_flags;
+        extended_info.pNext = nullptr;
+
+        layout_info.pNext = &extended_info;
+
+        result = vkCreateDescriptorSetLayout(vulkan_device, &layout_info, vulkan_allocation_callbacks, &vulkan_bindless_descriptor_set_layout);
+        check(result, "Failed to created bindless descriptor set");
+
+
+        VkDescriptorSetAllocateInfo alloc_info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+        alloc_info.descriptorPool = vulkan_bindless_descriptor_pool;
+        alloc_info.descriptorSetCount = 1;
+        alloc_info.pSetLayouts = &vulkan_bindless_descriptor_set_layout;
+
+        VkDescriptorSetVariableDescriptorCountAllocateInfoEXT count_info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT };
+        u32 max_binding = k_max_bindless_resources - 1;
+        count_info.descriptorSetCount = 1;
+        // This number is the max allocatable count
+        count_info.pDescriptorCounts = &max_binding;
+        //alloc_info.pNext = &count_info;
+
+        result = vkAllocateDescriptorSets(vulkan_device, &alloc_info, &vulkan_bindless_descriptor_set);
+        check(result, "Failed to allocate bindless descriptor set.");
+
 
         // Create timestamp query pool used for GPU timings.
         VkQueryPoolCreateInfo vqpci{ VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO, nullptr, 0, VK_QUERY_TYPE_TIMESTAMP, creation.gpu_time_queries_per_frame * 2u * k_max_frames, 0 };
@@ -834,6 +944,7 @@ namespace Magnefu
 
         resource_deletion_queue.init(allocator, 16);
         descriptor_set_updates.init(allocator, 16);
+        texture_to_update_bindless.init(allocator, 16);
 
         //
         // Init primitive resources
@@ -1007,6 +1118,7 @@ namespace Magnefu
 
         resource_deletion_queue.shutdown();
         descriptor_set_updates.shutdown();
+        texture_to_update_bindless.shutdown();
 
         //command_buffers.shutdown();
         pipelines.shutdown();
@@ -1027,6 +1139,13 @@ namespace Magnefu
         if(vkDestroyDebugUtilsMessengerEXT)
             vkDestroyDebugUtilsMessengerEXT(vulkan_instance, vulkan_debug_utils_messenger, vulkan_allocation_callbacks);
 #endif // IMGUI_VULKAN_DEBUG_REPORT
+
+        // [TAG: BINDLESS]
+        if (bindless_supported) 
+        {
+            vkDestroyDescriptorSetLayout(vulkan_device, vulkan_bindless_descriptor_set_layout, vulkan_allocation_callbacks);
+            vkDestroyDescriptorPool(vulkan_device, vulkan_bindless_descriptor_pool, vulkan_allocation_callbacks);
+        }
 
         vkDestroyDescriptorPool(vulkan_device, vulkan_descriptor_pool, vulkan_allocation_callbacks);
         vkDestroyQueryPool(vulkan_device, vulkan_timestamp_query_pool, vulkan_allocation_callbacks);
@@ -1162,6 +1281,13 @@ namespace Magnefu
         gpu.set_resource_name(VK_OBJECT_TYPE_IMAGE_VIEW, (u64)texture->vk_image_view, creation.name);
 
         texture->vk_image_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+        // Add deferred bindless update.
+        if (gpu.bindless_supported) 
+        {
+            ResourceUpdate resource_update{ ResourceDeletionType::Texture, texture->handle.index, gpu.current_frame };
+            gpu.texture_to_update_bindless.push(resource_update);
+        }
     }
 
     TextureHandle GraphicsContext::create_texture(const TextureCreation& creation) 
@@ -1442,7 +1568,7 @@ namespace Magnefu
         return handle;
     }
 
-    PipelineHandle GraphicsContext::create_pipeline(const PipelineCreation& creation) 
+    PipelineHandle GraphicsContext::create_pipeline(const PipelineCreation& creation, const char* cache_path)
     {
         PipelineHandle handle = { pipelines.obtain_resource() };
         if (handle.index == k_invalid_index) {
@@ -1837,7 +1963,7 @@ namespace Magnefu
 
     //
     //
-    static void vulkan_fill_write_descriptor_sets(GraphicsContext& gpu, const DesciptorSetLayout* descriptor_set_layout, VkDescriptorSet vk_descriptor_set,
+    void GraphicsContext::fill_write_descriptor_sets(GraphicsContext& gpu, const DesciptorSetLayout* descriptor_set_layout, VkDescriptorSet vk_descriptor_set,
         VkWriteDescriptorSet* descriptor_write, VkDescriptorBufferInfo* buffer_info, VkDescriptorImageInfo* image_info,
         VkSampler vk_default_sampler, u32& num_resources, const ResourceHandle* resources, const SamplerHandle* samplers, const u16* bindings) {
 
@@ -1998,7 +2124,7 @@ namespace Magnefu
         Sampler* vk_default_sampler = access_sampler(default_sampler);
 
         u32 num_resources = creation.num_resources;
-        vulkan_fill_write_descriptor_sets(*this, descriptor_set_layout, descriptor_set->vk_descriptor_set, descriptor_write, buffer_info, image_info, vk_default_sampler->vk_sampler,
+        fill_write_descriptor_sets(*this, descriptor_set_layout, descriptor_set->vk_descriptor_set, descriptor_write, buffer_info, image_info, vk_default_sampler->vk_sampler,
             num_resources, creation.resources, creation.samplers, creation.bindings);
 
         // Cache resources
@@ -2803,7 +2929,7 @@ namespace Magnefu
         vkAllocateDescriptorSets(vulkan_device, &allocInfo, &descriptor_set->vk_descriptor_set);
 
         u32 num_resources = descriptor_set_layout->num_bindings;
-        vulkan_fill_write_descriptor_sets(*this, descriptor_set_layout, descriptor_set->vk_descriptor_set, descriptor_write, buffer_info, image_info, vk_default_sampler->vk_sampler,
+        fill_write_descriptor_sets(*this, descriptor_set_layout, descriptor_set->vk_descriptor_set, descriptor_write, buffer_info, image_info, vk_default_sampler->vk_sampler,
             num_resources, descriptor_set->resources, descriptor_set->samplers, descriptor_set->bindings);
 
         vkUpdateDescriptorSets(vulkan_device, num_resources, descriptor_write, 0, nullptr);
@@ -2966,6 +3092,61 @@ namespace Magnefu
                 vkCmdEndRenderPass(command_buffer->vk_command_buffer);
 
             vkEndCommandBuffer(command_buffer->vk_command_buffer);
+        }
+
+        if (texture_to_update_bindless.count()) 
+        {
+            // Handle deferred writes to bindless textures.
+            VkWriteDescriptorSet bindless_descriptor_writes[k_max_bindless_resources];
+            VkDescriptorImageInfo bindless_image_info[k_max_bindless_resources];
+
+            Texture* vk_dummy_texture = access_texture(dummy_texture);
+
+            u32 current_write_index = 0;
+            for (i32 it = texture_to_update_bindless.count() - 1; it >= 0; it--) {
+                ResourceUpdate& texture_to_update = texture_to_update_bindless[it];
+
+                //if ( texture_to_update.current_frame == current_frame )
+                {
+                    Texture* texture = access_texture({ texture_to_update.handle });
+                    VkWriteDescriptorSet& descriptor_write = bindless_descriptor_writes[current_write_index];
+                    descriptor_write = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+                    descriptor_write.descriptorCount = 1;
+                    descriptor_write.dstArrayElement = texture_to_update.handle;
+                    descriptor_write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                    descriptor_write.dstSet = vulkan_bindless_descriptor_set;
+                    descriptor_write.dstBinding = k_bindless_texture_binding;
+
+                    // Handles should be the same.
+                    MF_CORE_ASSERT(texture->handle.index == texture_to_update.handle, "Texture handle mismatch");
+
+                    Sampler* vk_default_sampler = access_sampler(default_sampler);
+                    VkDescriptorImageInfo& descriptor_image_info = bindless_image_info[current_write_index];
+
+                    if (texture->sampler != nullptr) 
+                    {
+                        descriptor_image_info.sampler = texture->sampler->vk_sampler;
+                    }
+                    else {
+                        descriptor_image_info.sampler = vk_default_sampler->vk_sampler;
+                    }
+
+                    descriptor_image_info.imageView = texture->vk_format != VK_FORMAT_UNDEFINED ? texture->vk_image_view : vk_dummy_texture->vk_image_view;
+                    descriptor_image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                    descriptor_write.pImageInfo = &descriptor_image_info;
+
+                    texture_to_update.current_frame = u32_max;
+
+                    texture_to_update_bindless.delete_swap(it);
+
+                    ++current_write_index;
+                }
+            }
+
+            if (current_write_index) 
+            {
+                vkUpdateDescriptorSets(vulkan_device, current_write_index, bindless_descriptor_writes, 0, nullptr);
+            }
         }
 
         // Submit command buffers
@@ -3478,6 +3659,20 @@ namespace Magnefu
 
     const DesciptorSetLayout* GraphicsContext::access_descriptor_set_layout(DescriptorSetLayoutHandle descriptor_set_layout) const {
         return (const DesciptorSetLayout*)descriptor_set_layouts.access_resource(descriptor_set_layout.index);
+    }
+
+    DescriptorSetLayoutHandle GraphicsContext::get_descriptor_set_layout(PipelineHandle pipeline_handle, int layout_index) {
+        Pipeline* pipeline = access_pipeline(pipeline_handle);
+        MF_CORE_ASSERT((pipeline != nullptr), "Pipeline doesnt' exist");
+
+        return  pipeline->descriptor_set_layout_handle[layout_index];
+    }
+
+    DescriptorSetLayoutHandle GraphicsContext::get_descriptor_set_layout(PipelineHandle pipeline_handle, int layout_index) const {
+        const Pipeline* pipeline = access_pipeline(pipeline_handle);
+        MF_CORE_ASSERT((pipeline != nullptr), "Pipeline doesn't exist");
+
+        return  pipeline->descriptor_set_layout_handle[layout_index];
     }
 
     DesciptorSet* GraphicsContext::access_descriptor_set(DescriptorSetHandle descriptor_set) {

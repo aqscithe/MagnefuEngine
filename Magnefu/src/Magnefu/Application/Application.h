@@ -8,7 +8,7 @@
 #include "LayerStack.h"
 #include "ImGui/ImGuiService.hpp"
 #include "Input/Input.h"
-#include "Scene/SceneManager.h"
+//#include "Scene/SceneManager.h"
 
 
 // -- Graphics Includes --------------------- //
@@ -87,7 +87,7 @@ namespace Magnefu
 	protected:
 
 		ServiceManager* service_manager = nullptr;
-		SceneManager* scene_manager = nullptr;
+		//SceneManager* scene_manager = nullptr;
 		LayerStack* layer_stack = nullptr;
 
 		InputService* input = nullptr;

@@ -5,6 +5,7 @@
 #include "MemoryAllocation/Memory.hpp"
 #include "Platform.hpp"
 #include "String.hpp"
+#include "File.hpp"
 
 static const char* kDefault3DModel = "res/models/SciFiHelmet/glTF/SciFiHelmet.gltf";
 

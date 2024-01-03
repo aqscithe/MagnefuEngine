@@ -14,11 +14,14 @@ namespace Magnefu
         // Commands interface
         //
 
+        DescriptorSetHandle             create_descriptor_set(const DescriptorSetCreation& creation);
+
         void                            bind_pass(RenderPassHandle handle);
         void                            bind_pipeline(PipelineHandle handle);
         void                            bind_vertex_buffer(BufferHandle handle, u32 binding, u32 offset);
-        void                            bind_index_buffer(BufferHandle handle, u32 offset, VkIndexType index_type);
+        void                            bind_index_buffer(BufferHandle handle, u32 offset);
         void                            bind_descriptor_set(DescriptorSetHandle* handles, u32 num_lists, u32* offsets, u32 num_offsets);
+        void                            bind_local_descriptor_set(DescriptorSetHandle* handles, u32 num_lists, u32* offsets, u32 num_offsets);
 
         void                            set_viewport(const Viewport* viewport);
         void                            set_scissor(const Rect2DInt* rect);
@@ -49,7 +52,11 @@ namespace Magnefu
 
         VkCommandBuffer                 vk_command_buffer;
 
-        GraphicsContext*                gpu_context;
+        VkDescriptorPool                vk_descriptor_pool;
+        ResourcePool                    descriptor_sets;
+        VkDescriptorSet                 vk_descriptor_sets[16];
+
+        GraphicsContext*                gpu;
 
         VkDescriptorSet                 vk_descriptor_sets[16];
 

@@ -2,8 +2,8 @@
 
 #include "Magnefu/Application/Events/Event.h"
 #include "Magnefu/Application/Layer.h"
-#include "Magnefu/Application/Scene/Scene.h"
-#include "Magnefu/Application/Scene/Entity.h"
+//#include "Magnefu/Application/Scene/Scene.h"
+//#include "Magnefu/Application/Scene/Entity.h"
 
 #include "Magnefu/Graphics/GraphicsContext.h"
 
@@ -56,8 +56,8 @@ private:
 	////Magnefu::PushConstants                              m_PushConstants;
 
 
-	Magnefu::Scene* m_active_scene		= nullptr;
-	Magnefu::Entity* m_selected_entity	= nullptr;
+	//Magnefu::Scene* m_active_scene		= nullptr;
+	//Magnefu::Entity* m_selected_entity	= nullptr;
 
 	Magnefu::GraphicsContext* m_gpu		= nullptr;
 
