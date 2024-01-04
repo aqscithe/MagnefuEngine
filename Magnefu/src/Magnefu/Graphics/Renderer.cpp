@@ -5,7 +5,6 @@
 #include "Renderer.hpp"
 
 // -- Application ------------------------- //
-#include "Magnefu/Application/AppDefs.hpp"
 
 // -- Graphics Includes -------------- //
 #include "CommandBuffer.hpp"

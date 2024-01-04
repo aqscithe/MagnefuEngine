@@ -2153,7 +2153,7 @@ namespace Magnefu
 
         VkAttachmentReference color_attachment_ref = {};
         color_attachment_ref.attachment = 0;
-        color_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // b/c of MSAA
+        color_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; 
 
         // Depth attachment
         VkAttachmentDescription depth_attachment{};

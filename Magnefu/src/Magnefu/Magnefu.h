@@ -20,7 +20,6 @@
 
 // -- Graphics Includes --------------------- //
 #include "Magnefu/Graphics/RenderConstants.h"
-#include "Magnefu/Graphics/Light.h"
 #include "Magnefu/Graphics/GraphicsContext.h"
 #include "Magnefu/Graphics/Renderer.hpp"
 #include "Magnefu/Graphics/CommandBuffer.hpp"

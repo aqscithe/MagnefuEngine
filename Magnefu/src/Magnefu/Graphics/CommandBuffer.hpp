@@ -58,8 +58,6 @@ namespace Magnefu
 
         GraphicsContext*                gpu;
 
-        VkDescriptorSet                 vk_descriptor_sets[16];
-
         RenderPass*                     current_render_pass;
         Pipeline*                       current_pipeline;
         VkClearValue                    clears[2];          // 0 = color, 1 = depth stencil

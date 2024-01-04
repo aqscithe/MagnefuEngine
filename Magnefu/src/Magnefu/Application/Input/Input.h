@@ -17,6 +17,8 @@
 #include "Magnefu/Core/Assertions.h"
 #include "Magnefu/Core/Platform.hpp"
 #include "Magnefu/Core/MemoryAllocation/Memory.hpp"
+#include "Magnefu/Core/String.hpp"
+#include "Magnefu/Core/Array.h"
 
 
 
@@ -222,7 +224,7 @@ namespace Magnefu
 
 	public:
 
-		Magnefu::StringBuffer            string_buffer;
+		StringBuffer					string_buffer;
 
 		Array<InputActionMap>           action_maps;
 		Array<InputAction>              actions;

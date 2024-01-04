@@ -3,7 +3,6 @@
 
 // -- Application ------------------- //
 #include "Magnefu/Application/Events/Event.h"
-#include "Magnefu/Application/Camera/Camera.h"
 
 
 // -- Graphics ----------------------- //
@@ -12,7 +11,6 @@
 
 // -- Core ------------------------- //
 #include "Magnefu/Core/Assertions.h"
-#include "Magnefu/Core/SmartPointers.h"
 
 
 

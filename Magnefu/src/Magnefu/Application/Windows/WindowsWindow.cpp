@@ -9,7 +9,6 @@
 #include "Magnefu/Application/Events/MouseEvent.h"
 #include "Magnefu/Application/Events/KeyEvent.h"
 #include "Magnefu/Application/Input/KeyCodes.h"
-#include "Magnefu/Application/Camera/Camera.h"
 
 // -- Graphics Includes ---------------------- //
 #include "Magnefu/Graphics/GraphicsContext.h"

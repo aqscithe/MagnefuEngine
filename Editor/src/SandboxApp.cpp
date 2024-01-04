@@ -12,6 +12,7 @@
 // -- Core -------------------------- //
 #include "Magnefu/Core/File.hpp"
 #include "Magnefu/Core/glTF.hpp"
+//#include "Magnefu/Core/String.hpp"
 
 #include "imgui/imgui.h"
 
@@ -44,8 +45,6 @@ static Magnefu::GPUProfiler s_gpu_profiler;
 
 // ----------------------------------------------------------------------------------------------------------- //
 
-
-static const u16 INVALID_TEXTURE_INDEX = ~0u;
 
 Magnefu::BufferHandle                    scene_cb;
 
@@ -100,7 +99,8 @@ struct UniformData {
 
 //
 //
-struct MeshData {
+struct MeshData 
+{
 	mat4s       m;
 	mat4s       inverseM;
 
@@ -138,6 +138,11 @@ struct Scene
 	Magnefu::glTF::glTF                      gltf_scene; // Source gltf scene
 
 }; // struct GltfScene
+
+static const u16 INVALID_TEXTURE_INDEX = ~0u;
+static Scene* scene = nullptr;
+static GameCamera game_camera;
+
 
 
 
@@ -556,7 +561,6 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 
 
 	// Game Camera:
-	GameCamera game_camera;
 	game_camera.camera.init_perpective(0.1f, 4000.f, 60.f, wconf.width * 1.f / wconf.height);
 	game_camera.init(true, 20.f, 6.f, 0.1f);
 
@@ -800,7 +804,11 @@ bool Sandbox::MainLoop()
 	f32 yaw = 0.0f;
 	f32 pitch = 0.0f;
 
+	vec3s light{ 0.f, 4.0f, 0.f };
+
 	float model_scale = 1.0f;
+	float light_range = 20.0f;
+	float light_intensity = 80.0f;
 	//
 
 	accumulator = 0.0;
@@ -808,6 +816,8 @@ bool Sandbox::MainLoop()
 
 	while (!window->requested_exit)
 	{
+		//MF_PROFILE_SCOPE("Frame");
+
 		if (!window->minimized)
 		{
 			//gpu->new_frame();
@@ -823,7 +833,7 @@ bool Sandbox::MainLoop()
 			gpu->resize(window->GetWidth(), window->GetHeight());
 
 			window->resized = false;
-			game_camera
+			game_camera.camera.set_aspect_ratio(window->GetWidth() * 1.f / window->GetHeight());
 		}
 
 		imgui->BeginFrame();
@@ -835,9 +845,10 @@ bool Sandbox::MainLoop()
 		accumulator += delta_time;
 
 		
-
-		
+		// updates
 		input->Update(delta_time);
+		game_camera.update(input, window->GetWidth(), window->GetHeight(), delta_time);
+		window->CenterMouse(game_camera.mouse_dragging);
 
 		while (accumulator >= step)
 		{
@@ -852,6 +863,11 @@ bool Sandbox::MainLoop()
 		if (ImGui::Begin("Magnefu ImGui")) 
 		{
 			ImGui::InputFloat("Model scale", &model_scale, 0.001f);
+			ImGui::InputFloat3("Light position", light.raw);
+			ImGui::InputFloat("Light range", &light_range);
+			ImGui::InputFloat("Light intensity", &light_intensity);
+			ImGui::InputFloat3("Camera position", game_camera.camera.position.raw);
+			ImGui::InputFloat3("Camera target movement", game_camera.target_movement.raw);
 		}
 		ImGui::End();
 
@@ -864,72 +880,33 @@ bool Sandbox::MainLoop()
 		mat4s global_model = { };
 		{
 			// Update rotating cube gpu data
-			MapBufferParameters cb_map = { cube_cb, 0, 0 };
+			MapBufferParameters cb_map = { scene_cb, 0, 0 };
 			float* cb_data = (float*)gpu->map_buffer(cb_map);
-			if (cb_data) {
-				if (input->IsMouseDown(MouseButtons::MOUSE_BUTTON_LEFT) && !ImGui::GetIO().WantCaptureMouse) {
-					pitch += (input->mouse_position.y - input->previous_mouse_position.y) * 0.1f;
-					yaw += (input->mouse_position.x - input->previous_mouse_position.x) * 0.3f;
-
-					pitch = Maths::clamp(-60.0f, 60.0f, pitch);
-
-					if (yaw > 360.0f) 
-					{
-						yaw -= 360.0f;
-					}
-
-					mat3s rxm = glms_mat4_pick3(glms_rotate_make(glm_rad(-pitch), vec3s{ 1.0f, 0.0f, 0.0f }));
-					mat3s rym = glms_mat4_pick3(glms_rotate_make(glm_rad(-yaw), vec3s{ 0.0f, 1.0f, 0.0f }));
-
-					look = glms_mat3_mulv(rxm, vec3s{ 0.0f, 0.0f, -1.0f });
-					look = glms_mat3_mulv(rym, look);
-
-					right = glms_cross(look, vec3s{ 0.0f, 1.0f, 0.0f });
-				}
-
-				if (input->IsKeyDown(Keys::MF_KEY_W)) 
-				{
-					eye = glms_vec3_add(eye, glms_vec3_scale(look, 5.0f * delta_time));
-				}
-				else if (input->IsKeyDown(Keys::MF_KEY_S))
-				{
-					eye = glms_vec3_sub(eye, glms_vec3_scale(look, 5.0f * delta_time));
-				}
-
-				if (input->IsKeyDown(Keys::MF_KEY_D)) 
-				{
-					eye = glms_vec3_add(eye, glms_vec3_scale(right, 5.0f * delta_time));
-				}
-				else if (input->IsKeyDown(Keys::MF_KEY_A)) 
-				{
-					eye = glms_vec3_sub(eye, glms_vec3_scale(right, 5.0f * delta_time));
-				}
-
-				mat4s view = glms_lookat(eye, glms_vec3_add(eye, look), vec3s{ 0.0f, 1.0f, 0.0f });
-				mat4s projection = glms_perspective(glm_rad(60.0f), gpu->swapchain_width * 1.0f / gpu->swapchain_height, 0.01f, 1000.0f);
-
-				// Calculate view projection matrix
-				mat4s view_projection = glms_mat4_mul(projection, view);
-
-				// Rotate cube:
-				rx += 1.0f * delta_time;
-				ry += 2.0f * delta_time;
-
-				mat4s rxm = glms_rotate_make(rx, vec3s{ 1.0f, 0.0f, 0.0f });
-				mat4s rym = glms_rotate_make(glm_rad(45.0f), vec3s{ 0.0f, 1.0f, 0.0f });
-
-				mat4s sm = glms_scale_make(vec3s{ model_scale, model_scale, model_scale });
-				global_model = glms_mat4_mul(rym, sm);
-
+			if (cb_data)
+			{
 				UniformData uniform_data{ };
-				uniform_data.vp = view_projection;
-				uniform_data.m = global_model;
-				uniform_data.eye = vec4s{ eye.x, eye.y, eye.z, 1.0f };
-				uniform_data.light = vec4s{ 2.0f, 2.0f, 0.0f, 1.0f };
+				uniform_data.vp = game_camera.camera.view_projection;
+				uniform_data.eye = vec4s{ game_camera.camera.position.x, game_camera.camera.position.y, game_camera.camera.position.z, 1.0f };
+				uniform_data.light = vec4s{ light.x, light.y, light.z, 1.0f };
+				uniform_data.light_range = light_range;
+				uniform_data.light_intensity = light_intensity;
 
 				memcpy(cb_data, &uniform_data, sizeof(UniformData));
 
 				gpu->unmap_buffer(cb_map);
+			}
+
+			for (u32 mesh_index = 0; mesh_index < scene->mesh_draws.count(); ++mesh_index) 
+			{
+				MeshDraw& mesh_draw = scene->mesh_draws[mesh_index];
+
+				cb_map.buffer = mesh_draw.material_buffer;
+				MeshData* mesh_data = (MeshData*)gpu->map_buffer(cb_map);
+				if (mesh_data) {
+					upload_material(*mesh_data, mesh_draw, model_scale);
+
+					gpu->unmap_buffer(cb_map);
+				}
 			}
 		}
 
@@ -940,48 +917,33 @@ bool Sandbox::MainLoop()
 
 			DrawGUI();
 
-			auto* gpu_commands = renderer->get_command_buffer(Magnefu::QueueType::Graphics, true);
+			auto* gpu_commands = gpu->get_command_buffer(Magnefu::QueueType::Graphics, true);
 			
 			gpu_commands->push_marker("Frame");
-			gpu_commands->clear(0.3f, 0.9f, 0.3f, 1.0f);
+			gpu_commands->clear(0.3f, 0.3f, 0.3f, 1.0f);
 			gpu_commands->clear_depth_stencil(1.0f, 0);
 			gpu_commands->bind_pass(gpu->get_swapchain_pass());
-			gpu_commands->bind_pipeline(cube_pipeline);
+			//gpu_commands->bind_pipeline(cube_pipeline);
 			gpu_commands->set_scissor(nullptr);
 			gpu_commands->set_viewport(nullptr);
 
-			for (u32 mesh_index = 0; mesh_index < mesh_draws.count(); ++mesh_index) {
-				MeshDraw mesh_draw = mesh_draws[mesh_index];
-				mesh_draw.material_data.model_inv = glms_mat4_inv(glms_mat4_transpose(glms_mat4_mul(global_model, mesh_draw.material_data.model)));
+			Material* last_material = nullptr;
+			// TODO: loop by material so that we can deal with multiple passes
 
-				MapBufferParameters material_map = { mesh_draw.material_buffer, 0, 0 };
-				MaterialData* material_buffer_data = (MaterialData*)gpu->map_buffer(material_map);
+			for (u32 mesh_index = 0; mesh_index < scene->mesh_draws.count(); ++mesh_index)
+			{
+				MeshDraw& mesh_draw = scene->mesh_draws[mesh_index];
 
-				memcpy(material_buffer_data, &mesh_draw.material_data, sizeof(MaterialData));
+				if (mesh_draw.material != last_material)
+				{
+					PipelineHandle pipeline = renderer->get_pipeline(mesh_draw.material);
+					gpu_commands->bind_pipeline(pipeline);
 
-				gpu->unmap_buffer(material_map);
-
-				gpu_commands->bind_vertex_buffer(mesh_draw.position_buffer, 0, mesh_draw.position_offset);
-				gpu_commands->bind_vertex_buffer(mesh_draw.normal_buffer, 2, mesh_draw.normal_offset);
-
-				if (mesh_draw.material_data.flags & MaterialFeatures_TangentVertexAttribute) {
-					gpu_commands->bind_vertex_buffer(mesh_draw.tangent_buffer, 1, mesh_draw.tangent_offset);
-				}
-				else {
-					gpu_commands->bind_vertex_buffer(dummy_attribute_buffer, 1, 0);
+					last_material = mesh_draw.material;
 				}
 
-				if (mesh_draw.material_data.flags & MaterialFeatures_TexcoordVertexAttribute) {
-					gpu_commands->bind_vertex_buffer(mesh_draw.texcoord_buffer, 3, mesh_draw.texcoord_offset);
-				}
-				else {
-					gpu_commands->bind_vertex_buffer(dummy_attribute_buffer, 3, 0);
-				}
+				draw_mesh(*renderer, gpu_commands, mesh_draw);
 
-				gpu_commands->bind_index_buffer(mesh_draw.index_buffer, mesh_draw.index_offset, mesh_draw.index_type);
-				gpu_commands->bind_descriptor_set(&mesh_draw.descriptor_set, 1, nullptr, 0);
-
-				gpu_commands->draw_indexed(TopologyType::Triangle, mesh_draw.count, 1, 0, 0, 0);
 			}
 
 			
@@ -996,9 +958,9 @@ bool Sandbox::MainLoop()
 			gpu_profiler->update(*gpu);
 
 			// Send commands to GPU
-			renderer->queue_command_buffer(gpu_commands);
+			gpu->queue_command_buffer(gpu_commands);
+			gpu->present();
 
-			renderer->end_frame();
 		}
 		else
 		{

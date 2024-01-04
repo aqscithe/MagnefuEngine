@@ -147,8 +147,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\Magnefu\Application\Application.h" />
-    <ClInclude Include="src\Magnefu\Application\Camera\Camera.h" />
-    <ClInclude Include="src\Magnefu\Application\Camera\SceneCamera.h" />
     <ClInclude Include="src\Magnefu\Application\Entrypoint.h" />
     <ClInclude Include="src\Magnefu\Application\Events\ApplicationEvent.h" />
     <ClInclude Include="src\Magnefu\Application\Events\Event.h" />
@@ -164,10 +162,6 @@
     <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiService.hpp" />
     <ClInclude Include="src\Magnefu\Application\Layer.h" />
     <ClInclude Include="src\Magnefu\Application\LayerStack.h" />
-    <ClInclude Include="src\Magnefu\Application\Scene\Components.h" />
-    <ClInclude Include="src\Magnefu\Application\Scene\Entity.h" />
-    <ClInclude Include="src\Magnefu\Application\Scene\Scene.h" />
-    <ClInclude Include="src\Magnefu\Application\Scene\SceneManager.h" />
     <ClInclude Include="src\Magnefu\Application\Windows\Window.h" />
     <ClInclude Include="src\Magnefu\Application\Windows\WindowsInput.h" />
     <ClInclude Include="src\Magnefu\Application\Windows\WindowsWindow.h" />
@@ -176,6 +170,7 @@
     <ClInclude Include="src\Magnefu\Core\Bit.hpp" />
     <ClInclude Include="src\Magnefu\Core\Blob.hpp" />
     <ClInclude Include="src\Magnefu\Core\BlobSerialization.hpp" />
+    <ClInclude Include="src\Magnefu\Core\Camera.hpp" />
     <ClInclude Include="src\Magnefu\Core\Color.hpp" />
     <ClInclude Include="src\Magnefu\Core\DataStructures.hpp" />
     <ClInclude Include="src\Magnefu\Core\Debug\Instrumentor.h" />
@@ -211,8 +206,6 @@
     <ClInclude Include="src\Magnefu\Graphics\GPUResources.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\GraphicsContext.h" />
     <ClInclude Include="src\Magnefu\Graphics\LTCMatrix.h" />
-    <ClInclude Include="src\Magnefu\Graphics\Light.h" />
-    <ClInclude Include="src\Magnefu\Graphics\Material.h" />
     <ClInclude Include="src\Magnefu\Graphics\Mesh.h" />
     <ClInclude Include="src\Magnefu\Graphics\RenderConstants.h" />
     <ClInclude Include="src\Magnefu\Graphics\Renderer.hpp" />
@@ -1117,22 +1110,18 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application\Application.cpp" />
-    <ClCompile Include="src\Magnefu\Application\Camera\Camera.cpp" />
-    <ClCompile Include="src\Magnefu\Application\Camera\SceneCamera.cpp" />
     <ClCompile Include="src\Magnefu\Application\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\Magnefu\Application\ImGui\ImGuiService.cpp" />
     <ClCompile Include="src\Magnefu\Application\Input\Input.cpp" />
     <ClCompile Include="src\Magnefu\Application\Input\KeyCodes.cpp" />
     <ClCompile Include="src\Magnefu\Application\Layer.cpp" />
     <ClCompile Include="src\Magnefu\Application\LayerStack.cpp" />
-    <ClCompile Include="src\Magnefu\Application\Scene\Entity.cpp" />
-    <ClCompile Include="src\Magnefu\Application\Scene\Scene.cpp" />
-    <ClCompile Include="src\Magnefu\Application\Scene\SceneManager.cpp" />
     <ClCompile Include="src\Magnefu\Application\Windows\Window.cpp" />
     <ClCompile Include="src\Magnefu\Application\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Magnefu\Application\Windows\WindowsWindow.cpp" />
     <ClCompile Include="src\Magnefu\Core\Bit.cpp" />
     <ClCompile Include="src\Magnefu\Core\BlobSerialization.cpp" />
+    <ClCompile Include="src\Magnefu\Core\Camera.cpp" />
     <ClCompile Include="src\Magnefu\Core\Color.cpp" />
     <ClCompile Include="src\Magnefu\Core\DataStructures.cpp" />
     <ClCompile Include="src\Magnefu\Core\File.cpp" />
@@ -1157,8 +1146,6 @@
     <ClCompile Include="src\Magnefu\Graphics\GPUProfiler.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\GPUResources.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\GraphicsContext.cpp" />
-    <ClCompile Include="src\Magnefu\Graphics\Light.cpp" />
-    <ClCompile Include="src\Magnefu\Graphics\Material.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\Renderer.cpp" />
     <ClCompile Include="src\mfpch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>

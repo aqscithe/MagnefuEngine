@@ -228,12 +228,6 @@
     <ClInclude Include="src\Magnefu\Application\Application.h">
       <Filter>src\Magnefu\Application</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Camera\Camera.h">
-      <Filter>src\Magnefu\Application\Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Camera\SceneCamera.h">
-      <Filter>src\Magnefu\Application\Camera</Filter>
-    </ClInclude>
     <ClInclude Include="src\Magnefu\Application\Entrypoint.h">
       <Filter>src\Magnefu\Application</Filter>
     </ClInclude>
@@ -269,18 +263,6 @@
     </ClInclude>
     <ClInclude Include="src\Magnefu\Application\LayerStack.h">
       <Filter>src\Magnefu\Application</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Scene\Components.h">
-      <Filter>src\Magnefu\Application\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Scene\Entity.h">
-      <Filter>src\Magnefu\Application\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Scene\Scene.h">
-      <Filter>src\Magnefu\Application\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Scene\SceneManager.h">
-      <Filter>src\Magnefu\Application\Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Application\Windows\Window.h">
       <Filter>src\Magnefu\Application\Windows</Filter>
@@ -403,12 +385,6 @@
       <Filter>src\Magnefu\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Graphics\LTCMatrix.h">
-      <Filter>src\Magnefu\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Graphics\Light.h">
-      <Filter>src\Magnefu\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Graphics\Material.h">
       <Filter>src\Magnefu\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Graphics\Mesh.h">
@@ -3117,16 +3093,11 @@
     <ClInclude Include="src\Magnefu\Application\Events\GamepadEvent.h" />
     <ClInclude Include="src\Magnefu\Core\glTF.hpp" />
     <ClInclude Include="vendor\json\json.hpp" />
+    <ClInclude Include="src\Magnefu\Core\Camera.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application\Application.cpp">
       <Filter>src\Magnefu\Application</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\Camera\Camera.cpp">
-      <Filter>src\Magnefu\Application\Camera</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\Camera\SceneCamera.cpp">
-      <Filter>src\Magnefu\Application\Camera</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Application\ImGui\ImGuiBuild.cpp">
       <Filter>src\Magnefu\Application\ImGui</Filter>
@@ -3139,15 +3110,6 @@
     </ClCompile>
     <ClCompile Include="src\Magnefu\Application\LayerStack.cpp">
       <Filter>src\Magnefu\Application</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\Scene\Entity.cpp">
-      <Filter>src\Magnefu\Application\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\Scene\Scene.cpp">
-      <Filter>src\Magnefu\Application\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\Scene\SceneManager.cpp">
-      <Filter>src\Magnefu\Application\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Application\Windows\WindowsInput.cpp">
       <Filter>src\Magnefu\Application\Windows</Filter>
@@ -3224,12 +3186,6 @@
     <ClCompile Include="src\Magnefu\Graphics\GraphicsContext.cpp">
       <Filter>src\Magnefu\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Graphics\Light.cpp">
-      <Filter>src\Magnefu\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Graphics\Material.cpp">
-      <Filter>src\Magnefu\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="src\Magnefu\Graphics\Renderer.cpp">
       <Filter>src\Magnefu\Graphics</Filter>
     </ClCompile>
@@ -3272,6 +3228,7 @@
     <ClCompile Include="src\Magnefu\Application\Input\Input.cpp" />
     <ClCompile Include="src\Magnefu\Application\Input\KeyCodes.cpp" />
     <ClCompile Include="src\Magnefu\Core\glTF.cpp" />
+    <ClCompile Include="src\Magnefu\Core\Camera.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\vulkan\include\spirv-headers\spirv.hpp11">

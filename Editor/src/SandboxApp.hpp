@@ -51,5 +51,4 @@ public:
 		 f64                         current_time = 0.0;
 		 f32                         step = 1.0f / 60.0f; // Should be set to refresh rate of monitor by default? - Should have several options that fit neatly within monitor refresh container	
 
-		 Magnefu::Scene*			scene;
 };

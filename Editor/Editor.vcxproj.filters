@@ -134,7 +134,7 @@
     </ClInclude>
     <ClInclude Include="src\AppLayers\SandboxLayer.hpp" />
     <ClInclude Include="src\AppLayers\Overlay.hpp" />
-    <ClInclude Include="src\SandboxPrimitives.hpp" />
+    <ClInclude Include="src\GameCamera.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\SandboxApp.cpp">
@@ -142,6 +142,7 @@
     </ClCompile>
     <ClCompile Include="src\AppLayers\SandboxLayer.cpp" />
     <ClCompile Include="src\AppLayers\Overlay.cpp" />
+    <ClCompile Include="src\GameCamera.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\materials\12221_Cat_v1_l3.mtl">
