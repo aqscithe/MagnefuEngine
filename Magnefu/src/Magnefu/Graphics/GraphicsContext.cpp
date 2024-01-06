@@ -6,7 +6,7 @@
 
 // -- Graphics Includes ----------------------- //
 #include "CommandBuffer.hpp"
-
+#include "spirv_parser.hpp"
 
 // -- Aplication Includes ------------------------- //
 
@@ -126,8 +126,8 @@ namespace Magnefu
             check(vkAllocateCommandBuffers(gpu->vulkan_device, &cmd, &command_buffers[i].vk_command_buffer), "Failed to allocated command buffers");
 
             command_buffers[i].gpu = gpu;
+            command_buffers[i].init(QueueType::Enum::Graphics, 0, 0, false);
             command_buffers[i].handle = i;
-            command_buffers[i].reset();
         }
     }
 
@@ -1592,17 +1592,28 @@ namespace Magnefu
 
         VkDescriptorSetLayout vk_layouts[k_max_descriptor_set_layouts];
 
+        u32 num_active_layouts = shader_state_data->parse_result->set_count;
+
         // Create VkPipelineLayout
-        for (u32 l = 0; l < creation.num_active_layouts; ++l) {
-            pipeline->descriptor_set_layout[l] = access_descriptor_set_layout(creation.descriptor_set_layout[l]);
-            pipeline->descriptor_set_layout_handle[l] = creation.descriptor_set_layout[l];
+        for (u32 l = 0; l < shader_state_data->parse_result->set_count; ++l) {
+            pipeline->descriptor_set_layout_handle[l] = create_descriptor_set_layout(shader_state_data->parse_result->sets[l]);
+            pipeline->descriptor_set_layout[l] = access_descriptor_set_layout(pipeline->descriptor_set_layout_handle[l]);
 
             vk_layouts[l] = pipeline->descriptor_set_layout[l]->vk_descriptor_set_layout;
         }
 
+        // TODO: improve.
+        // Add bindless resource layout after other layouts.
+            // [TAG: BINDLESS]
+        u32 bindless_active = 0;
+        if (bindless_supported) {
+            vk_layouts[num_active_layouts] = vulkan_bindless_descriptor_set_layout;
+            bindless_active = 1;
+        }
+
         VkPipelineLayoutCreateInfo pipeline_layout_info = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
         pipeline_layout_info.pSetLayouts = vk_layouts;
-        pipeline_layout_info.setLayoutCount = creation.num_active_layouts;
+        pipeline_layout_info.setLayoutCount = creation.num_active_layouts + bindless_active; // num_active_layouts + bindless_active;
 
         VkPipelineLayout pipeline_layout;
         check(vkCreatePipelineLayout(vulkan_device, &pipeline_layout_info, vulkan_allocation_callbacks, &pipeline_layout), "Failed to create pipeline layout");
@@ -1938,6 +1949,13 @@ namespace Magnefu
             binding.type = input_binding.type;
             binding.name = input_binding.name;
 
+            // [TAG: BINDLESS]
+            // Skip bindings for images and textures as they are bindless, thus bound in the global bindless arrays (one for images, one for textures).
+            if (bindless_supported && (binding.type == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER || binding.type == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE))
+            {
+                continue;
+            }
+
             VkDescriptorSetLayoutBinding& vk_binding = descriptor_set_layout->vk_binding[used_bindings];
             ++used_bindings;
 
@@ -1975,6 +1993,12 @@ namespace Magnefu
             u32 layout_binding_index = bindings[r];
 
             const DescriptorBinding& binding = descriptor_set_layout->bindings[layout_binding_index];
+
+            // [TAG: BINDLESS]
+        // Skip bindless descriptors as they are bound in the global bindless arrays.
+            if (gpu.bindless_supported && (binding.type == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER || binding.type == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE)) {
+                continue;
+            }
 
             u32 i = used_resources;
             ++used_resources;
@@ -2531,8 +2555,10 @@ namespace Magnefu
     }
 
     void GraphicsContext::destroy_texture(TextureHandle texture) {
-        if (texture.index < textures.pool_size) {
+        if (texture.index < textures.pool_size) 
+        {
             resource_deletion_queue.push({ ResourceDeletionType::Texture, texture.index, current_frame });
+            texture_to_update_bindless.push({ ResourceDeletionType::Texture, texture.index, current_frame });
         }
         else {
             MF_CORE_ERROR("Graphics error: trying to free invalid Texture {}", texture.index);

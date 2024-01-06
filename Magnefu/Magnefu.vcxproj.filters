@@ -3094,6 +3094,7 @@
     <ClInclude Include="src\Magnefu\Core\glTF.hpp" />
     <ClInclude Include="vendor\json\json.hpp" />
     <ClInclude Include="src\Magnefu\Core\Camera.hpp" />
+    <ClInclude Include="src\Magnefu\Graphics\spirv_parser.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application\Application.cpp">
@@ -3229,6 +3230,7 @@
     <ClCompile Include="src\Magnefu\Application\Input\KeyCodes.cpp" />
     <ClCompile Include="src\Magnefu\Core\glTF.cpp" />
     <ClCompile Include="src\Magnefu\Core\Camera.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\spirv_parser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\vulkan\include\spirv-headers\spirv.hpp11">

@@ -214,6 +214,13 @@ namespace Magnefu
         return *this;
     }
 
+    DescriptorSetLayoutCreation& DescriptorSetLayoutCreation::add_binding_at_index(const Binding& binding, int index)
+    {
+        bindings[index] = binding;
+        num_bindings = (index + 1) > num_bindings ? (index + 1) : num_bindings;
+        return *this;
+    }
+
     DescriptorSetLayoutCreation& DescriptorSetLayoutCreation::set_name(cstring name_) {
         name = name_;
         return *this;

@@ -61,7 +61,7 @@ namespace Magnefu
         pool_info.poolSizeCount = (u32)ArraySize(pool_sizes);
         pool_info.pPoolSizes = pool_sizes;
         VkResult result = vkCreateDescriptorPool(gpu->vulkan_device, &pool_info, gpu->vulkan_allocation_callbacks, &vk_descriptor_pool);
-        MF_CORE_ASSERT(result, "Failed to create descriptor pool");
+        MF_CORE_ASSERT(result == VK_SUCCESS, "Failed to create descriptor pool");
 
         descriptor_sets.init(gpu->allocator, 256, sizeof(DesciptorSet));
 

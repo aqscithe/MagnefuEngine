@@ -211,6 +211,7 @@
     <ClInclude Include="src\Magnefu\Graphics\Renderer.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\ResourceManagement\Handle.h" />
     <ClInclude Include="src\Magnefu\Graphics\ResourceManagement\ResourcePaths.h" />
+    <ClInclude Include="src\Magnefu\Graphics\spirv_parser.hpp" />
     <ClInclude Include="src\Magnefu\Magnefu.h" />
     <ClInclude Include="src\mfpch.h" />
     <ClInclude Include="vendor\GLAD\include\KHR\khrplatform.h" />
@@ -1147,6 +1148,7 @@
     <ClCompile Include="src\Magnefu\Graphics\GPUResources.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\GraphicsContext.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\Renderer.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\spirv_parser.cpp" />
     <ClCompile Include="src\mfpch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

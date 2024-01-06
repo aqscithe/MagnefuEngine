@@ -90,7 +90,6 @@ namespace Magnefu
 
 		// -- Members -- //
 
-	private:
 
 		T*			data;
 		u32         size;       // Occupied size
@@ -119,7 +118,6 @@ namespace Magnefu
 
 		// -- Members -- //
 
-	private:
 
 		T*			data;
 		u32			size;

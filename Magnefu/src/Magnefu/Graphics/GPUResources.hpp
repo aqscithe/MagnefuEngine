@@ -3,7 +3,6 @@
 // -- Graphics Includes -------------------- //
 #include "GPUEnum.hpp"
 
-
 // -- Vendor Includes --------------------- //
 #include "vulkan/vulkan.h"
 #include "vma/vk_mem_alloc.h"
@@ -12,6 +11,10 @@
 
 namespace Magnefu
 {
+    namespace spirv 
+    {
+        struct ParseResult;
+    } // namespace spirv
 
     struct Allocator;
 
@@ -321,6 +324,7 @@ namespace Magnefu
         // Building helpers
         DescriptorSetLayoutCreation& reset();
         DescriptorSetLayoutCreation& add_binding(const Binding& binding);
+        DescriptorSetLayoutCreation& add_binding_at_index(const Binding& binding, int index);
         DescriptorSetLayoutCreation& set_name(cstring name);
         DescriptorSetLayoutCreation& set_set_index(u32 index);
 
@@ -732,7 +736,8 @@ namespace Magnefu
 
     //
     //
-    struct ShaderState {
+    struct ShaderState 
+    {
 
         VkPipelineShaderStageCreateInfo shader_stage_info[k_max_shader_stages];
 
@@ -740,6 +745,8 @@ namespace Magnefu
 
         u32                             active_shaders = 0;
         bool                            graphics_pipeline = false;
+
+        spirv::ParseResult*             parse_result;
     }; // struct ShaderStateVulkan
 
     //
@@ -795,7 +802,7 @@ namespace Magnefu
 
         ShaderStateHandle               shader_state;
 
-        const DesciptorSetLayout* descriptor_set_layout[k_max_descriptor_set_layouts];
+        const DesciptorSetLayout*       descriptor_set_layout[k_max_descriptor_set_layouts];
         DescriptorSetLayoutHandle       descriptor_set_layout_handle[k_max_descriptor_set_layouts];
         u32                             num_active_layouts = 0;
 

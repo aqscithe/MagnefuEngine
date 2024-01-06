@@ -597,11 +597,11 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 		StringBuffer path_buffer;
 		path_buffer.init(1024, &MemoryService::Instance()->systemAllocator);
 
-		const char* vert_file = "default-vertex.shader";
+		const char* vert_file = "main.vert";
 		char* vert_path = path_buffer.append_use_f("%s%s", MAGNEFU_SHADER_FOLDER, vert_file);
 		FileReadResult vert_code = file_read_text(vert_path, &MemoryService::Instance()->systemAllocator);
 
-		const char* frag_file = "default-fragment.shader";
+		const char* frag_file = "main.frag";
 		char* frag_path = path_buffer.append_use_f("%s%s", MAGNEFU_SHADER_FOLDER, frag_file);
 		FileReadResult frag_code = file_read_text(frag_path, &MemoryService::Instance()->systemAllocator);
 
@@ -877,7 +877,6 @@ bool Sandbox::MainLoop()
 		}
 		ImGui::End();
 
-		mat4s global_model = { };
 		{
 			// Update rotating cube gpu data
 			MapBufferParameters cb_map = { scene_cb, 0, 0 };
