@@ -843,7 +843,7 @@ namespace Magnefu
         image_sampler_binding.descriptorCount = k_max_bindless_resources;
         image_sampler_binding.binding = k_bindless_texture_binding;
         image_sampler_binding.pImmutableSamplers = nullptr;
-        image_sampler_binding.stageFlags = 0;
+        image_sampler_binding.stageFlags = VK_SHADER_STAGE_ALL;
 
         VkDescriptorSetLayoutBinding& storage_binding = vk_binding [ 1 ];
         storage_binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
@@ -863,8 +863,6 @@ namespace Magnefu
         VkDescriptorBindingFlags binding_flags[4];
         binding_flags[0] = bindless_flags;
         binding_flags[1] = bindless_flags;
-        binding_flags[2] = 0;
-        binding_flags[3] = 0;
 
         VkDescriptorSetLayoutBindingFlagsCreateInfoEXT extended_info{};
         extended_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT;
@@ -1505,21 +1503,32 @@ namespace Magnefu
 
         sizet current_temporary_marker = temporary_allocator->getMarker();
 
-        for (compiled_shaders = 0; compiled_shaders < creation.stages_count; ++compiled_shaders) {
+        StringBuffer name_buffer;
+        name_buffer.init(4096, temporary_allocator);
+
+        // Parse result needs to be always in memory as its used to free descriptor sets.
+        shader_state->parse_result = (spirv::ParseResult*)allocator->allocate(sizeof(spirv::ParseResult), 64);
+        memset(shader_state->parse_result, 0, sizeof(spirv::ParseResult));
+
+        for (compiled_shaders = 0; compiled_shaders < creation.stages_count; ++compiled_shaders)
+        {
             const ShaderStage& stage = creation.stages[compiled_shaders];
 
             // Gives priority to compute: if any is present (and it should not be) then it is not a graphics pipeline.
-            if (stage.type == VK_SHADER_STAGE_COMPUTE_BIT) {
+            if (stage.type == VK_SHADER_STAGE_COMPUTE_BIT)
+            {
                 shader_state->graphics_pipeline = false;
             }
 
             VkShaderModuleCreateInfo shader_create_info = { VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
 
-            if (creation.spv_input) {
+            if (creation.spv_input) 
+            {
                 shader_create_info.codeSize = stage.code_size;
                 shader_create_info.pCode = reinterpret_cast<const u32*>(stage.code);
             }
-            else {
+            else 
+            {
                 shader_create_info = compile_shader(stage.code, stage.code_size, stage.type, creation.name);
             }
 
@@ -1530,29 +1539,27 @@ namespace Magnefu
             shader_stage_info.pName = "main";
             shader_stage_info.stage = stage.type;
 
-            if (vkCreateShaderModule(vulkan_device, &shader_create_info, nullptr, &shader_state->shader_stage_info[compiled_shaders].module) != VK_SUCCESS) {
+            check(vkCreateShaderModule(vulkan_device, &shader_create_info, nullptr, &shader_state->shader_stage_info[compiled_shaders].module), "Failed to create shader module");
 
-                break;
-            }
+            spirv::parse_binary(shader_create_info.pCode, shader_create_info.codeSize, name_buffer, shader_state->parse_result);
 
-            // Not needed anymore - temp allocator freed at the end.
-            //if ( compiled ) {
-            //    mffree( ( void* )createInfo.pCode, allocator );
-            //}
+            
 
             set_resource_name(VK_OBJECT_TYPE_SHADER_MODULE, (u64)shader_state->shader_stage_info[compiled_shaders].module, creation.name);
         }
-        // Not needed anymore - temp allocator freed at the end.
-        //name_buffer.shutdown();
+
+        
         temporary_allocator->freeToMarker(current_temporary_marker);
 
         bool creation_failed = compiled_shaders != creation.stages_count;
-        if (!creation_failed) {
+        if (!creation_failed) 
+        {
             shader_state->active_shaders = compiled_shaders;
             shader_state->name = creation.name;
         }
 
-        if (creation_failed) {
+        if (creation_failed) 
+        {
             destroy_shader_state(handle);
             handle.index = k_invalid_index;
 
@@ -1571,12 +1578,46 @@ namespace Magnefu
     PipelineHandle GraphicsContext::create_pipeline(const PipelineCreation& creation, const char* cache_path)
     {
         PipelineHandle handle = { pipelines.obtain_resource() };
-        if (handle.index == k_invalid_index) {
+        if (handle.index == k_invalid_index) 
+        {
             return handle;
         }
 
-        ShaderStateHandle shader_state = create_shader_state(creation.shaders);
-        if (shader_state.index == k_invalid_index) {
+
+        VkPipelineCache pipeline_cache = VK_NULL_HANDLE;
+        VkPipelineCacheCreateInfo pipeline_cache_create_info{ VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO };
+
+        bool cache_exists = file_exists(cache_path);
+        if (cache_path != nullptr && cache_exists)
+        {
+            FileReadResult read_result = file_read_binary(cache_path, allocator);
+
+            VkPipelineCacheHeaderVersionOne* cache_header = (VkPipelineCacheHeaderVersionOne*)read_result.data;
+
+            if (cache_header->deviceID == vulkan_physical_properties.deviceID &&
+                cache_header->vendorID == vulkan_physical_properties.vendorID &&
+                memcmp(cache_header->pipelineCacheUUID, vulkan_physical_properties.pipelineCacheUUID, VK_UUID_SIZE) == 0)
+            {
+                pipeline_cache_create_info.initialDataSize = read_result.size;
+                pipeline_cache_create_info.pInitialData = read_result.data;
+            }
+            else
+            {
+                cache_exists = false;
+            }
+
+            check(vkCreatePipelineCache(vulkan_device, &pipeline_cache_create_info, vulkan_allocation_callbacks, &pipeline_cache), "Failed to create pipeline cache");
+
+            allocator->deallocate(read_result.data);
+        }
+        else
+        {
+            check(vkCreatePipelineCache(vulkan_device, &pipeline_cache_create_info, vulkan_allocation_callbacks, &pipeline_cache), "Failed to create pipeline cache");
+        }
+
+        ShaderStateHandle shader_state_handle = create_shader_state(creation.shaders);
+        if (shader_state_handle.index == k_invalid_index)
+        {
             // Shader did not compile.
             pipelines.release_resource(handle.index);
             handle.index = k_invalid_index;
@@ -1586,16 +1627,17 @@ namespace Magnefu
 
         // Now that shaders have compiled we can create the pipeline.
         Pipeline* pipeline = access_pipeline(handle);
-        ShaderState* shader_state_data = access_shader_state(shader_state);
+        ShaderState* shader_state_data = access_shader_state(shader_state_handle);
 
-        pipeline->shader_state = shader_state;
+        pipeline->shader_state = shader_state_handle;
 
         VkDescriptorSetLayout vk_layouts[k_max_descriptor_set_layouts];
 
         u32 num_active_layouts = shader_state_data->parse_result->set_count;
 
         // Create VkPipelineLayout
-        for (u32 l = 0; l < shader_state_data->parse_result->set_count; ++l) {
+        for (u32 l = 0; l < shader_state_data->parse_result->set_count; ++l) 
+        {
             pipeline->descriptor_set_layout_handle[l] = create_descriptor_set_layout(shader_state_data->parse_result->sets[l]);
             pipeline->descriptor_set_layout[l] = access_descriptor_set_layout(pipeline->descriptor_set_layout_handle[l]);
 
@@ -1606,23 +1648,25 @@ namespace Magnefu
         // Add bindless resource layout after other layouts.
             // [TAG: BINDLESS]
         u32 bindless_active = 0;
-        if (bindless_supported) {
+        if (bindless_supported) 
+        {
             vk_layouts[num_active_layouts] = vulkan_bindless_descriptor_set_layout;
             bindless_active = 1;
         }
 
         VkPipelineLayoutCreateInfo pipeline_layout_info = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
         pipeline_layout_info.pSetLayouts = vk_layouts;
-        pipeline_layout_info.setLayoutCount = creation.num_active_layouts + bindless_active; // num_active_layouts + bindless_active;
+        pipeline_layout_info.setLayoutCount = num_active_layouts + bindless_active;
 
         VkPipelineLayout pipeline_layout;
         check(vkCreatePipelineLayout(vulkan_device, &pipeline_layout_info, vulkan_allocation_callbacks, &pipeline_layout), "Failed to create pipeline layout");
         // Cache pipeline layout
         pipeline->vk_pipeline_layout = pipeline_layout;
-        pipeline->num_active_layouts = creation.num_active_layouts;
+        pipeline->num_active_layouts = num_active_layouts;
 
         // Create full pipeline
-        if (shader_state_data->graphics_pipeline) {
+        if (shader_state_data->graphics_pipeline) 
+        {
             VkGraphicsPipelineCreateInfo pipeline_info = { VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
 
             //// Shader stage
@@ -1636,9 +1680,11 @@ namespace Magnefu
 
             // Vertex attributes.
             VkVertexInputAttributeDescription vertex_attributes[8];
-            if (creation.vertex_input.num_vertex_attributes) {
+            if (creation.vertex_input.num_vertex_attributes) 
+            {
 
-                for (u32 i = 0; i < creation.vertex_input.num_vertex_attributes; ++i) {
+                for (u32 i = 0; i < creation.vertex_input.num_vertex_attributes; ++i)
+                {
                     const VertexAttribute& vertex_attribute = creation.vertex_input.vertex_attributes[i];
                     vertex_attributes[i] = { vertex_attribute.location, vertex_attribute.binding, to_vk_vertex_format(vertex_attribute.format), vertex_attribute.offset };
                 }
@@ -1646,16 +1692,19 @@ namespace Magnefu
                 vertex_input_info.vertexAttributeDescriptionCount = creation.vertex_input.num_vertex_attributes;
                 vertex_input_info.pVertexAttributeDescriptions = vertex_attributes;
             }
-            else {
+            else 
+            {
                 vertex_input_info.vertexAttributeDescriptionCount = 0;
                 vertex_input_info.pVertexAttributeDescriptions = nullptr;
             }
             // Vertex bindings
             VkVertexInputBindingDescription vertex_bindings[8];
-            if (creation.vertex_input.num_vertex_streams) {
+            if (creation.vertex_input.num_vertex_streams) 
+            {
                 vertex_input_info.vertexBindingDescriptionCount = creation.vertex_input.num_vertex_streams;
 
-                for (u32 i = 0; i < creation.vertex_input.num_vertex_streams; ++i) {
+                for (u32 i = 0; i < creation.vertex_input.num_vertex_streams; ++i)
+                {
                     const VertexStream& vertex_stream = creation.vertex_input.vertex_streams[i];
                     VkVertexInputRate vertex_rate = vertex_stream.input_rate == VertexInputRate::PerVertex ? VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX : VkVertexInputRate::VK_VERTEX_INPUT_RATE_INSTANCE;
                     vertex_bindings[i] = { vertex_stream.binding, vertex_stream.stride, vertex_rate };
@@ -1755,7 +1804,7 @@ namespace Magnefu
             VkPipelineRasterizationStateCreateInfo rasterizer{ VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
             rasterizer.depthClampEnable = VK_FALSE;
             rasterizer.rasterizerDiscardEnable = VK_FALSE;
-            rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+            rasterizer.polygonMode = VK_POLYGON_MODE_FILL;  // VK_POLYGON_MODE_LINE for wireframe
             rasterizer.lineWidth = 1.0f;
             rasterizer.cullMode = creation.rasterization.cull_mode;
             rasterizer.frontFace = creation.rasterization.front;
@@ -1802,20 +1851,36 @@ namespace Magnefu
 
             pipeline_info.pDynamicState = &dynamic_state;
 
-            vkCreateGraphicsPipelines(vulkan_device, VK_NULL_HANDLE, 1, &pipeline_info, vulkan_allocation_callbacks, &pipeline->vk_pipeline);
+            vkCreateGraphicsPipelines(vulkan_device, pipeline_cache, 1, &pipeline_info, vulkan_allocation_callbacks, &pipeline->vk_pipeline);
 
             pipeline->vk_bind_point = VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS;
         }
-        else {
+        else 
+        {
             VkComputePipelineCreateInfo pipeline_info{ VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO };
 
             pipeline_info.stage = shader_state_data->shader_stage_info[0];
             pipeline_info.layout = pipeline_layout;
 
-            vkCreateComputePipelines(vulkan_device, VK_NULL_HANDLE, 1, &pipeline_info, vulkan_allocation_callbacks, &pipeline->vk_pipeline);
+            vkCreateComputePipelines(vulkan_device, pipeline_cache, 1, &pipeline_info, vulkan_allocation_callbacks, &pipeline->vk_pipeline);
 
             pipeline->vk_bind_point = VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_COMPUTE;
         }
+
+        if (cache_path != nullptr && !cache_exists) 
+        {
+            sizet cache_data_size = 0;
+            check(vkGetPipelineCacheData(vulkan_device, pipeline_cache, &cache_data_size, nullptr), "Failed to retrieve pipeline cache data");
+
+            void* cache_data = allocator->allocate(cache_data_size, 64);
+            check(vkGetPipelineCacheData(vulkan_device, pipeline_cache, &cache_data_size, cache_data), "Failed to retrieve pipeline cache data");
+
+            file_write_binary(cache_path, cache_data, cache_data_size);
+
+            allocator->deallocate(cache_data);
+        }
+
+        vkDestroyPipelineCache(vulkan_device, pipeline_cache, vulkan_allocation_callbacks);
 
         return handle;
     }

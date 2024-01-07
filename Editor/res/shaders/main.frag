@@ -1,4 +1,4 @@
-#version 460
+#version 450
 
 
 layout ( std140, binding = 0 ) uniform LocalConstants 
@@ -13,7 +13,8 @@ layout ( std140, binding = 0 ) uniform LocalConstants
 
 uint DrawFlags_AlphaMask = 1 << 0;
 
-layout ( std140, binding = 1 ) uniform Mesh {
+layout ( std140, binding = 1 ) uniform Mesh 
+{
 
     mat4        model;
     mat4        model_inverse;

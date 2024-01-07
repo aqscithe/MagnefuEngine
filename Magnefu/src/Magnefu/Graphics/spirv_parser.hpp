@@ -26,7 +26,7 @@ namespace Magnefu
 			DescriptorSetLayoutCreation		sets[MAX_SET_COUNT];
 		};
 
-		void	parse_binary(u32* data, sizet data_size, StringBuffer& name_buffer, ParseResult* parse_result);
+		void	parse_binary(const u32* data, sizet data_size, StringBuffer& name_buffer, ParseResult* parse_result);
 
 	} // namespace spirv
 

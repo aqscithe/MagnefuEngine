@@ -33,7 +33,7 @@
 // Unique names
 #define MAGNEFU_UNIQUE_SUFFIX(PARAM)                 MAGNEFU_CONCAT(PARAM, __LINE__ )
 
-#define MAGNEFU_SHADER_FOLDER						"res/shaders"
+#define MAGNEFU_SHADER_FOLDER						"res/shaders/"
 
 
 // Native types typedefs /////////////////////////////////////////////////

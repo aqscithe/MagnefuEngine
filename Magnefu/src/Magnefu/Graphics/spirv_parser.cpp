@@ -85,14 +85,14 @@ namespace Magnefu
 
 
 
-		void	parse_binary(u32* data, sizet data_size, StringBuffer& name_buffer, ParseResult* parse_result)
+		void	parse_binary(const u32* data, sizet data_size, StringBuffer& name_buffer, ParseResult* parse_result)
 		{
-			MF_CORE_ASSERT(data_size % 4 == 0, "Data size not divisible by 4");
+			MF_CORE_ASSERT((data_size % 4 == 0), "Data size not divisible by 4");
 
 			u32 spv_word_count = safe_cast<u32>(data_size / 4);
 
 			u32 magic_number = data[0];
-			MF_CORE_ASSERT(magic_number == 0x07230203, "");
+			MF_CORE_ASSERT((magic_number == 0x07230203), "");
 
 			u32 id_bound = data[3];
 
@@ -114,7 +114,7 @@ namespace Magnefu
 				{
 					case SpvOpEntryPoint:
 					{
-						MF_CORE_ASSERT(word_count >= 4, "");
+						MF_CORE_ASSERT((word_count >= 4), "");
 
 						SpvExecutionModel model = (SpvExecutionModel)data[word_index + 1];
 
@@ -126,10 +126,10 @@ namespace Magnefu
 
 					case SpvOpDecorate:
 					{
-						MF_CORE_ASSERT(word_count >= 3, "");
+						MF_CORE_ASSERT((word_count >= 3), "");
 
 						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT(id_index < id_bound, "");
+						MF_CORE_ASSERT((id_index < id_bound), "");
 
 						Id& id = ids[id_index];
 
@@ -154,10 +154,10 @@ namespace Magnefu
 
 					case SpvOpMemberDecorate:
 					{
-						MF_CORE_ASSERT(word_count >= 4, "");
+						MF_CORE_ASSERT((word_count >= 4), "");
 
 						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT(id_index < id_bound, "");
+						MF_CORE_ASSERT((id_index < id_bound), "");
 
 						Id& id = ids[id_index];
 
@@ -184,10 +184,10 @@ namespace Magnefu
 
 					case SpvOpName:
 					{
-						MF_CORE_ASSERT(word_count >= 3, "");
+						MF_CORE_ASSERT((word_count >= 3), "");
 
 						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT(id_index < id_bound, "");
+						MF_CORE_ASSERT((id_index < id_bound), "");
 
 						Id& id = ids[id_index];
 
@@ -202,10 +202,10 @@ namespace Magnefu
 
 					case SpvOpMemberName:
 					{
-						MF_CORE_ASSERT(word_count >= 4, "");
+						MF_CORE_ASSERT((word_count >= 4), "");
 
 						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT(id_index < id_bound, "");
+						MF_CORE_ASSERT((id_index < id_bound), "");
 
 						Id& id = ids[id_index];
 
@@ -229,10 +229,10 @@ namespace Magnefu
 
 					case SpvOpTypeInt:
 					{
-						MF_CORE_ASSERT(word_count == 4, "");
+						MF_CORE_ASSERT((word_count == 4), "");
 
 						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT(id_index < id_bound, "");
+						MF_CORE_ASSERT((id_index < id_bound), "");
 
 						Id& id = ids[id_index];
 						id.op = op;
@@ -244,10 +244,10 @@ namespace Magnefu
 
 					case SpvOpTypeFloat:
 					{
-						MF_CORE_ASSERT(word_count == 3, "");
+						MF_CORE_ASSERT((word_count == 3), "");
 
 						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT(id_index < id_bound, "");
+						MF_CORE_ASSERT((id_index < id_bound), "");
 
 						Id& id = ids[id_index];
 						id.op = op;
@@ -258,10 +258,10 @@ namespace Magnefu
 
 					case SpvOpTypeVector:
 					{
-						MF_CORE_ASSERT(word_count == 4, "");
+						MF_CORE_ASSERT((word_count == 4), "");
 
 						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT(id_index < id_bound, "");
+						MF_CORE_ASSERT((id_index < id_bound), "");
 
 						Id& id = ids[id_index];
 						id.op = op;
@@ -273,10 +273,10 @@ namespace Magnefu
 
 					case SpvOpTypeMatrix:
 					{
-						MF_CORE_ASSERT(word_count == 4, "");
+						MF_CORE_ASSERT((word_count == 4), "");
 
 						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT(id_index < id_bound, "");
+						MF_CORE_ASSERT((id_index < id_bound), "");
 
 						Id& id = ids[id_index];
 						id.op = op;
@@ -297,10 +297,10 @@ namespace Magnefu
 
 					case SpvOpTypeSampler:
 					{
-						MF_CORE_ASSERT(word_count == 2, "");
+						MF_CORE_ASSERT((word_count == 2), "");
 
 						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT(id_index < id_bound, "");
+						MF_CORE_ASSERT((id_index < id_bound), "");
 
 						Id& id = ids[id_index];
 						id.op = op;
@@ -310,10 +310,10 @@ namespace Magnefu
 
 					case SpvOpTypeSampledImage:
 					{
-						MF_CORE_ASSERT(word_count == 3, "");
+						MF_CORE_ASSERT((word_count == 3), "");
 
 						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT(id_index < id_bound, "");
+						MF_CORE_ASSERT((id_index < id_bound), "");
 
 						Id& id = ids[id_index];
 						id.op = op;
@@ -323,10 +323,10 @@ namespace Magnefu
 
 					case SpvOpTypeArray:
 					{
-						MF_CORE_ASSERT(word_count == 4, "");
+						MF_CORE_ASSERT((word_count == 4), "");
 
 						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT(id_index < id_bound, "");
+						MF_CORE_ASSERT((id_index < id_bound), "");
 
 						Id& id = ids[id_index];
 						id.op = op;
@@ -338,10 +338,10 @@ namespace Magnefu
 
 					case SpvOpTypeRuntimeArray:
 					{
-						MF_CORE_ASSERT(word_count == 3, "");
+						MF_CORE_ASSERT((word_count == 3), "");
 
 						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT(id_index < id_bound, "");
+						MF_CORE_ASSERT((id_index < id_bound), "");
 
 						Id& id = ids[id_index];
 						id.op = op;
@@ -353,10 +353,10 @@ namespace Magnefu
 
 					case SpvOpTypeStruct:
 					{
-						MF_CORE_ASSERT(word_count >= 2, "");
+						MF_CORE_ASSERT((word_count >= 2), "");
 
 						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT(id_index < id_bound, "");
+						MF_CORE_ASSERT((id_index < id_bound), "");
 
 						Id& id = ids[id_index];
 						id.op = op;
@@ -372,10 +372,10 @@ namespace Magnefu
 
 					case SpvOpTypePointer:
 					{
-						MF_CORE_ASSERT(word_count == 4, "");
+						MF_CORE_ASSERT((word_count == 4), "");
 
 						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT(id_index < id_bound, "");
+						MF_CORE_ASSERT((id_index < id_bound), "");
 
 						Id& id = ids[id_index];
 						id.op = op;
@@ -386,10 +386,10 @@ namespace Magnefu
 
 					case SpvOpConstant:
 					{
-						MF_CORE_ASSERT(word_count >= 4, "");
+						MF_CORE_ASSERT((word_count >= 4), "");
 
 						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT(id_index < id_bound, "");
+						MF_CORE_ASSERT((id_index < id_bound), "");
 
 						Id& id = ids[id_index];
 						id.op = op;
@@ -401,10 +401,10 @@ namespace Magnefu
 
 					case SpvOpVariable:
 					{
-						MF_CORE_ASSERT(word_count >= 4, "");
+						MF_CORE_ASSERT((word_count >= 4), "");
 
 						u32 id_index = data[word_index + 2];
-						MF_CORE_ASSERT(id_index < id_bound, "");
+						MF_CORE_ASSERT((id_index < id_bound), "");
 
 						Id& id = ids[id_index];
 						id.op = op;
