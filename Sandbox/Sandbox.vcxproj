@@ -79,7 +79,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Magnefu\vendor\GLAD\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Magnefu\vendor\GLAD\include;..\Magnefu\vendor\entt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -99,7 +99,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Magnefu\vendor\GLAD\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Magnefu\vendor\GLAD\include;..\Magnefu\vendor\entt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -123,7 +123,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Magnefu\vendor\GLAD\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Magnefu\vendor\GLAD\include;..\Magnefu\vendor\entt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -143,9 +143,11 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\GameLayer.h" />
     <ClInclude Include="src\SandboxApp.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\GameLayer.cpp" />
     <ClCompile Include="src\SandboxApp.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -159,21 +161,24 @@
     <None Include="res\meshes\12221_Cat_v1_l3.obj" />
     <None Include="res\meshes\Bronze_shield.obj" />
     <None Include="res\meshes\Victorian_Painting.obj" />
+    <None Include="res\meshes\area_lights\square_light.obj" />
     <None Include="res\meshes\corridor.obj" />
     <None Include="res\meshes\primitives\3D\cube.obj" />
+    <None Include="res\meshes\primitives\3D\plane.obj" />
+    <None Include="res\meshes\primitives\3D\plane_template.obj" />
     <None Include="res\meshes\retrotv0319.obj" />
     <None Include="res\meshes\santa_hat(DEFAULT).obj" />
     <None Include="res\meshes\usd\Sci-fi-corridor.usdz" />
     <None Include="res\meshes\usd\The_Hunters_Rest.usdz" />
     <None Include="res\meshes\viking_room.obj" />
     <None Include="res\meshes\wooden_watch_tower2.obj" />
+    <None Include="res\shaders\AreaLight.shader" />
+    <None Include="res\shaders\AreaLightLTC.shader" />
     <None Include="res\shaders\Basic.shader" />
     <None Include="res\shaders\BatchRender.shader" />
     <None Include="res\shaders\Cube.shader" />
     <None Include="res\shaders\LightCube.shader" />
     <None Include="res\shaders\Particles.shader" />
-    <None Include="res\shaders\AreaLight.shader" />
-    <None Include="res\shaders\AreaLightLTC.shader" />
     <None Include="res\shaders\Primitive.shader" />
     <None Include="res\shaders\RecPrism.shader" />
     <None Include="res\shaders\Skybox.shader" />
@@ -183,6 +188,10 @@
     <None Include="res\shaders\TestLighting.shader" />
     <None Include="res\shaders\TestModelLoading.shader" />
     <None Include="res\shaders\Texture2D.shader" />
+    <None Include="res\textures\DDS\ltc_amp.dds" />
+    <None Include="res\textures\DDS\ltc_mat.dds" />
+    <None Include="res\textures\DDS\rgba_dxt1.dds" />
+    <None Include="res\textures\DDS\sample.dds" />
     <None Include="res\textures\create_arm_texture.py" />
   </ItemGroup>
   <ItemGroup>
@@ -227,7 +236,7 @@
     <Image Include="res\textures\amethyst_texture_1-2K\2K-amethyst_1-normal.jpg" />
     <Image Include="res\textures\amethyst_texture_1-2K\2K-amethyst_1-specular.jpg" />
     <Image Include="res\textures\amethyst_texture_1-2K\amethyst-rough.png" />
-    <Image Include="res\textures\colors\black.jpg" />
+    <Image Include="res\textures\colors\black.png" />
     <Image Include="res\textures\container_specular.png" />
     <Image Include="res\textures\darkmarble\dark-marbled-stone.jpg" />
     <Image Include="res\textures\darkmarble\dark-marbled-stone_ao.jpg" />
@@ -302,6 +311,38 @@
     <Image Include="res\textures\starlights\starlights_d.jpg" />
     <Image Include="res\textures\starlights\starlights_n.jpg" />
     <Image Include="res\textures\starlights\starlights_s.jpg" />
+    <Image Include="res\textures\surfaces\aerial_rocks_02\aerial_rocks_02_arm_2k.png" />
+    <Image Include="res\textures\surfaces\aerial_rocks_02\aerial_rocks_02_diff_2k.png" />
+    <Image Include="res\textures\surfaces\aerial_rocks_02\aerial_rocks_02_disp_2k.png" />
+    <Image Include="res\textures\surfaces\aerial_rocks_02\aerial_rocks_02_nor_dx_2k.png" />
+    <Image Include="res\textures\surfaces\metal_plate\metal_plate_arm_2k.png" />
+    <Image Include="res\textures\surfaces\metal_plate\metal_plate_diff_2k.png" />
+    <Image Include="res\textures\surfaces\metal_plate\metal_plate_disp_2k.png" />
+    <Image Include="res\textures\surfaces\metal_plate\metal_plate_nor_dx_2k.png" />
+    <Image Include="res\textures\surfaces\painted_concrete\painted_concrete_arm_2k.png" />
+    <Image Include="res\textures\surfaces\painted_concrete\painted_concrete_diff_2k.png" />
+    <Image Include="res\textures\surfaces\painted_concrete\painted_concrete_disp_2k.png" />
+    <Image Include="res\textures\surfaces\painted_concrete\painted_concrete_nor_dx_2k.png" />
+    <Image Include="res\textures\surfaces\painted_metal_shutter\painted_metal_shutter_arm_2k.png" />
+    <Image Include="res\textures\surfaces\painted_metal_shutter\painted_metal_shutter_diff_2k.png" />
+    <Image Include="res\textures\surfaces\painted_metal_shutter\painted_metal_shutter_disp_2k.png" />
+    <Image Include="res\textures\surfaces\painted_metal_shutter\painted_metal_shutter_nor_dx_2k.png" />
+    <Image Include="res\textures\surfaces\plank_flooring\plank_flooring_arm_2k.png" />
+    <Image Include="res\textures\surfaces\plank_flooring\plank_flooring_diff_2k.png" />
+    <Image Include="res\textures\surfaces\plank_flooring\plank_flooring_disp_2k.png" />
+    <Image Include="res\textures\surfaces\plank_flooring\plank_flooring_nor_dx_2k.png" />
+    <Image Include="res\textures\surfaces\red_laterite_soil_stones\red_laterite_soil_stones_arm_2k.png" />
+    <Image Include="res\textures\surfaces\red_laterite_soil_stones\red_laterite_soil_stones_diff_2k.png" />
+    <Image Include="res\textures\surfaces\red_laterite_soil_stones\red_laterite_soil_stones_disp_2k.png" />
+    <Image Include="res\textures\surfaces\red_laterite_soil_stones\red_laterite_soil_stones_nor_dx_2k.png" />
+    <Image Include="res\textures\surfaces\slate_floor\slate_floor_arm_2k.png" />
+    <Image Include="res\textures\surfaces\slate_floor\slate_floor_diff_2k.png" />
+    <Image Include="res\textures\surfaces\slate_floor\slate_floor_disp_2k.png" />
+    <Image Include="res\textures\surfaces\slate_floor\slate_floor_nor_dx_2k.png" />
+    <Image Include="res\textures\surfaces\snow_01\snow_01_arm_2k.png" />
+    <Image Include="res\textures\surfaces\snow_01\snow_01_diff_2k.png" />
+    <Image Include="res\textures\surfaces\snow_01\snow_01_disp_2k.png" />
+    <Image Include="res\textures\surfaces\snow_01\snow_01_nor_dx_2k.png" />
     <Image Include="res\textures\viking_room.png" />
     <Image Include="res\textures\wall.jpg" />
     <Image Include="res\textures\water_abstract.jpg" />

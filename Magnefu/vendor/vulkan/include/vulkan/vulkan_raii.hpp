@@ -11,6 +11,7 @@
 #include <memory>
 #include <utility>  // std::exchange, std::forward
 #include <vulkan/vulkan.hpp>
+#include "Buffer.h"
 
 #if !defined( VULKAN_HPP_RAII_NAMESPACE )
 #  define VULKAN_HPP_RAII_NAMESPACE raii

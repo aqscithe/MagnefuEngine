@@ -1,4 +1,7 @@
+// -- PCH -- //
 #include "mfpch.h"
+
+// -- .h -- //
 #include "PoolAllocator.h"
 
 namespace Magnefu

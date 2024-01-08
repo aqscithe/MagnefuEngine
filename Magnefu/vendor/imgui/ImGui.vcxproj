@@ -109,8 +109,8 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PreBuildEvent>
-      <Command>IF NOT EXIST ..\bin\Release-windows-x86_64\Sandbox (mkdir ..\bin\Release-windows-x86_64\Sandbox)
-IF NOT EXIST ..\bin-int\Release-windows-x86_64\Sandbox (mkdir ..\bin-int\Release-windows-x86_64\Sandbox)</Command>
+      <Command>IF NOT EXIST ..\bin\Release-windows-x86_64\Editor (mkdir ..\bin\Release-windows-x86_64\Editor)
+IF NOT EXIST ..\bin-int\Release-windows-x86_64\Editor (mkdir ..\bin-int\Release-windows-x86_64\Editor)</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
