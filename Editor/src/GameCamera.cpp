@@ -97,10 +97,10 @@ void GameCamera::update(Magnefu::InputService* input, u32 window_width, u32 wind
         camera_movement = glms_vec3_add(camera_movement, glms_vec3_scale(camera.right, camera_movement_delta));
     }
 
-    if (input->IsKeyDown(MF_KEY_PAGEDOWN) || input->IsKeyDown(MF_KEY_E)) {
+    if (input->IsKeyDown(MF_KEY_PAGEDOWN) || input->IsKeyDown(MF_KEY_Q)) {
         camera_movement = glms_vec3_add(camera_movement, glms_vec3_scale(camera.up, -camera_movement_delta));
     }
-    else if (input->IsKeyDown(MF_KEY_PAGEUP) || input->IsKeyDown(MF_KEY_Q)) {
+    else if (input->IsKeyDown(MF_KEY_PAGEUP) || input->IsKeyDown(MF_KEY_E)) {
         camera_movement = glms_vec3_add(camera_movement, glms_vec3_scale(camera.up, camera_movement_delta));
     }
 

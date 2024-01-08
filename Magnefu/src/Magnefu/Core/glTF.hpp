@@ -9,6 +9,7 @@
 
 //static const char* kDefault3DModel = "res/models/SciFiHelmet/glTF/SciFiHelmet.gltf";
 static const char* kDefault3DModel = "res/models/FlightHelmet/glTF/FlightHelmet.gltf";
+//static const char* kDefault3DModel = "res/models/corridor/glTF/corridor.gltf";
 
 #define InjectDefault3DModel(x) \
     if (Magnefu::file_exists(kDefault3DModel)) \

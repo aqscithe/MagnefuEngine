@@ -1025,6 +1025,7 @@ namespace Magnefu
         // Memory: this contains allocations for gpu timestamp memory, queued command buffers and render frames.
         mffree(gpu_timestamp_manager, allocator);
 
+        // Add resources to deletion queue
         destroy_texture(depth_texture);
         destroy_buffer(fullscreen_vertex_buffer);
         destroy_buffer(dynamic_buffer);
@@ -1032,6 +1033,14 @@ namespace Magnefu
         destroy_texture(dummy_texture);
         destroy_buffer(dummy_constant_buffer);
         destroy_sampler(default_sampler);
+
+        // TODO: Error during descriptor_set_layout resourcepool shutdown. Not correctly being added to resource_deletion_queue...
+        /*for (u32 descriptor_set_layout_index = 0; descriptor_set_layout_index < descriptor_set_layouts.used_indices; descriptor_set_layout_index++)
+        {
+            DesciptorSetLayout* layout = (DesciptorSetLayout*)descriptor_set_layouts.access_resource(descriptor_set_layout_index);
+            destroy_descriptor_set_layout(layout->handle);
+        }*/
+        
         
         // Destroy all pending resources.
         for (u32 i = 0; i < resource_deletion_queue.count(); i++) 

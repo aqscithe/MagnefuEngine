@@ -48,6 +48,22 @@ static Magnefu::GPUProfiler s_gpu_profiler;
 
 Magnefu::BufferHandle                    scene_cb;
 
+struct RenderData
+{
+	vec3s eye = vec3s{ 0.0f, 2.5f, 2.0f };
+	vec3s look = vec3s{ 0.0f, 0.0, -1.0f };
+	vec3s right = vec3s{ 1.0f, 0.0, 0.0f };
+
+	f32 yaw = 0.0f;
+	f32 pitch = 0.0f;
+
+	vec3s light{ 0.f, 4.0f, 0.f };
+
+	float model_scale = 1.0f;
+	float light_range = 20.0f;
+	float light_intensity = 80.0f;
+};
+
 struct MeshDraw
 {
 	Magnefu::Material* material;
@@ -796,19 +812,9 @@ bool Sandbox::MainLoop()
 
 	Magnefu::GraphicsContext* gpu = service_manager->get<Magnefu::GraphicsContext>();
 
-	// for sandbox layer
-	vec3s eye = vec3s{ 0.0f, 2.5f, 2.0f };
-	vec3s look = vec3s{ 0.0f, 0.0, -1.0f };
-	vec3s right = vec3s{ 1.0f, 0.0, 0.0f };
+	
+	RenderData render_data;
 
-	f32 yaw = 0.0f;
-	f32 pitch = 0.0f;
-
-	vec3s light{ 0.f, 4.0f, 0.f };
-
-	float model_scale = 1.0f;
-	float light_range = 20.0f;
-	float light_intensity = 80.0f;
 	//
 
 	accumulator = 0.0;
@@ -818,15 +824,19 @@ bool Sandbox::MainLoop()
 	{
 		//MF_PROFILE_SCOPE("Frame");
 
+
+		// -- New Frame ----------- //
 		if (!window->minimized)
 		{
-			//gpu->new_frame();
-			renderer->begin_frame();
+			gpu->new_frame();
 		}
-		
-		window->PollEvents();
 
+
+		// -- Process Input ----------- //
+		window->PollEvents();
 		input->NewFrame();
+
+
 
 		if (window->resized)
 		{
@@ -836,19 +846,13 @@ bool Sandbox::MainLoop()
 			game_camera.camera.set_aspect_ratio(window->GetWidth() * 1.f / window->GetHeight());
 		}
 
-		imgui->BeginFrame();
-		
+
+		// -- Game State Updates ---------------------------- //
 		auto end_time = Magnefu::time_now();
 		f32 delta_time = (f32)Magnefu::time_delta_seconds(start_time, end_time);
 		start_time = end_time;
 
 		accumulator += delta_time;
-
-		
-		// updates
-		input->Update(delta_time);
-		game_camera.update(input, window->GetWidth(), window->GetHeight(), delta_time);
-		window->CenterMouse(game_camera.mouse_dragging);
 
 		while (accumulator >= step)
 		{
@@ -859,112 +863,37 @@ bool Sandbox::MainLoop()
 
 		VariableUpdate(delta_time);
 
-		// For sandbox layer
-		if (ImGui::Begin("Magnefu ImGui")) 
-		{
-			ImGui::InputFloat("Model scale", &model_scale, 0.001f);
-			ImGui::InputFloat3("Light position", light.raw);
-			ImGui::InputFloat("Light range", &light_range);
-			ImGui::InputFloat("Light intensity", &light_intensity);
-			ImGui::InputFloat3("Camera position", game_camera.camera.position.raw);
-			ImGui::InputFloat3("Camera target movement", game_camera.target_movement.raw);
-		}
-		ImGui::End();
 
-		if (ImGui::Begin("GPU")) 
-		{
-			gpu_profiler->imgui_draw();
-		}
-		ImGui::End();
+		// -- ImGui New Frame -------------- //
+		imgui->BeginFrame();
+		
 
+		// Draw GUI
 		{
-			// Update rotating cube gpu data
-			MapBufferParameters cb_map = { scene_cb, 0, 0 };
-			float* cb_data = (float*)gpu->map_buffer(cb_map);
-			if (cb_data)
+			if (ImGui::Begin("Magnefu ImGui"))
 			{
-				UniformData uniform_data{ };
-				uniform_data.vp = game_camera.camera.view_projection;
-				uniform_data.eye = vec4s{ game_camera.camera.position.x, game_camera.camera.position.y, game_camera.camera.position.z, 1.0f };
-				uniform_data.light = vec4s{ light.x, light.y, light.z, 1.0f };
-				uniform_data.light_range = light_range;
-				uniform_data.light_intensity = light_intensity;
-
-				memcpy(cb_data, &uniform_data, sizeof(UniformData));
-
-				gpu->unmap_buffer(cb_map);
+				ImGui::InputFloat("Model scale", &render_data.model_scale, 0.001f);
+				ImGui::InputFloat3("Light position", render_data.light.raw);
+				ImGui::InputFloat("Light range", &render_data.light_range);
+				ImGui::InputFloat("Light intensity", &render_data.light_intensity);
+				ImGui::InputFloat3("Camera position", game_camera.camera.position.raw);
+				ImGui::InputFloat3("Camera target movement", game_camera.target_movement.raw);
 			}
+			ImGui::End();
 
-			for (u32 mesh_index = 0; mesh_index < scene->mesh_draws.count(); ++mesh_index) 
+			if (ImGui::Begin("GPU"))
 			{
-				MeshDraw& mesh_draw = scene->mesh_draws[mesh_index];
-
-				cb_map.buffer = mesh_draw.material_buffer;
-				MeshData* mesh_data = (MeshData*)gpu->map_buffer(cb_map);
-				if (mesh_data) {
-					upload_material(*mesh_data, mesh_draw, model_scale);
-
-					gpu->unmap_buffer(cb_map);
-				}
+				gpu_profiler->imgui_draw();
 			}
-		}
-
-		// //
-
-		if (!window->minimized)
-		{
+			ImGui::End();
 
 			DrawGUI();
-
-			auto* gpu_commands = gpu->get_command_buffer(Magnefu::QueueType::Graphics, true);
-			
-			gpu_commands->push_marker("Frame");
-			gpu_commands->clear(0.3f, 0.3f, 0.3f, 1.0f);
-			gpu_commands->clear_depth_stencil(1.0f, 0);
-			gpu_commands->bind_pass(gpu->get_swapchain_pass());
-			//gpu_commands->bind_pipeline(cube_pipeline);
-			gpu_commands->set_scissor(nullptr);
-			gpu_commands->set_viewport(nullptr);
-
-			Material* last_material = nullptr;
-			// TODO: loop by material so that we can deal with multiple passes
-
-			for (u32 mesh_index = 0; mesh_index < scene->mesh_draws.count(); ++mesh_index)
-			{
-				MeshDraw& mesh_draw = scene->mesh_draws[mesh_index];
-
-				if (mesh_draw.material != last_material)
-				{
-					PipelineHandle pipeline = renderer->get_pipeline(mesh_draw.material);
-					gpu_commands->bind_pipeline(pipeline);
-
-					last_material = mesh_draw.material;
-				}
-
-				draw_mesh(*renderer, gpu_commands, mesh_draw);
-
-			}
-
-			
-			const f32 interpolation_factor = Maths::clamp(0.0f, 1.0f, (f32)(accumulator / step));
-			Render(interpolation_factor);
-
-			//imgui->Render(renderer, *gpu_commands);
-			imgui->Render(*gpu_commands);
-
-			gpu_commands->pop_marker();
-
-			gpu_profiler->update(*gpu);
-
-			// Send commands to GPU
-			gpu->queue_command_buffer(gpu_commands);
-			gpu->present();
-
 		}
-		else
-		{
-			ImGui::Render();
-		}
+
+		const f32 interpolation_factor = Maths::clamp(0.0f, 1.0f, (f32)(accumulator / step));
+		Render(interpolation_factor, &render_data);
+
+		
 
 		// Prepare for next frame if anything must be done.
 		EndFrame();
@@ -977,23 +906,121 @@ void Sandbox::DrawGUI()
 {
 	using namespace Magnefu;
 
-
-	// Not sure imgui
 	for (auto it = layer_stack->end(); it != layer_stack->begin(); )
 	{
 		(*--it)->DrawGUI();
 	}
 
-	// Part of overlay
-	//Magnefu::MemoryService::Instance()->imguiDraw();
 }
 
 void Sandbox::FixedUpdate(f32 delta)
 {
 }
 
-void Sandbox::VariableUpdate(f32 delta)
+void Sandbox::VariableUpdate(f32 delta_time)
 {
+	input->Update(delta_time);
+	game_camera.update(input, window->GetWidth(), window->GetHeight(), delta_time);
+	window->CenterMouse(game_camera.mouse_dragging);
+}
+
+void Sandbox::Render(f32 interpolation_factor, void* data)
+{
+	using namespace Magnefu;
+
+	GraphicsContext* gpu = service_manager->get<GraphicsContext>();
+
+	RenderData* render_data = (RenderData*)data;
+
+	{
+		// Update common constant buffer
+		
+		MapBufferParameters cb_map = { scene_cb, 0, 0 };
+		float* cb_data = (float*)gpu->map_buffer(cb_map);
+		if (cb_data)
+		{
+			UniformData uniform_data{ };
+			uniform_data.vp = game_camera.camera.view_projection;
+			uniform_data.eye = vec4s{ game_camera.camera.position.x, game_camera.camera.position.y, game_camera.camera.position.z, 1.0f };
+			uniform_data.light = vec4s{ render_data->light.x, render_data->light.y, render_data->light.z, 1.0f };
+			uniform_data.light_range = render_data->light_range;
+			uniform_data.light_intensity = render_data->light_intensity;
+
+			memcpy(cb_data, &uniform_data, sizeof(UniformData));
+			
+			gpu->unmap_buffer(cb_map);
+		}
+
+		for (u32 mesh_index = 0; mesh_index < scene->mesh_draws.count(); ++mesh_index)
+		{
+			MeshDraw& mesh_draw = scene->mesh_draws[mesh_index];
+
+			cb_map.buffer = mesh_draw.material_buffer;
+			MeshData* mesh_data = (MeshData*)gpu->map_buffer(cb_map);
+			if (mesh_data) {
+				upload_material(*mesh_data, mesh_draw, render_data->model_scale);
+
+				gpu->unmap_buffer(cb_map);
+			}
+		}
+	}
+
+	// //
+
+	if (!window->minimized)
+	{
+
+		auto* gpu_commands = gpu->get_command_buffer(Magnefu::QueueType::Graphics, true);
+
+		gpu_commands->push_marker("Frame");
+
+
+
+		gpu_commands->clear(0.3f, 0.3f, 0.3f, 1.0f);
+		gpu_commands->clear_depth_stencil(1.0f, 0);
+		gpu_commands->bind_pass(gpu->get_swapchain_pass());
+		//gpu_commands->bind_pipeline(cube_pipeline);
+		gpu_commands->set_scissor(nullptr);
+		gpu_commands->set_viewport(nullptr);
+
+		Material* last_material = nullptr;
+		// TODO: loop by material so that we can deal with multiple passes
+
+		for (u32 mesh_index = 0; mesh_index < scene->mesh_draws.count(); ++mesh_index)
+		{
+			MeshDraw& mesh_draw = scene->mesh_draws[mesh_index];
+
+			if (mesh_draw.material != last_material)
+			{
+				PipelineHandle pipeline = renderer->get_pipeline(mesh_draw.material);
+				gpu_commands->bind_pipeline(pipeline);
+
+				last_material = mesh_draw.material;
+			}
+
+			draw_mesh(*renderer, gpu_commands, mesh_draw);
+
+		}
+
+
+
+
+		//imgui->Render(renderer, *gpu_commands);
+		imgui->Render(*gpu_commands);
+
+		gpu_commands->pop_marker();
+
+		gpu_profiler->update(*gpu);
+
+		// Send commands to GPU
+		gpu->queue_command_buffer(gpu_commands);
+		gpu->present();
+
+	}
+	else
+	{
+		ImGui::Render();
+	}
 }
 
 void Sandbox::BeginFrame()
