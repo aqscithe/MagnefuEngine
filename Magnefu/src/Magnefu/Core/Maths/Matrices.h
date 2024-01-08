@@ -1,5 +1,6 @@
 #pragma once
 
+// -- Core Includes ---------------------------------- //
 #include "Vectors.h"
 
 
@@ -11,6 +12,15 @@ namespace Maths
 
 	union mat3
 	{
+		mat3() = default;
+		mat3(float d);
+		mat3(
+			float x0, float x1, float x2,
+			float y0, float y1, float y2,
+			float z0, float z1, float z2
+		);
+		mat3(vec3 v0, vec3 v1, vec3 v2);
+
 		mat3(const mat4& m);
 
 		static std::type_index getTypeIndex() {
@@ -19,10 +29,24 @@ namespace Maths
 
 		float e[9];
 		vec3 c[3];
+
+		struct { vec3 position; vec3 rotation; vec3 scale; };
 	};
 
 	union mat4
 	{
+		mat4() = default;
+
+		mat4(float d);
+		mat4(
+			float x0, float x1, float x2, float x3,
+			float y0, float y1, float y2, float y3,
+			float z0, float z1, float z2, float z3,
+			float w0, float w1, float w2, float w3
+		);
+		mat4(vec4 v0, vec4 v1, vec4 v2, vec4 v3);
+		mat4(const mat3&);
+
 		static std::type_index getTypeIndex() {
 			return std::type_index(typeid(mat4));
 		}
