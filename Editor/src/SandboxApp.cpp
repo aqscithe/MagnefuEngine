@@ -738,7 +738,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 				// If primitives are conceptually submeshes, do I add a mesh component for each submesh?
 				// Yes. An entity supports several of the same component type. glTF can also define
 				// a parent-child relationship between meshes.
-				entity.AddComponent<Magnefu::MeshComponent>(mesh_draw);
+				//entity.AddComponent<Magnefu::MeshComponent>(mesh_draw);
 			}
 		}
 	}

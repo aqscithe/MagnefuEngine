@@ -7,7 +7,6 @@
 // -- Graphics Includes ----------------------- //
 #include "CommandBuffer.hpp"
 #include "spirv_parser.hpp"
-
 // -- Aplication Includes ------------------------- //
 
 // -- Core Includes ----------------------------- //
@@ -428,21 +427,6 @@ namespace Magnefu
         application_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
         application_info.apiVersion = VK_API_VERSION_1_3;
 
-
-        // No longer necessary. The needed glfw extensions are included in s_requested_extensions
-
-        // Get GLFW extensions
-        //u32 glfwExtensionCount = 0;
-        //const char** glfwExtensions;
-        //glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-        //std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-
-        //// Add requested extensions to extensions vector
-        //u32 requested_extension_count = (u32)ArraySize(s_requested_extensions);
-        //for (size_t index = 0; index < requested_extension_count; index++)
-        //{
-        //    extensions.push_back(s_requested_extensions[index]);
-        //}
 
         VkInstanceCreateInfo instanceCreateInfo{};
         instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -1034,12 +1018,6 @@ namespace Magnefu
         destroy_buffer(dummy_constant_buffer);
         destroy_sampler(default_sampler);
 
-        // TODO: Error during descriptor_set_layout resourcepool shutdown. Not correctly being added to resource_deletion_queue...
-        /*for (u32 descriptor_set_layout_index = 0; descriptor_set_layout_index < descriptor_set_layouts.used_indices; descriptor_set_layout_index++)
-        {
-            DesciptorSetLayout* layout = (DesciptorSetLayout*)descriptor_set_layouts.access_resource(descriptor_set_layout_index);
-            destroy_descriptor_set_layout(layout->handle);
-        }*/
         
         
         // Destroy all pending resources.
@@ -1139,7 +1117,8 @@ namespace Magnefu
 #ifdef VULKAN_DEBUG_REPORT
         // Remove the debug report callback
         //auto vkDestroyDebugReportCallbackEXT = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr( vulkan_instance, "vkDestroyDebugReportCallbackEXT" );
-        //vkDestroyDebugReportCallbackEXT( vulkan_instance, vulkan_debug_callback, vulkan_allocation_callbacks );
+        //if(vkDestroyDebugReportCallbackEXT)
+        //    vkDestroyDebugReportCallbackEXT( vulkan_instance, vulkan_debug_callback, vulkan_allocation_callbacks );
 
         auto vkDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vulkan_instance, "vkDestroyDebugUtilsMessengerEXT");
 
@@ -2628,31 +2607,44 @@ namespace Magnefu
         }
     }
 
-    void GraphicsContext::destroy_texture(TextureHandle texture) {
+    void GraphicsContext::destroy_texture(TextureHandle texture)
+    {
         if (texture.index < textures.pool_size) 
         {
             resource_deletion_queue.push({ ResourceDeletionType::Texture, texture.index, current_frame });
             texture_to_update_bindless.push({ ResourceDeletionType::Texture, texture.index, current_frame });
         }
-        else {
+        else 
+        {
             MF_CORE_ERROR("Graphics error: trying to free invalid Texture {}", texture.index);
         }
     }
 
-    void GraphicsContext::destroy_pipeline(PipelineHandle pipeline) {
-        if (pipeline.index < pipelines.pool_size) {
+    void GraphicsContext::destroy_pipeline(PipelineHandle pipeline) 
+    {
+        if (pipeline.index < pipelines.pool_size)
+        {
             resource_deletion_queue.push({ ResourceDeletionType::Pipeline, pipeline.index, current_frame });
             // Shader state creation is handled internally when creating a pipeline, thus add this to track correctly.
             Pipeline* v_pipeline = access_pipeline(pipeline);
+
+            ShaderState* shader_state_data = access_shader_state(v_pipeline->shader_state);
+            for (u32 l = 0; l < shader_state_data->parse_result->set_count; ++l) 
+            {
+                destroy_descriptor_set_layout(v_pipeline->descriptor_set_layout_handle[l]);
+            }
             destroy_shader_state(v_pipeline->shader_state);
         }
-        else {
+        else
+        {
             MF_CORE_ERROR("Graphics error: trying to free invalid Pipeline {}", pipeline.index);
         }
     }
 
-    void GraphicsContext::destroy_sampler(SamplerHandle sampler) {
-        if (sampler.index < samplers.pool_size) {
+    void GraphicsContext::destroy_sampler(SamplerHandle sampler)
+    {
+        if (sampler.index < samplers.pool_size) 
+        {
             resource_deletion_queue.push({ ResourceDeletionType::Sampler, sampler.index, current_frame });
         }
         else {
@@ -2678,20 +2670,31 @@ namespace Magnefu
         }
     }
 
-    void GraphicsContext::destroy_render_pass(RenderPassHandle render_pass) {
-        if (render_pass.index < render_passes.pool_size) {
+    void GraphicsContext::destroy_render_pass(RenderPassHandle render_pass) 
+    {
+        if (render_pass.index < render_passes.pool_size)
+        {
             resource_deletion_queue.push({ ResourceDeletionType::RenderPass, render_pass.index, current_frame });
         }
-        else {
+        else
+        {
             MF_CORE_ERROR("Graphics error: trying to free invalid RenderPass {}", render_pass.index);
         }
     }
 
-    void GraphicsContext::destroy_shader_state(ShaderStateHandle shader) {
-        if (shader.index < shaders.pool_size) {
+    void GraphicsContext::destroy_shader_state(ShaderStateHandle shader) 
+    {
+        if (shader.index < shaders.pool_size)
+        {
             resource_deletion_queue.push({ ResourceDeletionType::ShaderState, shader.index, current_frame });
+
+            ShaderState* state = access_shader_state(shader);
+
+            allocator->deallocate(state->parse_result);
+
         }
-        else {
+        else
+        {
             MF_CORE_ERROR("Graphics error: trying to free invalid Shader {}", shader.index);
         }
     }
