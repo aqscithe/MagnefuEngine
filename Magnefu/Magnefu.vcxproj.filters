@@ -3095,6 +3095,9 @@
     <ClInclude Include="vendor\json\json.hpp" />
     <ClInclude Include="src\Magnefu\Core\Camera.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\spirv_parser.hpp" />
+    <ClInclude Include="src\Magnefu\Application\Scene\Scene.h" />
+    <ClInclude Include="src\Magnefu\Application\Scene\Entity.h" />
+    <ClInclude Include="src\Magnefu\Application\Scene\Components.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application\Application.cpp">
@@ -3231,6 +3234,8 @@
     <ClCompile Include="src\Magnefu\Core\glTF.cpp" />
     <ClCompile Include="src\Magnefu\Core\Camera.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\spirv_parser.cpp" />
+    <ClCompile Include="src\Magnefu\Application\Scene\Scene.cpp" />
+    <ClCompile Include="src\Magnefu\Application\Scene\Entity.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\vulkan\include\spirv-headers\spirv.hpp11">

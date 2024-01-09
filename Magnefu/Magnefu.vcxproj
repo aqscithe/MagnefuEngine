@@ -162,6 +162,9 @@
     <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiService.hpp" />
     <ClInclude Include="src\Magnefu\Application\Layer.h" />
     <ClInclude Include="src\Magnefu\Application\LayerStack.h" />
+    <ClInclude Include="src\Magnefu\Application\Scene\Components.h" />
+    <ClInclude Include="src\Magnefu\Application\Scene\Entity.h" />
+    <ClInclude Include="src\Magnefu\Application\Scene\Scene.h" />
     <ClInclude Include="src\Magnefu\Application\Windows\Window.h" />
     <ClInclude Include="src\Magnefu\Application\Windows\WindowsInput.h" />
     <ClInclude Include="src\Magnefu\Application\Windows\WindowsWindow.h" />
@@ -1117,6 +1120,8 @@
     <ClCompile Include="src\Magnefu\Application\Input\KeyCodes.cpp" />
     <ClCompile Include="src\Magnefu\Application\Layer.cpp" />
     <ClCompile Include="src\Magnefu\Application\LayerStack.cpp" />
+    <ClCompile Include="src\Magnefu\Application\Scene\Entity.cpp" />
+    <ClCompile Include="src\Magnefu\Application\Scene\Scene.cpp" />
     <ClCompile Include="src\Magnefu\Application\Windows\Window.cpp" />
     <ClCompile Include="src\Magnefu\Application\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Magnefu\Application\Windows\WindowsWindow.cpp" />

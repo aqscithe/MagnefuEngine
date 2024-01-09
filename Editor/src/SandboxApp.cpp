@@ -5,6 +5,7 @@
 #include "AppLayers/Overlay.hpp"
 #include "GameCamera.hpp"
 
+#include "Magnefu/Application/Scene/Scene.h"
 
 // -- Graphics --------------------------- //
 
@@ -12,15 +13,9 @@
 // -- Core -------------------------- //
 #include "Magnefu/Core/File.hpp"
 #include "Magnefu/Core/glTF.hpp"
-//#include "Magnefu/Core/String.hpp"
+
 
 #include "imgui/imgui.h"
-
-#include "cglm/struct/mat3.h"
-#include "cglm/struct/mat4.h"
-#include "cglm/struct/quat.h"
-#include "cglm/struct/cam.h"
-#include "cglm/struct/affine.h"
 
 
 
@@ -64,38 +59,7 @@ struct RenderData
 	float light_intensity = 80.0f;
 };
 
-struct MeshDraw
-{
-	Magnefu::Material* material;
 
-	Magnefu::BufferHandle    index_buffer;
-	Magnefu::BufferHandle    position_buffer;
-	Magnefu::BufferHandle    tangent_buffer;
-	Magnefu::BufferHandle    normal_buffer;
-	Magnefu::BufferHandle    texcoord_buffer;
-	Magnefu::BufferHandle    material_buffer;
-
-	u32         index_offset;
-	u32         position_offset;
-	u32         tangent_offset;
-	u32         normal_offset;
-	u32         texcoord_offset;
-
-	u32         primitive_count;
-
-	// Indices used for bindless textures.
-	u16         diffuse_texture_index;
-	u16         roughness_texture_index;
-	u16         normal_texture_index;
-	u16         occlusion_texture_index;
-
-	vec4s       base_color_factor;
-	vec4s       metallic_roughness_occlusion_factor;
-	vec3s       scale;
-
-	f32         alpha_cutoff;
-	u32         flags;
-}; // struct MeshDraw
 
 //
 //
@@ -138,25 +102,10 @@ struct GpuEffect
 
 }; // struct GpuEffect
 
-// TODO: Will eventually create a full on class for ECS entt data
-// When creating scene manager take inspiration from the service
-// manager implementation...
-struct Scene 
-{
 
-	Magnefu::Array<MeshDraw>                 mesh_draws;
-
-	// All graphics resources used by the scene
-	Magnefu::Array<Magnefu::TextureResource>  images;
-	Magnefu::Array<Magnefu::SamplerResource>  samplers;
-	Magnefu::Array<Magnefu::BufferResource>   buffers;
-
-	Magnefu::glTF::glTF                      gltf_scene; // Source gltf scene
-
-}; // struct GltfScene
 
 static const u16 INVALID_TEXTURE_INDEX = ~0u;
-static Scene* scene = nullptr;
+static Magnefu::Scene scene;
 static GameCamera game_camera;
 
 
@@ -164,7 +113,7 @@ static GameCamera game_camera;
 
 //
 //
-static void upload_material(MeshData& mesh_data, const MeshDraw& mesh_draw, const f32 global_scale)
+static void upload_material(MeshData& mesh_data, const Magnefu::MeshDraw& mesh_draw, const f32 global_scale)
 {
 	mesh_data.textures[0] = mesh_draw.diffuse_texture_index;
 	mesh_data.textures[1] = mesh_draw.roughness_texture_index;
@@ -183,7 +132,7 @@ static void upload_material(MeshData& mesh_data, const MeshDraw& mesh_draw, cons
 
 //
 //
-static void draw_mesh(Magnefu::Renderer& renderer, Magnefu::CommandBuffer* gpu_commands, MeshDraw& mesh_draw)
+static void draw_mesh(Magnefu::Renderer& renderer, Magnefu::CommandBuffer* gpu_commands, Magnefu::MeshDraw& mesh_draw)
 {
 	// Descriptor Set
 	Magnefu::DescriptorSetCreation ds_creation{};
@@ -203,7 +152,7 @@ static void draw_mesh(Magnefu::Renderer& renderer, Magnefu::CommandBuffer* gpu_c
 //
 //
 
-static void scene_load_from_gltf(cstring filename, Magnefu::Renderer& renderer, Magnefu::Allocator* allocator, Scene& scene) {
+static void scene_load_from_gltf(cstring filename, Magnefu::Renderer& renderer, Magnefu::Allocator* allocator, Magnefu::Scene& scene) {
 
 	using namespace Magnefu;
 
@@ -341,18 +290,20 @@ static void scene_load_from_gltf(cstring filename, Magnefu::Renderer& renderer, 
 	scene.mesh_draws.init(allocator, scene.gltf_scene.meshes_count);
 }
 
-static void scene_free_gpu_resources(Scene& scene, Magnefu::Renderer& renderer) {
+static void scene_free_gpu_resources(Magnefu::Scene& scene, Magnefu::Renderer& renderer) 
+{
 	Magnefu::GraphicsContext& gpu = *renderer.gpu;
 
-	for (u32 mesh_index = 0; mesh_index < scene.mesh_draws.count(); ++mesh_index) {
-		MeshDraw& mesh_draw = scene.mesh_draws[mesh_index];
+	for (u32 mesh_index = 0; mesh_index < scene.mesh_draws.count(); ++mesh_index)
+	{
+		Magnefu::MeshDraw& mesh_draw = scene.mesh_draws[mesh_index];
 		gpu.destroy_buffer(mesh_draw.material_buffer);
 	}
 
 	scene.mesh_draws.shutdown();
 }
 
-static void scene_unload(Scene& scene, Magnefu::Renderer& renderer) {
+static void scene_unload (Magnefu::Scene& scene, Magnefu::Renderer& renderer) {
 
 	Magnefu::GraphicsContext& gpu = *renderer.gpu;
 
@@ -367,15 +318,15 @@ static void scene_unload(Scene& scene, Magnefu::Renderer& renderer) {
 }
 
 static int mesh_material_compare(const void* a, const void* b) {
-	const MeshDraw* mesh_a = (const MeshDraw*)a;
-	const MeshDraw* mesh_b = (const MeshDraw*)b;
+	const Magnefu::MeshDraw* mesh_a = (const Magnefu::MeshDraw*)a;
+	const Magnefu::MeshDraw* mesh_b = (const Magnefu::MeshDraw*)b;
 
 	if (mesh_a->material->render_index < mesh_b->material->render_index) return -1;
 	if (mesh_a->material->render_index > mesh_b->material->render_index) return  1;
 	return 0;
 }
 
-static void get_mesh_vertex_buffer(Scene& scene, i32 accessor_index, Magnefu::BufferHandle& out_buffer_handle, u32& out_buffer_offset) {
+static void get_mesh_vertex_buffer (Magnefu::Scene& scene, i32 accessor_index, Magnefu::BufferHandle& out_buffer_handle, u32& out_buffer_offset) {
 	using namespace Magnefu;
 
 	if (accessor_index != -1) {
@@ -388,7 +339,7 @@ static void get_mesh_vertex_buffer(Scene& scene, i32 accessor_index, Magnefu::Bu
 	}
 }
 
-static bool get_mesh_material(Magnefu::Renderer& renderer, Scene& scene, Magnefu::glTF::Material& material, MeshDraw& mesh_draw) {
+static bool get_mesh_material(Magnefu::Renderer& renderer, Magnefu::Scene& scene, Magnefu::glTF::Material& material, Magnefu::MeshDraw& mesh_draw) {
 	using namespace Magnefu;
 
 	bool transparent = false;
@@ -580,6 +531,17 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	game_camera.camera.init_perpective(0.1f, 4000.f, 60.f, wconf.width * 1.f / wconf.height);
 	game_camera.init(true, 20.f, 6.f, 0.1f);
 
+
+	// will eventually have an EditorLayer
+	// may even have more specific layers like Physics Collisions and AI...
+	// this is how updates can be controlled separately
+
+	// TODO: How should i give the app access to its layer and overlay?
+
+	layer_stack = new Magnefu::LayerStack();
+	layer_stack->PushLayer(new SandboxLayer());
+	layer_stack->PushOverlay(new Overlay());
+
 	// -- Loading glTF scene data ------------------------------------------------ //
 	cstring file_path = "";
 	InjectDefault3DModel(file_path);
@@ -599,9 +561,10 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	file_name_from_path(gltf_file);
 
 	// TODO: full scene class to manage glTF and entt resources
-	scene = new Scene();
+	scene.Init(gltf_file);
 
-	scene_load_from_gltf(gltf_file, *renderer, &MemoryService::Instance()->systemAllocator, *scene);
+
+	scene_load_from_gltf(gltf_file, *renderer, &MemoryService::Instance()->systemAllocator, scene);
 
 	directory_change(cwd.path);
 
@@ -676,11 +639,17 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 		MemoryService::Instance()->systemAllocator.deallocate(vert_code.data);
 		MemoryService::Instance()->systemAllocator.deallocate(frag_code.data);
 
-		glTF::Scene& root_gltf_scene = scene->gltf_scene.scenes[scene->gltf_scene.scene];
+		glTF::Scene& root_gltf_scene = scene.gltf_scene.scenes[scene.gltf_scene.scene];
+
+		// Init entities
+		scene.entities.init(&MemoryService::Instance()->systemAllocator, root_gltf_scene.nodes_count);
 
 		for (u32 node_index = 0; node_index < root_gltf_scene.nodes_count; ++node_index)
 		{
-			glTF::Node& node = scene->gltf_scene.nodes[root_gltf_scene.nodes[node_index]];
+			glTF::Node& node = scene.gltf_scene.nodes[root_gltf_scene.nodes[node_index]];
+
+			// entity creation
+			Entity& entity = scene.CreateEntity(node.name.data);
 
 			if (node.mesh == glTF::INVALID_INT_VALUE) {
 				continue;
@@ -688,13 +657,33 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 
 			// TODO(marco): children
 
-			glTF::Mesh& mesh = scene->gltf_scene.meshes[node.mesh];
+			glTF::Mesh& mesh = scene.gltf_scene.meshes[node.mesh];
+
+			// Get initial transform data from node
+			vec3s node_trans{ 0.f, 0.f, 0.f };
+			if (node.translation_count != 0)
+			{
+				MF_ASSERT((node.translation_count == 3), "");
+				node_trans = vec3s{ node.translation[0], node.translation[1], node.translation[2] };
+			}
+
+			vec3s node_rot{ 0.f, 0.f, 0.f };
+			if (node.rotation_count != 0)
+			{
+				MF_ASSERT((node.rotation_count == 3), "");
+				node_rot = vec3s{ node.rotation[0], node.rotation[1], node.rotation[2] };
+			}
 
 			vec3s node_scale{ 1.0f, 1.0f, 1.0f };
-			if (node.scale_count != 0) {
+			if (node.scale_count != 0) 
+			{
 				MF_ASSERT((node.scale_count == 3), "");
 				node_scale = vec3s{ node.scale[0], node.scale[1], node.scale[2] };
 			}
+
+			// If all transform data has 0 counts, should not have a transform component
+			// However, these files seem to all have 0 values
+			entity.AddComponent<TransformComponent>(node_trans, node_rot, node_scale);
 
 			// Gltf primitives are conceptually submeshes.
 			for (u32 primitive_index = 0; primitive_index < mesh.primitives_count; ++primitive_index) {
@@ -709,23 +698,23 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 				const i32 normal_accessor_index = gltf_get_attribute_accessor_index(mesh_primitive.attributes, mesh_primitive.attribute_count, "NORMAL");
 				const i32 texcoord_accessor_index = gltf_get_attribute_accessor_index(mesh_primitive.attributes, mesh_primitive.attribute_count, "TEXCOORD_0");
 
-				get_mesh_vertex_buffer(*scene, position_accessor_index, mesh_draw.position_buffer, mesh_draw.position_offset);
-				get_mesh_vertex_buffer(*scene, tangent_accessor_index, mesh_draw.tangent_buffer, mesh_draw.tangent_offset);
-				get_mesh_vertex_buffer(*scene, normal_accessor_index, mesh_draw.normal_buffer, mesh_draw.normal_offset);
-				get_mesh_vertex_buffer(*scene, texcoord_accessor_index, mesh_draw.texcoord_buffer, mesh_draw.texcoord_offset);
+				get_mesh_vertex_buffer(scene, position_accessor_index, mesh_draw.position_buffer, mesh_draw.position_offset);
+				get_mesh_vertex_buffer(scene, tangent_accessor_index, mesh_draw.tangent_buffer, mesh_draw.tangent_offset);
+				get_mesh_vertex_buffer(scene, normal_accessor_index, mesh_draw.normal_buffer, mesh_draw.normal_offset);
+				get_mesh_vertex_buffer(scene, texcoord_accessor_index, mesh_draw.texcoord_buffer, mesh_draw.texcoord_offset);
 
 				// Create index buffer
-				glTF::Accessor& indices_accessor =  scene->gltf_scene.accessors[mesh_primitive.indices];
-				glTF::BufferView& indices_buffer_view =  scene->gltf_scene.buffer_views[indices_accessor.buffer_view];
-				BufferResource& indices_buffer_gpu =  scene->buffers[indices_accessor.buffer_view];
+				glTF::Accessor& indices_accessor =  scene.gltf_scene.accessors[mesh_primitive.indices];
+				glTF::BufferView& indices_buffer_view =  scene.gltf_scene.buffer_views[indices_accessor.buffer_view];
+				BufferResource& indices_buffer_gpu =  scene.buffers[indices_accessor.buffer_view];
 				mesh_draw.index_buffer = indices_buffer_gpu.handle;
 				mesh_draw.index_offset = indices_accessor.byte_offset == glTF::INVALID_INT_VALUE ? 0 : indices_accessor.byte_offset;
 				mesh_draw.primitive_count = indices_accessor.count;
 
 				// Create material
-				glTF::Material& material =  scene->gltf_scene.materials[mesh_primitive.material];
+				glTF::Material& material =  scene.gltf_scene.materials[mesh_primitive.material];
 
-				bool transparent = get_mesh_material(*renderer, *scene, material, mesh_draw);
+				bool transparent = get_mesh_material(*renderer, scene, material, mesh_draw);
 
 				if (transparent) {
 					if (material.double_sided) {
@@ -744,23 +733,17 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 					}
 				}
 
-				scene->mesh_draws.push(mesh_draw);
+				scene.mesh_draws.push(mesh_draw);
+
+				// If primitives are conceptually submeshes, do I add a mesh component for each submesh?
+				// Yes. An entity supports several of the same component type. glTF can also define
+				// a parent-child relationship between meshes.
+				entity.AddComponent<Magnefu::MeshComponent>(mesh_draw);
 			}
 		}
 	}
 
-	qsort(scene->mesh_draws.begin(), scene->mesh_draws.count(), sizeof(MeshDraw), mesh_material_compare);
-
-
-	// will eventually have an EditorLayer
-	// may even have more specific layers like Physics Collisions and AI...
-	// this is how updates can be controlled separately
-
-	// TODO: How should i give the app access to its layer and overlay?
-
-	layer_stack = new Magnefu::LayerStack();
-	layer_stack->PushLayer(new SandboxLayer());
-	layer_stack->PushOverlay(new Overlay());
+	qsort(scene.mesh_draws.begin(), scene.mesh_draws.count(), sizeof(MeshDraw), mesh_material_compare);
 
 
 	MF_CORE_INFO("Sandbox Application created successfully!");
@@ -780,20 +763,19 @@ void Sandbox::Destroy()
 
 	// Shutdown services
 	imgui->Shutdown();
-	input->Shutdown();
+	
 
 	gpu_profiler->shutdown();
 
-	scene_free_gpu_resources(*scene, *renderer);
+	scene_free_gpu_resources(scene, *renderer);
 
 	rm->shutdown();
 	renderer->shutdown();
 
-	scene_unload(*scene, *renderer);
-
-	delete scene;
+	scene_unload(scene, *renderer);
 
 
+	input->Shutdown();
 	window->Shutdown();
 
 	delete layer_stack;
@@ -951,9 +933,9 @@ void Sandbox::Render(f32 interpolation_factor, void* data)
 			gpu->unmap_buffer(cb_map);
 		}
 
-		for (u32 mesh_index = 0; mesh_index < scene->mesh_draws.count(); ++mesh_index)
+		for (u32 mesh_index = 0; mesh_index < scene.mesh_draws.count(); ++mesh_index)
 		{
-			MeshDraw& mesh_draw = scene->mesh_draws[mesh_index];
+			MeshDraw& mesh_draw = scene.mesh_draws[mesh_index];
 
 			cb_map.buffer = mesh_draw.material_buffer;
 			MeshData* mesh_data = (MeshData*)gpu->map_buffer(cb_map);
@@ -986,9 +968,9 @@ void Sandbox::Render(f32 interpolation_factor, void* data)
 		Material* last_material = nullptr;
 		// TODO: loop by material so that we can deal with multiple passes
 
-		for (u32 mesh_index = 0; mesh_index < scene->mesh_draws.count(); ++mesh_index)
+		for (u32 mesh_index = 0; mesh_index < scene.mesh_draws.count(); ++mesh_index)
 		{
-			MeshDraw& mesh_draw = scene->mesh_draws[mesh_index];
+			MeshDraw& mesh_draw = scene.mesh_draws[mesh_index];
 
 			if (mesh_draw.material != last_material)
 			{
@@ -1058,6 +1040,7 @@ void Sandbox::OnEvent(Magnefu::Event& event)
 	dispatcher.Dispatch<GamepadDisconnectedEvent>(BIND_EVENT_FN(input, InputService::OnEvent));
 
 	
+
 
 	for (auto it = layer_stack->end(); it != layer_stack->begin(); )
 	{
