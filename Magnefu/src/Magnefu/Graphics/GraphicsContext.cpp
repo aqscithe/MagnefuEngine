@@ -136,6 +136,11 @@ namespace Magnefu
         {
             vkDestroyCommandPool(gpu->vulkan_device, vulkan_command_pools[i], gpu->vulkan_allocation_callbacks);
         }
+
+        for (u32 i = 0; i < k_max_buffers; i++)
+        {
+            command_buffers[i].terminate();
+        }
     }
 
     void CommandBufferRing::reset_pools(u32 frame_index) 
