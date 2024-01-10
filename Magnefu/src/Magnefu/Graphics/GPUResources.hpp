@@ -587,12 +587,12 @@ namespace Magnefu
 
     //
     //
-    struct DesciptorSetDescription {
+    struct DescriptorSetDescription {
 
         ResourceData                    resources[k_max_descriptors_per_set];
         u32                             num_active_resources = 0;
 
-    }; // struct DesciptorSetDescription
+    }; // struct DescriptorSetDescription
 
     //
     //
@@ -763,7 +763,7 @@ namespace Magnefu
 
     //
     //
-    struct DesciptorSetLayout {
+    struct DescriptorSetLayout {
 
         VkDescriptorSetLayout           vk_descriptor_set_layout;
 
@@ -774,11 +774,11 @@ namespace Magnefu
 
         DescriptorSetLayoutHandle       handle;
 
-    }; // struct DesciptorSetLayoutVulkan
+    }; // struct DescriptorSetLayoutVulkan
 
     //
     //
-    struct DesciptorSet {
+    struct DescriptorSet {
 
         VkDescriptorSet                 vk_descriptor_set;
 
@@ -786,9 +786,9 @@ namespace Magnefu
         SamplerHandle* samplers = nullptr;
         u16* bindings = nullptr;
 
-        const DesciptorSetLayout* layout = nullptr;
+        const DescriptorSetLayout* layout = nullptr;
         u32                             num_resources = 0;
-    }; // struct DesciptorSetVulkan
+    }; // struct DescriptorSetVulkan
 
 
     //
@@ -802,7 +802,7 @@ namespace Magnefu
 
         ShaderStateHandle               shader_state;
 
-        const DesciptorSetLayout*       descriptor_set_layout[k_max_descriptor_set_layouts];
+        const DescriptorSetLayout*       descriptor_set_layout[k_max_descriptor_set_layouts];
         DescriptorSetLayoutHandle       descriptor_set_layout_handle[k_max_descriptor_set_layouts];
         u32                             num_active_layouts = 0;
 

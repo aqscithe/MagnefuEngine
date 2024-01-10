@@ -63,6 +63,8 @@ namespace Magnefu
 
 	void Scene::Shutdown()
 	{
+		//mesh_draws.shutdown();
+
 		registry.clear();
 
 		// -- Disconnect Listeners -- //

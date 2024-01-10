@@ -790,7 +790,9 @@ namespace Magnefu
         pool_info.poolSizeCount = pool_size_count;
         pool_info.pPoolSizes = pool_sizes;
         result = vkCreateDescriptorPool(vulkan_device, &pool_info, vulkan_allocation_callbacks, &vulkan_descriptor_pool);
+        
         check(result, "Fialed to create descriptor pool");
+        MF_CORE_DEBUG("Created descriptor pool");
 
         // Bindless pool
         VkDescriptorPoolSize pool_sizes_bindless[] =
@@ -814,6 +816,7 @@ namespace Magnefu
         pool_info_bindless.pPoolSizes = pool_sizes_bindless;
         result = vkCreateDescriptorPool(vulkan_device, &pool_info_bindless, vulkan_allocation_callbacks, &vulkan_bindless_descriptor_pool);
         check(result, "Failed to create descriptor pool");
+        MF_CORE_DEBUG("Created descriptor pool");
 
 
         VkDescriptorSetLayoutBinding vk_binding[4];
@@ -884,10 +887,10 @@ namespace Magnefu
         buffers.init(allocator, 4096, sizeof(Buffer));
         textures.init(allocator, 512, sizeof(Texture));
         render_passes.init(allocator, 256, sizeof(RenderPass));
-        descriptor_set_layouts.init(allocator, 128, sizeof(DesciptorSetLayout));
+        descriptor_set_layouts.init(allocator, 128, sizeof(DescriptorSetLayout));
         pipelines.init(allocator, 128, sizeof(Pipeline));
         shaders.init(allocator, 128, sizeof(ShaderState));
-        descriptor_sets.init(allocator, 256, sizeof(DesciptorSet));
+        descriptor_sets.init(allocator, 256, sizeof(DescriptorSet));
         samplers.init(allocator, 32, sizeof(Sampler));
         //command_buffers.init( allocator, 128, sizeof( CommandBuffer ) );
 
@@ -1019,7 +1022,6 @@ namespace Magnefu
         destroy_sampler(default_sampler);
 
         
-        
         // Destroy all pending resources.
         for (u32 i = 0; i < resource_deletion_queue.count(); i++) 
         {
@@ -1135,6 +1137,8 @@ namespace Magnefu
 
         vkDestroyDescriptorPool(vulkan_device, vulkan_descriptor_pool, vulkan_allocation_callbacks);
         vkDestroyQueryPool(vulkan_device, vulkan_timestamp_query_pool, vulkan_allocation_callbacks);
+
+        u32 sets_left = descriptor_sets.used_indices;
 
         vkDestroyDevice(vulkan_device, vulkan_allocation_callbacks);
 
@@ -1982,7 +1986,7 @@ namespace Magnefu
             return handle;
         }
 
-        DesciptorSetLayout* descriptor_set_layout = access_descriptor_set_layout(handle);
+        DescriptorSetLayout* descriptor_set_layout = access_descriptor_set_layout(handle);
 
         // TODO: add support for multiple sets.
         // Create flattened binding list
@@ -2034,7 +2038,7 @@ namespace Magnefu
 
     //
     //
-    void GraphicsContext::fill_write_descriptor_sets(GraphicsContext& gpu, const DesciptorSetLayout* descriptor_set_layout, VkDescriptorSet vk_descriptor_set,
+    void GraphicsContext::fill_write_descriptor_sets(GraphicsContext& gpu, const DescriptorSetLayout* descriptor_set_layout, VkDescriptorSet vk_descriptor_set,
         VkWriteDescriptorSet* descriptor_write, VkDescriptorBufferInfo* buffer_info, VkDescriptorImageInfo* image_info,
         VkSampler vk_default_sampler, u32& num_resources, const ResourceHandle* resources, const SamplerHandle* samplers, const u16* bindings) {
 
@@ -2175,8 +2179,8 @@ namespace Magnefu
             return handle;
         }
 
-        DesciptorSet* descriptor_set = access_descriptor_set(handle);
-        const DesciptorSetLayout* descriptor_set_layout = access_descriptor_set_layout(creation.layout);
+        DescriptorSet* descriptor_set = access_descriptor_set(handle);
+        const DescriptorSetLayout* descriptor_set_layout = access_descriptor_set_layout(creation.layout);
 
         // Allocate descriptor set
         VkDescriptorSetAllocateInfo alloc_info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
@@ -2744,7 +2748,7 @@ namespace Magnefu
     }
 
     void GraphicsContext::destroy_descriptor_set_layout_instant(ResourceHandle descriptor_set_layout) {
-        DesciptorSetLayout* v_descriptor_set_layout = (DesciptorSetLayout*)descriptor_set_layouts.access_resource(descriptor_set_layout);
+        DescriptorSetLayout* v_descriptor_set_layout = (DescriptorSetLayout*)descriptor_set_layouts.access_resource(descriptor_set_layout);
 
         if (v_descriptor_set_layout) {
             vkDestroyDescriptorSetLayout(vulkan_device, v_descriptor_set_layout->vk_descriptor_set_layout, vulkan_allocation_callbacks);
@@ -2756,7 +2760,7 @@ namespace Magnefu
     }
 
     void GraphicsContext::destroy_descriptor_set_instant(ResourceHandle descriptor_set) {
-        DesciptorSet* v_descriptor_set = (DesciptorSet*)descriptor_sets.access_resource(descriptor_set);
+        DescriptorSet* v_descriptor_set = (DescriptorSet*)descriptor_sets.access_resource(descriptor_set);
 
         if (v_descriptor_set) {
             // Contains the allocation for all the resources, binding and samplers arrays.
@@ -3005,10 +3009,10 @@ namespace Magnefu
 
         // Use a dummy descriptor set to delete the vulkan descriptor set handle
         DescriptorSetHandle dummy_delete_descriptor_set_handle = { descriptor_sets.obtain_resource() };
-        DesciptorSet* dummy_delete_descriptor_set = access_descriptor_set(dummy_delete_descriptor_set_handle);
+        DescriptorSet* dummy_delete_descriptor_set = access_descriptor_set(dummy_delete_descriptor_set_handle);
 
-        DesciptorSet* descriptor_set = access_descriptor_set(update.descriptor_set);
-        const DesciptorSetLayout* descriptor_set_layout = descriptor_set->layout;
+        DescriptorSet* descriptor_set = access_descriptor_set(update.descriptor_set);
+        const DescriptorSetLayout* descriptor_set_layout = descriptor_set->layout;
 
         dummy_delete_descriptor_set->vk_descriptor_set = descriptor_set->vk_descriptor_set;
         dummy_delete_descriptor_set->bindings = nullptr;
@@ -3188,6 +3192,15 @@ namespace Magnefu
         for (u32 c = 0; c < num_queued_command_buffers; c++) {
 
             CommandBuffer* command_buffer = queued_command_buffers[c];
+
+            //// trying to fix issue with un deleted command buffers at program close
+            //for(u32 set = 0; set < command_buffer->descriptor_sets.used_indices; set++)
+            //{
+            //    DescriptorSet* ds = (DescriptorSet*)command_buffer->descriptor_sets.access_resource(set);
+            //    
+            //    destroy_descriptor_set((DescriptorSetHandle)set);
+            //    
+            //}
 
             enqueued_command_buffers[c] = command_buffer->vk_command_buffer;
             // NOTE: why it was needing current_pipeline to be setup ?
@@ -3554,7 +3567,7 @@ namespace Magnefu
 
     void GraphicsContext::query_descriptor_set_layout(DescriptorSetLayoutHandle descriptor_set_layout, DescriptorSetLayoutDescription& out_description) {
         if (descriptor_set_layout.index != k_invalid_index) {
-            const DesciptorSetLayout* descriptor_set_layout_data = access_descriptor_set_layout(descriptor_set_layout);
+            const DescriptorSetLayout* descriptor_set_layout_data = access_descriptor_set_layout(descriptor_set_layout);
 
             const u32 num_bindings = descriptor_set_layout_data->num_bindings;
             for (size_t i = 0; i < num_bindings; i++) {
@@ -3566,9 +3579,9 @@ namespace Magnefu
         }
     }
 
-    void GraphicsContext::query_descriptor_set(DescriptorSetHandle descriptor_set, DesciptorSetDescription& out_description) {
+    void GraphicsContext::query_descriptor_set(DescriptorSetHandle descriptor_set, DescriptorSetDescription& out_description) {
         if (descriptor_set.index != k_invalid_index) {
-            const DesciptorSet* descriptor_set_data = access_descriptor_set(descriptor_set);
+            const DescriptorSet* descriptor_set_data = access_descriptor_set(descriptor_set);
 
             out_description.num_active_resources = descriptor_set_data->num_resources;
             for (u32 i = 0; i < out_description.num_active_resources; ++i) {
@@ -3756,12 +3769,12 @@ namespace Magnefu
         return (const Sampler*)samplers.access_resource(sampler.index);
     }
 
-    DesciptorSetLayout* GraphicsContext::access_descriptor_set_layout(DescriptorSetLayoutHandle descriptor_set_layout) {
-        return (DesciptorSetLayout*)descriptor_set_layouts.access_resource(descriptor_set_layout.index);
+    DescriptorSetLayout* GraphicsContext::access_descriptor_set_layout(DescriptorSetLayoutHandle descriptor_set_layout) {
+        return (DescriptorSetLayout*)descriptor_set_layouts.access_resource(descriptor_set_layout.index);
     }
 
-    const DesciptorSetLayout* GraphicsContext::access_descriptor_set_layout(DescriptorSetLayoutHandle descriptor_set_layout) const {
-        return (const DesciptorSetLayout*)descriptor_set_layouts.access_resource(descriptor_set_layout.index);
+    const DescriptorSetLayout* GraphicsContext::access_descriptor_set_layout(DescriptorSetLayoutHandle descriptor_set_layout) const {
+        return (const DescriptorSetLayout*)descriptor_set_layouts.access_resource(descriptor_set_layout.index);
     }
 
     DescriptorSetLayoutHandle GraphicsContext::get_descriptor_set_layout(PipelineHandle pipeline_handle, int layout_index) {
@@ -3778,12 +3791,12 @@ namespace Magnefu
         return  pipeline->descriptor_set_layout_handle[layout_index];
     }
 
-    DesciptorSet* GraphicsContext::access_descriptor_set(DescriptorSetHandle descriptor_set) {
-        return (DesciptorSet*)descriptor_sets.access_resource(descriptor_set.index);
+    DescriptorSet* GraphicsContext::access_descriptor_set(DescriptorSetHandle descriptor_set) {
+        return (DescriptorSet*)descriptor_sets.access_resource(descriptor_set.index);
     }
 
-    const DesciptorSet* GraphicsContext::access_descriptor_set(DescriptorSetHandle descriptor_set) const {
-        return (const DesciptorSet*)descriptor_sets.access_resource(descriptor_set.index);
+    const DescriptorSet* GraphicsContext::access_descriptor_set(DescriptorSetHandle descriptor_set) const {
+        return (const DescriptorSet*)descriptor_sets.access_resource(descriptor_set.index);
     }
 
     RenderPass* GraphicsContext::access_render_pass(RenderPassHandle render_pass) {

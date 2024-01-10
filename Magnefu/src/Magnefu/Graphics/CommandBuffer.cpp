@@ -20,7 +20,7 @@ namespace Magnefu
 
         u32 resource_count = descriptor_sets.free_indices_head;
         for (u32 i = 0; i < resource_count; ++i) {
-            DesciptorSet* v_descriptor_set = (DesciptorSet*)descriptor_sets.access_resource(i);
+            DescriptorSet* v_descriptor_set = (DescriptorSet*)descriptor_sets.access_resource(i);
 
             if (v_descriptor_set) {
                 // Contains the allocation for all the resources, binding and samplers arrays.
@@ -63,7 +63,7 @@ namespace Magnefu
         VkResult result = vkCreateDescriptorPool(gpu->vulkan_device, &pool_info, gpu->vulkan_allocation_callbacks, &vk_descriptor_pool);
         MF_CORE_ASSERT(result == VK_SUCCESS, "Failed to create descriptor pool");
 
-        descriptor_sets.init(gpu->allocator, 256, sizeof(DesciptorSet));
+        descriptor_sets.init(gpu->allocator, 256, sizeof(DescriptorSet));
 
         reset();
     }
@@ -87,8 +87,8 @@ namespace Magnefu
             return handle;
         }
 
-        DesciptorSet* descriptor_set = (DesciptorSet*)descriptor_sets.access_resource(handle.index);
-        const DesciptorSetLayout* descriptor_set_layout = gpu->access_descriptor_set_layout(creation.layout);
+        DescriptorSet* descriptor_set = (DescriptorSet*)descriptor_sets.access_resource(handle.index);
+        const DescriptorSetLayout* descriptor_set_layout = gpu->access_descriptor_set_layout(creation.layout);
 
         // Allocate descriptor set
         VkDescriptorSetAllocateInfo alloc_info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
@@ -210,11 +210,11 @@ namespace Magnefu
         num_offsets = 0;
 
         for (u32 l = 0; l < num_lists; ++l) {
-            DesciptorSet* descriptor_set = gpu->access_descriptor_set(handles[l]);
+            DescriptorSet* descriptor_set = gpu->access_descriptor_set(handles[l]);
             vk_descriptor_sets[l] = descriptor_set->vk_descriptor_set;
 
             // Search for dynamic buffers
-            const DesciptorSetLayout* descriptor_set_layout = descriptor_set->layout;
+            const DescriptorSetLayout* descriptor_set_layout = descriptor_set->layout;
             for (u32 i = 0; i < descriptor_set_layout->num_bindings; ++i) {
                 const DescriptorBinding& rb = descriptor_set_layout->bindings[i];
 
@@ -247,11 +247,11 @@ namespace Magnefu
         num_offsets = 0;
 
         for (u32 l = 0; l < num_lists; ++l) {
-            DesciptorSet* descriptor_set = (DesciptorSet*)descriptor_sets.access_resource(handles[l].index);
+            DescriptorSet* descriptor_set = (DescriptorSet*)descriptor_sets.access_resource(handles[l].index);
             vk_descriptor_sets[l] = descriptor_set->vk_descriptor_set;
 
             // Search for dynamic buffers
-            const DesciptorSetLayout* descriptor_set_layout = descriptor_set->layout;
+            const DescriptorSetLayout* descriptor_set_layout = descriptor_set->layout;
             for (u32 i = 0; i < descriptor_set_layout->num_bindings; ++i) {
                 const DescriptorBinding& rb = descriptor_set_layout->bindings[i];
 

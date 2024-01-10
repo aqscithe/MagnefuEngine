@@ -142,7 +142,7 @@ namespace Magnefu
 
 
         // Helper methods
-        static void                     fill_write_descriptor_sets(GraphicsContext& gpu, const DesciptorSetLayout* descriptor_set_layout, VkDescriptorSet vk_descriptor_set,
+        static void                     fill_write_descriptor_sets(GraphicsContext& gpu, const DescriptorSetLayout* descriptor_set_layout, VkDescriptorSet vk_descriptor_set,
             VkWriteDescriptorSet* descriptor_write, VkDescriptorBufferInfo* buffer_info, VkDescriptorImageInfo* image_info,
             VkSampler vk_default_sampler, u32& num_resources, const ResourceHandle* resources, const SamplerHandle* samplers, const u16* bindings);
 
@@ -175,7 +175,7 @@ namespace Magnefu
         void                            query_pipeline(PipelineHandle pipeline, PipelineDescription& out_description);
         void                            query_sampler(SamplerHandle sampler, SamplerDescription& out_description);
         void                            query_descriptor_set_layout(DescriptorSetLayoutHandle layout, DescriptorSetLayoutDescription& out_description);
-        void                            query_descriptor_set(DescriptorSetHandle set, DesciptorSetDescription& out_description);
+        void                            query_descriptor_set(DescriptorSetHandle set, DescriptorSetDescription& out_description);
         void                            query_shader_state(ShaderStateHandle shader, ShaderStateDescription& out_description);
 
         const RenderPassOutput&         get_render_pass_output(RenderPassHandle render_pass) const;
@@ -296,11 +296,11 @@ namespace Magnefu
         Sampler* access_sampler(SamplerHandle sampler);
         const Sampler* access_sampler(SamplerHandle sampler) const;
 
-        DesciptorSetLayout* access_descriptor_set_layout(DescriptorSetLayoutHandle layout);
-        const DesciptorSetLayout* access_descriptor_set_layout(DescriptorSetLayoutHandle layout) const;
+        DescriptorSetLayout* access_descriptor_set_layout(DescriptorSetLayoutHandle layout);
+        const DescriptorSetLayout* access_descriptor_set_layout(DescriptorSetLayoutHandle layout) const;
 
-        DesciptorSet* access_descriptor_set(DescriptorSetHandle set);
-        const DesciptorSet* access_descriptor_set(DescriptorSetHandle set) const;
+        DescriptorSet* access_descriptor_set(DescriptorSetHandle set);
+        const DescriptorSet* access_descriptor_set(DescriptorSetHandle set) const;
 
         RenderPass* access_render_pass(RenderPassHandle render_pass);
         const RenderPass* access_render_pass(RenderPassHandle render_pass) const;

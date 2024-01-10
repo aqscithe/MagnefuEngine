@@ -649,7 +649,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 			glTF::Node& node = scene.gltf_scene.nodes[root_gltf_scene.nodes[node_index]];
 
 			// entity creation
-			Entity& entity = scene.CreateEntity(node.name.data);
+			//Entity& entity = scene.CreateEntity(node.name.data);
 
 			if (node.mesh == glTF::INVALID_INT_VALUE) {
 				continue;
@@ -683,7 +683,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 
 			// If all transform data has 0 counts, should not have a transform component
 			// However, these files seem to all have 0 values
-			entity.AddComponent<TransformComponent>(node_trans, node_rot, node_scale);
+			//entity.AddComponent<TransformComponent>(node_trans, node_rot, node_scale);
 
 			// Gltf primitives are conceptually submeshes.
 			for (u32 primitive_index = 0; primitive_index < mesh.primitives_count; ++primitive_index) {
@@ -732,7 +732,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 						mesh_draw.material = material_cull_opaque;
 					}
 				}
-
+				
 				scene.mesh_draws.push(mesh_draw);
 
 				// If primitives are conceptually submeshes, do I add a mesh component for each submesh?
@@ -759,7 +759,6 @@ void Sandbox::Destroy()
 
 	gpu->destroy_buffer(scene_cb);
 
-	// Need to handle deletion of layers
 
 	// Shutdown services
 	imgui->Shutdown();
@@ -773,7 +772,7 @@ void Sandbox::Destroy()
 	renderer->shutdown();
 
 	scene_unload(scene, *renderer);
-
+	scene.Shutdown();
 
 	input->Shutdown();
 	window->Shutdown();
@@ -910,47 +909,49 @@ void Sandbox::Render(f32 interpolation_factor, void* data)
 {
 	using namespace Magnefu;
 
-	GraphicsContext* gpu = service_manager->get<GraphicsContext>();
-
-	RenderData* render_data = (RenderData*)data;
-
-	{
-		// Update common constant buffer
-		
-		MapBufferParameters cb_map = { scene_cb, 0, 0 };
-		float* cb_data = (float*)gpu->map_buffer(cb_map);
-		if (cb_data)
-		{
-			UniformData uniform_data{ };
-			uniform_data.vp = game_camera.camera.view_projection;
-			uniform_data.eye = vec4s{ game_camera.camera.position.x, game_camera.camera.position.y, game_camera.camera.position.z, 1.0f };
-			uniform_data.light = vec4s{ render_data->light.x, render_data->light.y, render_data->light.z, 1.0f };
-			uniform_data.light_range = render_data->light_range;
-			uniform_data.light_intensity = render_data->light_intensity;
-
-			memcpy(cb_data, &uniform_data, sizeof(UniformData));
-			
-			gpu->unmap_buffer(cb_map);
-		}
-
-		for (u32 mesh_index = 0; mesh_index < scene.mesh_draws.count(); ++mesh_index)
-		{
-			MeshDraw& mesh_draw = scene.mesh_draws[mesh_index];
-
-			cb_map.buffer = mesh_draw.material_buffer;
-			MeshData* mesh_data = (MeshData*)gpu->map_buffer(cb_map);
-			if (mesh_data) {
-				upload_material(*mesh_data, mesh_draw, render_data->model_scale);
-
-				gpu->unmap_buffer(cb_map);
-			}
-		}
-	}
+	
 
 	// //
 
 	if (!window->minimized)
 	{
+
+		GraphicsContext* gpu = service_manager->get<GraphicsContext>();
+
+		RenderData* render_data = (RenderData*)data;
+
+		{
+			// Update common constant buffer
+
+			MapBufferParameters cb_map = { scene_cb, 0, 0 };
+			float* cb_data = (float*)gpu->map_buffer(cb_map);
+			if (cb_data)
+			{
+				UniformData uniform_data{ };
+				uniform_data.vp = game_camera.camera.view_projection;
+				uniform_data.eye = vec4s{ game_camera.camera.position.x, game_camera.camera.position.y, game_camera.camera.position.z, 1.0f };
+				uniform_data.light = vec4s{ render_data->light.x, render_data->light.y, render_data->light.z, 1.0f };
+				uniform_data.light_range = render_data->light_range;
+				uniform_data.light_intensity = render_data->light_intensity;
+
+				memcpy(cb_data, &uniform_data, sizeof(UniformData));
+
+				gpu->unmap_buffer(cb_map);
+			}
+
+			for (u32 mesh_index = 0; mesh_index < scene.mesh_draws.count(); ++mesh_index)
+			{
+				MeshDraw& mesh_draw = scene.mesh_draws[mesh_index];
+
+				cb_map.buffer = mesh_draw.material_buffer;
+				MeshData* mesh_data = (MeshData*)gpu->map_buffer(cb_map);
+				if (mesh_data) {
+					upload_material(*mesh_data, mesh_draw, render_data->model_scale);
+
+					gpu->unmap_buffer(cb_map);
+				}
+			}
+		}
 
 		auto* gpu_commands = gpu->get_command_buffer(Magnefu::QueueType::Graphics, true);
 
