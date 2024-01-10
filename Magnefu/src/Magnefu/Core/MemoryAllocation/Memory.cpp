@@ -203,7 +203,8 @@ namespace Magnefu
     }
 #else
 
-    void* HeapAllocator::allocate(sizet size, sizet alignment) {
+    void* HeapAllocator::allocate(sizet size, sizet alignment)
+    {
 #if defined (HEAP_ALLOCATOR_STATS)
         void* allocated_memory = alignment == 1 ? tlsf_malloc(tlsfHandle, size) : tlsf_memalign(tlsfHandle, alignment, size);
         sizet actual_size = tlsf_block_size(allocated_memory);
@@ -219,7 +220,8 @@ namespace Magnefu
     }
 #endif // Magnefu_MEMORY_STACK
 
-    void* HeapAllocator::allocate(sizet size, sizet alignment, cstring file, i32 line) {
+    void* HeapAllocator::allocate(sizet size, sizet alignment, cstring file, i32 line)
+    {
         return allocate(size, alignment);
     }
 

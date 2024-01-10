@@ -473,7 +473,11 @@ namespace Magnefu
 					
 					}
 				}
+
+				id.members.shutdown();
 			}
+
+			ids.shutdown();
 
 		}
 	}
