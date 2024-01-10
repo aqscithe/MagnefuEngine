@@ -649,7 +649,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 			glTF::Node& node = scene.gltf_scene.nodes[root_gltf_scene.nodes[node_index]];
 
 			// entity creation
-			//Entity& entity = scene.CreateEntity(node.name.data);
+			Entity& entity = scene.CreateEntity(node.name.data);
 
 			if (node.mesh == glTF::INVALID_INT_VALUE) {
 				continue;
@@ -683,7 +683,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 
 			// If all transform data has 0 counts, should not have a transform component
 			// However, these files seem to all have 0 values
-			//entity.AddComponent<TransformComponent>(node_trans, node_rot, node_scale);
+			entity.AddComponent<TransformComponent>(node_trans, node_rot, node_scale);
 
 			// Gltf primitives are conceptually submeshes.
 			for (u32 primitive_index = 0; primitive_index < mesh.primitives_count; ++primitive_index) {
@@ -738,7 +738,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 				// If primitives are conceptually submeshes, do I add a mesh component for each submesh?
 				// Yes. An entity supports several of the same component type. glTF can also define
 				// a parent-child relationship between meshes.
-				//entity.AddComponent<Magnefu::MeshComponent>(mesh_draw);
+				entity.AddComponent<Magnefu::MeshComponent>(mesh_draw);
 			}
 		}
 	}

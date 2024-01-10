@@ -795,9 +795,7 @@ namespace Magnefu
         pool_info.poolSizeCount = pool_size_count;
         pool_info.pPoolSizes = pool_sizes;
         result = vkCreateDescriptorPool(vulkan_device, &pool_info, vulkan_allocation_callbacks, &vulkan_descriptor_pool);
-        
         check(result, "Fialed to create descriptor pool");
-        MF_CORE_DEBUG("Created descriptor pool");
 
         // Bindless pool
         VkDescriptorPoolSize pool_sizes_bindless[] =
@@ -821,7 +819,6 @@ namespace Magnefu
         pool_info_bindless.pPoolSizes = pool_sizes_bindless;
         result = vkCreateDescriptorPool(vulkan_device, &pool_info_bindless, vulkan_allocation_callbacks, &vulkan_bindless_descriptor_pool);
         check(result, "Failed to create descriptor pool");
-        MF_CORE_DEBUG("Created descriptor pool");
 
 
         VkDescriptorSetLayoutBinding vk_binding[4];
