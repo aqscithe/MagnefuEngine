@@ -375,8 +375,10 @@ namespace Magnefu
         VkPhysicalDeviceProperties      vulkan_physical_properties;
         VkPhysicalDeviceFeatures2       vulkan_physical_features;
         VkDevice                        vulkan_device;
-        VkQueue                         vulkan_queue;
-        uint32_t                        vulkan_queue_family;
+        VkQueue                         vulkan_main_queue;
+        VkQueue                         vulkan_transfer_queue;
+        u32                             vulkan_main_queue_family;
+        u32                             vulkan_transfer_queue_family;
         VkDescriptorPool                vulkan_descriptor_pool;
         VkDescriptorPool                vulkan_bindless_descriptor_pool;
         VkDescriptorSetLayout           vulkan_bindless_descriptor_set_layout;

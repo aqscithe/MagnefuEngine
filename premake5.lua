@@ -110,6 +110,12 @@ project "Magnefu"
             "NoPCH"
         }
 
+    -- All vendor files ignore PCH
+    filter "files:magnefu/vendor/**"
+        flags {
+            "NoPCH"
+        }
+
 
     filter "system:windows"
         systemversion "latest"

@@ -314,13 +314,14 @@ namespace Magnefu
         for (; family_index < queue_family_count; ++family_index) 
         {
             VkQueueFamilyProperties queue_family = queue_families[family_index];
+
             if (queue_family.queueCount > 0 && queue_family.queueFlags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT)) 
             {
                 vkGetPhysicalDeviceSurfaceSupportKHR(physical_device, family_index, vulkan_window_surface, &surface_supported);
 
                 if (surface_supported) 
                 {
-                    vulkan_queue_family = family_index;
+                    vulkan_main_queue_family = family_index;
                     break;
                 }
             }
@@ -637,23 +638,67 @@ namespace Magnefu
 
 
         // -- Create logical device -------------------------------------------- //
+        u32 queue_family_count = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(vulkan_physical_device, &queue_family_count, nullptr);
+        VkQueueFamilyProperties* queue_families = (VkQueueFamilyProperties*)mfalloca(sizeof(VkQueueFamilyProperties) * queue_family_count, allocator);
+        vkGetPhysicalDeviceQueueFamilyProperties(vulkan_physical_device, &queue_family_count, queue_families);
+
+        u32 main_queue_index = u32_max;
+        u32 transfer_queue_index = u32_max;
+        u32 compute_queue_index = u32_max;
+        u32 present_queue_index = u32_max;
+
+        for (u32 fi = 0; fi < queue_family_count; fi++)
+        {
+            VkQueueFamilyProperties& queue_family = queue_families[fi];
+
+            if (queue_family.queueCount == 0)
+                continue;
+
+            MF_CORE_DEBUG("Family {} | Flags {} | Queue Count {}", fi, queue_family.queueFlags, queue_family.queueCount);
+
+            // Search for main queue that should be able to do all work (graphics, compute, transfer)
+            if ((queue_family.queueFlags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT )) == (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT ))
+            {
+                main_queue_index = fi;
+            }
+
+            // Search for dedicated transfer queue
+            if ((queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT) == 0 && (queue_family.queueFlags & VK_QUEUE_TRANSFER_BIT))
+            {
+                transfer_queue_index = fi;
+            }
 
 
-        // Just enabled VK_KHR_swapchain
+        }
+
+        // Cache family indices
+        vulkan_main_queue_family = main_queue_index;
+        vulkan_transfer_queue_family = transfer_queue_index;
 
         const float queue_priority[] = { 1.0f };
-        VkDeviceQueueCreateInfo queue_info[1] = {};
-        queue_info[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queue_info[0].queueFamilyIndex = vulkan_queue_family;
-        queue_info[0].queueCount = 1;
-        queue_info[0].pQueuePriorities = queue_priority;
+        VkDeviceQueueCreateInfo queue_info[2] = {};
+        VkDeviceQueueCreateInfo& main_queue = queue_info[0];
+
+        main_queue.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        main_queue.queueFamilyIndex = vulkan_main_queue_family;
+        main_queue.queueCount = 1;
+        main_queue.pQueuePriorities = queue_priority;
+
+        if (vulkan_transfer_queue_family < queue_family_count)
+        {
+            VkDeviceQueueCreateInfo& transfer_queue = queue_info[1];
+            transfer_queue.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            transfer_queue.queueFamilyIndex = vulkan_transfer_queue_family;
+            transfer_queue.queueCount = 1;
+            transfer_queue.pQueuePriorities = queue_priority;
+        }
 
         // Enable all features: just pass the physical features 2 struct.
 
-
         VkDeviceCreateInfo device_create_info = {};
         device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        device_create_info.queueCreateInfoCount = ArraySize(queue_info);
+        device_create_info.queueCreateInfoCount = vulkan_transfer_queue_family < queue_family_count ? 2 : 1;
         device_create_info.pQueueCreateInfos = queue_info;
         //device_create_info.pEnabledFeatures = &vulkan_physical_features.features;
         device_create_info.enabledExtensionCount = (u32)ArraySize(device_extensions);
@@ -682,7 +727,13 @@ namespace Magnefu
             pfnCmdEndDebugUtilsLabelEXT = (PFN_vkCmdEndDebugUtilsLabelEXT)vkGetDeviceProcAddr(vulkan_device, "vkCmdEndDebugUtilsLabelEXT");
         }
 
-        vkGetDeviceQueue(vulkan_device, vulkan_queue_family, 0, &vulkan_queue);
+
+        // Get main queue
+        vkGetDeviceQueue(vulkan_device, main_queue_index, 0, &vulkan_main_queue);
+        if (vulkan_transfer_queue_family < queue_family_count)
+        {
+            vkGetDeviceQueue(vulkan_device, transfer_queue_index, 0, &vulkan_transfer_queue);
+        }
 
         // Create Framebuffers
         int window_width, window_height;
@@ -2840,7 +2891,7 @@ namespace Magnefu
         //// Check if surface is supported
         // TODO: Windows only!
         VkBool32 surface_supported;
-        vkGetPhysicalDeviceSurfaceSupportKHR(vulkan_physical_device, vulkan_queue_family, vulkan_window_surface, &surface_supported);
+        vkGetPhysicalDeviceSurfaceSupportKHR(vulkan_physical_device, vulkan_main_queue_family, vulkan_window_surface, &surface_supported);
         if (surface_supported != VK_TRUE) 
         {
             MF_CORE_ERROR("Error no WSI support on physical device 0");
@@ -3280,7 +3331,7 @@ namespace Magnefu
         submit_info.signalSemaphoreCount = 1;
         submit_info.pSignalSemaphores = render_complete_semaphore;
 
-        vkQueueSubmit(vulkan_queue, 1, &submit_info, *render_complete_fence);
+        vkQueueSubmit(vulkan_main_queue, 1, &submit_info, *render_complete_fence);
 
         VkPresentInfoKHR present_info{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
         present_info.waitSemaphoreCount = 1;
@@ -3291,7 +3342,7 @@ namespace Magnefu
         present_info.pSwapchains = swap_chains;
         present_info.pImageIndices = &vulkan_image_index;
         present_info.pResults = nullptr; // Optional
-        VkResult result = vkQueuePresentKHR(vulkan_queue, &present_info);
+        VkResult result = vkQueuePresentKHR(vulkan_main_queue, &present_info);
 
         num_queued_command_buffers = 0;
 

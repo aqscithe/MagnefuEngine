@@ -10,14 +10,14 @@
     <Filter Include="src\Magnefu\Application">
       <UniqueIdentifier>{A273DBCF-0EAB-2367-17B5-878A836B4A60}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Magnefu\Application\Camera">
-      <UniqueIdentifier>{DA5D18E5-C683-E24B-AFC9-67179B8E0718}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\Magnefu\Application\Events">
       <UniqueIdentifier>{46753AEB-329B-0452-1BE1-891D07A6291E}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Magnefu\Application\ImGui">
       <UniqueIdentifier>{4C9AC89A-B8B2-AFC4-815F-3F5EED36445E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Magnefu\Application\Input">
+      <UniqueIdentifier>{21D5C99A-8DED-B0C4-569A-405EC271455E}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Magnefu\Application\Scene">
       <UniqueIdentifier>{3F92789B-ABAA-5FC5-7457-EF5EE02EF45E}</UniqueIdentifier>
@@ -91,6 +91,39 @@
     <Filter Include="vendor\SOIL2\include\SOIL2">
       <UniqueIdentifier>{961AF2A3-822A-9E74-EBE3-0293D7128D0D}</UniqueIdentifier>
     </Filter>
+    <Filter Include="vendor\cglm">
+      <UniqueIdentifier>{454977C1-B1FE-EFB6-3AF3-E98DA6A7E6BA}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\cglm\call">
+      <UniqueIdentifier>{9050EB30-7C49-0A83-A57B-EF0791D3E98E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\cglm\call\clipspace">
+      <UniqueIdentifier>{B33390A5-9F43-3C76-08FD-A094F42B2B0F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\cglm\clipspace">
+      <UniqueIdentifier>{A852FEB9-14BF-B9B4-DDB2-511249DEDB1C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\cglm\simd">
+      <UniqueIdentifier>{C138F430-AD31-1383-D663-F807C2BBF28E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\cglm\simd\avx">
+      <UniqueIdentifier>{5F23108E-4BB2-9957-F4D0-AD52E03EAAFD}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\cglm\simd\neon">
+      <UniqueIdentifier>{20671B50-8CD3-D64A-55C7-6EA8C1F2F8B2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\cglm\simd\sse2">
+      <UniqueIdentifier>{0D5F1E50-79CB-D94A-42BF-71A8AEEAFBB2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\cglm\struct">
+      <UniqueIdentifier>{F98DAF3F-E571-7095-4ED2-6AE83AD55A17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\cglm\struct\clipspace">
+      <UniqueIdentifier>{5C088BC3-48C3-7A6F-F17A-F3B9DD14C5FF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\enkiTS">
+      <UniqueIdentifier>{10199701-7CD9-1238-4514-5CB5B1935714}</UniqueIdentifier>
+    </Filter>
     <Filter Include="vendor\entt">
       <UniqueIdentifier>{DD8078C1-4936-F1B6-D22A-EB8D3EDFE7BA}</UniqueIdentifier>
     </Filter>
@@ -120,6 +153,9 @@
     </Filter>
     <Filter Include="vendor\imgui\backends">
       <UniqueIdentifier>{27CEAEAF-933A-6AAA-5C2E-0208C8598C12}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\json">
+      <UniqueIdentifier>{5C537BC1-C808-F4B6-51FD-ED8DBDB1EABA}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor\spdlog">
       <UniqueIdentifier>{8BBC5F22-F77C-DB58-C0B7-24D62C372035}</UniqueIdentifier>
@@ -237,19 +273,16 @@
     <ClInclude Include="src\Magnefu\Application\Events\Event.h">
       <Filter>src\Magnefu\Application\Events</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Input\Input.h">
-      <Filter>src\Magnefu\Application\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Input\KeyCodes.h">
+    <ClInclude Include="src\Magnefu\Application\Events\GamepadEvent.h">
       <Filter>src\Magnefu\Application\Events</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Application\Events\KeyEvent.h">
       <Filter>src\Magnefu\Application\Events</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Input\MouseButtonCodes.h">
+    <ClInclude Include="src\Magnefu\Application\Events\MouseEvent.h">
       <Filter>src\Magnefu\Application\Events</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Events\MouseEvent.h">
+    <ClInclude Include="src\Magnefu\Application\Events\OSEvent.h">
       <Filter>src\Magnefu\Application\Events</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiDefs.h">
@@ -258,11 +291,35 @@
     <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiService.hpp">
       <Filter>src\Magnefu\Application\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Input\GamepadCodes.h">
+      <Filter>src\Magnefu\Application\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Input\Input.h">
+      <Filter>src\Magnefu\Application\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Input\KeyCodes.h">
+      <Filter>src\Magnefu\Application\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Input\MouseButtonCodes.h">
+      <Filter>src\Magnefu\Application\Input</Filter>
+    </ClInclude>
     <ClInclude Include="src\Magnefu\Application\Layer.h">
       <Filter>src\Magnefu\Application</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Application\LayerStack.h">
       <Filter>src\Magnefu\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Scene\Components.h">
+      <Filter>src\Magnefu\Application\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Scene\Entity.h">
+      <Filter>src\Magnefu\Application\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Scene\Scene.h">
+      <Filter>src\Magnefu\Application\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\Scene\SceneManager.h">
+      <Filter>src\Magnefu\Application\Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Application\Windows\Window.h">
       <Filter>src\Magnefu\Application\Windows</Filter>
@@ -286,6 +343,9 @@
       <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Core\BlobSerialization.hpp">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\Camera.hpp">
       <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Core\Color.hpp">
@@ -357,6 +417,9 @@
     <ClInclude Include="src\Magnefu\Core\Service.hpp">
       <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\ServiceManager.hpp">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\Magnefu\Core\SmartPointers.h">
       <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
@@ -367,6 +430,9 @@
       <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Core\Time.hpp">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\glTF.hpp">
       <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Graphics\CommandBuffer.hpp">
@@ -401,6 +467,9 @@
     </ClInclude>
     <ClInclude Include="src\Magnefu\Graphics\ResourceManagement\ResourcePaths.h">
       <Filter>src\Magnefu\Graphics\ResourceManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\spirv_parser.hpp">
+      <Filter>src\Magnefu\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Magnefu.h">
       <Filter>src\Magnefu</Filter>
@@ -521,6 +590,417 @@
     </ClInclude>
     <ClInclude Include="vendor\SOIL2\include\SOIL2\SOIL2.h">
       <Filter>vendor\SOIL2\include\SOIL2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\affine-mat.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\affine.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\affine2d.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\applesimd.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\bezier.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\box.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\affine.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\affine2d.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\bezier.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\box.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\cam.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\clipspace\ortho_lh_no.h">
+      <Filter>vendor\cglm\call\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\clipspace\ortho_lh_zo.h">
+      <Filter>vendor\cglm\call\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\clipspace\ortho_rh_no.h">
+      <Filter>vendor\cglm\call\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\clipspace\ortho_rh_zo.h">
+      <Filter>vendor\cglm\call\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\clipspace\persp_lh_no.h">
+      <Filter>vendor\cglm\call\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\clipspace\persp_lh_zo.h">
+      <Filter>vendor\cglm\call\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\clipspace\persp_rh_no.h">
+      <Filter>vendor\cglm\call\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\clipspace\persp_rh_zo.h">
+      <Filter>vendor\cglm\call\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\clipspace\project_no.h">
+      <Filter>vendor\cglm\call\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\clipspace\project_zo.h">
+      <Filter>vendor\cglm\call\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\clipspace\view_lh_no.h">
+      <Filter>vendor\cglm\call\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\clipspace\view_lh_zo.h">
+      <Filter>vendor\cglm\call\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\clipspace\view_rh_no.h">
+      <Filter>vendor\cglm\call\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\clipspace\view_rh_zo.h">
+      <Filter>vendor\cglm\call\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\curve.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\ease.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\euler.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\frustum.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\io.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\mat2.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\mat3.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\mat4.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\plane.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\project.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\quat.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\ray.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\sphere.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\vec2.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\vec3.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\call\vec4.h">
+      <Filter>vendor\cglm\call</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\cam.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\cglm.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\clipspace\ortho_lh_no.h">
+      <Filter>vendor\cglm\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\clipspace\ortho_lh_zo.h">
+      <Filter>vendor\cglm\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\clipspace\ortho_rh_no.h">
+      <Filter>vendor\cglm\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\clipspace\ortho_rh_zo.h">
+      <Filter>vendor\cglm\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\clipspace\persp.h">
+      <Filter>vendor\cglm\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\clipspace\persp_lh_no.h">
+      <Filter>vendor\cglm\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\clipspace\persp_lh_zo.h">
+      <Filter>vendor\cglm\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\clipspace\persp_rh_no.h">
+      <Filter>vendor\cglm\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\clipspace\persp_rh_zo.h">
+      <Filter>vendor\cglm\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\clipspace\project_no.h">
+      <Filter>vendor\cglm\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\clipspace\project_zo.h">
+      <Filter>vendor\cglm\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\clipspace\view_lh.h">
+      <Filter>vendor\cglm\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\clipspace\view_lh_no.h">
+      <Filter>vendor\cglm\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\clipspace\view_lh_zo.h">
+      <Filter>vendor\cglm\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\clipspace\view_rh.h">
+      <Filter>vendor\cglm\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\clipspace\view_rh_no.h">
+      <Filter>vendor\cglm\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\clipspace\view_rh_zo.h">
+      <Filter>vendor\cglm\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\color.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\common.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\curve.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\ease.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\euler.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\frustum.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\io.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\mat2.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\mat3.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\mat4.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\plane.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\project.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\quat.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\ray.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\simd\arm.h">
+      <Filter>vendor\cglm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\simd\avx\affine.h">
+      <Filter>vendor\cglm\simd\avx</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\simd\avx\mat4.h">
+      <Filter>vendor\cglm\simd\avx</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\simd\intrin.h">
+      <Filter>vendor\cglm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\simd\neon\affine.h">
+      <Filter>vendor\cglm\simd\neon</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\simd\neon\mat2.h">
+      <Filter>vendor\cglm\simd\neon</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\simd\neon\mat4.h">
+      <Filter>vendor\cglm\simd\neon</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\simd\neon\quat.h">
+      <Filter>vendor\cglm\simd\neon</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\simd\sse2\affine.h">
+      <Filter>vendor\cglm\simd\sse2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\simd\sse2\mat2.h">
+      <Filter>vendor\cglm\simd\sse2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\simd\sse2\mat3.h">
+      <Filter>vendor\cglm\simd\sse2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\simd\sse2\mat4.h">
+      <Filter>vendor\cglm\simd\sse2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\simd\sse2\quat.h">
+      <Filter>vendor\cglm\simd\sse2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\simd\x86.h">
+      <Filter>vendor\cglm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\sphere.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\affine.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\affine2d.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\box.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\cam.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\clipspace\ortho_lh_no.h">
+      <Filter>vendor\cglm\struct\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\clipspace\ortho_lh_zo.h">
+      <Filter>vendor\cglm\struct\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\clipspace\ortho_rh_no.h">
+      <Filter>vendor\cglm\struct\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\clipspace\ortho_rh_zo.h">
+      <Filter>vendor\cglm\struct\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\clipspace\persp_lh_no.h">
+      <Filter>vendor\cglm\struct\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\clipspace\persp_lh_zo.h">
+      <Filter>vendor\cglm\struct\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\clipspace\persp_rh_no.h">
+      <Filter>vendor\cglm\struct\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\clipspace\persp_rh_zo.h">
+      <Filter>vendor\cglm\struct\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\clipspace\view_lh_no.h">
+      <Filter>vendor\cglm\struct\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\clipspace\view_lh_zo.h">
+      <Filter>vendor\cglm\struct\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\clipspace\view_rh_no.h">
+      <Filter>vendor\cglm\struct\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\clipspace\view_rh_zo.h">
+      <Filter>vendor\cglm\struct\clipspace</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\color.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\curve.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\euler.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\frustum.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\io.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\mat2.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\mat3.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\mat4.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\plane.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\project.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\quat.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\sphere.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\vec2-ext.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\vec2.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\vec3-ext.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\vec3.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\vec4-ext.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\struct\vec4.h">
+      <Filter>vendor\cglm\struct</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\types-struct.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\types.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\util.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\vec2-ext.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\vec2.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\vec3-ext.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\vec3.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\vec4-ext.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\vec4.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\cglm\version.h">
+      <Filter>vendor\cglm</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\enkiTS\LockLessMultiReadPipe.h">
+      <Filter>vendor\enkiTS</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\enkiTS\TaskScheduler.h">
+      <Filter>vendor\enkiTS</Filter>
     </ClInclude>
     <ClInclude Include="vendor\entt\include\entt.hpp">
       <Filter>vendor\entt\include</Filter>
@@ -1406,6 +1886,9 @@
     </ClInclude>
     <ClInclude Include="vendor\imgui\imstb_truetype.h">
       <Filter>vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\json\json.hpp">
+      <Filter>vendor\json</Filter>
     </ClInclude>
     <ClInclude Include="vendor\spdlog\async.h">
       <Filter>vendor\spdlog</Filter>
@@ -3087,17 +3570,6 @@
     <ClInclude Include="vendor\wyhash\wyhash.h">
       <Filter>vendor\wyhash</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Core\ServiceManager.hpp" />
-    <ClInclude Include="src\Magnefu\Application\Input\GamepadCodes.h" />
-    <ClInclude Include="src\Magnefu\Application\Events\OSEvent.h" />
-    <ClInclude Include="src\Magnefu\Application\Events\GamepadEvent.h" />
-    <ClInclude Include="src\Magnefu\Core\glTF.hpp" />
-    <ClInclude Include="vendor\json\json.hpp" />
-    <ClInclude Include="src\Magnefu\Core\Camera.hpp" />
-    <ClInclude Include="src\Magnefu\Graphics\spirv_parser.hpp" />
-    <ClInclude Include="src\Magnefu\Application\Scene\Scene.h" />
-    <ClInclude Include="src\Magnefu\Application\Scene\Entity.h" />
-    <ClInclude Include="src\Magnefu\Application\Scene\Components.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application\Application.cpp">
@@ -3109,11 +3581,29 @@
     <ClCompile Include="src\Magnefu\Application\ImGui\ImGuiService.cpp">
       <Filter>src\Magnefu\Application\ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="src\Magnefu\Application\Input\Input.cpp">
+      <Filter>src\Magnefu\Application\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Application\Input\KeyCodes.cpp">
+      <Filter>src\Magnefu\Application\Input</Filter>
+    </ClCompile>
     <ClCompile Include="src\Magnefu\Application\Layer.cpp">
       <Filter>src\Magnefu\Application</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Application\LayerStack.cpp">
       <Filter>src\Magnefu\Application</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Application\Scene\Entity.cpp">
+      <Filter>src\Magnefu\Application\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Application\Scene\Scene.cpp">
+      <Filter>src\Magnefu\Application\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Application\Scene\SceneManager.cpp">
+      <Filter>src\Magnefu\Application\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Application\Windows\Window.cpp">
+      <Filter>src\Magnefu\Application\Windows</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Application\Windows\WindowsInput.cpp">
       <Filter>src\Magnefu\Application\Windows</Filter>
@@ -3121,7 +3611,13 @@
     <ClCompile Include="src\Magnefu\Application\Windows\WindowsWindow.cpp">
       <Filter>src\Magnefu\Application\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\Bit.cpp">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClCompile>
     <ClCompile Include="src\Magnefu\Core\BlobSerialization.cpp">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\Camera.cpp">
       <Filter>src\Magnefu\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Core\Color.cpp">
@@ -3172,10 +3668,16 @@
     <ClCompile Include="src\Magnefu\Core\ResourceManager.cpp">
       <Filter>src\Magnefu\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\ServiceManager.cpp">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClCompile>
     <ClCompile Include="src\Magnefu\Core\String.cpp">
       <Filter>src\Magnefu\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Core\Time.cpp">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Core\glTF.cpp">
       <Filter>src\Magnefu\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Graphics\CommandBuffer.cpp">
@@ -3193,8 +3695,14 @@
     <ClCompile Include="src\Magnefu\Graphics\Renderer.cpp">
       <Filter>src\Magnefu\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="src\Magnefu\Graphics\spirv_parser.cpp">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClCompile>
     <ClCompile Include="src\mfpch.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\enkiTS\TaskScheduler.cpp">
+      <Filter>vendor\enkiTS</Filter>
     </ClCompile>
     <ClCompile Include="vendor\glm\detail\glm.cpp">
       <Filter>vendor\glm\detail</Filter>
@@ -3226,16 +3734,6 @@
     <ClCompile Include="vendor\vulkan\include\glm\detail\glm.cpp">
       <Filter>vendor\vulkan\include\glm\detail</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Core\Bit.cpp" />
-    <ClCompile Include="src\Magnefu\Core\ServiceManager.cpp" />
-    <ClCompile Include="src\Magnefu\Application\Windows\Window.cpp" />
-    <ClCompile Include="src\Magnefu\Application\Input\Input.cpp" />
-    <ClCompile Include="src\Magnefu\Application\Input\KeyCodes.cpp" />
-    <ClCompile Include="src\Magnefu\Core\glTF.cpp" />
-    <ClCompile Include="src\Magnefu\Core\Camera.cpp" />
-    <ClCompile Include="src\Magnefu\Graphics\spirv_parser.cpp" />
-    <ClCompile Include="src\Magnefu\Application\Scene\Scene.cpp" />
-    <ClCompile Include="src\Magnefu\Application\Scene\Entity.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\vulkan\include\spirv-headers\spirv.hpp11">

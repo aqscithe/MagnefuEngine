@@ -151,20 +151,21 @@
     <ClInclude Include="src\Magnefu\Application\Events\ApplicationEvent.h" />
     <ClInclude Include="src\Magnefu\Application\Events\Event.h" />
     <ClInclude Include="src\Magnefu\Application\Events\GamepadEvent.h" />
+    <ClInclude Include="src\Magnefu\Application\Events\KeyEvent.h" />
+    <ClInclude Include="src\Magnefu\Application\Events\MouseEvent.h" />
     <ClInclude Include="src\Magnefu\Application\Events\OSEvent.h" />
+    <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiDefs.h" />
+    <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiService.hpp" />
     <ClInclude Include="src\Magnefu\Application\Input\GamepadCodes.h" />
     <ClInclude Include="src\Magnefu\Application\Input\Input.h" />
     <ClInclude Include="src\Magnefu\Application\Input\KeyCodes.h" />
-    <ClInclude Include="src\Magnefu\Application\Events\KeyEvent.h" />
     <ClInclude Include="src\Magnefu\Application\Input\MouseButtonCodes.h" />
-    <ClInclude Include="src\Magnefu\Application\Events\MouseEvent.h" />
-    <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiDefs.h" />
-    <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiService.hpp" />
     <ClInclude Include="src\Magnefu\Application\Layer.h" />
     <ClInclude Include="src\Magnefu\Application\LayerStack.h" />
     <ClInclude Include="src\Magnefu\Application\Scene\Components.h" />
     <ClInclude Include="src\Magnefu\Application\Scene\Entity.h" />
     <ClInclude Include="src\Magnefu\Application\Scene\Scene.h" />
+    <ClInclude Include="src\Magnefu\Application\Scene\SceneManager.h" />
     <ClInclude Include="src\Magnefu\Application\Windows\Window.h" />
     <ClInclude Include="src\Magnefu\Application\Windows\WindowsInput.h" />
     <ClInclude Include="src\Magnefu\Application\Windows\WindowsWindow.h" />
@@ -178,7 +179,6 @@
     <ClInclude Include="src\Magnefu\Core\DataStructures.hpp" />
     <ClInclude Include="src\Magnefu\Core\Debug\Instrumentor.h" />
     <ClInclude Include="src\Magnefu\Core\File.hpp" />
-    <ClInclude Include="src\Magnefu\Core\glTF.hpp" />
     <ClInclude Include="src\Magnefu\Core\HashMap.hpp" />
     <ClInclude Include="src\Magnefu\Core\Log.h" />
     <ClInclude Include="src\Magnefu\Core\Maths\MathsCommon.h" />
@@ -203,6 +203,7 @@
     <ClInclude Include="src\Magnefu\Core\Span.h" />
     <ClInclude Include="src\Magnefu\Core\String.hpp" />
     <ClInclude Include="src\Magnefu\Core\Time.hpp" />
+    <ClInclude Include="src\Magnefu\Core\glTF.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\CommandBuffer.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\GPUEnum.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\GPUProfiler.hpp" />
@@ -254,8 +255,144 @@
     <ClInclude Include="vendor\GLFW\src\wl_platform.h" />
     <ClInclude Include="vendor\GLFW\src\x11_platform.h" />
     <ClInclude Include="vendor\GLFW\src\xkb_unicode.h" />
-    <ClInclude Include="vendor\json\json.hpp" />
     <ClInclude Include="vendor\SOIL2\include\SOIL2\SOIL2.h" />
+    <ClInclude Include="vendor\cglm\affine-mat.h" />
+    <ClInclude Include="vendor\cglm\affine.h" />
+    <ClInclude Include="vendor\cglm\affine2d.h" />
+    <ClInclude Include="vendor\cglm\applesimd.h" />
+    <ClInclude Include="vendor\cglm\bezier.h" />
+    <ClInclude Include="vendor\cglm\box.h" />
+    <ClInclude Include="vendor\cglm\call.h" />
+    <ClInclude Include="vendor\cglm\call\affine.h" />
+    <ClInclude Include="vendor\cglm\call\affine2d.h" />
+    <ClInclude Include="vendor\cglm\call\bezier.h" />
+    <ClInclude Include="vendor\cglm\call\box.h" />
+    <ClInclude Include="vendor\cglm\call\cam.h" />
+    <ClInclude Include="vendor\cglm\call\clipspace\ortho_lh_no.h" />
+    <ClInclude Include="vendor\cglm\call\clipspace\ortho_lh_zo.h" />
+    <ClInclude Include="vendor\cglm\call\clipspace\ortho_rh_no.h" />
+    <ClInclude Include="vendor\cglm\call\clipspace\ortho_rh_zo.h" />
+    <ClInclude Include="vendor\cglm\call\clipspace\persp_lh_no.h" />
+    <ClInclude Include="vendor\cglm\call\clipspace\persp_lh_zo.h" />
+    <ClInclude Include="vendor\cglm\call\clipspace\persp_rh_no.h" />
+    <ClInclude Include="vendor\cglm\call\clipspace\persp_rh_zo.h" />
+    <ClInclude Include="vendor\cglm\call\clipspace\project_no.h" />
+    <ClInclude Include="vendor\cglm\call\clipspace\project_zo.h" />
+    <ClInclude Include="vendor\cglm\call\clipspace\view_lh_no.h" />
+    <ClInclude Include="vendor\cglm\call\clipspace\view_lh_zo.h" />
+    <ClInclude Include="vendor\cglm\call\clipspace\view_rh_no.h" />
+    <ClInclude Include="vendor\cglm\call\clipspace\view_rh_zo.h" />
+    <ClInclude Include="vendor\cglm\call\curve.h" />
+    <ClInclude Include="vendor\cglm\call\ease.h" />
+    <ClInclude Include="vendor\cglm\call\euler.h" />
+    <ClInclude Include="vendor\cglm\call\frustum.h" />
+    <ClInclude Include="vendor\cglm\call\io.h" />
+    <ClInclude Include="vendor\cglm\call\mat2.h" />
+    <ClInclude Include="vendor\cglm\call\mat3.h" />
+    <ClInclude Include="vendor\cglm\call\mat4.h" />
+    <ClInclude Include="vendor\cglm\call\plane.h" />
+    <ClInclude Include="vendor\cglm\call\project.h" />
+    <ClInclude Include="vendor\cglm\call\quat.h" />
+    <ClInclude Include="vendor\cglm\call\ray.h" />
+    <ClInclude Include="vendor\cglm\call\sphere.h" />
+    <ClInclude Include="vendor\cglm\call\vec2.h" />
+    <ClInclude Include="vendor\cglm\call\vec3.h" />
+    <ClInclude Include="vendor\cglm\call\vec4.h" />
+    <ClInclude Include="vendor\cglm\cam.h" />
+    <ClInclude Include="vendor\cglm\cglm.h" />
+    <ClInclude Include="vendor\cglm\clipspace\ortho_lh_no.h" />
+    <ClInclude Include="vendor\cglm\clipspace\ortho_lh_zo.h" />
+    <ClInclude Include="vendor\cglm\clipspace\ortho_rh_no.h" />
+    <ClInclude Include="vendor\cglm\clipspace\ortho_rh_zo.h" />
+    <ClInclude Include="vendor\cglm\clipspace\persp.h" />
+    <ClInclude Include="vendor\cglm\clipspace\persp_lh_no.h" />
+    <ClInclude Include="vendor\cglm\clipspace\persp_lh_zo.h" />
+    <ClInclude Include="vendor\cglm\clipspace\persp_rh_no.h" />
+    <ClInclude Include="vendor\cglm\clipspace\persp_rh_zo.h" />
+    <ClInclude Include="vendor\cglm\clipspace\project_no.h" />
+    <ClInclude Include="vendor\cglm\clipspace\project_zo.h" />
+    <ClInclude Include="vendor\cglm\clipspace\view_lh.h" />
+    <ClInclude Include="vendor\cglm\clipspace\view_lh_no.h" />
+    <ClInclude Include="vendor\cglm\clipspace\view_lh_zo.h" />
+    <ClInclude Include="vendor\cglm\clipspace\view_rh.h" />
+    <ClInclude Include="vendor\cglm\clipspace\view_rh_no.h" />
+    <ClInclude Include="vendor\cglm\clipspace\view_rh_zo.h" />
+    <ClInclude Include="vendor\cglm\color.h" />
+    <ClInclude Include="vendor\cglm\common.h" />
+    <ClInclude Include="vendor\cglm\curve.h" />
+    <ClInclude Include="vendor\cglm\ease.h" />
+    <ClInclude Include="vendor\cglm\euler.h" />
+    <ClInclude Include="vendor\cglm\frustum.h" />
+    <ClInclude Include="vendor\cglm\io.h" />
+    <ClInclude Include="vendor\cglm\mat2.h" />
+    <ClInclude Include="vendor\cglm\mat3.h" />
+    <ClInclude Include="vendor\cglm\mat4.h" />
+    <ClInclude Include="vendor\cglm\plane.h" />
+    <ClInclude Include="vendor\cglm\project.h" />
+    <ClInclude Include="vendor\cglm\quat.h" />
+    <ClInclude Include="vendor\cglm\ray.h" />
+    <ClInclude Include="vendor\cglm\simd\arm.h" />
+    <ClInclude Include="vendor\cglm\simd\avx\affine.h" />
+    <ClInclude Include="vendor\cglm\simd\avx\mat4.h" />
+    <ClInclude Include="vendor\cglm\simd\intrin.h" />
+    <ClInclude Include="vendor\cglm\simd\neon\affine.h" />
+    <ClInclude Include="vendor\cglm\simd\neon\mat2.h" />
+    <ClInclude Include="vendor\cglm\simd\neon\mat4.h" />
+    <ClInclude Include="vendor\cglm\simd\neon\quat.h" />
+    <ClInclude Include="vendor\cglm\simd\sse2\affine.h" />
+    <ClInclude Include="vendor\cglm\simd\sse2\mat2.h" />
+    <ClInclude Include="vendor\cglm\simd\sse2\mat3.h" />
+    <ClInclude Include="vendor\cglm\simd\sse2\mat4.h" />
+    <ClInclude Include="vendor\cglm\simd\sse2\quat.h" />
+    <ClInclude Include="vendor\cglm\simd\x86.h" />
+    <ClInclude Include="vendor\cglm\sphere.h" />
+    <ClInclude Include="vendor\cglm\struct.h" />
+    <ClInclude Include="vendor\cglm\struct\affine.h" />
+    <ClInclude Include="vendor\cglm\struct\affine2d.h" />
+    <ClInclude Include="vendor\cglm\struct\box.h" />
+    <ClInclude Include="vendor\cglm\struct\cam.h" />
+    <ClInclude Include="vendor\cglm\struct\clipspace\ortho_lh_no.h" />
+    <ClInclude Include="vendor\cglm\struct\clipspace\ortho_lh_zo.h" />
+    <ClInclude Include="vendor\cglm\struct\clipspace\ortho_rh_no.h" />
+    <ClInclude Include="vendor\cglm\struct\clipspace\ortho_rh_zo.h" />
+    <ClInclude Include="vendor\cglm\struct\clipspace\persp_lh_no.h" />
+    <ClInclude Include="vendor\cglm\struct\clipspace\persp_lh_zo.h" />
+    <ClInclude Include="vendor\cglm\struct\clipspace\persp_rh_no.h" />
+    <ClInclude Include="vendor\cglm\struct\clipspace\persp_rh_zo.h" />
+    <ClInclude Include="vendor\cglm\struct\clipspace\view_lh_no.h" />
+    <ClInclude Include="vendor\cglm\struct\clipspace\view_lh_zo.h" />
+    <ClInclude Include="vendor\cglm\struct\clipspace\view_rh_no.h" />
+    <ClInclude Include="vendor\cglm\struct\clipspace\view_rh_zo.h" />
+    <ClInclude Include="vendor\cglm\struct\color.h" />
+    <ClInclude Include="vendor\cglm\struct\curve.h" />
+    <ClInclude Include="vendor\cglm\struct\euler.h" />
+    <ClInclude Include="vendor\cglm\struct\frustum.h" />
+    <ClInclude Include="vendor\cglm\struct\io.h" />
+    <ClInclude Include="vendor\cglm\struct\mat2.h" />
+    <ClInclude Include="vendor\cglm\struct\mat3.h" />
+    <ClInclude Include="vendor\cglm\struct\mat4.h" />
+    <ClInclude Include="vendor\cglm\struct\plane.h" />
+    <ClInclude Include="vendor\cglm\struct\project.h" />
+    <ClInclude Include="vendor\cglm\struct\quat.h" />
+    <ClInclude Include="vendor\cglm\struct\sphere.h" />
+    <ClInclude Include="vendor\cglm\struct\vec2-ext.h" />
+    <ClInclude Include="vendor\cglm\struct\vec2.h" />
+    <ClInclude Include="vendor\cglm\struct\vec3-ext.h" />
+    <ClInclude Include="vendor\cglm\struct\vec3.h" />
+    <ClInclude Include="vendor\cglm\struct\vec4-ext.h" />
+    <ClInclude Include="vendor\cglm\struct\vec4.h" />
+    <ClInclude Include="vendor\cglm\types-struct.h" />
+    <ClInclude Include="vendor\cglm\types.h" />
+    <ClInclude Include="vendor\cglm\util.h" />
+    <ClInclude Include="vendor\cglm\vec2-ext.h" />
+    <ClInclude Include="vendor\cglm\vec2.h" />
+    <ClInclude Include="vendor\cglm\vec3-ext.h" />
+    <ClInclude Include="vendor\cglm\vec3.h" />
+    <ClInclude Include="vendor\cglm\vec4-ext.h" />
+    <ClInclude Include="vendor\cglm\vec4.h" />
+    <ClInclude Include="vendor\cglm\version.h" />
+    <ClInclude Include="vendor\enkiTS\LockLessMultiReadPipe.h" />
+    <ClInclude Include="vendor\enkiTS\TaskScheduler.h" />
     <ClInclude Include="vendor\entt\include\entt.hpp" />
     <ClInclude Include="vendor\glm\common.hpp" />
     <ClInclude Include="vendor\glm\detail\_features.hpp" />
@@ -551,6 +688,7 @@
     <ClInclude Include="vendor\imgui\imstb_rectpack.h" />
     <ClInclude Include="vendor\imgui\imstb_textedit.h" />
     <ClInclude Include="vendor\imgui\imstb_truetype.h" />
+    <ClInclude Include="vendor\json\json.hpp" />
     <ClInclude Include="vendor\spdlog\async.h" />
     <ClInclude Include="vendor\spdlog\async_logger-inl.h" />
     <ClInclude Include="vendor\spdlog\async_logger.h" />
@@ -1122,6 +1260,7 @@
     <ClCompile Include="src\Magnefu\Application\LayerStack.cpp" />
     <ClCompile Include="src\Magnefu\Application\Scene\Entity.cpp" />
     <ClCompile Include="src\Magnefu\Application\Scene\Scene.cpp" />
+    <ClCompile Include="src\Magnefu\Application\Scene\SceneManager.cpp" />
     <ClCompile Include="src\Magnefu\Application\Windows\Window.cpp" />
     <ClCompile Include="src\Magnefu\Application\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Magnefu\Application\Windows\WindowsWindow.cpp" />
@@ -1131,7 +1270,6 @@
     <ClCompile Include="src\Magnefu\Core\Color.cpp" />
     <ClCompile Include="src\Magnefu\Core\DataStructures.cpp" />
     <ClCompile Include="src\Magnefu\Core\File.cpp" />
-    <ClCompile Include="src\Magnefu\Core\glTF.cpp" />
     <ClCompile Include="src\Magnefu\Core\Log.cpp" />
     <ClCompile Include="src\Magnefu\Core\Maths\Matrices.cpp" />
     <ClCompile Include="src\Magnefu\Core\Maths\Quaternion.cpp" />
@@ -1148,6 +1286,7 @@
     <ClCompile Include="src\Magnefu\Core\ServiceManager.cpp" />
     <ClCompile Include="src\Magnefu\Core\String.cpp" />
     <ClCompile Include="src\Magnefu\Core\Time.cpp" />
+    <ClCompile Include="src\Magnefu\Core\glTF.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\CommandBuffer.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\GPUProfiler.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\GPUResources.cpp" />
@@ -1157,19 +1296,39 @@
     <ClCompile Include="src\mfpch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="vendor\glm\detail\glm.cpp" />
-    <ClCompile Include="vendor\imgui\backends\imgui_impl_glfw.cpp" />
-    <ClCompile Include="vendor\imgui\imgui.cpp" />
-    <ClCompile Include="vendor\imgui\imgui_demo.cpp" />
-    <ClCompile Include="vendor\imgui\imgui_draw.cpp" />
-    <ClCompile Include="vendor\imgui\imgui_tables.cpp" />
-    <ClCompile Include="vendor\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="vendor\stb_image\stb_image.cpp" />
+    <ClCompile Include="vendor\enkiTS\TaskScheduler.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\glm\detail\glm.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\backends\imgui_impl_glfw.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_demo.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_draw.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_tables.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_widgets.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\stb_image\stb_image.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="vendor\tlsf\tlsf.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="vendor\vulkan\include\glm\detail\glm.cpp">
       <ObjectFileName>$(IntDir)\glm1.obj</ObjectFileName>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

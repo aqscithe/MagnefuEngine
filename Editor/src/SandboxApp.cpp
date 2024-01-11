@@ -15,7 +15,9 @@
 #include "Magnefu/Core/glTF.hpp"
 
 
+// -- Vendor ----------------------- //
 #include "imgui/imgui.h"
+#include "enkiTS/TaskScheduler.h"
 
 
 
@@ -42,6 +44,9 @@ static Magnefu::GPUProfiler s_gpu_profiler;
 
 
 Magnefu::BufferHandle                    scene_cb;
+
+static enki::TaskScheduler	s_task_scheduler;
+
 
 struct RenderData
 {
@@ -452,6 +457,43 @@ static bool get_mesh_material(Magnefu::Renderer& renderer, Magnefu::Scene& scene
 	return transparent;
 }
 
+// -- IO Tasks ------------------------------------------------------ //
+
+struct RunPinnedTaskLoopTask : enki::IPinnedTask
+{
+	void Execute() override
+	{
+		while (task_scheduler->GetIsRunning() && execute)
+		{
+			// 'sleeps' until there are pinned tasks to run
+			task_scheduler->WaitForNewPinnedTasks();
+
+			task_scheduler->RunPinnedTasks();
+		}
+	}
+
+	enki::TaskScheduler* task_scheduler;
+	bool execute = true;
+
+}; // RunPinnedTaskLoopTask
+
+
+struct AsynchronousLoadTask : enki::IPinnedTask
+{
+	void Execute() override
+	{
+		while (execute)
+		{
+			async_loader->update();
+		}
+	}
+
+	AsynchronousLoader*		async_loader;
+	enki::TaskScheduler*	task_scheduler;
+	bool					execute = true;
+
+}; // AsynchronousLoadTask
+
 
 // ----------------------------------------------------------------------------------------------------------- //
 
@@ -482,8 +524,14 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	service_manager = Magnefu::ServiceManager::instance;
 
 	service_manager->init(&Magnefu::MemoryService::Instance()->systemAllocator);
-	
 
+	enki::TaskSchedulerConfig scheduler_config;
+	// In this example we create more threads than the hardware can run,
+	// because the IO thread will spend most of it's time idle or blocked
+	// and therefore not scheduled for CPU time by the OS
+	scheduler_config.numTaskThreadsToCreate += 1;
+	s_task_scheduler.Initialize(scheduler_config);
+	
 	// window
 	WindowConfiguration wconf{ configuration.width, configuration.height, configuration.name, &MemoryService::Instance()->systemAllocator };
 	window = &s_window;
@@ -642,14 +690,14 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 		glTF::Scene& root_gltf_scene = scene.gltf_scene.scenes[scene.gltf_scene.scene];
 
 		// Init entities
-		scene.entities.init(&MemoryService::Instance()->systemAllocator, root_gltf_scene.nodes_count);
+		//scene.entities.init(&MemoryService::Instance()->systemAllocator, root_gltf_scene.nodes_count);
 
 		for (u32 node_index = 0; node_index < root_gltf_scene.nodes_count; ++node_index)
 		{
 			glTF::Node& node = scene.gltf_scene.nodes[root_gltf_scene.nodes[node_index]];
 
 			// entity creation
-			Entity& entity = scene.CreateEntity(node.name.data);
+			//Entity& entity = scene.CreateEntity(node.name.data);
 
 			if (node.mesh == glTF::INVALID_INT_VALUE) {
 				continue;
@@ -683,7 +731,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 
 			// If all transform data has 0 counts, should not have a transform component
 			// However, these files seem to all have 0 values
-			entity.AddComponent<TransformComponent>(node_trans, node_rot, node_scale);
+			//entity.AddComponent<TransformComponent>(node_trans, node_rot, node_scale);
 
 			// Gltf primitives are conceptually submeshes.
 			for (u32 primitive_index = 0; primitive_index < mesh.primitives_count; ++primitive_index) {
@@ -738,7 +786,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 				// If primitives are conceptually submeshes, do I add a mesh component for each submesh?
 				// Yes. An entity supports several of the same component type. glTF can also define
 				// a parent-child relationship between meshes.
-				entity.AddComponent<Magnefu::MeshComponent>(mesh_draw);
+				//entity.AddComponent<Magnefu::MeshComponent>(mesh_draw);
 			}
 		}
 	}
@@ -790,6 +838,16 @@ void Sandbox::Destroy()
 bool Sandbox::MainLoop()
 {
 	using namespace Magnefu;
+
+	RunPinnedTaskLoopTask run_pinned_task;
+	run_pinned_task.threadNum = s_task_scheduler.GetNumTaskThreads() - 1;
+	run_pinned_task.task_scheduler = &s_task_scheduler;
+	s_task_scheduler.AddPinnedTask(&run_pinned_task);
+
+	AsynchronousLoadTask async_load_task;
+	async_load_task.threadNum = run_pinned_task.threadNum;
+	async_load_task.task_scheduler = &s_task_scheduler;
+	s_task_scheduler.AddPinnedTask(&async_load_task);
 
 	Magnefu::GraphicsContext* gpu = service_manager->get<Magnefu::GraphicsContext>();
 

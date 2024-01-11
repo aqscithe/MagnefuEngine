@@ -22,6 +22,33 @@
     <Filter Include="res\meshes\usd">
       <UniqueIdentifier>{FE1C8041-EAEA-7347-D37E-E46DBFEB4FAC}</UniqueIdentifier>
     </Filter>
+    <Filter Include="res\models">
+      <UniqueIdentifier>{425C5241-2E14-948E-971B-6DEA83F22E7F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\models\FlightHelmet">
+      <UniqueIdentifier>{2EA5CEFB-9ADC-1693-A3E6-7AB60F9D3D8C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\models\FlightHelmet\glTF">
+      <UniqueIdentifier>{2AE397DE-169E-878A-BF55-00D5ABEFD11A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\models\FlightHelmet\screenshot">
+      <UniqueIdentifier>{9BA487C6-87E0-8A30-F0F2-A227DC4D334B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\models\SciFiHelmet">
+      <UniqueIdentifier>{3E8011D7-2A7A-3A29-13E7-D039FF7FA095}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\models\SciFiHelmet\glTF">
+      <UniqueIdentifier>{3A282E12-A635-5CF8-2F1C-58E39B2828AF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\models\SciFiHelmet\screenshot">
+      <UniqueIdentifier>{AB75A114-17E4-F693-60CD-B193CC7AEC2F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\models\corridor">
+      <UniqueIdentifier>{75FD77E7-E15E-55F5-6ACC-9BA7D62C8CB4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\models\corridor\glTF">
+      <UniqueIdentifier>{D17F7667-BDA4-C5E7-E6EF-AA77D273C405}</UniqueIdentifier>
+    </Filter>
     <Filter Include="res\shaders">
       <UniqueIdentifier>{4841F028-B4F6-681E-3DEB-62F5A99F5F22}</UniqueIdentifier>
     </Filter>
@@ -127,22 +154,37 @@
     <Filter Include="src">
       <UniqueIdentifier>{2DAB880B-99B4-887C-2230-9F7C8E38947C}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\AppLayers">
+      <UniqueIdentifier>{EDC31E88-5984-9ABE-22BF-E33B8E3EDF9A}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\AppLayers\Overlay.hpp">
+      <Filter>src\AppLayers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AppLayers\SandboxLayer.hpp">
+      <Filter>src\AppLayers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GameCamera.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
     <ClInclude Include="src\SandboxApp.hpp">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\AppLayers\SandboxLayer.hpp" />
-    <ClInclude Include="src\AppLayers\Overlay.hpp" />
-    <ClInclude Include="src\GameCamera.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\AppLayers\Overlay.cpp">
+      <Filter>src\AppLayers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AppLayers\SandboxLayer.cpp">
+      <Filter>src\AppLayers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameCamera.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="src\SandboxApp.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\AppLayers\SandboxLayer.cpp" />
-    <ClCompile Include="src\AppLayers\Overlay.cpp" />
-    <ClCompile Include="src\GameCamera.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\materials\12221_Cat_v1_l3.mtl">
@@ -208,6 +250,48 @@
     <None Include="res\meshes\wooden_watch_tower2.obj">
       <Filter>res\meshes</Filter>
     </None>
+    <None Include="res\models\FlightHelmet\LICENSE.md">
+      <Filter>res\models\FlightHelmet</Filter>
+    </None>
+    <None Include="res\models\FlightHelmet\README.body.md">
+      <Filter>res\models\FlightHelmet</Filter>
+    </None>
+    <None Include="res\models\FlightHelmet\README.md">
+      <Filter>res\models\FlightHelmet</Filter>
+    </None>
+    <None Include="res\models\FlightHelmet\glTF\FlightHelmet.bin">
+      <Filter>res\models\FlightHelmet\glTF</Filter>
+    </None>
+    <None Include="res\models\FlightHelmet\glTF\FlightHelmet.gltf">
+      <Filter>res\models\FlightHelmet\glTF</Filter>
+    </None>
+    <None Include="res\models\FlightHelmet\metadata.json">
+      <Filter>res\models\FlightHelmet</Filter>
+    </None>
+    <None Include="res\models\SciFiHelmet\LICENSE.md">
+      <Filter>res\models\SciFiHelmet</Filter>
+    </None>
+    <None Include="res\models\SciFiHelmet\README.md">
+      <Filter>res\models\SciFiHelmet</Filter>
+    </None>
+    <None Include="res\models\SciFiHelmet\glTF\SciFiHelmet.bin">
+      <Filter>res\models\SciFiHelmet\glTF</Filter>
+    </None>
+    <None Include="res\models\SciFiHelmet\glTF\SciFiHelmet.gltf">
+      <Filter>res\models\SciFiHelmet\glTF</Filter>
+    </None>
+    <None Include="res\models\SciFiHelmet\metadata.json">
+      <Filter>res\models\SciFiHelmet</Filter>
+    </None>
+    <None Include="res\models\corridor\glTF\corridor.bin">
+      <Filter>res\models\corridor\glTF</Filter>
+    </None>
+    <None Include="res\models\corridor\glTF\corridor.gltf">
+      <Filter>res\models\corridor\glTF</Filter>
+    </None>
+    <None Include="res\models\extract_gltf_bin_data.py">
+      <Filter>res\models</Filter>
+    </None>
     <None Include="res\shaders\AreaLight.shader">
       <Filter>res\shaders</Filter>
     </None>
@@ -256,6 +340,18 @@
     <None Include="res\shaders\Texture2D.shader">
       <Filter>res\shaders</Filter>
     </None>
+    <None Include="res\shaders\main.frag">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\main.vert">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\main_cull.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\main_no_cull.cache">
+      <Filter>res\shaders</Filter>
+    </None>
     <None Include="res\textures\DDS\ltc_amp.dds">
       <Filter>res\textures\DDS</Filter>
     </None>
@@ -273,6 +369,96 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_GlassPlasticMat_BaseColor.png">
+      <Filter>res\models\FlightHelmet\glTF</Filter>
+    </Image>
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_GlassPlasticMat_Normal.png">
+      <Filter>res\models\FlightHelmet\glTF</Filter>
+    </Image>
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_GlassPlasticMat_OcclusionRoughMetal.png">
+      <Filter>res\models\FlightHelmet\glTF</Filter>
+    </Image>
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_LeatherPartsMat_BaseColor.png">
+      <Filter>res\models\FlightHelmet\glTF</Filter>
+    </Image>
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_LeatherPartsMat_Normal.png">
+      <Filter>res\models\FlightHelmet\glTF</Filter>
+    </Image>
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_LeatherPartsMat_OcclusionRoughMetal.png">
+      <Filter>res\models\FlightHelmet\glTF</Filter>
+    </Image>
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_LensesMat_BaseColor.png">
+      <Filter>res\models\FlightHelmet\glTF</Filter>
+    </Image>
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_LensesMat_Normal.png">
+      <Filter>res\models\FlightHelmet\glTF</Filter>
+    </Image>
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_LensesMat_OcclusionRoughMetal.png">
+      <Filter>res\models\FlightHelmet\glTF</Filter>
+    </Image>
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_MetalPartsMat_BaseColor.png">
+      <Filter>res\models\FlightHelmet\glTF</Filter>
+    </Image>
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_MetalPartsMat_Normal.png">
+      <Filter>res\models\FlightHelmet\glTF</Filter>
+    </Image>
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_MetalPartsMat_OcclusionRoughMetal.png">
+      <Filter>res\models\FlightHelmet\glTF</Filter>
+    </Image>
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_RubberWoodMat_BaseColor.png">
+      <Filter>res\models\FlightHelmet\glTF</Filter>
+    </Image>
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_RubberWoodMat_Normal.png">
+      <Filter>res\models\FlightHelmet\glTF</Filter>
+    </Image>
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_RubberWoodMat_OcclusionRoughMetal.png">
+      <Filter>res\models\FlightHelmet\glTF</Filter>
+    </Image>
+    <Image Include="res\models\FlightHelmet\screenshot\screenshot-x150.jpg">
+      <Filter>res\models\FlightHelmet\screenshot</Filter>
+    </Image>
+    <Image Include="res\models\FlightHelmet\screenshot\screenshot.jpg">
+      <Filter>res\models\FlightHelmet\screenshot</Filter>
+    </Image>
+    <Image Include="res\models\SciFiHelmet\glTF\SciFiHelmet_AmbientOcclusion.png">
+      <Filter>res\models\SciFiHelmet\glTF</Filter>
+    </Image>
+    <Image Include="res\models\SciFiHelmet\glTF\SciFiHelmet_BaseColor.png">
+      <Filter>res\models\SciFiHelmet\glTF</Filter>
+    </Image>
+    <Image Include="res\models\SciFiHelmet\glTF\SciFiHelmet_MetallicRoughness.png">
+      <Filter>res\models\SciFiHelmet\glTF</Filter>
+    </Image>
+    <Image Include="res\models\SciFiHelmet\glTF\SciFiHelmet_Normal.png">
+      <Filter>res\models\SciFiHelmet\glTF</Filter>
+    </Image>
+    <Image Include="res\models\SciFiHelmet\screenshot\screenshot-x150.jpg">
+      <Filter>res\models\SciFiHelmet\screenshot</Filter>
+    </Image>
+    <Image Include="res\models\SciFiHelmet\screenshot\screenshot.jpg">
+      <Filter>res\models\SciFiHelmet\screenshot</Filter>
+    </Image>
+    <Image Include="res\models\corridor\glTF\scene_1001_AO.png">
+      <Filter>res\models\corridor\glTF</Filter>
+    </Image>
+    <Image Include="res\models\corridor\glTF\scene_1001_ARM.png">
+      <Filter>res\models\corridor\glTF</Filter>
+    </Image>
+    <Image Include="res\models\corridor\glTF\scene_1001_BaseColor.png">
+      <Filter>res\models\corridor\glTF</Filter>
+    </Image>
+    <Image Include="res\models\corridor\glTF\scene_1001_Emissive.png">
+      <Filter>res\models\corridor\glTF</Filter>
+    </Image>
+    <Image Include="res\models\corridor\glTF\scene_1001_Metalness.png">
+      <Filter>res\models\corridor\glTF</Filter>
+    </Image>
+    <Image Include="res\models\corridor\glTF\scene_1001_Normal.png">
+      <Filter>res\models\corridor\glTF</Filter>
+    </Image>
+    <Image Include="res\models\corridor\glTF\scene_1001_Roughness.png">
+      <Filter>res\models\corridor\glTF</Filter>
+    </Image>
     <Image Include="res\textures\12221_Cat_v1_l3\Cat_ao.jpg">
       <Filter>res\textures\12221_Cat_v1_l3</Filter>
     </Image>
