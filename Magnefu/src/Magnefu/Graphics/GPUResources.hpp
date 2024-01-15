@@ -214,14 +214,19 @@ namespace Magnefu
         VkBufferUsageFlags              type_flags = 0;
         ResourceUsageType::Enum         usage = ResourceUsageType::Immutable;
         u32                             size = 0;
-        void* initial_data = nullptr;
+        u32                             persistent = 0;
+        u32                             device_only = 0;
+        void*                           initial_data = nullptr;
 
-        const char* name = nullptr;
+        const char*                     name = nullptr;
+        
 
         BufferCreation& reset();
         BufferCreation& set(VkBufferUsageFlags flags, ResourceUsageType::Enum usage, u32 size);
         BufferCreation& set_data(void* data);
         BufferCreation& set_name(const char* name);
+        BufferCreation& set_persistent(u32 persistent);
+        BufferCreation& set_device_only(u32 value);
 
     }; // struct BufferCreation
 
@@ -301,7 +306,7 @@ namespace Magnefu
     }; // struct ShaderStateCreation
 
     //
-    // 
+    //
     struct DescriptorSetLayoutCreation {
 
         //
@@ -469,7 +474,7 @@ namespace Magnefu
 
     }; // struct PipelineCreation
 
-    // API-agnostic structs ///////////////////////////////////////////////////
+    // API-agnostic structs /////////////////////////////////////////////////////////
 
     //
     // Helper methods for texture formats
@@ -516,7 +521,7 @@ namespace Magnefu
     }; // struct ResourceBinding
 
 
-    // API-agnostic descriptions //////////////////////////////////////////////
+    // API-agnostic descriptions ////////////////////////////////////////////////////
 
     //
     //
@@ -603,7 +608,7 @@ namespace Magnefu
     }; // struct PipelineDescription
 
 
-    // API-agnostic resource modifications ////////////////////////////////////
+    // API-agnostic resource modifications //////////////////////////////////////////
 
     struct MapBufferParameters {
         BufferHandle                    buffer;
@@ -612,7 +617,7 @@ namespace Magnefu
 
     }; // struct MapBufferParameters
 
-    // Synchronization ////////////////////////////////////////////////////////
+    // Synchronization //////////////////////////////////////////////////////////////
 
     //
     //
@@ -662,7 +667,7 @@ namespace Magnefu
         u32                             current_frame;
     }; // struct ResourceUpdate
 
-    // Resources //////////////////////////////////////////////////////////////
+    // Resources /////////////////////////////////////////////////////////////
 
     static const u32            k_max_swapchain_images = 3;
 
@@ -686,6 +691,7 @@ namespace Magnefu
         BufferHandle                    handle;
         BufferHandle                    parent_buffer;
 
+        u8* mapped_data = nullptr;
         const char* name = nullptr;
 
     }; // struct BufferVulkan
@@ -711,8 +717,7 @@ namespace Magnefu
 
     //
     //
-    struct Texture 
-    {
+    struct Texture {
 
         VkImage                         vk_image;
         VkImageView                     vk_image_view;
@@ -736,8 +741,7 @@ namespace Magnefu
 
     //
     //
-    struct ShaderState 
-    {
+    struct ShaderState {
 
         VkPipelineShaderStageCreateInfo shader_stage_info[k_max_shader_stages];
 
@@ -746,7 +750,7 @@ namespace Magnefu
         u32                             active_shaders = 0;
         bool                            graphics_pipeline = false;
 
-        spirv::ParseResult*             parse_result;
+        spirv::ParseResult* parse_result;
     }; // struct ShaderStateVulkan
 
     //
@@ -802,7 +806,7 @@ namespace Magnefu
 
         ShaderStateHandle               shader_state;
 
-        const DescriptorSetLayout*       descriptor_set_layout[k_max_descriptor_set_layouts];
+        const DescriptorSetLayout* descriptor_set_layout[k_max_descriptor_set_layouts];
         DescriptorSetLayoutHandle       descriptor_set_layout_handle[k_max_descriptor_set_layouts];
         u32                             num_active_layouts = 0;
 
@@ -845,7 +849,7 @@ namespace Magnefu
     }; // struct RenderPassVulkan
 
 
-    // Enum translations. Use tables or switches depending on the case. ///////
+    // Enum translations. Use tables or switches depending on the case. ////////////
     static cstring to_compiler_extension(VkShaderStageFlagBits value) {
         switch (value) {
         case VK_SHADER_STAGE_VERTEX_BIT:
@@ -945,7 +949,7 @@ namespace Magnefu
 #endif
 
         return ret;
-    }
+        }
 
     static VkImageLayout util_to_vk_image_layout(ResourceState usage) {
         if (usage & RESOURCE_STATE_COPY_SOURCE)
@@ -1016,7 +1020,7 @@ namespace Magnefu
                 flags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 
             break;
-        }
+                }
         case QueueType::Compute:
         {
             if ((accessFlags & (VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT)) != 0 ||
@@ -1032,7 +1036,7 @@ namespace Magnefu
         }
         case QueueType::CopyTransfer: return VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
         default: break;
-        }
+            }
 
         // Compatible with both compute and graphics queues
         if ((accessFlags & VK_ACCESS_INDIRECT_COMMAND_READ_BIT) != 0)
@@ -1048,7 +1052,19 @@ namespace Magnefu
             flags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
         return flags;
-    }
+        }
+
+    void util_add_image_barrier(VkCommandBuffer command_buffer, VkImage image, ResourceState old_state, ResourceState new_state,
+        u32 base_mip_level, u32 mip_count, bool is_depth);
+
+    void util_add_image_barrier_ext(VkCommandBuffer command_buffer, VkImage image, ResourceState old_state, ResourceState new_state,
+        u32 base_mip_level, u32 mip_count, bool is_depth, u32 source_family, u32 destination_family,
+        QueueType::Enum source_queue_type, QueueType::Enum destination_queue_type);
+
+    void util_add_buffer_barrier_ext(VkCommandBuffer command_buffer, VkBuffer buffer, ResourceState old_state, ResourceState new_state,
+        u32 buffer_size, u32 source_family, u32 destination_family,
+        QueueType::Enum source_queue_type, QueueType::Enum destination_queue_type);
+
 
 } // namespace raptor
 

@@ -70,107 +70,7 @@ namespace Magnefu
     static void                 check_result(VkResult result);
 #define                     check( result, message ) MF_CORE_ASSERT( result == VK_SUCCESS, "Vulkan assert code {} | {}", result, message )
 
-    struct CommandBufferRing 
-    {
-
-        // -- Methods ------------------------------------------------ //
-
-        void                    init(GraphicsContext* gpu);
-        void                    shutdown();
-
-        void                    reset_pools(u32 frame_index);
-
-        CommandBuffer*          get_command_buffer(u32 frame, bool begin);
-        CommandBuffer*          get_command_buffer_instant(u32 frame, bool begin);
-
-        static u16              pool_from_index(u32 index) { return (u16)index / k_buffer_per_pool; }
-
-
-        // -- Members ---------------------------------------------- //
-
-        static const u16        k_max_threads = 1;
-        static const u16        k_max_pools = k_max_swapchain_images * k_max_threads;
-        static const u16        k_buffer_per_pool = 4;
-        static const u16        k_max_buffers = k_buffer_per_pool * k_max_pools;
-
-        GraphicsContext*        gpu;
-        VkCommandPool           vulkan_command_pools[k_max_pools];
-        CommandBuffer           command_buffers[k_max_buffers];
-        u8                      next_free_per_thread_frame[k_max_pools];
-
-    }; // struct CommandBufferRing
-
-
-
-    void CommandBufferRing::init(GraphicsContext* gpu_) 
-    {
-
-        gpu = gpu_;
-
-        for (u32 i = 0; i < k_max_pools; i++) {
-            VkCommandPoolCreateInfo cmd_pool_info = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO, nullptr };
-            cmd_pool_info.queueFamilyIndex = gpu->vulkan_queue_family;
-            cmd_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-
-            check(vkCreateCommandPool(gpu->vulkan_device, &cmd_pool_info, gpu->vulkan_allocation_callbacks, &vulkan_command_pools[i]), "Failed to Create command pool");
-        }
-
-        for (u32 i = 0; i < k_max_buffers; i++)
-        {
-            VkCommandBufferAllocateInfo cmd = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO, nullptr };
-            const u32 pool_index = pool_from_index(i);
-            cmd.commandPool = vulkan_command_pools[pool_index];
-            cmd.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-            cmd.commandBufferCount = 1;
-            check(vkAllocateCommandBuffers(gpu->vulkan_device, &cmd, &command_buffers[i].vk_command_buffer), "Failed to allocated command buffers");
-
-            command_buffers[i].gpu = gpu;
-            command_buffers[i].init(QueueType::Enum::Graphics, 0, 0, false);
-            command_buffers[i].handle = i;
-        }
-    }
-
-    void CommandBufferRing::shutdown()
-    {
-        for (u32 i = 0; i < k_max_swapchain_images * k_max_threads; i++) 
-        {
-            vkDestroyCommandPool(gpu->vulkan_device, vulkan_command_pools[i], gpu->vulkan_allocation_callbacks);
-        }
-
-        for (u32 i = 0; i < k_max_buffers; i++)
-        {
-            command_buffers[i].terminate();
-        }
-    }
-
-    void CommandBufferRing::reset_pools(u32 frame_index) 
-    {
-
-        for (u32 i = 0; i < k_max_threads; i++) 
-        {
-            vkResetCommandPool(gpu->vulkan_device, vulkan_command_pools[frame_index * k_max_threads + i], 0);
-        }
-    }
-
-    CommandBuffer* CommandBufferRing::get_command_buffer(u32 frame, bool begin) {
-        // TODO: take in account threads
-        CommandBuffer* cb = &command_buffers[frame * k_buffer_per_pool];
-
-        if (begin) {
-            cb->reset();
-
-            VkCommandBufferBeginInfo beginInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-            vkBeginCommandBuffer(cb->vk_command_buffer, &beginInfo);
-        }
-
-        return cb;
-    }
-
-    CommandBuffer* CommandBufferRing::get_command_buffer_instant(u32 frame, bool begin) {
-        CommandBuffer* cb = &command_buffers[frame * k_buffer_per_pool + 1];
-        return cb;
-    }
+   
 
     // -- Device implementation --------------------------------------------------------------- //
 
@@ -1191,8 +1091,6 @@ namespace Magnefu
         vkDestroyDescriptorPool(vulkan_device, vulkan_descriptor_pool, vulkan_allocation_callbacks);
         vkDestroyQueryPool(vulkan_device, vulkan_timestamp_query_pool, vulkan_allocation_callbacks);
 
-        u32 sets_left = descriptor_sets.used_indices;
-
         vkDestroyDevice(vulkan_device, vulkan_allocation_callbacks);
 
         vkDestroyInstance(vulkan_instance, vulkan_allocation_callbacks);
@@ -1955,12 +1853,30 @@ namespace Magnefu
         }
 
         VkBufferCreateInfo buffer_info{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-        buffer_info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | creation.type_flags;
+        buffer_info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT |creation.type_flags;
         buffer_info.size = creation.size > 0 ? creation.size : 1;       // 0 sized creations are not permitted.
+
+        // NOTE(marco): technically we could map a buffer if the device exposes a heap
+        // with MEMORY_PROPERTY_DEVICE_LOCAL_BIT and MEMORY_PROPERTY_HOST_VISIBLE_BIT
+        // but that's usually very small (256MB) unless resizable bar is enabled.
+        // We simply don't allow it for now.
+        MF_CORE_ASSERT(!(creation.persistent && creation.device_only), "");
 
         VmaAllocationCreateInfo memory_info{};
         memory_info.flags = VMA_ALLOCATION_CREATE_STRATEGY_BEST_FIT_BIT;
-        memory_info.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+        if (creation.persistent)
+        {
+            memory_info.flags = memory_info.flags | VMA_ALLOCATION_CREATE_MAPPED_BIT;
+        }
+
+        if (creation.device_only)
+        {
+            memory_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+        }
+        else 
+        {
+            memory_info.usage = VMA_MEMORY_USAGE_GPU_TO_CPU;
+        }
 
         VmaAllocationInfo allocation_info{};
         check(vmaCreateBuffer(vma_allocator, &buffer_info, &memory_info,
@@ -1970,18 +1886,18 @@ namespace Magnefu
 
         buffer->vk_device_memory = allocation_info.deviceMemory;
 
-        if (creation.initial_data) {
+        if (creation.initial_data) 
+        {
             void* data;
             vmaMapMemory(vma_allocator, buffer->vma_allocation, &data);
             memcpy(data, creation.initial_data, (size_t)creation.size);
             vmaUnmapMemory(vma_allocator, buffer->vma_allocation);
         }
 
-        // TODO
-        //if ( persistent )
-        //{
-        //    mapped_data = static_cast<uint8_t *>(allocation_info.pMappedData);
-        //}
+        if ( creation.persistent )
+        {
+            buffer->mapped_data = static_cast<u8 *>(allocation_info.pMappedData);
+        }
 
         return handle;
     }
@@ -3095,6 +3011,11 @@ namespace Magnefu
         vkUpdateDescriptorSets(vulkan_device, num_resources, descriptor_write, 0, nullptr);
     }
 
+    u32 GraphicsContext::get_memory_heap_count()
+    {
+        return vma_allocator->GetMemoryHeapCount();
+    }
+
     //
     //
     void GraphicsContext::resize_output_textures(RenderPassHandle render_pass, u32 width, u32 height) {
@@ -3541,11 +3462,12 @@ namespace Magnefu
 
     //
     //
-    CommandBuffer* GraphicsContext::get_command_buffer(QueueType::Enum type, bool begin) {
-        CommandBuffer* cb = command_buffer_ring.get_command_buffer(current_frame, begin);
+    CommandBuffer* GraphicsContext::get_command_buffer(u32 thread_index, bool begin) {
+        CommandBuffer* cb = command_buffer_ring.get_command_buffer(current_frame, thread_index, begin);
 
         // The first commandbuffer issued in the frame is used to reset the timestamp queries used.
-        if (gpu_timestamp_reset && begin) {
+        if (gpu_timestamp_reset && begin)
+        {
             // These are currently indices!
             vkCmdResetQueryPool(cb->vk_command_buffer, vulkan_timestamp_query_pool, current_frame * gpu_timestamp_manager->queries_per_frame * 2, gpu_timestamp_manager->queries_per_frame);
 
@@ -3951,6 +3873,12 @@ namespace Magnefu
 
     DeviceCreation& DeviceCreation::set_stack_allocator(StackAllocator* allocator) {
         temporary_allocator = allocator;
+        return *this;
+    }
+
+    DeviceCreation& DeviceCreation::set_num_threads(u16 num_threads_)
+    {
+        num_threads = num_threads_;
         return *this;
     }
 

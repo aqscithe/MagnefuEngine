@@ -19,10 +19,32 @@
 #include "imgui/imgui.h"
 #include "enkiTS/TaskScheduler.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image/stb_image.h"
+
+
+#include "cglm/struct/mat3.h"
+#include "cglm/struct/mat4.h"
+#include "cglm/struct/quat.h"
+#include "cglm/struct/cam.h"
+#include "cglm/struct/affine.h"
+
+#include <assimp/cimport.h>        // Plain-C interface
+#include <assimp/scene.h>          // Output data structure
+#include <assimp/postprocess.h>    // Post processing flags
+
 
 
 // -- Sandbox App -------------------------------------------------------------------------- //
 
+// Forward Declarations
+struct glTFScene;
+struct AsynchronousLoader;
+struct RunPinnedTaskLoopTask;
+struct AsynchronousLoadTask;
+
+
+// Static variables
 #if defined(MF_PLATFORM_WINDOWS)
 
 static Magnefu::WindowsWindow s_window;
@@ -36,16 +58,28 @@ static Magnefu::MacWindow s_window;
 
 #endif
 
-static Magnefu::ResourceManager s_rm;
-static Magnefu::GPUProfiler s_gpu_profiler;
 
 
-// ----------------------------------------------------------------------------------------------------------- //
+static Magnefu::ResourceManager     s_rm;
+static Magnefu::GPUProfiler         s_gpu_profiler;
+
+static Magnefu::BufferHandle        scene_cb;
+
+static enki::TaskScheduler	        s_task_scheduler;
+static RunPinnedTaskLoopTask        s_run_pinned_task;
+static AsynchronousLoadTask         s_async_load_task;
+static AsynchronousLoader           s_async_loader;
+
+static const u16 INVALID_TEXTURE_INDEX = ~0u;
+static Magnefu::Scene* scene = nullptr;
+static GameCamera game_camera;
 
 
-Magnefu::BufferHandle                    scene_cb;
 
-static enki::TaskScheduler	s_task_scheduler;
+
+
+
+
 
 
 struct RenderData
@@ -68,19 +102,58 @@ struct RenderData
 
 //
 //
-enum DrawFlags {
+enum DrawFlags 
+{
 	DrawFlags_AlphaMask = 1 << 0,
 }; // enum DrawFlags
 
 //
 //
-struct UniformData {
+struct UniformData 
+{
 	mat4s       vp;
 	vec4s       eye;
 	vec4s       light;
 	float       light_range;
 	float       light_intensity;
 }; // struct UniformData
+
+struct MeshDraw 
+{
+    Magnefu::Material* material;
+
+    Magnefu::BufferHandle    index_buffer;
+    Magnefu::BufferHandle    position_buffer;
+    Magnefu::BufferHandle    tangent_buffer;
+    Magnefu::BufferHandle    normal_buffer;
+    Magnefu::BufferHandle    texcoord_buffer;
+    Magnefu::BufferHandle    material_buffer;
+
+    VkIndexType index_type;
+    u32         index_offset;
+
+    u32         position_offset;
+    u32         tangent_offset;
+    u32         normal_offset;
+    u32         texcoord_offset;
+
+    u32         primitive_count;
+
+    // Indices used for bindless textures.
+    u16         diffuse_texture_index;
+    u16         roughness_texture_index;
+    u16         normal_texture_index;
+    u16         occlusion_texture_index;
+
+    vec4s       base_color_factor;
+    vec4s       metallic_roughness_occlusion_factor;
+    vec3s       scale;
+
+    f32         alpha_cutoff;
+    u32         flags;
+
+    Magnefu::DescriptorSetHandle descriptor_set;
+}; // struct MeshDraw
 
 //
 //
@@ -109,17 +182,135 @@ struct GpuEffect
 
 
 
-static const u16 INVALID_TEXTURE_INDEX = ~0u;
-static Magnefu::Scene scene;
-static GameCamera game_camera;
 
-
-
-
-//
-//
-static void upload_material(MeshData& mesh_data, const Magnefu::MeshDraw& mesh_draw, const f32 global_scale)
+struct ObjMaterial 
 {
+	vec4s                                   diffuse;
+	vec3s                                   ambient;
+	vec3s                                   specular;
+	f32                                     specular_exp;
+
+	f32                                     transparency;
+
+	u16                                     diffuse_texture_index = INVALID_TEXTURE_INDEX;
+	u16                                     normal_texture_index = INVALID_TEXTURE_INDEX;
+};
+
+
+struct ObjDraw 
+{
+	Magnefu::BufferHandle                    geometry_buffer_cpu;
+	Magnefu::BufferHandle                    geometry_buffer_gpu;
+	Magnefu::BufferHandle                    mesh_buffer;
+
+	Magnefu::DescriptorSetHandle             descriptor_set;
+
+	u32                                     index_offset;
+	u32                                     position_offset;
+	u32                                     tangent_offset;
+	u32                                     normal_offset;
+	u32                                     texcoord_offset;
+
+	u32                                     primitive_count;
+
+	vec4s                                   diffuse;
+	vec3s                                   ambient;
+	vec3s                                   specular;
+	f32                                     specular_exp;
+	f32                                     transparency;
+
+	u16                                     diffuse_texture_index = INVALID_TEXTURE_INDEX;
+	u16                                     normal_texture_index = INVALID_TEXTURE_INDEX;
+
+	u32                                     uploads_queued = 0;
+	// TODO(marco): this should be an atomic value
+	u32                                     uploads_completed = 0;
+
+	Magnefu::Material*						material;
+};
+
+struct ObjGpuData 
+{
+	mat4s                                   m;
+	mat4s                                   inverseM;
+
+	u32                                     textures[4];
+	vec4s                                   diffuse;
+	vec3s                                   specular;
+	f32                                     specular_exp;
+	vec3s                                   ambient;
+};
+
+
+struct FileLoadRequest 
+{
+
+	char                            path[512];
+	Magnefu::TextureHandle          texture = Magnefu::k_invalid_texture;
+	Magnefu::BufferHandle           buffer = Magnefu::k_invalid_buffer;
+}; // struct FileLoadRequest
+
+//
+//
+struct UploadRequest 
+{
+
+	void*							data = nullptr;
+	u32*							completed = nullptr;
+	Magnefu::TextureHandle           texture = Magnefu::k_invalid_texture;
+	Magnefu::BufferHandle            cpu_buffer = Magnefu::k_invalid_buffer;
+	Magnefu::BufferHandle            gpu_buffer = Magnefu::k_invalid_buffer;
+}; // struct UploadRequest
+
+
+//
+struct AsynchronousLoader 
+{
+
+	void								init(Magnefu::Renderer* renderer, enki::TaskScheduler* task_scheduler, Magnefu::Allocator* resident_allocator);
+	void								update(Magnefu::Allocator* scratch_allocator);
+	void								shutdown();
+
+	void								request_texture_data(cstring filename, Magnefu::TextureHandle texture);
+	void								request_buffer_upload(void* data, Magnefu::BufferHandle buffer);
+	void								request_buffer_copy(Magnefu::BufferHandle src, Magnefu::BufferHandle dst, u32* completed);
+
+
+	Magnefu::Allocator*					allocator = nullptr;
+	Magnefu::Renderer*					renderer = nullptr;
+	enki::TaskScheduler*				task_scheduler = nullptr;
+
+	Magnefu::Array<FileLoadRequest>		file_load_requests;
+	Magnefu::Array<UploadRequest>		upload_requests;
+
+	Magnefu::Buffer*					staging_buffer = nullptr;
+
+	std::atomic_size_t					staging_buffer_offset;
+	Magnefu::TextureHandle				texture_ready;
+	Magnefu::BufferHandle				cpu_buffer_ready;
+	Magnefu::BufferHandle				gpu_buffer_ready;
+	u32*								completed;
+
+	VkCommandPool						command_pools[Magnefu::GraphicsContext::k_max_frames];
+	Magnefu::CommandBuffer				command_buffers[Magnefu::GraphicsContext::k_max_frames];
+	VkSemaphore							transfer_complete_semaphore;
+	VkFence								transfer_fence;
+
+}; // struct AsynchonousLoader
+
+// ------------------ Static Methods ------------------------------ //
+
+static void         get_mesh_vertex_buffer(glTFScene& scene, i32 accessor_index, Magnefu::BufferHandle& out_buffer_handle, u32& out_buffer_offset);
+static bool         get_mesh_material(Magnefu::Renderer& renderer, glTFScene& scene, Magnefu::glTF::Material& material, MeshDraw& mesh_draw);
+static void         upload_material(MeshData& mesh_data, const MeshDraw& mesh_draw, const f32 global_scale);
+static void         upload_material(ObjGpuData& mesh_data, const ObjDraw& mesh_draw, const f32 global_scale);
+static int          gltf_mesh_material_compare(const void* a, const void* b);
+static int          obj_mesh_material_compare(const void* a, const void* b);
+
+
+//
+//
+static void upload_material(MeshData& mesh_data, const MeshDraw& mesh_draw, const f32 global_scale) {
 	mesh_data.textures[0] = mesh_draw.diffuse_texture_index;
 	mesh_data.textures[1] = mesh_draw.roughness_texture_index;
 	mesh_data.textures[2] = mesh_draw.normal_texture_index;
@@ -135,328 +326,1591 @@ static void upload_material(MeshData& mesh_data, const Magnefu::MeshDraw& mesh_d
 	mesh_data.inverseM = glms_mat4_inv(glms_mat4_transpose(model));
 }
 
+static bool recreate_per_thread_descriptors = false;
+
 //
 //
-static void draw_mesh(Magnefu::Renderer& renderer, Magnefu::CommandBuffer* gpu_commands, Magnefu::MeshDraw& mesh_draw)
-{
-	// Descriptor Set
-	Magnefu::DescriptorSetCreation ds_creation{};
-	ds_creation.buffer(scene_cb, 0).buffer(mesh_draw.material_buffer, 1);
-	Magnefu::DescriptorSetHandle descriptor_set = renderer.create_descriptor_set(gpu_commands, mesh_draw.material, ds_creation);
+static void upload_material(ObjGpuData& mesh_data, const ObjDraw& mesh_draw, const f32 global_scale) {
+	mesh_data.textures[0] = mesh_draw.diffuse_texture_index;
+	mesh_data.textures[1] = mesh_draw.normal_texture_index;
+	mesh_data.textures[2] = 0;
+	mesh_data.textures[3] = 0;
+	mesh_data.diffuse = mesh_draw.diffuse;
+	mesh_data.specular = mesh_draw.specular;
+	mesh_data.specular_exp = mesh_draw.specular_exp;
+	mesh_data.ambient = mesh_draw.ambient;
+
+	mat4s model = glms_scale_make(vec3s{ global_scale, global_scale, global_scale });
+	mesh_data.m = model;
+	mesh_data.inverseM = glms_mat4_inv(glms_mat4_transpose(model));
+}
+
+//
+//
+static void draw_mesh(Magnefu::Renderer& renderer, Magnefu::CommandBuffer* gpu_commands, MeshDraw& mesh_draw) {
 
 	gpu_commands->bind_vertex_buffer(mesh_draw.position_buffer, 0, mesh_draw.position_offset);
 	gpu_commands->bind_vertex_buffer(mesh_draw.tangent_buffer, 1, mesh_draw.tangent_offset);
 	gpu_commands->bind_vertex_buffer(mesh_draw.normal_buffer, 2, mesh_draw.normal_offset);
 	gpu_commands->bind_vertex_buffer(mesh_draw.texcoord_buffer, 3, mesh_draw.texcoord_offset);
-	gpu_commands->bind_index_buffer(mesh_draw.index_buffer, mesh_draw.index_offset);
-	gpu_commands->bind_local_descriptor_set(&descriptor_set, 1, nullptr, 0);
+	gpu_commands->bind_index_buffer(mesh_draw.index_buffer, mesh_draw.index_offset, mesh_draw.index_type);
+
+	if (recreate_per_thread_descriptors)
+    {
+		Magnefu::DescriptorSetCreation ds_creation{};
+		ds_creation.buffer(scene_cb, 0).buffer(mesh_draw.material_buffer, 1);
+		Magnefu::DescriptorSetHandle descriptor_set = renderer.create_descriptor_set(gpu_commands, mesh_draw.material, ds_creation);
+
+		gpu_commands->bind_local_descriptor_set(&descriptor_set, 1, nullptr, 0);
+	}
+	else 
+    {
+		gpu_commands->bind_descriptor_set(&mesh_draw.descriptor_set, 1, nullptr, 0);
+	}
 
 	gpu_commands->draw_indexed(Magnefu::TopologyType::Triangle, mesh_draw.primitive_count, 1, 0, 0, 0);
 }
 
 //
 //
-
-static void scene_load_from_gltf(cstring filename, Magnefu::Renderer& renderer, Magnefu::Allocator* allocator, Magnefu::Scene& scene) {
-
-	using namespace Magnefu;
-
-	scene.gltf_scene = gltf_load_file(filename);
-
-	// Load all textures
-	scene.images.init(allocator, scene.gltf_scene.images_count);
-
-	for (u32 image_index = 0; image_index < scene.gltf_scene.images_count; ++image_index) {
-		glTF::Image& image = scene.gltf_scene.images[image_index];
-		TextureResource* tr = renderer.create_texture(image.uri.data, image.uri.data, true);
-		MF_CORE_ASSERT((tr != nullptr), "Texture doesn't exist");
-
-		scene.images.push(*tr);
-	}
-
-	StringBuffer resource_name_buffer;
-	resource_name_buffer.init(4096, allocator);
-
-	// Load all samplers
-	scene.samplers.init(allocator, scene.gltf_scene.samplers_count);
-
-	for (u32 sampler_index = 0; sampler_index < scene.gltf_scene.samplers_count; ++sampler_index) {
-		glTF::Sampler& sampler = scene.gltf_scene.samplers[sampler_index];
-
-		char* sampler_name = resource_name_buffer.append_use_f("sampler_%u", sampler_index);
-
-		SamplerCreation creation;
-		switch (sampler.min_filter) {
-		case glTF::Sampler::NEAREST:
-			creation.min_filter = VK_FILTER_NEAREST;
-			break;
-		case glTF::Sampler::LINEAR:
-			creation.min_filter = VK_FILTER_LINEAR;
-			break;
-		case glTF::Sampler::LINEAR_MIPMAP_NEAREST:
-			creation.min_filter = VK_FILTER_LINEAR;
-			creation.mip_filter = VK_SAMPLER_MIPMAP_MODE_NEAREST;
-			break;
-		case glTF::Sampler::LINEAR_MIPMAP_LINEAR:
-			creation.min_filter = VK_FILTER_LINEAR;
-			creation.mip_filter = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-			break;
-		case glTF::Sampler::NEAREST_MIPMAP_NEAREST:
-			creation.min_filter = VK_FILTER_NEAREST;
-			creation.mip_filter = VK_SAMPLER_MIPMAP_MODE_NEAREST;
-			break;
-		case glTF::Sampler::NEAREST_MIPMAP_LINEAR:
-			creation.min_filter = VK_FILTER_NEAREST;
-			creation.mip_filter = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-			break;
-		}
-
-		creation.mag_filter = sampler.mag_filter == glTF::Sampler::Filter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
-
-		switch (sampler.wrap_s) {
-		case glTF::Sampler::CLAMP_TO_EDGE:
-			creation.address_mode_u = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-			break;
-		case glTF::Sampler::MIRRORED_REPEAT:
-			creation.address_mode_u = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
-			break;
-		case glTF::Sampler::REPEAT:
-			creation.address_mode_u = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-			break;
-		}
-
-		switch (sampler.wrap_t) {
-		case glTF::Sampler::CLAMP_TO_EDGE:
-			creation.address_mode_v = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-			break;
-		case glTF::Sampler::MIRRORED_REPEAT:
-			creation.address_mode_v = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
-			break;
-		case glTF::Sampler::REPEAT:
-			creation.address_mode_v = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-			break;
-		}
-
-		creation.name = sampler_name;
-
-		SamplerResource* sr = renderer.create_sampler(creation);
-		MF_CORE_ASSERT((sr != nullptr), "");
-
-		scene.samplers.push(*sr);
-	}
-
-	// Temporary array of buffer data
-	Magnefu::Array<void*> buffers_data;
-	buffers_data.init(allocator, scene.gltf_scene.buffers_count);
-
-	for (u32 buffer_index = 0; buffer_index < scene.gltf_scene.buffers_count; ++buffer_index) {
-		glTF::Buffer& buffer = scene.gltf_scene.buffers[buffer_index];
-
-		FileReadResult buffer_data = file_read_binary(buffer.uri.data, allocator);
-		buffers_data.push(buffer_data.data);
-	}
-
-	// Load all buffers and initialize them with buffer data
-	scene.buffers.init(allocator, scene.gltf_scene.buffer_views_count);
-
-	for (u32 buffer_index = 0; buffer_index < scene.gltf_scene.buffer_views_count; ++buffer_index) {
-		glTF::BufferView& buffer = scene.gltf_scene.buffer_views[buffer_index];
-
-		i32 offset = buffer.byte_offset;
-		if (offset == glTF::INVALID_INT_VALUE) {
-			offset = 0;
-		}
-
-		u8* data = (u8*)buffers_data[buffer.buffer] + offset;
-
-		// NOTE(marco): the target attribute of a BufferView is not mandatory, so we prepare for both uses
-		VkBufferUsageFlags flags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-
-		char* buffer_name = buffer.name.data;
-		if (buffer_name == nullptr) {
-			buffer_name = resource_name_buffer.append_use_f("buffer_%u", buffer_index);
-		}
-
-		BufferResource* br = renderer.create_buffer(flags, ResourceUsageType::Immutable, buffer.byte_length, data, buffer_name);
-		MF_CORE_ASSERT((br != nullptr), "");
-
-		scene.buffers.push(*br);
-	}
-
-	for (u32 buffer_index = 0; buffer_index < scene.gltf_scene.buffers_count; ++buffer_index) {
-		void* buffer = buffers_data[buffer_index];
-		allocator->deallocate(buffer);
-	}
-	buffers_data.shutdown();
-
-	resource_name_buffer.shutdown();
-
-	// Init runtime meshes
-	scene.mesh_draws.init(allocator, scene.gltf_scene.meshes_count);
-}
-
-static void scene_free_gpu_resources(Magnefu::Scene& scene, Magnefu::Renderer& renderer) 
+static void draw_mesh(Magnefu::Renderer& renderer, Magnefu::CommandBuffer* gpu_commands, ObjDraw& mesh_draw)
 {
-	Magnefu::GraphicsContext& gpu = *renderer.gpu;
 
-	for (u32 mesh_index = 0; mesh_index < scene.mesh_draws.count(); ++mesh_index)
+	gpu_commands->bind_vertex_buffer(mesh_draw.geometry_buffer_gpu, 0, mesh_draw.position_offset);
+	gpu_commands->bind_vertex_buffer(mesh_draw.geometry_buffer_gpu, 1, mesh_draw.tangent_offset);
+	gpu_commands->bind_vertex_buffer(mesh_draw.geometry_buffer_gpu, 2, mesh_draw.normal_offset);
+	gpu_commands->bind_vertex_buffer(mesh_draw.geometry_buffer_gpu, 3, mesh_draw.texcoord_offset);
+	gpu_commands->bind_index_buffer(mesh_draw.geometry_buffer_gpu, mesh_draw.index_offset, VK_INDEX_TYPE_UINT32);
+
+	if (recreate_per_thread_descriptors)
+    {
+		Magnefu::DescriptorSetCreation ds_creation{};
+		ds_creation.buffer(scene_cb, 0).buffer(mesh_draw.geometry_buffer_gpu, 1);
+		Magnefu::DescriptorSetHandle descriptor_set = renderer.create_descriptor_set(gpu_commands, mesh_draw.material, ds_creation);
+
+		gpu_commands->bind_local_descriptor_set(&descriptor_set, 1, nullptr, 0);
+	}
+	else 
+    {
+		gpu_commands->bind_descriptor_set(&mesh_draw.descriptor_set, 1, nullptr, 0);
+	}
+
+	gpu_commands->draw_indexed(Magnefu::TopologyType::Triangle, mesh_draw.primitive_count, 1, 0, 0, 0);
+}
+
+//
+//
+struct glTFScene : public Magnefu::Scene
+{
+
+	void                                    load(cstring filename, cstring path, Magnefu::Allocator* resident_allocator, Magnefu::StackAllocator* temp_allocator, AsynchronousLoader* async_loader);
+	void                                    free_gpu_resources(Magnefu::Renderer* renderer);
+	void                                    unload(Magnefu::Renderer* renderer);
+
+	void                                    prepare_draws(Magnefu::Renderer* renderer, Magnefu::StackAllocator* scratch_allocator);
+	void                                    upload_materials(float model_scale);
+	void                                    submit_draw_task(Magnefu::ImGuiService* imgui, Magnefu::GPUProfiler* gpu_profiler, enki::TaskScheduler* task_scheduler);
+
+	Magnefu::Array<MeshDraw>                 mesh_draws;
+
+	// All graphics resources used by the scene
+	Magnefu::Array<Magnefu::TextureResource>  images;
+	Magnefu::Array<Magnefu::SamplerResource>  samplers;
+	Magnefu::Array<Magnefu::BufferResource>   buffers;
+
+	Magnefu::glTF::glTF                      gltf_scene; // Source gltf scene
+
+	Magnefu::Renderer* renderer;
+
+}; // struct GltfScene
+
+//
+//
+struct ObjScene : public Magnefu::Scene 
+{
+
+	void                                    load(cstring filename, cstring path, Magnefu::Allocator* resident_allocator, Magnefu::StackAllocator* temp_allocator, AsynchronousLoader* async_loader_);
+	void                                    free_gpu_resources(Magnefu::Renderer* renderer);
+	void                                    unload(Magnefu::Renderer* renderer);
+
+	void                                    prepare_draws(Magnefu::Renderer* renderer, Magnefu::StackAllocator* scratch_allocator);
+	void                                    upload_materials(float model_scale);
+	void                                    submit_draw_task(Magnefu::ImGuiService* imgui, Magnefu::GPUProfiler* gpu_profiler, enki::TaskScheduler* task_scheduler);
+
+	u32                                     load_texture(cstring texture_path, cstring path, Magnefu::StackAllocator* temp_allocator);
+
+	Magnefu::Array<ObjDraw>                  mesh_draws;
+
+	// All graphics resources used by the scene
+	Magnefu::Array<ObjMaterial>              materials;
+	Magnefu::Array<Magnefu::TextureResource>  images;
+	Magnefu::SamplerResource* sampler;
+
+	AsynchronousLoader* async_loader;
+	Magnefu::Renderer* renderer;
+
+}; // struct ObjScene
+
+//
+//
+
+
+// DrawTask ///////////////////////////////////////////////////////////////
+
+//
+//
+struct glTFDrawTask : public enki::ITaskSet 
+{
+
+    Magnefu::GraphicsContext* gpu = nullptr;
+    Magnefu::Renderer* renderer = nullptr;
+    Magnefu::ImGuiService* imgui = nullptr;
+    Magnefu::GPUProfiler* gpu_profiler = nullptr;
+    glTFScene* scene = nullptr;
+    u32                             thread_id = 0;
+
+    void init(Magnefu::GraphicsContext* gpu_, Magnefu::Renderer* renderer_, Magnefu::ImGuiService* imgui_, Magnefu::GPUProfiler* gpu_profiler_,
+        glTFScene* scene_) 
+    {
+        gpu = gpu_;
+        renderer = renderer_;
+        imgui = imgui_;
+        gpu_profiler = gpu_profiler_;
+        scene = scene_;
+    }
+
+    void ExecuteRange(enki::TaskSetPartition range_, u32 threadnum_) override 
+    {
+
+        using namespace Magnefu;
+
+        thread_id = threadnum_;
+
+        //rprint( "Executing draw task from thread %u\n", threadnum_ );
+        // TODO: improve getting a command buffer/pool
+        Magnefu::CommandBuffer* gpu_commands = gpu->get_command_buffer(threadnum_, true);
+        gpu_commands->push_marker("Frame");
+
+        gpu_commands->clear(0.3f, 0.3f, 0.3f, 1.f);
+        gpu_commands->clear_depth_stencil(1.0f, 0);
+        gpu_commands->bind_pass(gpu->get_swapchain_pass(), false);
+        gpu_commands->set_scissor(nullptr);
+        gpu_commands->set_viewport(nullptr);
+
+        Material* last_material = nullptr;
+        // TODO(marco): loop by material so that we can deal with multiple passes
+        for (u32 mesh_index = 0; mesh_index < scene->mesh_draws.size; ++mesh_index) {
+            MeshDraw& mesh_draw = scene->mesh_draws[mesh_index];
+
+            if (mesh_draw.material != last_material) {
+                PipelineHandle pipeline = renderer->get_pipeline(mesh_draw.material);
+
+                gpu_commands->bind_pipeline(pipeline);
+
+                last_material = mesh_draw.material;
+            }
+
+            draw_mesh(*renderer, gpu_commands, mesh_draw);
+        }
+
+        imgui->Render(*gpu_commands, false);
+
+        gpu_commands->pop_marker();
+
+        gpu_profiler->update(*gpu);
+
+        // Send commands to GPU
+        gpu->queue_command_buffer(gpu_commands);
+    }
+
+}; // struct DrawTask
+
+//
+//
+struct SecondaryDrawTask : public enki::ITaskSet {
+
+    Magnefu::Renderer* renderer = nullptr;
+    ObjScene* scene = nullptr;
+    Magnefu::CommandBuffer* parent = nullptr;
+    Magnefu::CommandBuffer* cb = nullptr;
+    u32                             start = 0;
+    u32                             end = 0;
+
+    void init(ObjScene* scene_, Magnefu::Renderer* renderer_, Magnefu::CommandBuffer* parent_, u32 start_, u32 end_) {
+        renderer = renderer_;
+        scene = scene_;
+        parent = parent_;
+        start = start_;
+        end = end_;
+    }
+
+    void ExecuteRange(enki::TaskSetPartition range_, uint32_t threadnum_) override {
+        using namespace Magnefu;
+
+        
+
+        cb = renderer->gpu->get_secondary_command_buffer(threadnum_);
+
+        // TODO(marco): loop by material so that we can deal with multiple passes
+        cb->begin_secondary(parent->current_render_pass);
+
+        cb->set_scissor(nullptr);
+        cb->set_viewport(nullptr);
+
+        Material* last_material = nullptr;
+        for (u32 mesh_index = start; mesh_index < end; ++mesh_index) {
+            ObjDraw& mesh_draw = scene->mesh_draws[mesh_index];
+
+            if (mesh_draw.uploads_queued != mesh_draw.uploads_completed) {
+                continue;
+            }
+
+            if (mesh_draw.material != last_material) {
+                PipelineHandle pipeline = renderer->get_pipeline(mesh_draw.material);
+
+                cb->bind_pipeline(pipeline);
+
+                last_material = mesh_draw.material;
+            }
+
+            draw_mesh(*renderer, cb, mesh_draw);
+        }
+
+        cb->end();
+    }
+};
+
+//
+//
+struct ObjDrawTask : public enki::ITaskSet {
+
+    enki::TaskScheduler* task_scheduler = nullptr;
+    Magnefu::GraphicsContext* gpu = nullptr;
+    Magnefu::Renderer* renderer = nullptr;
+    Magnefu::ImGuiService* imgui = nullptr;
+    Magnefu::GPUProfiler* gpu_profiler = nullptr;
+    ObjScene* scene = nullptr;
+    u32                             thread_id = 0;
+    bool                            use_secondary = false;
+
+    void init(enki::TaskScheduler* task_scheduler_, Magnefu::GraphicsContext* gpu_, Magnefu::Renderer* renderer_,
+        Magnefu::ImGuiService* imgui_, Magnefu::GPUProfiler* gpu_profiler_,
+        ObjScene* scene_, bool use_secondary_) {
+        task_scheduler = task_scheduler_;
+        gpu = gpu_;
+        renderer = renderer_;
+        imgui = imgui_;
+        gpu_profiler = gpu_profiler_;
+        scene = scene_;
+        use_secondary = use_secondary_;
+    }
+
+    void ExecuteRange(enki::TaskSetPartition range_, uint32_t threadnum_) override {
+        
+
+        using namespace Magnefu;
+
+        thread_id = threadnum_;
+
+        //rprint( "Executing draw task from thread %u\n", threadnum_ );
+        // TODO: improve getting a command buffer/pool
+        Magnefu::CommandBuffer* gpu_commands = gpu->get_command_buffer(threadnum_, true);
+        gpu_commands->push_marker("Frame");
+
+        gpu_commands->clear(0.3f, 0.3f, 0.3f, 1.f);
+        gpu_commands->clear_depth_stencil(1.0f, 0);
+        gpu_commands->set_scissor(nullptr);
+        gpu_commands->set_viewport(nullptr);
+        gpu_commands->bind_pass(gpu->get_swapchain_pass(), use_secondary);
+
+        if (use_secondary) {
+            static const u32 parallel_recordings = 4;
+            u32 draws_per_secondary = scene->mesh_draws.size / parallel_recordings;
+            u32 offset = draws_per_secondary * parallel_recordings;
+
+            SecondaryDrawTask secondary_tasks[parallel_recordings]{ };
+
+            u32 start = 0;
+            for (u32 secondary_index = 0; secondary_index < parallel_recordings; ++secondary_index) {
+                SecondaryDrawTask& task = secondary_tasks[secondary_index];
+
+                task.init(scene, renderer, gpu_commands, start, start + draws_per_secondary);
+                start += draws_per_secondary;
+
+                task_scheduler->AddTaskSetToPipe(&task);
+            }
+
+            CommandBuffer* cb = renderer->gpu->get_secondary_command_buffer(threadnum_);
+
+            cb->begin_secondary(gpu_commands->current_render_pass);
+
+            cb->set_scissor(nullptr);
+            cb->set_viewport(nullptr);
+
+            Material* last_material = nullptr;
+            // TODO(marco): loop by material so that we can deal with multiple passes
+            for (u32 mesh_index = offset; mesh_index < scene->mesh_draws.size; ++mesh_index) {
+                ObjDraw& mesh_draw = scene->mesh_draws[mesh_index];
+
+                if (mesh_draw.uploads_queued != mesh_draw.uploads_completed) {
+                    continue;
+                }
+
+                if (mesh_draw.material != last_material) {
+                    PipelineHandle pipeline = renderer->get_pipeline(mesh_draw.material);
+
+                    cb->bind_pipeline(pipeline);
+
+                    last_material = mesh_draw.material;
+                }
+
+                draw_mesh(*renderer, cb, mesh_draw);
+            }
+
+
+            for (u32 secondary_index = 0; secondary_index < parallel_recordings; ++secondary_index) {
+                SecondaryDrawTask& task = secondary_tasks[secondary_index];
+                task_scheduler->WaitforTask(&task);
+
+                vkCmdExecuteCommands(gpu_commands->vk_command_buffer, 1, &task.cb->vk_command_buffer);
+            }
+
+            // NOTE(marco): ImGui also has to use a secondary command buffer, vkCmdExecuteCommands is
+            // the only allowed command. We don't need this if we use a different render pass above
+            imgui->Render(*cb, true);
+
+            cb->end();
+
+            vkCmdExecuteCommands(gpu_commands->vk_command_buffer, 1, &cb->vk_command_buffer);
+
+            gpu_commands->end_current_render_pass();
+        }
+        else {
+            Material* last_material = nullptr;
+            // TODO(marco): loop by material so that we can deal with multiple passes
+            for (u32 mesh_index = 0; mesh_index < scene->mesh_draws.size; ++mesh_index) {
+                ObjDraw& mesh_draw = scene->mesh_draws[mesh_index];
+
+                if (mesh_draw.uploads_queued != mesh_draw.uploads_completed) {
+                    continue;
+                }
+
+                if (mesh_draw.material != last_material) {
+                    PipelineHandle pipeline = renderer->get_pipeline(mesh_draw.material);
+
+                    gpu_commands->bind_pipeline(pipeline);
+
+                    last_material = mesh_draw.material;
+                }
+
+                draw_mesh(*renderer, gpu_commands, mesh_draw);
+            }
+
+            imgui->Render(*gpu_commands, false);
+        }
+
+        gpu_commands->pop_marker();
+
+        gpu_profiler->update(*gpu);
+
+        // Send commands to GPU
+        gpu->queue_command_buffer(gpu_commands);
+    }
+
+}; // struct DrawTask
+
+void glTFScene::load(cstring filename, cstring path, Magnefu::Allocator* resident_allocator, Magnefu::StackAllocator* temp_allocator, AsynchronousLoader* async_loader) {
+
+    using namespace Magnefu;
+
+    renderer = async_loader->renderer;
+    enki::TaskScheduler* task_scheduler = async_loader->task_scheduler;
+    sizet temp_allocator_initial_marker = temp_allocator->getMarker();
+
+    // Time statistics
+    i64 start_scene_loading = time_now();
+
+    gltf_scene = gltf_load_file(filename);
+
+    i64 end_loading_file = time_now();
+
+    // Load all textures
+    images.init(resident_allocator, gltf_scene.images_count);
+
+    Array<TextureCreation> tcs;
+    tcs.init(temp_allocator, gltf_scene.images_count, gltf_scene.images_count);
+
+    StringBuffer name_buffer;
+    name_buffer.init(4096, temp_allocator);
+
+    for (u32 image_index = 0; image_index < gltf_scene.images_count; ++image_index) {
+        Magnefu::glTF::Image& image = gltf_scene.images[image_index];
+
+        int comp, width, height;
+
+        stbi_info(image.uri.data, &width, &height, &comp);
+
+        u32 mip_levels = 1;
+        if (true) {
+            u32 w = width;
+            u32 h = height;
+
+            while (w > 1 && h > 1) {
+                w /= 2;
+                h /= 2;
+
+                ++mip_levels;
+            }
+        }
+
+        Magnefu::TextureCreation tc;
+        tc.set_data(nullptr).set_format_type(VK_FORMAT_R8G8B8A8_UNORM, Magnefu::TextureType::Texture2D).set_flags(mip_levels, 0).set_size((u16)width, (u16)height, 1).set_name(image.uri.data);
+        TextureResource* tr = renderer->create_texture(tc);
+        MF_ASSERT((tr != nullptr), "no texture resource");
+
+        images.push(*tr);
+
+        // Reconstruct file path
+        char* full_filename = name_buffer.append_use_f("%s%s", path, image.uri.data);
+        async_loader->request_texture_data(full_filename, tr->handle);
+        // Reset name buffer
+        name_buffer.clear();
+    }
+
+    i64 end_loading_textures_files = time_now();
+
+    i64 end_creating_textures = time_now();
+
+    // Load all samplers
+    samplers.init(resident_allocator, gltf_scene.samplers_count);
+
+    for (u32 sampler_index = 0; sampler_index < gltf_scene.samplers_count; ++sampler_index) {
+        glTF::Sampler& sampler = gltf_scene.samplers[sampler_index];
+
+        char* sampler_name = name_buffer.append_use_f("sampler_%u", sampler_index);
+
+        SamplerCreation creation;
+        switch (sampler.min_filter) {
+        case glTF::Sampler::NEAREST:
+            creation.min_filter = VK_FILTER_NEAREST;
+            break;
+        case glTF::Sampler::LINEAR:
+            creation.min_filter = VK_FILTER_LINEAR;
+            break;
+        case glTF::Sampler::LINEAR_MIPMAP_NEAREST:
+            creation.min_filter = VK_FILTER_LINEAR;
+            creation.mip_filter = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+            break;
+        case glTF::Sampler::LINEAR_MIPMAP_LINEAR:
+            creation.min_filter = VK_FILTER_LINEAR;
+            creation.mip_filter = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+            break;
+        case glTF::Sampler::NEAREST_MIPMAP_NEAREST:
+            creation.min_filter = VK_FILTER_NEAREST;
+            creation.mip_filter = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+            break;
+        case glTF::Sampler::NEAREST_MIPMAP_LINEAR:
+            creation.min_filter = VK_FILTER_NEAREST;
+            creation.mip_filter = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+            break;
+        }
+
+        creation.mag_filter = sampler.mag_filter == glTF::Sampler::Filter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
+
+        switch (sampler.wrap_s) {
+        case glTF::Sampler::CLAMP_TO_EDGE:
+            creation.address_mode_u = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+            break;
+        case glTF::Sampler::MIRRORED_REPEAT:
+            creation.address_mode_u = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+            break;
+        case glTF::Sampler::REPEAT:
+            creation.address_mode_u = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            break;
+        }
+
+        switch (sampler.wrap_t) {
+        case glTF::Sampler::CLAMP_TO_EDGE:
+            creation.address_mode_v = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+            break;
+        case glTF::Sampler::MIRRORED_REPEAT:
+            creation.address_mode_v = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+            break;
+        case glTF::Sampler::REPEAT:
+            creation.address_mode_v = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            break;
+        }
+
+        creation.name = sampler_name;
+
+        SamplerResource* sr = renderer->create_sampler(creation);
+        MF_ASSERT((sr != nullptr), "");
+
+        samplers.push(*sr);
+    }
+
+    i64 end_creating_samplers = time_now();
+
+    // Temporary array of buffer data
+    Magnefu::Array<void*> buffers_data;
+    buffers_data.init(resident_allocator, gltf_scene.buffers_count);
+
+    for (u32 buffer_index = 0; buffer_index < gltf_scene.buffers_count; ++buffer_index) {
+        glTF::Buffer& buffer = gltf_scene.buffers[buffer_index];
+
+        FileReadResult buffer_data = file_read_binary(buffer.uri.data, resident_allocator);
+        buffers_data.push(buffer_data.data);
+    }
+
+    i64 end_reading_buffers_data = time_now();
+
+    // Load all buffers and initialize them with buffer data
+    buffers.init(resident_allocator, gltf_scene.buffer_views_count);
+
+    for (u32 buffer_index = 0; buffer_index < gltf_scene.buffer_views_count; ++buffer_index) {
+        glTF::BufferView& buffer = gltf_scene.buffer_views[buffer_index];
+
+        i32 offset = buffer.byte_offset;
+        if (offset == glTF::INVALID_INT_VALUE) {
+            offset = 0;
+        }
+
+        u8* buffer_data = (u8*)buffers_data[buffer.buffer] + offset;
+
+        // NOTE(marco): the target attribute of a BufferView is not mandatory, so we prepare for both uses
+        VkBufferUsageFlags flags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+
+        char* buffer_name = buffer.name.data;
+        if (buffer_name == nullptr) {
+            buffer_name = name_buffer.append_use_f("buffer_%u", buffer_index);
+        }
+
+        BufferResource* br = renderer->create_buffer(flags, ResourceUsageType::Immutable, buffer.byte_length, buffer_data, buffer_name);
+        MF_ASSERT((br != nullptr), "");
+
+        buffers.push(*br);
+    }
+
+    for (u32 buffer_index = 0; buffer_index < gltf_scene.buffers_count; ++buffer_index) {
+        void* buffer = buffers_data[buffer_index];
+        resident_allocator->deallocate(buffer);
+    }
+    buffers_data.shutdown();
+
+    i64 end_creating_buffers = time_now();
+
+    // This is not needed anymore, free all temp memory after.
+    //resource_name_buffer.shutdown();
+    temp_allocator->freeToMarker(temp_allocator_initial_marker);
+
+    // Init runtime meshes
+    mesh_draws.init(resident_allocator, gltf_scene.meshes_count);
+
+    i64 end_loading = time_now();
+
+    MF_APP_INFO("Loaded scene {} in {} seconds.\nStats:\n\tReading GLTF file {} seconds\n\tTextures Creating {} seconds\n\tCreating Samplers {} seconds\n\tReading Buffers Data {} seconds\n\tCreating Buffers {} seconds\n", filename,
+        time_delta_seconds(start_scene_loading, end_loading), time_delta_seconds(start_scene_loading, end_loading_file), time_delta_seconds(end_loading_file, end_creating_textures),
+        time_delta_seconds(end_creating_textures, end_creating_samplers),
+        time_delta_seconds(end_creating_samplers, end_reading_buffers_data), time_delta_seconds(end_reading_buffers_data, end_creating_buffers));
+}
+
+void glTFScene::free_gpu_resources(Magnefu::Renderer* renderer) 
+{
+    Magnefu::GraphicsContext& gpu = *renderer->gpu;
+
+    for (u32 mesh_index = 0; mesh_index < mesh_draws.size; ++mesh_index) {
+        MeshDraw& mesh_draw = mesh_draws[mesh_index];
+        gpu.destroy_buffer(mesh_draw.material_buffer);
+
+        gpu.destroy_descriptor_set(mesh_draw.descriptor_set);
+    }
+
+    mesh_draws.shutdown();
+}
+
+void glTFScene::unload(Magnefu::Renderer* renderer) {
+    Magnefu::GraphicsContext& gpu = *renderer->gpu;
+
+    // Free scene buffers
+    samplers.shutdown();
+    images.shutdown();
+    buffers.shutdown();
+
+    // NOTE(marco): we can't destroy this sooner as textures and buffers
+    // hold a pointer to the names stored here
+    Magnefu::gltf_free(gltf_scene);
+}
+
+void glTFScene::prepare_draws(Magnefu::Renderer* renderer, Magnefu::StackAllocator* scratch_allocator) 
+{
+
+    using namespace Magnefu;
+
+    // Create pipeline state
+    PipelineCreation pipeline_creation;
+
+    sizet cached_scratch_size = scratch_allocator->getMarker();
+
+    StringBuffer path_buffer;
+    path_buffer.init(1024, scratch_allocator);
+
+    const char* vert_file = "main.vert";
+    char* vert_path = path_buffer.append_use_f("%s%s", MAGNEFU_SHADER_FOLDER, vert_file);
+    FileReadResult vert_code = file_read_text(vert_path, scratch_allocator);
+
+    const char* frag_file = "main.frag";
+    char* frag_path = path_buffer.append_use_f("%s%s", MAGNEFU_SHADER_FOLDER, frag_file);
+    FileReadResult frag_code = file_read_text(frag_path, scratch_allocator);
+
+    // Vertex input
+    // TODO(marco): could these be inferred from SPIR-V?
+    pipeline_creation.vertex_input.add_vertex_attribute({ 0, 0, 0, VertexComponentFormat::Float3 }); // position
+    pipeline_creation.vertex_input.add_vertex_stream({ 0, 12, VertexInputRate::PerVertex });
+
+    pipeline_creation.vertex_input.add_vertex_attribute({ 1, 1, 0, VertexComponentFormat::Float4 }); // tangent
+    pipeline_creation.vertex_input.add_vertex_stream({ 1, 16, VertexInputRate::PerVertex });
+
+    pipeline_creation.vertex_input.add_vertex_attribute({ 2, 2, 0, VertexComponentFormat::Float3 }); // normal
+    pipeline_creation.vertex_input.add_vertex_stream({ 2, 12, VertexInputRate::PerVertex });
+
+    pipeline_creation.vertex_input.add_vertex_attribute({ 3, 3, 0, VertexComponentFormat::Float2 }); // texcoord
+    pipeline_creation.vertex_input.add_vertex_stream({ 3, 8, VertexInputRate::PerVertex });
+
+    // Render pass
+    pipeline_creation.render_pass = renderer->gpu->get_swapchain_output();
+    // Depth
+    pipeline_creation.depth_stencil.set_depth(true, VK_COMPARE_OP_LESS_OR_EQUAL);
+
+    // Blend
+    pipeline_creation.blend_state.add_blend_state().set_color(VK_BLEND_FACTOR_SRC_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_OP_ADD);
+
+    pipeline_creation.shaders.set_name("main").add_stage(vert_code.data, vert_code.size, VK_SHADER_STAGE_VERTEX_BIT).add_stage(frag_code.data, frag_code.size, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+    // Constant buffer
+    BufferCreation buffer_creation;
+    buffer_creation.reset().set(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Dynamic, sizeof(UniformData)).set_name("scene_cb");
+    scene_cb = renderer->gpu->create_buffer(buffer_creation);
+
+    pipeline_creation.name = "main_no_cull";
+    Program* program_no_cull = renderer->create_program({ pipeline_creation });
+
+    pipeline_creation.rasterization.cull_mode = VK_CULL_MODE_BACK_BIT;
+
+    pipeline_creation.name = "main_cull";
+    Program* program_cull = renderer->create_program({ pipeline_creation });
+
+    MaterialCreation material_creation;
+
+    material_creation.set_name("material_no_cull_opaque").set_program(program_no_cull).set_render_index(0);
+    Material* material_no_cull_opaque = renderer->create_material(material_creation);
+
+    material_creation.set_name("material_cull_opaque").set_program(program_cull).set_render_index(1);
+    Material* material_cull_opaque = renderer->create_material(material_creation);
+
+    material_creation.set_name("material_no_cull_transparent").set_program(program_no_cull).set_render_index(2);
+    Material* material_no_cull_transparent = renderer->create_material(material_creation);
+
+    material_creation.set_name("material_cull_transparent").set_program(program_cull).set_render_index(3);
+    Material* material_cull_transparent = renderer->create_material(material_creation);
+
+    scratch_allocator->freeToMarker(cached_scratch_size);
+
+    glTF::Scene& root_gltf_scene = gltf_scene.scenes[gltf_scene.scene];
+
+    for (u32 node_index = 0; node_index < root_gltf_scene.nodes_count; ++node_index) {
+        glTF::Node& node = gltf_scene.nodes[root_gltf_scene.nodes[node_index]];
+
+        if (node.mesh == glTF::INVALID_INT_VALUE) {
+            continue;
+        }
+
+        // TODO(marco): children
+
+        glTF::Mesh& mesh = gltf_scene.meshes[node.mesh];
+
+        vec3s node_scale{ 1.0f, 1.0f, 1.0f };
+        if (node.scale_count != 0) {
+            MF_ASSERT(node.scale_count == 3, "");
+            node_scale = vec3s{ node.scale[0], node.scale[1], node.scale[2] };
+        }
+
+        // Gltf primitives are conceptually submeshes.
+        for (u32 primitive_index = 0; primitive_index < mesh.primitives_count; ++primitive_index) {
+            MeshDraw mesh_draw{ };
+
+            mesh_draw.scale = node_scale;
+
+            glTF::MeshPrimitive& mesh_primitive = mesh.primitives[primitive_index];
+
+            const i32 position_accessor_index = gltf_get_attribute_accessor_index(mesh_primitive.attributes, mesh_primitive.attribute_count, "POSITION");
+            const i32 tangent_accessor_index = gltf_get_attribute_accessor_index(mesh_primitive.attributes, mesh_primitive.attribute_count, "TANGENT");
+            const i32 normal_accessor_index = gltf_get_attribute_accessor_index(mesh_primitive.attributes, mesh_primitive.attribute_count, "NORMAL");
+            const i32 texcoord_accessor_index = gltf_get_attribute_accessor_index(mesh_primitive.attributes, mesh_primitive.attribute_count, "TEXCOORD_0");
+
+            get_mesh_vertex_buffer(*this, position_accessor_index, mesh_draw.position_buffer, mesh_draw.position_offset);
+            get_mesh_vertex_buffer(*this, tangent_accessor_index, mesh_draw.tangent_buffer, mesh_draw.tangent_offset);
+            get_mesh_vertex_buffer(*this, normal_accessor_index, mesh_draw.normal_buffer, mesh_draw.normal_offset);
+            get_mesh_vertex_buffer(*this, texcoord_accessor_index, mesh_draw.texcoord_buffer, mesh_draw.texcoord_offset);
+
+            // Create index buffer
+            glTF::Accessor& indices_accessor = gltf_scene.accessors[mesh_primitive.indices];
+            MF_ASSERT(indices_accessor.component_type == glTF::Accessor::ComponentType::UNSIGNED_SHORT || indices_accessor.component_type == glTF::Accessor::ComponentType::UNSIGNED_INT, "");
+            mesh_draw.index_type = (indices_accessor.component_type == glTF::Accessor::ComponentType::UNSIGNED_SHORT) ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32;
+
+            glTF::BufferView& indices_buffer_view = gltf_scene.buffer_views[indices_accessor.buffer_view];
+            BufferResource& indices_buffer_gpu = buffers[indices_accessor.buffer_view];
+            mesh_draw.index_buffer = indices_buffer_gpu.handle;
+            mesh_draw.index_offset = indices_accessor.byte_offset == glTF::INVALID_INT_VALUE ? 0 : indices_accessor.byte_offset;
+            mesh_draw.primitive_count = indices_accessor.count;
+
+            // Create material
+            glTF::Material& material = gltf_scene.materials[mesh_primitive.material];
+
+            bool transparent = get_mesh_material(*renderer, *this, material, mesh_draw);
+
+            Magnefu::DescriptorSetCreation ds_creation{};
+            DescriptorSetLayoutHandle layout = renderer->gpu->get_descriptor_set_layout(program_cull->passes[0].pipeline, 0);
+            ds_creation.buffer(scene_cb, 0).buffer(mesh_draw.material_buffer, 1).set_layout(layout);
+            mesh_draw.descriptor_set = renderer->gpu->create_descriptor_set(ds_creation);
+
+            if (transparent) {
+                if (material.double_sided) {
+                    mesh_draw.material = material_no_cull_transparent;
+                }
+                else {
+                    mesh_draw.material = material_cull_transparent;
+                }
+            }
+            else {
+                if (material.double_sided) {
+                    mesh_draw.material = material_no_cull_opaque;
+                }
+                else {
+                    mesh_draw.material = material_cull_opaque;
+                }
+            }
+
+            mesh_draws.push(mesh_draw);
+        }
+    }
+
+    qsort(mesh_draws.data, mesh_draws.size, sizeof(MeshDraw), gltf_mesh_material_compare);
+}
+
+void glTFScene::upload_materials(float model_scale) {
+    // Update per mesh material buffer
+    for (u32 mesh_index = 0; mesh_index < mesh_draws.size; ++mesh_index) {
+        MeshDraw& mesh_draw = mesh_draws[mesh_index];
+
+        Magnefu::MapBufferParameters cb_map = { mesh_draw.material_buffer, 0, 0 };
+        MeshData* mesh_data = (MeshData*)renderer->gpu->map_buffer(cb_map);
+        if (mesh_data) {
+            upload_material(*mesh_data, mesh_draw, model_scale);
+
+            renderer->gpu->unmap_buffer(cb_map);
+        }
+    }
+}
+
+void glTFScene::submit_draw_task(Magnefu::ImGuiService* imgui, Magnefu::GPUProfiler* gpu_profiler, enki::TaskScheduler* task_scheduler) {
+    glTFDrawTask draw_task;
+    draw_task.init(renderer->gpu, renderer, imgui, gpu_profiler, this);
+    task_scheduler->AddTaskSetToPipe(&draw_task);
+    task_scheduler->WaitforTaskSet(&draw_task);
+
+    // Avoid using the same command buffer
+    renderer->add_texture_update_commands((draw_task.thread_id + 1) % task_scheduler->GetNumTaskThreads());
+}
+
+int gltf_mesh_material_compare(const void* a, const void* b) {
+    const MeshDraw* mesh_a = (const MeshDraw*)a;
+    const MeshDraw* mesh_b = (const MeshDraw*)b;
+
+    if (mesh_a->material->render_index < mesh_b->material->render_index) return -1;
+    if (mesh_a->material->render_index > mesh_b->material->render_index) return  1;
+    return 0;
+}
+
+int obj_mesh_material_compare(const void* a, const void* b) {
+    const ObjDraw* mesh_a = (const ObjDraw*)a;
+    const ObjDraw* mesh_b = (const ObjDraw*)b;
+
+    if (mesh_a->material->render_index < mesh_b->material->render_index) return -1;
+    if (mesh_a->material->render_index > mesh_b->material->render_index) return  1;
+    return 0;
+}
+
+void get_mesh_vertex_buffer(glTFScene& scene, i32 accessor_index, Magnefu::BufferHandle& out_buffer_handle, u32& out_buffer_offset) {
+    using namespace Magnefu;
+
+    if (accessor_index != -1) {
+        glTF::Accessor& buffer_accessor = scene.gltf_scene.accessors[accessor_index];
+        glTF::BufferView& buffer_view = scene.gltf_scene.buffer_views[buffer_accessor.buffer_view];
+        BufferResource& buffer_gpu = scene.buffers[buffer_accessor.buffer_view];
+
+        out_buffer_handle = buffer_gpu.handle;
+        out_buffer_offset = buffer_accessor.byte_offset == glTF::INVALID_INT_VALUE ? 0 : buffer_accessor.byte_offset;
+    }
+}
+
+bool get_mesh_material(Magnefu::Renderer& renderer, glTFScene& scene, Magnefu::glTF::Material& material, MeshDraw& mesh_draw) {
+    using namespace Magnefu;
+
+    bool transparent = false;
+    GraphicsContext& gpu = *renderer.gpu;
+
+    if (material.pbr_metallic_roughness != nullptr) {
+        if (material.pbr_metallic_roughness->base_color_factor_count != 0) {
+            MF_ASSERT(material.pbr_metallic_roughness->base_color_factor_count == 4, "");
+
+            mesh_draw.base_color_factor = {
+                material.pbr_metallic_roughness->base_color_factor[0],
+                material.pbr_metallic_roughness->base_color_factor[1],
+                material.pbr_metallic_roughness->base_color_factor[2],
+                material.pbr_metallic_roughness->base_color_factor[3],
+            };
+        }
+        else {
+            mesh_draw.base_color_factor = { 1.0f, 1.0f, 1.0f, 1.0f };
+        }
+
+        if (material.pbr_metallic_roughness->roughness_factor != glTF::INVALID_FLOAT_VALUE) {
+            mesh_draw.metallic_roughness_occlusion_factor.x = material.pbr_metallic_roughness->roughness_factor;
+        }
+        else {
+            mesh_draw.metallic_roughness_occlusion_factor.x = 1.0f;
+        }
+
+        if (material.alpha_mode.data != nullptr && strcmp(material.alpha_mode.data, "MASK") == 0) {
+            mesh_draw.flags |= DrawFlags_AlphaMask;
+            transparent = true;
+        }
+
+        if (material.alpha_cutoff != glTF::INVALID_FLOAT_VALUE) {
+            mesh_draw.alpha_cutoff = material.alpha_cutoff;
+        }
+
+        if (material.pbr_metallic_roughness->metallic_factor != glTF::INVALID_FLOAT_VALUE) {
+            mesh_draw.metallic_roughness_occlusion_factor.y = material.pbr_metallic_roughness->metallic_factor;
+        }
+        else {
+            mesh_draw.metallic_roughness_occlusion_factor.y = 1.0f;
+        }
+
+        if (material.pbr_metallic_roughness->base_color_texture != nullptr) {
+            glTF::Texture& diffuse_texture = scene.gltf_scene.textures[material.pbr_metallic_roughness->base_color_texture->index];
+            TextureResource& diffuse_texture_gpu = scene.images[diffuse_texture.source];
+            SamplerResource& diffuse_sampler_gpu = scene.samplers[diffuse_texture.sampler];
+
+            mesh_draw.diffuse_texture_index = diffuse_texture_gpu.handle.index;
+
+            gpu.link_texture_sampler(diffuse_texture_gpu.handle, diffuse_sampler_gpu.handle);
+        }
+        else {
+            mesh_draw.diffuse_texture_index = INVALID_TEXTURE_INDEX;
+        }
+
+        if (material.pbr_metallic_roughness->metallic_roughness_texture != nullptr) {
+            glTF::Texture& roughness_texture = scene.gltf_scene.textures[material.pbr_metallic_roughness->metallic_roughness_texture->index];
+            TextureResource& roughness_texture_gpu = scene.images[roughness_texture.source];
+            SamplerResource& roughness_sampler_gpu = scene.samplers[roughness_texture.sampler];
+
+            mesh_draw.roughness_texture_index = roughness_texture_gpu.handle.index;
+
+            gpu.link_texture_sampler(roughness_texture_gpu.handle, roughness_sampler_gpu.handle);
+        }
+        else {
+            mesh_draw.roughness_texture_index = INVALID_TEXTURE_INDEX;
+        }
+    }
+
+    if (material.occlusion_texture != nullptr) {
+        glTF::Texture& occlusion_texture = scene.gltf_scene.textures[material.occlusion_texture->index];
+
+        TextureResource& occlusion_texture_gpu = scene.images[occlusion_texture.source];
+        SamplerResource& occlusion_sampler_gpu = scene.samplers[occlusion_texture.sampler];
+
+        mesh_draw.occlusion_texture_index = occlusion_texture_gpu.handle.index;
+
+        if (material.occlusion_texture->strength != glTF::INVALID_FLOAT_VALUE) {
+            mesh_draw.metallic_roughness_occlusion_factor.z = material.occlusion_texture->strength;
+        }
+        else {
+            mesh_draw.metallic_roughness_occlusion_factor.z = 1.0f;
+        }
+
+        gpu.link_texture_sampler(occlusion_texture_gpu.handle, occlusion_sampler_gpu.handle);
+    }
+    else {
+        mesh_draw.occlusion_texture_index = INVALID_TEXTURE_INDEX;
+    }
+
+    if (material.normal_texture != nullptr) {
+        glTF::Texture& normal_texture = scene.gltf_scene.textures[material.normal_texture->index];
+        TextureResource& normal_texture_gpu = scene.images[normal_texture.source];
+        SamplerResource& normal_sampler_gpu = scene.samplers[normal_texture.sampler];
+
+        gpu.link_texture_sampler(normal_texture_gpu.handle, normal_sampler_gpu.handle);
+
+        mesh_draw.normal_texture_index = normal_texture_gpu.handle.index;
+    }
+    else {
+        mesh_draw.normal_texture_index = INVALID_TEXTURE_INDEX;
+    }
+
+    // Create material buffer
+    BufferCreation buffer_creation;
+    buffer_creation.reset().set(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Dynamic, sizeof(MeshData)).set_name("mesh_data");
+    mesh_draw.material_buffer = gpu.create_buffer(buffer_creation);
+
+    return transparent;
+}
+
+void ObjScene::load(cstring filename, cstring path, Magnefu::Allocator* resident_allocator, Magnefu::StackAllocator* temp_allocator, AsynchronousLoader* async_loader_)
+{
+    using namespace Magnefu;
+
+    async_loader = async_loader_;
+    renderer = async_loader->renderer;
+
+    enki::TaskScheduler* task_scheduler = async_loader->task_scheduler;
+    sizet temp_allocator_initial_marker = temp_allocator->getMarker();
+
+    // Time statistics
+    i64 start_scene_loading = time_now();
+
+    const struct aiScene* scene = aiImportFile(filename,
+        aiProcess_CalcTangentSpace |
+        aiProcess_GenNormals |
+        aiProcess_Triangulate |
+        aiProcess_JoinIdenticalVertices |
+        aiProcess_SortByPType);
+
+    i64 end_loading_file = time_now();
+
+    // If the import failed, report it
+    if (scene == nullptr) 
+    {
+        MF_ASSERT(false, "Failed to import scene");
+        return;
+    }
+
+    SamplerCreation sampler_creation{ };
+    sampler_creation.set_address_mode_uv(VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_ADDRESS_MODE_REPEAT).set_min_mag_mip(VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR);
+    sampler = renderer->create_sampler(sampler_creation);
+
+    images.init(resident_allocator, 1024);
+
+    materials.init(resident_allocator, scene->mNumMaterials);
+
+    for (u32 material_index = 0; material_index < scene->mNumMaterials; ++material_index) {
+        aiMaterial* material = scene->mMaterials[material_index];
+
+        ObjMaterial Magnefu_material{ };
+
+        aiString texture_file;
+
+        if (aiGetMaterialString(material, AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), &texture_file) == AI_SUCCESS) {
+            Magnefu_material.diffuse_texture_index = load_texture(texture_file.C_Str(), path, temp_allocator);
+        }
+
+        if (aiGetMaterialString(material, AI_MATKEY_TEXTURE(aiTextureType_NORMALS, 0), &texture_file) == AI_SUCCESS)
+        {
+            Magnefu_material.normal_texture_index = load_texture(texture_file.C_Str(), path, temp_allocator);
+        }
+
+        aiColor4D color;
+        if (aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, &color) == AI_SUCCESS) {
+            Magnefu_material.diffuse = { color.r, color.g, color.b, 1.0f };
+        }
+
+        if (aiGetMaterialColor(material, AI_MATKEY_COLOR_AMBIENT, &color) == AI_SUCCESS) {
+            Magnefu_material.ambient = { color.r, color.g, color.b };
+        }
+
+        if (aiGetMaterialColor(material, AI_MATKEY_COLOR_SPECULAR, &color) == AI_SUCCESS) {
+            Magnefu_material.specular = { color.r, color.g, color.b };
+        }
+
+        float f_value;
+        if (aiGetMaterialFloat(material, AI_MATKEY_SHININESS, &f_value) == AI_SUCCESS) {
+            Magnefu_material.specular_exp = f_value;
+        }
+
+        if (aiGetMaterialFloat(material, AI_MATKEY_OPACITY, &f_value) == AI_SUCCESS) {
+            Magnefu_material.transparency = f_value;
+            Magnefu_material.diffuse.w = f_value;
+        }
+
+        materials.push(Magnefu_material);
+    }
+
+    i64 end_loading_textures_files = time_now();
+
+    i64 end_creating_textures = time_now();
+
+    // Init runtime meshes
+    mesh_draws.init(resident_allocator, scene->mNumMeshes);
+
+    for (u32 mesh_index = 0; mesh_index < scene->mNumMeshes; ++mesh_index)
+    {
+        aiMesh* mesh = scene->mMeshes[mesh_index];
+
+        MF_ASSERT((mesh->mPrimitiveTypes & aiPrimitiveType_TRIANGLE) != 0, "");
+
+        Array<vec3s> positions;
+        positions.init(resident_allocator, mesh->mNumVertices);
+
+        Array<vec4s> tangents;
+        tangents.init(resident_allocator, mesh->mNumVertices);
+
+        Array<vec3s> normals;
+        normals.init(resident_allocator, mesh->mNumVertices);
+
+        Array<vec2s> uv_coords;
+        uv_coords.init(resident_allocator, mesh->mNumVertices);
+
+        for (u32 vertex_index = 0; vertex_index < mesh->mNumVertices; ++vertex_index) {
+            positions.push(vec3s{
+                mesh->mVertices[vertex_index].x,
+                mesh->mVertices[vertex_index].y,
+                mesh->mVertices[vertex_index].z
+                });
+
+            tangents.push(vec4s{
+                mesh->mTangents[vertex_index].x,
+                mesh->mTangents[vertex_index].y,
+                mesh->mTangents[vertex_index].z,
+                1.0f
+                });
+
+            uv_coords.push(vec2s{
+                mesh->mTextureCoords[0][vertex_index].x,
+                mesh->mTextureCoords[0][vertex_index].y,
+                });
+
+            normals.push(vec3s{
+                mesh->mNormals[vertex_index].x,
+                mesh->mNormals[vertex_index].y,
+                mesh->mNormals[vertex_index].z
+                });
+        }
+
+        Array<u32> indices;
+        indices.init(resident_allocator, mesh->mNumFaces * 3);
+
+        for (u32 face_index = 0; face_index < mesh->mNumFaces; ++face_index) {
+            MF_ASSERT(mesh->mFaces[face_index].mNumIndices == 3, "");
+
+            indices.push(mesh->mFaces[face_index].mIndices[0]);
+            indices.push(mesh->mFaces[face_index].mIndices[1]);
+            indices.push(mesh->mFaces[face_index].mIndices[2]);
+        }
+
+        sizet buffer_size = (indices.size * sizeof(u32)) +
+            (positions.size * sizeof(vec3s)) +
+            (normals.size * sizeof(vec3s)) +
+            (tangents.size * sizeof(vec4s)) +
+            (uv_coords.size * sizeof(vec2s));
+
+        // NOTE(marco): the target attribute of a BufferView is not mandatory, so we prepare for both uses
+        VkBufferUsageFlags flags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+
+        BufferCreation creation{ };
+        creation.set(flags, ResourceUsageType::Immutable, buffer_size).set_persistent(true).set_name(nullptr);
+
+        BufferHandle br = renderer->gpu->create_buffer(creation);
+
+        Buffer* buffer = renderer->gpu->access_buffer(br);
+
+        ObjDraw& Magnefu_mesh = mesh_draws.push_use();
+        memset(&Magnefu_mesh, 0, sizeof(ObjDraw));
+
+        Magnefu_mesh.geometry_buffer_cpu = br;
+
+        sizet offset = 0;
+
+        memcpy(buffer->mapped_data + offset, indices.data, indices.size * sizeof(u32));
+        Magnefu_mesh.index_offset = offset;
+        offset += indices.size * sizeof(u32);
+
+        memcpy(buffer->mapped_data + offset, positions.data, positions.size * sizeof(vec3s));
+        Magnefu_mesh.position_offset = offset;
+        offset += positions.size * sizeof(vec3s);
+
+        memcpy(buffer->mapped_data + offset, tangents.data, tangents.size * sizeof(vec4s));
+        Magnefu_mesh.tangent_offset = offset;
+        offset += tangents.size * sizeof(vec4s);
+
+        memcpy(buffer->mapped_data + offset, normals.data, normals.size * sizeof(vec3s));
+        Magnefu_mesh.normal_offset = offset;
+        offset += normals.size * sizeof(vec3s);
+
+        memcpy(buffer->mapped_data + offset, uv_coords.data, uv_coords.size * sizeof(vec2s));
+        Magnefu_mesh.texcoord_offset = offset;
+
+        creation.reset().set(flags, ResourceUsageType::Immutable, buffer_size).set_device_only(true).set_name(nullptr);
+        br = renderer->gpu->create_buffer(creation);
+        Magnefu_mesh.geometry_buffer_gpu = br;
+
+        // TODO(marco): ideally the CPU buffer would be using staging memory and
+        // freed after it has been copied!
+        async_loader->request_buffer_copy(Magnefu_mesh.geometry_buffer_cpu, Magnefu_mesh.geometry_buffer_gpu, &Magnefu_mesh.uploads_completed);
+        Magnefu_mesh.uploads_queued++;
+
+        Magnefu_mesh.primitive_count = mesh->mNumFaces * 3;
+
+        ObjMaterial& material = materials[mesh->mMaterialIndex];
+
+        Magnefu_mesh.diffuse = material.diffuse;
+        Magnefu_mesh.ambient = material.ambient;
+        Magnefu_mesh.specular = material.ambient;
+        Magnefu_mesh.specular_exp = material.specular_exp;
+
+        Magnefu_mesh.diffuse_texture_index = material.diffuse_texture_index;
+        Magnefu_mesh.normal_texture_index = material.normal_texture_index;
+
+        Magnefu_mesh.transparency = material.transparency;
+
+        creation.reset();
+        creation.set(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Dynamic, sizeof(ObjGpuData)).set_name("mesh_data");
+
+        Magnefu_mesh.mesh_buffer = renderer->gpu->create_buffer(creation);
+
+        positions.shutdown();
+        normals.shutdown();
+        uv_coords.shutdown();
+        tangents.shutdown();
+        indices.shutdown();
+    }
+
+    temp_allocator->freeToMarker(temp_allocator_initial_marker);
+
+    i64 end_reading_buffers_data = time_now();
+
+    i64 end_creating_buffers = time_now();
+
+    i64 end_loading = time_now();
+
+    MF_APP_INFO("Loaded scene {} in {} seconds.\nStats:\n\tReading GLTF file {} seconds\n\tTextures Creating {} seconds\n\tReading Buffers Data {} seconds\n\tCreating Buffers {} seconds", filename,
+        time_delta_seconds(start_scene_loading, end_loading), time_delta_seconds(start_scene_loading, end_loading_file), time_delta_seconds(end_loading_file, end_creating_textures),
+        time_delta_seconds(end_creating_textures, end_reading_buffers_data), time_delta_seconds(end_reading_buffers_data, end_creating_buffers));
+
+    // We're done. Release all resources associated with this import
+    aiReleaseImport(scene);
+}
+
+u32 ObjScene::load_texture(cstring texture_path, cstring path, Magnefu::StackAllocator* temp_allocator) {
+    using namespace Magnefu;
+
+    int comp, width, height;
+
+    stbi_info(texture_path, &width, &height, &comp);
+
+    u32 mip_levels = 1;
+    if (true) {
+        u32 w = width;
+        u32 h = height;
+
+        while (w > 1 && h > 1) {
+            w /= 2;
+            h /= 2;
+
+            ++mip_levels;
+        }
+    }
+
+    TextureCreation tc;
+    tc.set_data(nullptr).set_format_type(VK_FORMAT_R8G8B8A8_UNORM, TextureType::Texture2D).set_flags(mip_levels, 0).set_size((u16)width, (u16)height, 1).set_name(nullptr);
+    TextureResource* tr = renderer->create_texture(tc);
+    MF_ASSERT((tr != nullptr), "");
+
+    images.push(*tr);
+
+    renderer->gpu->link_texture_sampler(tr->handle, sampler->handle);
+
+    StringBuffer name_buffer;
+    name_buffer.init(4096, temp_allocator);
+
+    // Reconstruct file path
+    char* full_filename = name_buffer.append_use_f("%s%s", path, texture_path);
+    async_loader->request_texture_data(full_filename, tr->handle);
+    // Reset name buffer
+    name_buffer.clear();
+
+    return tr->handle.index;
+}
+
+void ObjScene::free_gpu_resources(Magnefu::Renderer* renderer) {
+    Magnefu::GraphicsContext& gpu = *renderer->gpu;
+
+    for (u32 mesh_index = 0; mesh_index < mesh_draws.size; ++mesh_index) {
+        ObjDraw& mesh_draw = mesh_draws[mesh_index];
+        gpu.destroy_buffer(mesh_draw.geometry_buffer_cpu);
+        gpu.destroy_buffer(mesh_draw.geometry_buffer_gpu);
+        gpu.destroy_buffer(mesh_draw.mesh_buffer);
+
+        gpu.destroy_descriptor_set(mesh_draw.descriptor_set);
+    }
+
+    for (u32 texture_index = 0; texture_index < images.size; ++texture_index) {
+        renderer->destroy_texture(images.data + texture_index);
+    }
+
+    renderer->destroy_sampler(sampler);
+
+    mesh_draws.shutdown();
+}
+
+void ObjScene::unload(Magnefu::Renderer* renderer) {
+    // Free scene buffers
+    images.shutdown();
+}
+
+void ObjScene::upload_materials(float model_scale) {
+    // Update per mesh material buffer
+    for (u32 mesh_index = 0; mesh_index < mesh_draws.size; ++mesh_index) {
+        ObjDraw& mesh_draw = mesh_draws[mesh_index];
+
+        Magnefu::MapBufferParameters cb_map = { mesh_draw.mesh_buffer, 0, 0 };
+        ObjGpuData* mesh_data = (ObjGpuData*)renderer->gpu->map_buffer(cb_map);
+        if (mesh_data) {
+            upload_material(*mesh_data, mesh_draw, model_scale);
+
+            renderer->gpu->unmap_buffer(cb_map);
+        }
+    }
+}
+
+static bool use_secondary_command_buffers = false;
+
+void ObjScene::submit_draw_task(Magnefu::ImGuiService* imgui, Magnefu::GPUProfiler* gpu_profiler, enki::TaskScheduler* task_scheduler) {
+    ObjDrawTask draw_task;
+    draw_task.init(task_scheduler, renderer->gpu, renderer, imgui, gpu_profiler, this, use_secondary_command_buffers);
+    task_scheduler->AddTaskSetToPipe(&draw_task);
+    task_scheduler->WaitforTaskSet(&draw_task);
+
+    // Avoid using the same command buffer
+    renderer->add_texture_update_commands((draw_task.thread_id + 1) % task_scheduler->GetNumTaskThreads());
+}
+
+void ObjScene::prepare_draws(Magnefu::Renderer* renderer, Magnefu::StackAllocator* scratch_allocator) 
+{
+    
+
+    using namespace Magnefu;
+
+    // Create pipeline state
+    PipelineCreation pipeline_creation;
+
+    sizet cached_scratch_size = scratch_allocator->getMarker();
+
+    StringBuffer path_buffer;
+    path_buffer.init(1024, scratch_allocator);
+
+    const char* vert_file = "phong.vert";
+    char* vert_path = path_buffer.append_use_f("%s%s", MAGNEFU_SHADER_FOLDER, vert_file);
+    FileReadResult vert_code = file_read_text(vert_path, scratch_allocator);
+
+    const char* frag_file = "phong.frag";
+    char* frag_path = path_buffer.append_use_f("%s%s", MAGNEFU_SHADER_FOLDER, frag_file);
+    FileReadResult frag_code = file_read_text(frag_path, scratch_allocator);
+
+    // Vertex input
+    // TODO(marco): could these be inferred from SPIR-V?
+    pipeline_creation.vertex_input.add_vertex_attribute({ 0, 0, 0, VertexComponentFormat::Float3 }); // position
+    pipeline_creation.vertex_input.add_vertex_stream({ 0, 12, VertexInputRate::PerVertex });
+
+    pipeline_creation.vertex_input.add_vertex_attribute({ 1, 1, 0, VertexComponentFormat::Float4 }); // tangent
+    pipeline_creation.vertex_input.add_vertex_stream({ 1, 16, VertexInputRate::PerVertex });
+
+    pipeline_creation.vertex_input.add_vertex_attribute({ 2, 2, 0, VertexComponentFormat::Float3 }); // normal
+    pipeline_creation.vertex_input.add_vertex_stream({ 2, 12, VertexInputRate::PerVertex });
+
+    pipeline_creation.vertex_input.add_vertex_attribute({ 3, 3, 0, VertexComponentFormat::Float2 }); // texcoord
+    pipeline_creation.vertex_input.add_vertex_stream({ 3, 8, VertexInputRate::PerVertex });
+
+    // Render pass
+    pipeline_creation.render_pass = renderer->gpu->get_swapchain_output();
+    // Depth
+    pipeline_creation.depth_stencil.set_depth(true, VK_COMPARE_OP_LESS_OR_EQUAL);
+
+    pipeline_creation.shaders.set_name("main").add_stage(vert_code.data, vert_code.size, VK_SHADER_STAGE_VERTEX_BIT).add_stage(frag_code.data, frag_code.size, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+    pipeline_creation.rasterization.cull_mode = VK_CULL_MODE_BACK_BIT;
+
+    // Constant buffer
+    BufferCreation buffer_creation;
+    buffer_creation.reset().set(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Dynamic, sizeof(UniformData)).set_name("scene_cb");
+    scene_cb = renderer->gpu->create_buffer(buffer_creation);
+
+    pipeline_creation.name = "phong_opaque";
+    Program* program_opqaue = renderer->create_program({ pipeline_creation });
+
+    // Blend
+    pipeline_creation.name = "phong_transparent";
+    pipeline_creation.blend_state.add_blend_state().set_color(VK_BLEND_FACTOR_SRC_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_OP_ADD);
+    Program* program_transparent = renderer->create_program({ pipeline_creation });
+
+    MaterialCreation material_creation;
+
+    material_creation.set_name("material_phong_opaque").set_program(program_opqaue).set_render_index(0);
+    Material* phong_material_opaque = renderer->create_material(material_creation);
+
+    material_creation.set_name("material_phong_transparent").set_program(program_transparent).set_render_index(1);
+    Material* phong_material_tranparent = renderer->create_material(material_creation);
+
+    for (u32 mesh_index = 0; mesh_index < mesh_draws.size; ++mesh_index) {
+        ObjDraw& mesh_draw = mesh_draws[mesh_index];
+
+        if (mesh_draw.transparency == 1.0f) {
+            mesh_draw.material = phong_material_opaque;
+        }
+        else {
+            mesh_draw.material = phong_material_tranparent;
+        }
+
+        // Descriptor Set
+        Magnefu::DescriptorSetCreation ds_creation{};
+        ds_creation.set_layout(mesh_draw.material->program->passes[0].descriptor_set_layout);
+        ds_creation.buffer(scene_cb, 0).buffer(mesh_draw.mesh_buffer, 1);
+        mesh_draw.descriptor_set = renderer->gpu->create_descriptor_set(ds_creation);
+    }
+
+    qsort(mesh_draws.data, mesh_draws.size, sizeof(ObjDraw), obj_mesh_material_compare);
+}
+
+// -- Asynchronous Loader -------------------------------------------------- //
+
+void AsynchronousLoader::init(Magnefu::Renderer* renderer_, enki::TaskScheduler* task_scheduler_, Magnefu::Allocator* resident_allocator_)
+{
+	renderer = renderer_;
+	task_scheduler = task_scheduler_;
+	allocator = resident_allocator_;
+
+	file_load_requests.init(allocator, 16);
+	upload_requests.init(allocator, 16);
+
+	texture_ready.index = Magnefu::k_invalid_texture.index;
+	cpu_buffer_ready.index = Magnefu::k_invalid_texture.index;
+	gpu_buffer_ready.index = Magnefu::k_invalid_texture.index;
+
+	completed = nullptr;
+
+	using namespace Magnefu;
+
+	// Persistently mapped staging buffer
+	// Needed to optimally transfer data from CPU to GPU
+	BufferCreation bc;
+	bc.reset().set(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, ResourceUsageType::Stream, mfmega(64)).set_name("staging_buffer").set_persistent(true);
+
+	BufferHandle staging_buffer_handle = renderer->gpu->create_buffer(bc);
+	staging_buffer = renderer->gpu->access_buffer(staging_buffer_handle);
+
+	staging_buffer_offset = 0;
+
+	// Create command pools linked to transfer queue
+	for (u32 i = 0; i < GraphicsContext::k_max_frames; i++)
 	{
-		Magnefu::MeshDraw& mesh_draw = scene.mesh_draws[mesh_index];
-		gpu.destroy_buffer(mesh_draw.material_buffer);
+		VkCommandPoolCreateInfo cmd_pool_info{};
+		cmd_pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		cmd_pool_info.pNext = nullptr;
+		cmd_pool_info.queueFamilyIndex = renderer->gpu->vulkan_transfer_queue_family;
+		cmd_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+		vkCreateCommandPool(renderer->gpu->vulkan_device, &cmd_pool_info, renderer->gpu->vulkan_allocation_callbacks, &command_pools[i]);
 	}
 
-	scene.mesh_draws.shutdown();
+	for (u32 i = 0; i < GraphicsContext::k_max_frames; i++)
+	{
+		VkCommandBufferAllocateInfo cmd_alloc_info{};
+		cmd_alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		cmd_alloc_info.pNext = nullptr;
+		cmd_alloc_info.commandPool = command_pools[i];
+		cmd_alloc_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		cmd_alloc_info.commandBufferCount = 1;
+
+		vkAllocateCommandBuffers(renderer->gpu->vulkan_device, &cmd_alloc_info, &command_buffers[i].vk_command_buffer);
+	}
+
+	VkSemaphoreCreateInfo semaphore_info{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
+	vkCreateSemaphore(renderer->gpu->vulkan_device, &semaphore_info, renderer->gpu->vulkan_allocation_callbacks, &transfer_complete_semaphore);
+
+	VkFenceCreateInfo fence_info{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+	fence_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+	vkCreateFence(renderer->gpu->vulkan_device, &fence_info, renderer->gpu->vulkan_allocation_callbacks, &transfer_fence);
 }
 
-static void scene_unload (Magnefu::Scene& scene, Magnefu::Renderer& renderer) {
 
-	Magnefu::GraphicsContext& gpu = *renderer.gpu;
+void AsynchronousLoader::shutdown() 
+{
 
-	// Free scene buffers
-	scene.samplers.shutdown();
-	scene.images.shutdown();
-	scene.buffers.shutdown();
+	renderer->gpu->destroy_buffer(staging_buffer->handle);
 
-	// NOTE(marco): we can't destroy this sooner as textures and buffers
-	// hold a pointer to the names stored here
-	Magnefu::gltf_free(scene.gltf_scene);
+	file_load_requests.shutdown();
+	upload_requests.shutdown();
+
+	for (u32 i = 0; i < Magnefu::GraphicsContext::k_max_frames; ++i)
+	{
+		vkDestroyCommandPool(renderer->gpu->vulkan_device, command_pools[i], renderer->gpu->vulkan_allocation_callbacks);
+		// Command buffers are destroyed with the pool associated.
+	}
+
+	vkDestroySemaphore(renderer->gpu->vulkan_device, transfer_complete_semaphore, renderer->gpu->vulkan_allocation_callbacks);
+	vkDestroyFence(renderer->gpu->vulkan_device, transfer_fence, renderer->gpu->vulkan_allocation_callbacks);
 }
 
-static int mesh_material_compare(const void* a, const void* b) {
-	const Magnefu::MeshDraw* mesh_a = (const Magnefu::MeshDraw*)a;
-	const Magnefu::MeshDraw* mesh_b = (const Magnefu::MeshDraw*)b;
-
-	if (mesh_a->material->render_index < mesh_b->material->render_index) return -1;
-	if (mesh_a->material->render_index > mesh_b->material->render_index) return  1;
-	return 0;
-}
-
-static void get_mesh_vertex_buffer (Magnefu::Scene& scene, i32 accessor_index, Magnefu::BufferHandle& out_buffer_handle, u32& out_buffer_offset) {
+void AsynchronousLoader::update(Magnefu::Allocator* scratch_allocator) 
+{
 	using namespace Magnefu;
 
-	if (accessor_index != -1) {
-		glTF::Accessor& buffer_accessor = scene.gltf_scene.accessors[accessor_index];
-		glTF::BufferView& buffer_view = scene.gltf_scene.buffer_views[buffer_accessor.buffer_view];
-		BufferResource& buffer_gpu = scene.buffers[buffer_accessor.buffer_view];
+	// Process upload requests
+	if (upload_requests.size)
+	{
+		if (vkGetFenceStatus(renderer->gpu->vulkan_device, transfer_fence) != VK_SUCCESS)
+		{
+			return;
+		}
 
-		out_buffer_handle = buffer_gpu.handle;
-		out_buffer_offset = buffer_accessor.byte_offset == glTF::INVALID_INT_VALUE ? 0 : buffer_accessor.byte_offset;
+		vkResetFences(renderer->gpu->vulkan_device, 1, &transfer_fence);
+
+		// Get last request
+		UploadRequest upload_request = upload_requests.back();
+		upload_requests.pop();
+
+		CommandBuffer* cb = &command_buffers[renderer->gpu->current_frame];
+		cb->begin();
+
+		if (upload_request.texture.index != k_invalid_texture.index)
+		{
+			Texture* texture = renderer->gpu->access_texture(upload_request.texture);
+
+			const u32 k_texture_channels = 4;
+			const u32 k_texture_alignment = 4;
+			const sizet aligned_image_size = memoryAlign(texture->width * texture->height * k_texture_channels, k_texture_alignment);
+			// Request place in buffer
+			const sizet current_offset = std::atomic_fetch_add(&staging_buffer_offset, aligned_image_size);
+
+			cb->upload_texture_data(texture->handle, upload_request.data, staging_buffer->handle, current_offset);
+
+			free(upload_request.data);
+		}
+		else if (upload_request.cpu_buffer.index != k_invalid_buffer.index && upload_request.gpu_buffer.index != k_invalid_buffer.index)
+		{
+			Buffer* src = renderer->gpu->access_buffer(upload_request.cpu_buffer);
+			Buffer* dst = renderer->gpu->access_buffer(upload_request.gpu_buffer);
+
+			cb->upload_buffer_data(src->handle, dst->handle);
+		}
+		else if (upload_request.cpu_buffer.index != k_invalid_buffer.index)
+		{
+			Buffer* buffer = renderer->gpu->access_buffer(upload_request.cpu_buffer);
+			// TODO: proper alignment
+			const sizet aligned_image_size = memoryAlign(buffer->size, 64);
+			const sizet current_offset = std::atomic_fetch_add(&staging_buffer_offset, aligned_image_size);
+			cb->upload_buffer_data(buffer->handle, upload_request.data, staging_buffer->handle, current_offset);
+
+			free(upload_request.data);
+		}
+
+
+		cb->end();
+
+		VkSubmitInfo submitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &cb->vk_command_buffer;
+		VkPipelineStageFlags wait_flag[]{ VK_PIPELINE_STAGE_TRANSFER_BIT };
+		VkSemaphore wait_semaphore[]{ transfer_complete_semaphore };
+		submitInfo.pWaitSemaphores = wait_semaphore;
+		submitInfo.pWaitDstStageMask = wait_flag;
+
+		VkQueue used_queue = renderer->gpu->vulkan_transfer_queue;
+		vkQueueSubmit(used_queue, 1, &submitInfo, transfer_fence);
+
+		// TODO(marco): better management for state machine. We need to account for file -> buffer,
+		// buffer -> texture and buffer -> buffer. One the CPU buffer has been used it should be freed.
+		if (upload_request.texture.index != k_invalid_index)
+		{
+			MF_ASSERT(texture_ready.index == k_invalid_texture.index, "");
+			texture_ready = upload_request.texture;
+		}
+		else if (upload_request.cpu_buffer.index != k_invalid_buffer.index && upload_request.gpu_buffer.index != k_invalid_buffer.index) 
+		{
+			MF_ASSERT(cpu_buffer_ready.index == k_invalid_index, "");
+			MF_ASSERT(gpu_buffer_ready.index == k_invalid_index, "");
+			MF_ASSERT((completed == nullptr), "");
+			cpu_buffer_ready = upload_request.cpu_buffer;
+			gpu_buffer_ready = upload_request.gpu_buffer;
+			completed = upload_request.completed;
+		}
+		else if (upload_request.cpu_buffer.index != k_invalid_index) 
+		{
+			MF_ASSERT(cpu_buffer_ready.index == k_invalid_index, "");
+			cpu_buffer_ready = upload_request.cpu_buffer;
+		}
 	}
+
+
+	// Process File Requests
+	if (file_load_requests.size)
+	{
+		FileLoadRequest load_request = file_load_requests.back();
+		file_load_requests.pop();
+
+		i64 start_file_load = Magnefu::time_now();
+
+		// Load texture file
+		int x, y, comp;
+		u8* texture_data = stbi_load(load_request.path, &x, &y, &comp, 4);
+
+		if (texture_data)
+		{
+			MF_APP_INFO("Read file {} in {} ms.", load_request.path, Magnefu::time_from_milliseconds(start_file_load));
+
+			UploadRequest& upload_request = upload_requests.push_use();
+			upload_request.data = texture_data;
+			upload_request.texture = load_request.texture;
+			upload_request.cpu_buffer = Magnefu::k_invalid_buffer;
+		}
+		else
+		{
+			MF_APP_ERROR("Error reading file {}", load_request.path);
+		}
+
+	}
+
+	staging_buffer_offset = 0;
 }
 
-static bool get_mesh_material(Magnefu::Renderer& renderer, Magnefu::Scene& scene, Magnefu::glTF::Material& material, Magnefu::MeshDraw& mesh_draw) {
-	using namespace Magnefu;
 
-	bool transparent = false;
-	GraphicsContext& gpu = *renderer.gpu;
+void AsynchronousLoader::request_texture_data(cstring filename, Magnefu::TextureHandle texture) 
+{
 
-	if (material.pbr_metallic_roughness != nullptr) {
-		if (material.pbr_metallic_roughness->base_color_factor_count != 0) {
-			MF_CORE_ASSERT(material.pbr_metallic_roughness->base_color_factor_count == 4, "");
-
-			mesh_draw.base_color_factor = {
-				material.pbr_metallic_roughness->base_color_factor[0],
-				material.pbr_metallic_roughness->base_color_factor[1],
-				material.pbr_metallic_roughness->base_color_factor[2],
-				material.pbr_metallic_roughness->base_color_factor[3],
-			};
-		}
-		else {
-			mesh_draw.base_color_factor = { 1.0f, 1.0f, 1.0f, 1.0f };
-		}
-
-		if (material.pbr_metallic_roughness->roughness_factor != glTF::INVALID_FLOAT_VALUE) {
-			mesh_draw.metallic_roughness_occlusion_factor.x = material.pbr_metallic_roughness->roughness_factor;
-		}
-		else {
-			mesh_draw.metallic_roughness_occlusion_factor.x = 1.0f;
-		}
-
-		if (material.alpha_mode.data != nullptr && strcmp(material.alpha_mode.data, "MASK") == 0) {
-			mesh_draw.flags |= DrawFlags_AlphaMask;
-			transparent = true;
-		}
-
-		if (material.alpha_cutoff != glTF::INVALID_FLOAT_VALUE) {
-			mesh_draw.alpha_cutoff = material.alpha_cutoff;
-		}
-
-		if (material.pbr_metallic_roughness->metallic_factor != glTF::INVALID_FLOAT_VALUE) {
-			mesh_draw.metallic_roughness_occlusion_factor.y = material.pbr_metallic_roughness->metallic_factor;
-		}
-		else {
-			mesh_draw.metallic_roughness_occlusion_factor.y = 1.0f;
-		}
-
-		if (material.pbr_metallic_roughness->base_color_texture != nullptr) {
-			glTF::Texture& diffuse_texture = scene.gltf_scene.textures[material.pbr_metallic_roughness->base_color_texture->index];
-			TextureResource& diffuse_texture_gpu = scene.images[diffuse_texture.source];
-			SamplerResource& diffuse_sampler_gpu = scene.samplers[diffuse_texture.sampler];
-
-			mesh_draw.diffuse_texture_index = diffuse_texture_gpu.handle.index;
-
-			gpu.link_texture_sampler(diffuse_texture_gpu.handle, diffuse_sampler_gpu.handle);
-		}
-		else {
-			mesh_draw.diffuse_texture_index = INVALID_TEXTURE_INDEX;
-		}
-
-		if (material.pbr_metallic_roughness->metallic_roughness_texture != nullptr) {
-			glTF::Texture& roughness_texture = scene.gltf_scene.textures[material.pbr_metallic_roughness->metallic_roughness_texture->index];
-			TextureResource& roughness_texture_gpu = scene.images[roughness_texture.source];
-			SamplerResource& roughness_sampler_gpu = scene.samplers[roughness_texture.sampler];
-
-			mesh_draw.roughness_texture_index = roughness_texture_gpu.handle.index;
-
-			gpu.link_texture_sampler(roughness_texture_gpu.handle, roughness_sampler_gpu.handle);
-		}
-		else {
-			mesh_draw.roughness_texture_index = INVALID_TEXTURE_INDEX;
-		}
-	}
-
-	if (material.occlusion_texture != nullptr) {
-		glTF::Texture& occlusion_texture = scene.gltf_scene.textures[material.occlusion_texture->index];
-
-		TextureResource& occlusion_texture_gpu = scene.images[occlusion_texture.source];
-		SamplerResource& occlusion_sampler_gpu = scene.samplers[occlusion_texture.sampler];
-
-		mesh_draw.occlusion_texture_index = occlusion_texture_gpu.handle.index;
-
-		if (material.occlusion_texture->strength != glTF::INVALID_FLOAT_VALUE) {
-			mesh_draw.metallic_roughness_occlusion_factor.z = material.occlusion_texture->strength;
-		}
-		else {
-			mesh_draw.metallic_roughness_occlusion_factor.z = 1.0f;
-		}
-
-		gpu.link_texture_sampler(occlusion_texture_gpu.handle, occlusion_sampler_gpu.handle);
-	}
-	else {
-		mesh_draw.occlusion_texture_index = INVALID_TEXTURE_INDEX;
-	}
-
-	if (material.normal_texture != nullptr) {
-		glTF::Texture& normal_texture = scene.gltf_scene.textures[material.normal_texture->index];
-		TextureResource& normal_texture_gpu = scene.images[normal_texture.source];
-		SamplerResource& normal_sampler_gpu = scene.samplers[normal_texture.sampler];
-
-		gpu.link_texture_sampler(normal_texture_gpu.handle, normal_sampler_gpu.handle);
-
-		mesh_draw.normal_texture_index = normal_texture_gpu.handle.index;
-	}
-	else {
-		mesh_draw.normal_texture_index = INVALID_TEXTURE_INDEX;
-	}
-
-	// Create material buffer
-	BufferCreation buffer_creation;
-	buffer_creation.reset().set(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Dynamic, sizeof(MeshData)).set_name("mesh_data");
-	mesh_draw.material_buffer = gpu.create_buffer(buffer_creation);
-
-	return transparent;
+	FileLoadRequest& request = file_load_requests.push_use();
+	strcpy(request.path, filename);
+	request.texture = texture;
+	request.buffer = Magnefu::k_invalid_buffer;
 }
 
+void AsynchronousLoader::request_buffer_upload(void* data, Magnefu::BufferHandle buffer) 
+{
+
+	UploadRequest& upload_request = upload_requests.push_use();
+	upload_request.data = data;
+	upload_request.cpu_buffer = buffer;
+	upload_request.texture = Magnefu::k_invalid_texture;
+}
+
+void AsynchronousLoader::request_buffer_copy(Magnefu::BufferHandle src, Magnefu::BufferHandle dst, u32* completed)
+{
+
+	UploadRequest& upload_request = upload_requests.push_use();
+	upload_request.completed = completed;
+	upload_request.data = nullptr;
+	upload_request.cpu_buffer = src;
+	upload_request.gpu_buffer = dst;
+	upload_request.texture = Magnefu::k_invalid_texture;
+}
 // -- IO Tasks ------------------------------------------------------ //
 
 struct RunPinnedTaskLoopTask : enki::IPinnedTask
@@ -478,13 +1932,15 @@ struct RunPinnedTaskLoopTask : enki::IPinnedTask
 }; // RunPinnedTaskLoopTask
 
 
+
+
 struct AsynchronousLoadTask : enki::IPinnedTask
 {
 	void Execute() override
 	{
 		while (execute)
 		{
-			async_loader->update();
+			async_loader->update(nullptr);
 		}
 	}
 
@@ -520,10 +1976,20 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	time_service_init();
 
  	LogService::Instance()->Init(nullptr);
-	MemoryService::Instance()->Init(nullptr);
-	service_manager = Magnefu::ServiceManager::instance;
 
-	service_manager->init(&Magnefu::MemoryService::Instance()->systemAllocator);
+    MemoryServiceConfiguration memory_configuration;
+    memory_configuration.maxDynamicSize = mfmega(500);
+
+    MemoryService::Instance()->Init(nullptr);
+    Allocator* allocator = &MemoryService::Instance()->systemAllocator;
+
+    StackAllocator* scratch_allocator = &MemoryService::Instance()->tempStackAllocator;
+    scratch_allocator->init(mfmega(8));
+
+
+	service_manager = Magnefu::ServiceManager::instance;
+	service_manager->init(allocator);
+
 
 	enki::TaskSchedulerConfig scheduler_config;
 	// In this example we create more threads than the hardware can run,
@@ -533,21 +1999,22 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	s_task_scheduler.Initialize(scheduler_config);
 	
 	// window
-	WindowConfiguration wconf{ configuration.width, configuration.height, configuration.name, &MemoryService::Instance()->systemAllocator };
+	WindowConfiguration wconf{ configuration.width, configuration.height, configuration.name, allocator };
 	window = &s_window;
 	window->Init(&wconf);
 	window->SetEventCallback(BIND_EVENT_FN(this, Sandbox::OnEvent));
 
 	// input
 	input = service_manager->get<InputService>();
-	input->Init(&MemoryService::Instance()->systemAllocator);
+	input->Init(allocator);
 	input->SetEventCallback(BIND_EVENT_FN(this, Sandbox::OnEvent));
 
 	// graphics
 	DeviceCreation dc;
-	dc.set_window(window->GetWidth(), window->GetHeight(), window->GetWindowHandle()).
-		set_allocator(&MemoryService::Instance()->systemAllocator).
-		set_stack_allocator(&MemoryService::Instance()->tempStackAllocator);
+    dc.set_window(window->GetWidth(), window->GetHeight(), window->GetWindowHandle()).
+        set_allocator(allocator).
+        set_stack_allocator(scratch_allocator).
+        set_num_threads(s_task_scheduler.GetNumTaskThreads());
 
 	GraphicsContext* gpu = service_manager->get<GraphicsContext>();
 	gpu->init(dc);
@@ -594,204 +2061,53 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	cstring file_path = "";
 	InjectDefault3DModel(file_path);
 
-	Directory cwd{ };
-	directory_current(&cwd);
+    // [TAG: Multithreading]
+    s_async_loader.init(renderer, &s_task_scheduler, allocator);
 
-	char gltf_base_path[512]{ };
+    Directory cwd{ };
+    directory_current(&cwd);
 
-	memcpy(gltf_base_path, file_path, strlen(file_path));
-	file_directory_from_path(gltf_base_path);
+    char file_base_path[512]{ };
 
-	directory_change(gltf_base_path);
+    memcpy(file_base_path, file_path, strlen(file_path));
+    file_directory_from_path(file_base_path);
 
-	char gltf_file[512]{ };
-	memcpy(gltf_file, file_path, strlen(file_path));
-	file_name_from_path(gltf_file);
+    directory_change(file_base_path);
 
-	// TODO: full scene class to manage glTF and entt resources
-	scene.Init(gltf_file);
+    char file_name[512]{ };
+    memcpy(file_name, file_path, strlen(file_path));
+    file_name_from_path(file_name);
 
 
-	scene_load_from_gltf(gltf_file, *renderer, &MemoryService::Instance()->systemAllocator, scene);
+    char* file_extension = file_extension_from_path(file_name);
 
-	directory_change(cwd.path);
+    if (strcmp(file_extension, "gltf") == 0) 
+    {
+        scene = new glTFScene;
+    }
+    else if (strcmp(file_extension, "obj") == 0)
+    {
+        scene = new ObjScene;
+    }
 
-	
-	{
-			// Create pipeline state
-		PipelineCreation pipeline_creation;
+    scene->load(file_name, file_base_path, allocator, scratch_allocator, &s_async_loader);
 
-		StringBuffer path_buffer;
-		path_buffer.init(1024, &MemoryService::Instance()->systemAllocator);
+    // NOTE(marco): restore working directory
+    directory_change(cwd.path);
 
-		const char* vert_file = "main.vert";
-		char* vert_path = path_buffer.append_use_f("%s%s", MAGNEFU_SHADER_FOLDER, vert_file);
-		FileReadResult vert_code = file_read_text(vert_path, &MemoryService::Instance()->systemAllocator);
+    scene->prepare_draws(renderer, scratch_allocator);
 
-		const char* frag_file = "main.frag";
-		char* frag_path = path_buffer.append_use_f("%s%s", MAGNEFU_SHADER_FOLDER, frag_file);
-		FileReadResult frag_code = file_read_text(frag_path, &MemoryService::Instance()->systemAllocator);
+    // Start multithreading IO
+    // Create IO threads at the end
+    s_run_pinned_task.threadNum = s_task_scheduler.GetNumTaskThreads() - 1;
+    s_run_pinned_task.task_scheduler = &s_task_scheduler;
+    s_task_scheduler.AddPinnedTask(&s_run_pinned_task);
 
-		// Vertex input
-		// TODO(marco): could these be inferred from SPIR-V?
-		pipeline_creation.vertex_input.add_vertex_attribute({ 0, 0, 0, VertexComponentFormat::Float3 }); // position
-		pipeline_creation.vertex_input.add_vertex_stream({ 0, 12, VertexInputRate::PerVertex });
-
-		pipeline_creation.vertex_input.add_vertex_attribute({ 1, 1, 0, VertexComponentFormat::Float4 }); // tangent
-		pipeline_creation.vertex_input.add_vertex_stream({ 1, 16, VertexInputRate::PerVertex });
-
-		pipeline_creation.vertex_input.add_vertex_attribute({ 2, 2, 0, VertexComponentFormat::Float3 }); // normal
-		pipeline_creation.vertex_input.add_vertex_stream({ 2, 12, VertexInputRate::PerVertex });
-
-		pipeline_creation.vertex_input.add_vertex_attribute({ 3, 3, 0, VertexComponentFormat::Float2 }); // texcoord
-		pipeline_creation.vertex_input.add_vertex_stream({ 3, 8, VertexInputRate::PerVertex });
-
-		// Render pass
-		pipeline_creation.render_pass = gpu->get_swapchain_output();
-		// Depth
-		pipeline_creation.depth_stencil.set_depth(true, VK_COMPARE_OP_LESS_OR_EQUAL);
-
-		// Blend
-		pipeline_creation.blend_state.add_blend_state().set_color(VK_BLEND_FACTOR_SRC_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_OP_ADD);
-
-		pipeline_creation.shaders.set_name("main").add_stage(vert_code.data, vert_code.size, VK_SHADER_STAGE_VERTEX_BIT).add_stage(frag_code.data, frag_code.size, VK_SHADER_STAGE_FRAGMENT_BIT);
-
-		// Constant buffer
-		BufferCreation buffer_creation;
-		buffer_creation.reset().set(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Dynamic, sizeof(UniformData)).set_name("scene_cb");
-		scene_cb = gpu->create_buffer(buffer_creation);
-
-		pipeline_creation.name = "main_no_cull";
-		Program* program_no_cull = renderer->create_program({ pipeline_creation });
-
-		pipeline_creation.rasterization.cull_mode = VK_CULL_MODE_BACK_BIT;
-
-		pipeline_creation.name = "main_cull";
-		Program* program_cull = renderer->create_program({ pipeline_creation });
-
-		MaterialCreation material_creation;
-
-		material_creation.set_name("material_no_cull_opaque").set_program(program_no_cull).set_render_index(0);
-		Material* material_no_cull_opaque = renderer->create_material(material_creation);
-
-		material_creation.set_name("material_cull_opaque").set_program(program_cull).set_render_index(1);
-		Material* material_cull_opaque = renderer->create_material(material_creation);
-
-		material_creation.set_name("material_no_cull_transparent").set_program(program_no_cull).set_render_index(2);
-		Material* material_no_cull_transparent = renderer->create_material(material_creation);
-
-		material_creation.set_name("material_cull_transparent").set_program(program_cull).set_render_index(3);
-		Material* material_cull_transparent = renderer->create_material(material_creation);
-
-		path_buffer.shutdown();
-		MemoryService::Instance()->systemAllocator.deallocate(vert_code.data);
-		MemoryService::Instance()->systemAllocator.deallocate(frag_code.data);
-
-		glTF::Scene& root_gltf_scene = scene.gltf_scene.scenes[scene.gltf_scene.scene];
-
-		// Init entities
-		//scene.entities.init(&MemoryService::Instance()->systemAllocator, root_gltf_scene.nodes_count);
-
-		for (u32 node_index = 0; node_index < root_gltf_scene.nodes_count; ++node_index)
-		{
-			glTF::Node& node = scene.gltf_scene.nodes[root_gltf_scene.nodes[node_index]];
-
-			// entity creation
-			//Entity& entity = scene.CreateEntity(node.name.data);
-
-			if (node.mesh == glTF::INVALID_INT_VALUE) {
-				continue;
-			}
-
-			// TODO(marco): children
-
-			glTF::Mesh& mesh = scene.gltf_scene.meshes[node.mesh];
-
-			// Get initial transform data from node
-			vec3s node_trans{ 0.f, 0.f, 0.f };
-			if (node.translation_count != 0)
-			{
-				MF_ASSERT((node.translation_count == 3), "");
-				node_trans = vec3s{ node.translation[0], node.translation[1], node.translation[2] };
-			}
-
-			vec3s node_rot{ 0.f, 0.f, 0.f };
-			if (node.rotation_count != 0)
-			{
-				MF_ASSERT((node.rotation_count == 3), "");
-				node_rot = vec3s{ node.rotation[0], node.rotation[1], node.rotation[2] };
-			}
-
-			vec3s node_scale{ 1.0f, 1.0f, 1.0f };
-			if (node.scale_count != 0) 
-			{
-				MF_ASSERT((node.scale_count == 3), "");
-				node_scale = vec3s{ node.scale[0], node.scale[1], node.scale[2] };
-			}
-
-			// If all transform data has 0 counts, should not have a transform component
-			// However, these files seem to all have 0 values
-			//entity.AddComponent<TransformComponent>(node_trans, node_rot, node_scale);
-
-			// Gltf primitives are conceptually submeshes.
-			for (u32 primitive_index = 0; primitive_index < mesh.primitives_count; ++primitive_index) {
-				MeshDraw mesh_draw{ };
-
-				mesh_draw.scale = node_scale;
-
-				glTF::MeshPrimitive& mesh_primitive = mesh.primitives[primitive_index];
-
-				const i32 position_accessor_index = gltf_get_attribute_accessor_index(mesh_primitive.attributes, mesh_primitive.attribute_count, "POSITION");
-				const i32 tangent_accessor_index = gltf_get_attribute_accessor_index(mesh_primitive.attributes, mesh_primitive.attribute_count, "TANGENT");
-				const i32 normal_accessor_index = gltf_get_attribute_accessor_index(mesh_primitive.attributes, mesh_primitive.attribute_count, "NORMAL");
-				const i32 texcoord_accessor_index = gltf_get_attribute_accessor_index(mesh_primitive.attributes, mesh_primitive.attribute_count, "TEXCOORD_0");
-
-				get_mesh_vertex_buffer(scene, position_accessor_index, mesh_draw.position_buffer, mesh_draw.position_offset);
-				get_mesh_vertex_buffer(scene, tangent_accessor_index, mesh_draw.tangent_buffer, mesh_draw.tangent_offset);
-				get_mesh_vertex_buffer(scene, normal_accessor_index, mesh_draw.normal_buffer, mesh_draw.normal_offset);
-				get_mesh_vertex_buffer(scene, texcoord_accessor_index, mesh_draw.texcoord_buffer, mesh_draw.texcoord_offset);
-
-				// Create index buffer
-				glTF::Accessor& indices_accessor =  scene.gltf_scene.accessors[mesh_primitive.indices];
-				glTF::BufferView& indices_buffer_view =  scene.gltf_scene.buffer_views[indices_accessor.buffer_view];
-				BufferResource& indices_buffer_gpu =  scene.buffers[indices_accessor.buffer_view];
-				mesh_draw.index_buffer = indices_buffer_gpu.handle;
-				mesh_draw.index_offset = indices_accessor.byte_offset == glTF::INVALID_INT_VALUE ? 0 : indices_accessor.byte_offset;
-				mesh_draw.primitive_count = indices_accessor.count;
-
-				// Create material
-				glTF::Material& material =  scene.gltf_scene.materials[mesh_primitive.material];
-
-				bool transparent = get_mesh_material(*renderer, scene, material, mesh_draw);
-
-				if (transparent) {
-					if (material.double_sided) {
-						mesh_draw.material = material_no_cull_transparent;
-					}
-					else {
-						mesh_draw.material = material_cull_transparent;
-					}
-				}
-				else {
-					if (material.double_sided) {
-						mesh_draw.material = material_no_cull_opaque;
-					}
-					else {
-						mesh_draw.material = material_cull_opaque;
-					}
-				}
-				
-				scene.mesh_draws.push(mesh_draw);
-
-				// If primitives are conceptually submeshes, do I add a mesh component for each submesh?
-				// Yes. An entity supports several of the same component type. glTF can also define
-				// a parent-child relationship between meshes.
-				//entity.AddComponent<Magnefu::MeshComponent>(mesh_draw);
-			}
-		}
-	}
-
-	qsort(scene.mesh_draws.begin(), scene.mesh_draws.count(), sizeof(MeshDraw), mesh_material_compare);
+    // Send async load task to external thread FILE_IO
+    s_async_load_task.threadNum = s_run_pinned_task.threadNum;
+    s_async_load_task.task_scheduler = &s_task_scheduler;
+    s_async_load_task.async_loader = &s_async_loader;
+    s_task_scheduler.AddPinnedTask(&s_async_load_task);
 
 
 	MF_CORE_INFO("Sandbox Application created successfully!");
@@ -805,22 +2121,30 @@ void Sandbox::Destroy()
 
 	GraphicsContext* gpu = service_manager->get<GraphicsContext>();
 
+    s_run_pinned_task.execute = false;
+    s_async_load_task.execute = false;
+    s_task_scheduler.WaitforAllAndShutdown();
+
+    vkDeviceWaitIdle(gpu->vulkan_device);
+
+    s_async_loader.shutdown();
+
 	gpu->destroy_buffer(scene_cb);
 
-
-	// Shutdown services
 	imgui->Shutdown();
 	
-
 	gpu_profiler->shutdown();
 
-	scene_free_gpu_resources(scene, *renderer);
+    scene->free_gpu_resources(renderer);
+
 
 	rm->shutdown();
 	renderer->shutdown();
 
-	scene_unload(scene, *renderer);
-	scene.Shutdown();
+	scene->unload(renderer);
+    scene->Shutdown();
+
+    delete scene;
 
 	input->Shutdown();
 	window->Shutdown();
@@ -839,16 +2163,6 @@ bool Sandbox::MainLoop()
 {
 	using namespace Magnefu;
 
-	RunPinnedTaskLoopTask run_pinned_task;
-	run_pinned_task.threadNum = s_task_scheduler.GetNumTaskThreads() - 1;
-	run_pinned_task.task_scheduler = &s_task_scheduler;
-	s_task_scheduler.AddPinnedTask(&run_pinned_task);
-
-	AsynchronousLoadTask async_load_task;
-	async_load_task.threadNum = run_pinned_task.threadNum;
-	async_load_task.task_scheduler = &s_task_scheduler;
-	s_task_scheduler.AddPinnedTask(&async_load_task);
-
 	Magnefu::GraphicsContext* gpu = service_manager->get<Magnefu::GraphicsContext>();
 
 	
@@ -857,17 +2171,25 @@ bool Sandbox::MainLoop()
 	//
 
 	accumulator = 0.0;
-	auto start_time = Magnefu::time_now();
+	i64 start_time = Magnefu::time_now();
+    i64 absolute_time = start_time;
 
 	while (!window->requested_exit)
 	{
-		//MF_PROFILE_SCOPE("Frame");
+		MF_PROFILE_SCOPE("Frame");
 
 
 		// -- New Frame ----------- //
 		if (!window->minimized)
 		{
 			gpu->new_frame();
+
+            static bool checksz = true;
+            if (s_async_loader.file_load_requests.size == 0 && checksz)
+            {
+                checksz = false;
+                MF_APP_DEBUG("Uploaded textures in {} seconds", time_from_seconds(absolute_time));
+            }
 		}
 
 
@@ -879,15 +2201,18 @@ bool Sandbox::MainLoop()
 
 		if (window->resized)
 		{
+            // Resize Framebuffer
 			gpu->resize(window->GetWidth(), window->GetHeight());
 
 			window->resized = false;
+
+            // Change aspect ratio
 			game_camera.camera.set_aspect_ratio(window->GetWidth() * 1.f / window->GetHeight());
 		}
 
 
 		// -- Game State Updates ---------------------------- //
-		auto end_time = Magnefu::time_now();
+		i64 end_time = Magnefu::time_now();
 		f32 delta_time = (f32)Magnefu::time_delta_seconds(start_time, end_time);
 		start_time = end_time;
 
@@ -909,19 +2234,32 @@ bool Sandbox::MainLoop()
 
 		// Draw GUI
 		{
+            MF_PROFILE_SCOPE("Draw GUI");
+
 			if (ImGui::Begin("Magnefu ImGui"))
 			{
+                ImGui::SeparatorText("MODELS");
 				ImGui::InputFloat("Model scale", &render_data.model_scale, 0.001f);
-				ImGui::InputFloat3("Light position", render_data.light.raw);
+
+                ImGui::SeparatorText("LIGHTS");
+				ImGui::SliderFloat3("Light position", render_data.light.raw, -30.f, 30.f);
 				ImGui::InputFloat("Light range", &render_data.light_range);
 				ImGui::InputFloat("Light intensity", &render_data.light_intensity);
+                
+                ImGui::SeparatorText("CAMERA");
 				ImGui::InputFloat3("Camera position", game_camera.camera.position.raw);
 				ImGui::InputFloat3("Camera target movement", game_camera.target_movement.raw);
+
+                ImGui::SeparatorText("OPTIONS");
+                ImGui::Checkbox("Dynamically recreate descriptor sets", &recreate_per_thread_descriptors);
+                ImGui::Checkbox("Use secondary command buffers", &use_secondary_command_buffers);
 			}
 			ImGui::End();
 
 			if (ImGui::Begin("GPU"))
 			{
+                renderer->imgui_draw();
+                ImGui::Separator();
 				gpu_profiler->imgui_draw();
 			}
 			ImGui::End();
@@ -939,6 +2277,53 @@ bool Sandbox::MainLoop()
 	}
 
 	return false;
+}
+
+void Sandbox::Render(f32 interpolation_factor, void* data)
+{
+    using namespace Magnefu;
+
+    // //
+
+    if (!window->minimized)
+    {
+
+        GraphicsContext* gpu = service_manager->get<GraphicsContext>();
+
+        RenderData* render_data = (RenderData*)data;
+
+        {
+            // Update common constant buffer
+            MF_PROFILE_SCOPE("Uniform Buffer Update");
+
+            MapBufferParameters cb_map = { scene_cb, 0, 0 };
+            float* cb_data = (float*)gpu->map_buffer(cb_map);
+            if (cb_data)
+            {
+                UniformData uniform_data{ };
+                uniform_data.vp = game_camera.camera.view_projection;
+                uniform_data.eye = vec4s{ game_camera.camera.position.x, game_camera.camera.position.y, game_camera.camera.position.z, 1.0f };
+                uniform_data.light = vec4s{ render_data->light.x, render_data->light.y, render_data->light.z, 1.0f };
+                uniform_data.light_range = render_data->light_range;
+                uniform_data.light_intensity = render_data->light_intensity;
+
+                memcpy(cb_data, &uniform_data, sizeof(UniformData));
+
+                gpu->unmap_buffer(cb_map);
+            }
+
+            scene->upload_materials(render_data->model_scale);
+        }
+
+        scene->submit_draw_task(imgui, gpu_profiler, &s_task_scheduler);
+
+        gpu->present();
+
+    }
+    else
+    {
+        ImGui::Render();
+    }
 }
 
 void Sandbox::DrawGUI()
@@ -963,106 +2348,7 @@ void Sandbox::VariableUpdate(f32 delta_time)
 	window->CenterMouse(game_camera.mouse_dragging);
 }
 
-void Sandbox::Render(f32 interpolation_factor, void* data)
-{
-	using namespace Magnefu;
 
-	
-
-	// //
-
-	if (!window->minimized)
-	{
-
-		GraphicsContext* gpu = service_manager->get<GraphicsContext>();
-
-		RenderData* render_data = (RenderData*)data;
-
-		{
-			// Update common constant buffer
-
-			MapBufferParameters cb_map = { scene_cb, 0, 0 };
-			float* cb_data = (float*)gpu->map_buffer(cb_map);
-			if (cb_data)
-			{
-				UniformData uniform_data{ };
-				uniform_data.vp = game_camera.camera.view_projection;
-				uniform_data.eye = vec4s{ game_camera.camera.position.x, game_camera.camera.position.y, game_camera.camera.position.z, 1.0f };
-				uniform_data.light = vec4s{ render_data->light.x, render_data->light.y, render_data->light.z, 1.0f };
-				uniform_data.light_range = render_data->light_range;
-				uniform_data.light_intensity = render_data->light_intensity;
-
-				memcpy(cb_data, &uniform_data, sizeof(UniformData));
-
-				gpu->unmap_buffer(cb_map);
-			}
-
-			for (u32 mesh_index = 0; mesh_index < scene.mesh_draws.count(); ++mesh_index)
-			{
-				MeshDraw& mesh_draw = scene.mesh_draws[mesh_index];
-
-				cb_map.buffer = mesh_draw.material_buffer;
-				MeshData* mesh_data = (MeshData*)gpu->map_buffer(cb_map);
-				if (mesh_data) {
-					upload_material(*mesh_data, mesh_draw, render_data->model_scale);
-
-					gpu->unmap_buffer(cb_map);
-				}
-			}
-		}
-
-		auto* gpu_commands = gpu->get_command_buffer(Magnefu::QueueType::Graphics, true);
-
-		gpu_commands->push_marker("Frame");
-
-
-
-		gpu_commands->clear(0.3f, 0.3f, 0.3f, 1.0f);
-		gpu_commands->clear_depth_stencil(1.0f, 0);
-		gpu_commands->bind_pass(gpu->get_swapchain_pass());
-		//gpu_commands->bind_pipeline(cube_pipeline);
-		gpu_commands->set_scissor(nullptr);
-		gpu_commands->set_viewport(nullptr);
-
-		Material* last_material = nullptr;
-		// TODO: loop by material so that we can deal with multiple passes
-
-		for (u32 mesh_index = 0; mesh_index < scene.mesh_draws.count(); ++mesh_index)
-		{
-			MeshDraw& mesh_draw = scene.mesh_draws[mesh_index];
-
-			if (mesh_draw.material != last_material)
-			{
-				PipelineHandle pipeline = renderer->get_pipeline(mesh_draw.material);
-				gpu_commands->bind_pipeline(pipeline);
-
-				last_material = mesh_draw.material;
-			}
-
-			draw_mesh(*renderer, gpu_commands, mesh_draw);
-
-		}
-
-
-
-
-		//imgui->Render(renderer, *gpu_commands);
-		imgui->Render(*gpu_commands);
-
-		gpu_commands->pop_marker();
-
-		gpu_profiler->update(*gpu);
-
-		// Send commands to GPU
-		gpu->queue_command_buffer(gpu_commands);
-		gpu->present();
-
-	}
-	else
-	{
-		ImGui::Render();
-	}
-}
 
 void Sandbox::BeginFrame()
 {

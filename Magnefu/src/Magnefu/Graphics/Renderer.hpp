@@ -164,6 +164,8 @@ namespace Magnefu
         void                        init(const RendererCreation& creation);
         void                        shutdown();
 
+        void                        imgui_draw();
+
         void                        set_loaders(Magnefu::ResourceManager* manager);
 
         void                        begin_frame();
@@ -202,8 +204,17 @@ namespace Magnefu
         void*                       map_buffer(BufferResource* buffer, u32 offset = 0, u32 size = 0);
         void                        unmap_buffer(BufferResource* buffer);
 
-        CommandBuffer*              get_command_buffer(QueueType::Enum type, bool begin) { return gpu->get_command_buffer(type, begin); }
+        CommandBuffer*              get_command_buffer(u32 thread_index, bool begin) { return gpu->get_command_buffer(thread_index, begin); }
         void                        queue_command_buffer(Magnefu::CommandBuffer* commands) { gpu->queue_command_buffer(commands); }
+
+        // Multithread friendly update to textures
+        void                        add_texture_to_update(Magnefu::TextureHandle texture);
+        void                        add_texture_update_commands(u32 thread_id);
+
+
+        // ------------- Members ------------------------------- //
+
+        std::mutex                          texture_update_mutex;
 
         ResourcePoolTyped<TextureResource>  textures;
         ResourcePoolTyped<BufferResource>   buffers;
@@ -213,7 +224,12 @@ namespace Magnefu
 
         ResourceCache               resource_cache;
 
+        TextureHandle               textures_to_update[128];
+        u32                         num_textures_to_update = 0;
+
         Magnefu::GraphicsContext* gpu;
+
+        Array<VmaBudget>            gpu_heap_budgets;
 
         u16                         width;
         u16                         height;

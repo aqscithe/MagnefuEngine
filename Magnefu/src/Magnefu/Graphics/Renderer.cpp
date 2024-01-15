@@ -16,7 +16,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image/stb_image.h"
 
-
+#include "imgui/imgui.h"
 
 namespace Magnefu
 {
@@ -188,6 +188,7 @@ namespace Magnefu
     {
 
         resource_cache.shutdown(this);
+        gpu_heap_budgets.shutdown();
 
         textures.shutdown();
         buffers.shutdown();
@@ -214,6 +215,21 @@ namespace Magnefu
     void Renderer::end_frame() {
         // Present
         gpu->present();
+    }
+
+    void Renderer::imgui_draw() 
+    {
+
+        // Print memory stats
+        vmaGetHeapBudgets(gpu->vma_allocator, gpu_heap_budgets.data);
+
+        sizet total_memory_used = 0;
+        for (u32 i = 0; i < gpu->get_memory_heap_count(); ++i) 
+        {
+            total_memory_used += gpu_heap_budgets[i].usage;
+        }
+
+        ImGui::Text("GPU Memory Total: {}MB", total_memory_used / (1024 * 1024));
     }
 
     void Renderer::resize_swapchain(u32 width_, u32 height_) {
@@ -247,8 +263,9 @@ namespace Magnefu
         return nullptr;
     }
 
-    BufferResource* Renderer::create_buffer(VkBufferUsageFlags type, ResourceUsageType::Enum usage, u32 size, void* data, cstring name) {
-        BufferCreation creation{ type, usage, size, data, name };
+    BufferResource* Renderer::create_buffer(VkBufferUsageFlags type, ResourceUsageType::Enum usage, u32 size, void* data, cstring name) 
+    {
+        BufferCreation creation{ type, usage, size, 0, 0, data, name };
         return create_buffer(creation);
     }
 
@@ -482,6 +499,125 @@ namespace Magnefu
             MapBufferParameters cb_map = { buffer->handle, 0, 0 };
             gpu->unmap_buffer(cb_map);
         }
+    }
+
+    void Renderer::add_texture_to_update(Magnefu::TextureHandle texture)
+    {
+        std::lock_guard<std::mutex> guard(texture_update_mutex);
+
+        textures_to_update[num_textures_to_update++] = texture;
+    }
+
+    //TODO:
+
+    static VkImageLayout add_image_barrier2(VkCommandBuffer command_buffer, VkImage image, Magnefu::ResourceState old_state, Magnefu::ResourceState new_state,
+        u32 base_mip_level, u32 mip_count, bool is_depth, u32 source_family, u32 destination_family) {
+        using namespace Magnefu;
+        VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+        barrier.image = image;
+        barrier.srcQueueFamilyIndex = source_family;
+        barrier.dstQueueFamilyIndex = destination_family;
+        barrier.subresourceRange.aspectMask = is_depth ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+        barrier.subresourceRange.baseArrayLayer = 0;
+        barrier.subresourceRange.layerCount = 1;
+        barrier.subresourceRange.levelCount = mip_count;
+
+        barrier.subresourceRange.baseMipLevel = base_mip_level;
+        barrier.oldLayout = util_to_vk_image_layout(old_state);
+        barrier.newLayout = util_to_vk_image_layout(new_state);
+        barrier.srcAccessMask = util_to_vk_access_flags(old_state);
+        barrier.dstAccessMask = util_to_vk_access_flags(new_state);
+
+        const VkPipelineStageFlags source_stage_mask = util_determine_pipeline_stage_flags(barrier.srcAccessMask, QueueType::Graphics);
+        const VkPipelineStageFlags destination_stage_mask = util_determine_pipeline_stage_flags(barrier.dstAccessMask, QueueType::Graphics);
+
+        vkCmdPipelineBarrier(command_buffer, source_stage_mask, destination_stage_mask, 0,
+            0, nullptr, 0, nullptr, 1, &barrier);
+
+        return barrier.newLayout;
+    }
+
+    static void generate_mipmaps(Magnefu::Texture* texture, Magnefu::CommandBuffer* cb, bool from_transfer_queue) 
+    {
+        using namespace Magnefu;
+
+        if (texture->mipmaps > 1) 
+        {
+            util_add_image_barrier(cb->vk_command_buffer, texture->vk_image, from_transfer_queue ? RESOURCE_STATE_COPY_SOURCE : RESOURCE_STATE_COPY_SOURCE, RESOURCE_STATE_COPY_SOURCE, 0, 1, false);
+        }
+
+        i32 w = texture->width;
+        i32 h = texture->height;
+
+        for (int mip_index = 1; mip_index < texture->mipmaps; ++mip_index)
+        {
+            util_add_image_barrier(cb->vk_command_buffer, texture->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_COPY_DEST, mip_index, 1, false);
+
+            VkImageBlit blit_region{ };
+            blit_region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            blit_region.srcSubresource.mipLevel = mip_index - 1;
+            blit_region.srcSubresource.baseArrayLayer = 0;
+            blit_region.srcSubresource.layerCount = 1;
+
+            blit_region.srcOffsets[0] = { 0, 0, 0 };
+            blit_region.srcOffsets[1] = { w, h, 1 };
+
+            w /= 2;
+            h /= 2;
+
+            blit_region.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            blit_region.dstSubresource.mipLevel = mip_index;
+            blit_region.dstSubresource.baseArrayLayer = 0;
+            blit_region.dstSubresource.layerCount = 1;
+
+            blit_region.dstOffsets[0] = { 0, 0, 0 };
+            blit_region.dstOffsets[1] = { w, h, 1 };
+
+            vkCmdBlitImage(cb->vk_command_buffer, texture->vk_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, texture->vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit_region, VK_FILTER_LINEAR);
+
+            // Prepare current mip for next level
+            util_add_image_barrier(cb->vk_command_buffer, texture->vk_image, RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_COPY_SOURCE, mip_index, 1, false);
+        }
+
+        // Transition
+        if (from_transfer_queue && false) {
+            util_add_image_barrier(cb->vk_command_buffer, texture->vk_image, (texture->mipmaps > 1) ? RESOURCE_STATE_COPY_SOURCE : RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_SHADER_RESOURCE, 0, texture->mipmaps, false);
+        }
+        else {
+            util_add_image_barrier(cb->vk_command_buffer, texture->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_SHADER_RESOURCE, 0, texture->mipmaps, false);
+        }
+
+
+        texture->vk_image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    }
+
+    void Renderer::add_texture_update_commands(u32 thread_id)
+    {
+        std::lock_guard<std::mutex> guard(texture_update_mutex);
+
+        if (num_textures_to_update == 0) 
+        {
+            return;
+        }
+
+        CommandBuffer* cb = gpu->get_command_buffer(thread_id, false);
+        cb->begin();
+
+        for (u32 i = 0; i < num_textures_to_update; ++i) {
+
+            Texture* texture = gpu->access_texture(textures_to_update[i]);
+
+            texture->vk_image_layout = add_image_barrier2(cb->vk_command_buffer, texture->vk_image, RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_COPY_SOURCE,
+                0, 1, false, gpu->vulkan_transfer_queue_family, gpu->vulkan_main_queue_family);
+
+            generate_mipmaps(texture, cb, true);
+        }
+
+        // TODO: this is done before submitting to the queue in the device.
+        //cb->end();
+        gpu->queue_command_buffer(cb);
+
+        num_textures_to_update = 0;
     }
 
     //// Resource Loaders ///////////////////////////////////////////////////////

@@ -95,6 +95,20 @@ namespace Magnefu
         return *this;
     }
 
+    BufferCreation& BufferCreation::set_persistent(u32 persistent_)
+    {
+        persistent = persistent_;
+
+        return *this;
+    }
+
+    BufferCreation& BufferCreation::set_device_only(u32 device_only_)
+    {
+        device_only = device_only_;
+
+        return *this;
+    }
+
     // TextureCreation /////////////////////////////////////////
     TextureCreation& TextureCreation::set_size(u16 width_, u16 height_, u16 depth_) {
         width = width_;
@@ -402,6 +416,73 @@ namespace Magnefu
         memory_barriers[num_memory_barriers++] = memory_barrier;
 
         return *this;
+    }
+
+    // Methods
+    void util_add_image_barrier(VkCommandBuffer command_buffer, VkImage image, ResourceState old_state, ResourceState new_state, u32 base_mip_level, u32 mip_count, bool is_depth)
+    {
+        VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+        barrier.image = image;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.subresourceRange.aspectMask = is_depth ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+        barrier.subresourceRange.baseArrayLayer = 0;
+        barrier.subresourceRange.layerCount = 1;
+        barrier.subresourceRange.levelCount = mip_count;
+
+        barrier.subresourceRange.baseMipLevel = base_mip_level;
+        barrier.oldLayout = util_to_vk_image_layout(old_state);
+        barrier.newLayout = util_to_vk_image_layout(new_state);
+        barrier.srcAccessMask = util_to_vk_access_flags(old_state);
+        barrier.dstAccessMask = util_to_vk_access_flags(new_state);
+
+        const VkPipelineStageFlags source_stage_mask = util_determine_pipeline_stage_flags(barrier.srcAccessMask, QueueType::Graphics);
+        const VkPipelineStageFlags destination_stage_mask = util_determine_pipeline_stage_flags(barrier.dstAccessMask, QueueType::Graphics);
+
+        vkCmdPipelineBarrier(command_buffer, source_stage_mask, destination_stage_mask, 0,
+            0, nullptr, 0, nullptr, 1, &barrier);
+    }
+
+    void util_add_image_barrier_ext(VkCommandBuffer command_buffer, VkImage image, ResourceState old_state, ResourceState new_state, u32 base_mip_level, u32 mip_count, bool is_depth, u32 source_family, u32 destination_family, QueueType::Enum source_queue_type, QueueType::Enum destination_queue_type)
+    {
+        VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+        barrier.image = image;
+        barrier.srcQueueFamilyIndex = source_family;
+        barrier.dstQueueFamilyIndex = destination_family;
+        barrier.subresourceRange.aspectMask = is_depth ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+        barrier.subresourceRange.baseArrayLayer = 0;
+        barrier.subresourceRange.layerCount = 1;
+        barrier.subresourceRange.levelCount = mip_count;
+
+        barrier.subresourceRange.baseMipLevel = base_mip_level;
+        barrier.oldLayout = util_to_vk_image_layout(old_state);
+        barrier.newLayout = util_to_vk_image_layout(new_state);
+        barrier.srcAccessMask = util_to_vk_access_flags(old_state);
+        barrier.dstAccessMask = util_to_vk_access_flags(new_state);
+
+        const VkPipelineStageFlags source_stage_mask = util_determine_pipeline_stage_flags(barrier.srcAccessMask, source_queue_type);
+        const VkPipelineStageFlags destination_stage_mask = util_determine_pipeline_stage_flags(barrier.dstAccessMask, destination_queue_type);
+
+        vkCmdPipelineBarrier(command_buffer, source_stage_mask, destination_stage_mask, 0,
+            0, nullptr, 0, nullptr, 1, &barrier);
+    }
+
+    void util_add_buffer_barrier_ext(VkCommandBuffer command_buffer, VkBuffer buffer, ResourceState old_state, ResourceState new_state, u32 buffer_size, u32 source_family, u32 destination_family, QueueType::Enum source_queue_type, QueueType::Enum destination_queue_type)
+    {
+        VkBufferMemoryBarrier barrier{ VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER };
+        barrier.buffer = buffer;
+        barrier.srcQueueFamilyIndex = source_family;
+        barrier.dstQueueFamilyIndex = destination_family;
+        barrier.offset = 0;
+        barrier.size = buffer_size;
+        barrier.srcAccessMask = util_to_vk_access_flags(old_state);
+        barrier.dstAccessMask = util_to_vk_access_flags(new_state);
+
+        const VkPipelineStageFlags source_stage_mask = util_determine_pipeline_stage_flags(barrier.srcAccessMask, source_queue_type);
+        const VkPipelineStageFlags destination_stage_mask = util_determine_pipeline_stage_flags(barrier.dstAccessMask, destination_queue_type);
+
+        vkCmdPipelineBarrier(command_buffer, source_stage_mask, destination_stage_mask, 0,
+            0, nullptr, 1, &barrier, 0, nullptr);
     }
 
 } // namespace raptor

@@ -4,11 +4,13 @@
 
 namespace Magnefu
 {
+    static const u32 k_secondary_command_buffers_count = 2;
+
     struct CommandBuffer 
     {
 
-        void                            init(QueueType::Enum type, u32 buffer_size, u32 submit_size, bool baked);
-        void                            terminate();
+        void                            init(GraphicsContext* gpu);
+        void                            shutdown();
 
         //
         // Commands interface
@@ -16,10 +18,15 @@ namespace Magnefu
 
         DescriptorSetHandle             create_descriptor_set(const DescriptorSetCreation& creation);
 
-        void                            bind_pass(RenderPassHandle handle);
+        void                            begin();
+        void                            begin_secondary(RenderPass* current_render_pass);
+        void                            end();
+        void                            end_current_render_pass();
+
+        void                            bind_pass(RenderPassHandle handle, bool use_secondary);
         void                            bind_pipeline(PipelineHandle handle);
         void                            bind_vertex_buffer(BufferHandle handle, u32 binding, u32 offset);
-        void                            bind_index_buffer(BufferHandle handle, u32 offset);
+        void                            bind_index_buffer(BufferHandle handle, u32 offset, VkIndexType index_type);
         void                            bind_descriptor_set(DescriptorSetHandle* handles, u32 num_lists, u32* offsets, u32 num_offsets);
         void                            bind_local_descriptor_set(DescriptorSetHandle* handles, u32 num_lists, u32* offsets, u32 num_offsets);
 
@@ -44,6 +51,11 @@ namespace Magnefu
         void                            push_marker(const char* name);
         void                            pop_marker();
 
+        // Non-drawing methods
+        void                            upload_texture_data(TextureHandle texture, void* texture_data, BufferHandle staging_buffer, sizet staging_buffer_offset);
+        void                            upload_buffer_data(BufferHandle buffer, void* buffer_data, BufferHandle staging_buffer, sizet staging_buffer_offset);
+        void                            upload_buffer_data(BufferHandle src, BufferHandle dst);
+
         void                            reset();
 
 
@@ -67,12 +79,35 @@ namespace Magnefu
 
         u32                             current_command;
         ResourceHandle                  resource_handle;
-        QueueType::Enum                 type = QueueType::Graphics;
-        u32                             buffer_size = 0;
-
-        bool                            baked = false;        // If baked reset will affect only the read of the commands.
 
     }; // struct CommandBuffer
+
+
+    struct CommandBufferManager 
+    {
+
+        void                    init(GraphicsContext* gpu, u32 num_threads);
+        void                    shutdown();
+
+        void                    reset_pools(u32 frame_index);
+
+        CommandBuffer*          get_command_buffer(u32 frame, u32 thread_index, bool begin);
+        CommandBuffer*          get_secondary_command_buffer(u32 frame, u32 thread_index);
+
+        u16                     pool_from_index(u32 index) { return (u16)index / num_pools_per_frame; }
+        u32                     pool_from_indices(u32 frame_index, u32 thread_index);
+
+        Array<VkCommandPool>    vulkan_command_pools;
+        Array<CommandBuffer>    command_buffers;
+        Array<CommandBuffer>    secondary_command_buffers;
+        Array<u8>               used_buffers;       // Track how many buffers were used per thread per frame.
+        Array<u8>               used_secondary_command_buffers;
+
+        GraphicsContext*        gpu = nullptr;
+        u32                     num_pools_per_frame = 0;
+        u32                     num_command_buffers_per_thread = 3;
+
+    }; // struct CommandBufferManager
 
 
 } // namespace Magnefu

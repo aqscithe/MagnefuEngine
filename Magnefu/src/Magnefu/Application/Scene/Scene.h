@@ -10,53 +10,17 @@
 
 // -- vendor Includes --------------- //
 
-#include "cglm/struct/mat3.h"
-#include "cglm/struct/mat4.h"
-#include "cglm/struct/quat.h"
-#include "cglm/struct/cam.h"
-#include "cglm/struct/affine.h"
-
 #include "entt.hpp"	
+#include "enkiTS/TaskScheduler.h"
 
+
+struct AsynchronousLoader;
 
 namespace Magnefu
 {
 
 	struct Entity;
-
-	struct MeshDraw
-	{
-		Material* material;
-
-		BufferHandle    index_buffer;
-		BufferHandle    position_buffer;
-		BufferHandle    tangent_buffer;
-		BufferHandle    normal_buffer;
-		BufferHandle    texcoord_buffer;
-		BufferHandle    material_buffer;
-
-		u32         index_offset;
-		u32         position_offset;
-		u32         tangent_offset;
-		u32         normal_offset;
-		u32         texcoord_offset;
-
-		u32         primitive_count;
-
-		// Indices used for bindless textures.
-		u16         diffuse_texture_index;
-		u16         roughness_texture_index;
-		u16         normal_texture_index;
-		u16         occlusion_texture_index;
-
-		vec4s       base_color_factor;
-		vec4s       metallic_roughness_occlusion_factor;
-		vec3s       scale;
-
-		f32         alpha_cutoff;
-		u32         flags;
-	}; // struct MeshDraw
-
+	
 
 
 	// TODO: Will eventually create a full on class for ECS entt data
@@ -75,6 +39,15 @@ namespace Magnefu
 		{
 			registry.sort<T, By>();
 		}*/
+
+		virtual void                            load(cstring filename, cstring path, Allocator* resident_allocator, StackAllocator* temp_allocator, AsynchronousLoader* async_loader) { };
+		virtual void                            free_gpu_resources(Renderer* renderer) { };
+		virtual void                            unload(Renderer* renderer) { };
+
+		virtual void                            prepare_draws(Renderer* renderer, StackAllocator* scratch_allocator) { };
+
+		virtual void                            upload_materials(float model_scale) { };
+		virtual void                            submit_draw_task(ImGuiService* imgui, GPUProfiler* gpu_profiler, enki::TaskScheduler* task_scheduler) { };
 
 
 
@@ -133,16 +106,6 @@ namespace Magnefu
 
 		// -- Members -------------------------------------- //
 	public:
-
-		Array<MeshDraw>						mesh_draws;
-
-		// All graphics resources used by the scene
-		Array<Magnefu::TextureResource>		images;
-		Array<Magnefu::SamplerResource>		samplers;
-		Array<Magnefu::BufferResource>		buffers;
-
-		Magnefu::glTF::glTF                 gltf_scene; // Source gltf file
-
 
 		entt::registry						registry;
 		entt::observer						observer;

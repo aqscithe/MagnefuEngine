@@ -102,6 +102,7 @@ namespace Magnefu
 		DeviceCreation& set_window(u32 width, u32 height, void* handle);
 		DeviceCreation& set_allocator(Allocator* allocator);
 		DeviceCreation& set_stack_allocator(StackAllocator* allocator);
+        DeviceCreation& set_num_threads(u16 num_threads_);
 
 
 		// -- Members ----------------------------------------------------- //
@@ -113,6 +114,7 @@ namespace Magnefu
 		u16                             height = 1;
 
 		u16                             gpu_time_queries_per_frame = 32;
+        u16                             num_threads = 1;
 		bool                            enable_gpu_time_queries = false;
 		bool                            debug = false;
 
@@ -220,8 +222,8 @@ namespace Magnefu
 
         // -- Command Buffers ------------------------------------------------- //
 
-        CommandBuffer*                  get_command_buffer(QueueType::Enum type, bool begin);
-        CommandBuffer*                  get_instant_command_buffer();
+        CommandBuffer*                  get_command_buffer(u32 thread_index, bool begin);
+        CommandBuffer*                  get_secondary_command_buffer(u32 thread_index);
 
         void                            queue_command_buffer(CommandBuffer* command_buffer);          // Queue command buffer that will not be executed until present is called.
 
@@ -276,7 +278,8 @@ namespace Magnefu
 
         void                            update_descriptor_set_instant(const DescriptorSetUpdate& update);
 
-
+        // -- Memory Stats --------------------------------------------- //
+        u32                             get_memory_heap_count();
         
 
         // -- Resource Acquisition -------------------------------------------------------- //
@@ -311,6 +314,8 @@ namespace Magnefu
 
 
         // -- Members -------------------------------------------------------- //
+
+
 
         ResourcePool                    buffers;
         ResourcePool                    textures;

@@ -31,12 +31,9 @@ namespace Magnefu
     }
 
 
-    void CommandBuffer::init(QueueType::Enum type_, u32 buffer_size_, u32 submit_size, bool baked_) 
+    void CommandBuffer::init(GraphicsContext* gpu_) 
     {
-        // TODO(marco): are these still needed?
-        type = type_;
-        buffer_size = buffer_size_;
-        baked = baked_;
+        gpu = gpu_;
 
         ////////  Create Descriptor Pools
         static const u32 k_global_pool_elements = 128;
@@ -68,7 +65,7 @@ namespace Magnefu
         reset();
     }
 
-    void CommandBuffer::terminate() 
+    void CommandBuffer::shutdown() 
     {
 
         is_recording = false;
@@ -78,6 +75,30 @@ namespace Magnefu
         descriptor_sets.shutdown();
 
         vkDestroyDescriptorPool(gpu->vulkan_device, vk_descriptor_pool, gpu->vulkan_allocation_callbacks);
+    }
+
+    void CommandBuffer::begin() 
+    {
+
+        if (!is_recording) 
+        {
+            VkCommandBufferBeginInfo beginInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+            vkBeginCommandBuffer(vk_command_buffer, &beginInfo);
+
+            is_recording = true;
+        }
+    }
+
+    void CommandBuffer::end()
+    {
+        if (is_recording)
+        {
+            vkEndCommandBuffer(vk_command_buffer);
+
+            is_recording = false;
+        }
     }
 
     DescriptorSetHandle CommandBuffer::create_descriptor_set(const DescriptorSetCreation& creation)
@@ -130,7 +151,7 @@ namespace Magnefu
         return handle;
     }
 
-    void CommandBuffer::bind_pass(RenderPassHandle handle_)
+    void CommandBuffer::bind_pass(RenderPassHandle handle_, bool use_secondary)
     {
 
         //if ( !is_recording )
@@ -156,7 +177,7 @@ namespace Magnefu
                 render_pass_begin.clearValueCount = 2;// render_pass->output.color_operation ? 2 : 0;
                 render_pass_begin.pClearValues = clears;
 
-                vkCmdBeginRenderPass(vk_command_buffer, &render_pass_begin, VK_SUBPASS_CONTENTS_INLINE);
+                vkCmdBeginRenderPass(vk_command_buffer, &render_pass_begin, use_secondary ? VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS : VK_SUBPASS_CONTENTS_INLINE);
             }
 
             // Cache render pass
@@ -189,18 +210,20 @@ namespace Magnefu
         vkCmdBindVertexBuffers(vk_command_buffer, binding, 1, &vk_buffer, offsets);
     }
 
-    void CommandBuffer::bind_index_buffer(BufferHandle handle_, u32 offset_) {
+    void CommandBuffer::bind_index_buffer(BufferHandle handle_, u32 offset_, VkIndexType index_type) 
+    {
 
         Buffer* buffer = gpu->access_buffer(handle_);
 
         VkBuffer vk_buffer = buffer->vk_buffer;
         VkDeviceSize offset = offset_;
-        if (buffer->parent_buffer.index != k_invalid_index) {
+        if (buffer->parent_buffer.index != k_invalid_index) 
+        {
             Buffer* parent_buffer = gpu->access_buffer(buffer->parent_buffer);
             vk_buffer = parent_buffer->vk_buffer;
             offset = buffer->global_offset;
         }
-        vkCmdBindIndexBuffer(vk_command_buffer, vk_buffer, offset, VkIndexType::VK_INDEX_TYPE_UINT16);
+        vkCmdBindIndexBuffer(vk_command_buffer, vk_buffer, offset, index_type);
     }
 
     void CommandBuffer::bind_descriptor_set(DescriptorSetHandle* handles, u32 num_lists, u32* offsets, u32 num_offsets) {
@@ -657,5 +680,137 @@ namespace Magnefu
         gpu->pop_marker(vk_command_buffer);
     }
 
+    void CommandBuffer::upload_texture_data(TextureHandle texture_handle, void* texture_data, BufferHandle staging_buffer_handle, sizet staging_buffer_offset)
+    {
+
+        Texture* texture = gpu->access_texture(texture_handle);
+        Buffer* staging_buffer = gpu->access_buffer(staging_buffer_handle);
+        u32 image_size = texture->width * texture->height * 4;
+
+        // Copy buffer_data to staging buffer
+        memcpy(staging_buffer->mapped_data + staging_buffer_offset, texture_data, static_cast<size_t>(image_size));
+
+        VkBufferImageCopy region = {};
+        region.bufferOffset = staging_buffer_offset;
+        region.bufferRowLength = 0;
+        region.bufferImageHeight = 0;
+
+        region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        region.imageSubresource.mipLevel = 0;
+        region.imageSubresource.baseArrayLayer = 0;
+        region.imageSubresource.layerCount = 1;
+
+        region.imageOffset = { 0, 0, 0 };
+        region.imageExtent = { texture->width, texture->height, texture->depth };
+
+        // Pre copy memory barrier to perform layout transition
+        util_add_image_barrier(vk_command_buffer, texture->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_COPY_DEST, 0, 1, false);
+        // Copy from the staging buffer to the image
+        vkCmdCopyBufferToImage(vk_command_buffer, staging_buffer->vk_buffer, texture->vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+        // texture is now on the GPU but not usable by the main queue.
+
+        // Post copy memory barrier
+        util_add_image_barrier_ext(vk_command_buffer, texture->vk_image, RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_COPY_SOURCE,
+            0, 1, false, gpu->vulkan_transfer_queue_family, gpu->vulkan_main_queue_family,
+            QueueType::CopyTransfer, QueueType::Graphics);
+
+        texture->vk_image_layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    }
+
+    void CommandBuffer::upload_buffer_data(BufferHandle buffer_handle, void* buffer_data, BufferHandle staging_buffer_handle, sizet staging_buffer_offset)
+    {
+
+        Buffer* buffer = gpu->access_buffer(buffer_handle);
+        Buffer* staging_buffer = gpu->access_buffer(staging_buffer_handle);
+        u32 copy_size = buffer->size;
+
+        // Copy buffer_data to staging buffer
+        memcpy(staging_buffer->mapped_data + staging_buffer_offset, buffer_data, static_cast<size_t>(copy_size));
+
+        VkBufferCopy region{};
+        region.srcOffset = staging_buffer_offset;
+        region.dstOffset = 0;
+        region.size = copy_size;
+
+        vkCmdCopyBuffer(vk_command_buffer, staging_buffer->vk_buffer, buffer->vk_buffer, 1, &region);
+
+        util_add_buffer_barrier_ext(vk_command_buffer, buffer->vk_buffer, RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_UNDEFINED,
+            copy_size, gpu->vulkan_transfer_queue_family, gpu->vulkan_main_queue_family,
+            QueueType::CopyTransfer, QueueType::Graphics);
+    }
+
+    void CommandBuffer::upload_buffer_data(BufferHandle src_, BufferHandle dst_) 
+    {
+        Buffer* src = gpu->access_buffer(src_);
+        Buffer* dst = gpu->access_buffer(dst_);
+
+        MF_ASSERT(src->size == dst->size, "");
+
+        u32 copy_size = src->size;
+
+        VkBufferCopy region{};
+        region.srcOffset = 0;
+        region.dstOffset = 0;
+        region.size = copy_size;
+
+        vkCmdCopyBuffer(vk_command_buffer, src->vk_buffer, dst->vk_buffer, 1, &region);
+    }
+
+
+
+    // -- CommandBufferManager ------------------------------------------------------- //
+
+
+    void CommandBufferManager::init(GraphicsContext* gpu_, u32 num_threads)
+    {
+        gpu = gpu_;
+        num_pools_per_frame = num_threads;
+
+        const u32 total_pools = num_pools_per_frame * gpu->k_max_frames;
+        vulkan_command_pools.init(gpu->allocator, total_pools, total_pools);
+        //Init per thread-frame used buffers
+        used_buffers.init(gpu->allocator, total_pools, total_pools);
+
+        // Create pools: num frames * num threads;
+        const u32 total_pools = num_pools_per_frame * gpu->k_max_frames;
+        vulkan_command_pools.init(gpu->allocator, total_pools, total_pools);
+        // Init per thread-frame used buffers
+        used_buffers.init(gpu->allocator, total_pools, total_pools);
+        used_secondary_command_buffers.init(gpu->allocator, total_pools, total_pools);
+
+        for (u32 i = 0; i < total_pools; i++) {
+            VkCommandPoolCreateInfo cmd_pool_info = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO, nullptr };
+            cmd_pool_info.queueFamilyIndex = gpu->vulkan_main_queue_family;
+            cmd_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+            vkCreateCommandPool(gpu->vulkan_device, &cmd_pool_info, gpu->vulkan_allocation_callbacks, &vulkan_command_pools[i]);
+
+            used_buffers[i] = 0;
+            used_secondary_command_buffers[i] = 0;
+        }
+    }
+
+    void CommandBufferManager::shutdown()
+    {
+    }
+
+    void CommandBufferManager::reset_pools(u32 frame_index)
+    {
+    }
+
+    CommandBuffer* CommandBufferManager::get_command_buffer(u32 frame, u32 thread_index, bool begin)
+    {
+        return nullptr;
+    }
+
+    CommandBuffer* CommandBufferManager::get_secondary_command_buffer(u32 frame, u32 thread_index)
+    {
+        return nullptr;
+    }
+
+    u32 CommandBufferManager::pool_from_indices(u32 frame_index, u32 thread_index)
+    {
+        return u32();
+    }
 
 } // namespace raptor

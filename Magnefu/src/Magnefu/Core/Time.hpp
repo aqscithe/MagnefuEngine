@@ -27,4 +27,21 @@ namespace Magnefu
 
 	double      time_delta_seconds(i64 starting_time, i64 ending_time);
 	double      time_delta_milliseconds(i64 starting_time, i64 ending_time);
+
+#ifdef MF_DEBUG
+	#define MF_ENABLE_TIMINGS
+#endif
+
+#ifdef MF_ENABLE_TIMINGS
+	
+	#define MF_START_TIME(x)			{ x = ::Magnefu::time_now(); }
+	#define MF_END_TIME(x)				{ ::Magnefu::time_from(x); }
+	#define MF_END_TIME_MICRO(x)		{ ::Magnefu::time_from_microseconds(x); }
+	#define MF_END_TIME_MILLI(x)		{ ::Magnefu::time_from_milliseconds(x); }
+	#define MF_END_TIME_SECONDS(x)		{ ::Magnefu::time_from_seconds(x); }
+
+#else
+#define MF_START_TIME(x)
+#define MF_END_TIME_MILLI(x)
+#endif
 }
