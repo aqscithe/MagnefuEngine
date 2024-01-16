@@ -18,6 +18,9 @@ struct AsynchronousLoader;
 
 namespace Magnefu
 {
+	struct ImGuiService;
+	struct Renderer;
+	struct GPUProfiler;
 
 	struct Entity;
 	

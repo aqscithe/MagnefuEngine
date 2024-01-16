@@ -29,6 +29,7 @@ namespace Magnefu
 	// Forward-declarations ----------------------------------------- //
 	struct Allocator;
 	struct CommandBuffer;
+    struct CommandBufferManager;
 	struct DeviceRenderFrame;
 	struct GPUTimestampManager;
 	struct GraphicsContext;

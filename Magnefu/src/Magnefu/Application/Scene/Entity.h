@@ -30,8 +30,8 @@ namespace Magnefu
 		~Entity();
 
 
-		void* GetTransformComponent();
-		void* GetMeshComponent();
+		/*void* GetTransformComponent();
+		void* GetMeshComponent();*/
 
 		template<typename T>
 		bool Contains()

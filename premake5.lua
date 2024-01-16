@@ -16,11 +16,13 @@ IncludeDir["ImGui"] = "Magnefu/vendor/imgui"
 IncludeDir["Vulkan"] = "Magnefu/vendor/vulkan/include"
 IncludeDir["SOIL2"] = "Magnefu/vendor/SOIL2/include"
 IncludeDir["entt"] = "Magnefu/vendor/entt/include"
+IncludeDir["assimp"] = "Magnefu/vendor/assimp/include"
 
 LibDir = {}
 LibDir["GLFW"] = "Magnefu/vendor/GLAD/lib"
 LibDir["Vulkan"] = "Magnefu/vendor/vulkan/lib"
 LibDir["SOIL2"] = "Magnefu/vendor/SOIL2/lib"
+LibDir["assimp"] = "Magnefu/vendor/assimp/lib/x64"
 
 -- Includes Premake files
 include "Magnefu/vendor/GLFW"
@@ -83,6 +85,7 @@ project "Magnefu"
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.SOIL2}",
         "%{IncludeDir.entt}",
+        "%{IncludeDir.assimp}",
         
     }
 
@@ -90,6 +93,7 @@ project "Magnefu"
         "%{LibDir.Vulkan}",
         "%{LibDir.GLFW}",
         "%{LibDir.SOIL2}",
+        "%{LibDir.assimp}",
         
     }
 
@@ -101,7 +105,8 @@ project "Magnefu"
         "vulkan-1",
         "shaderc_shared",
         "soil2",
-        "opengl32"
+        "opengl32",
+        "assimp-vc143-mt"
     }
 
     -- C files ignore PCH
@@ -172,6 +177,7 @@ project "Editor"
         "%{prj.name}/src",
         "%{IncludeDir.GLAD}",
         "%{IncludeDir.entt}",
+        "%{IncludeDir.assimp}",
     }
 
     libdirs {

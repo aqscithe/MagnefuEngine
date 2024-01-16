@@ -77,7 +77,7 @@
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\entt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\entt\include;vendor\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -89,8 +89,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;shaderc_shared.lib;soil2.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;vendor\SOIL2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;shaderc_shared.lib;soil2.lib;opengl32.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;vendor\SOIL2\lib;vendor\assimp\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -99,7 +99,7 @@
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\entt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\entt\include;vendor\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -115,8 +115,8 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;shaderc_shared.lib;soil2.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;vendor\SOIL2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;shaderc_shared.lib;soil2.lib;opengl32.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;vendor\SOIL2\lib;vendor\assimp\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
@@ -125,7 +125,7 @@
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\entt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\entt\include;vendor\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -141,8 +141,8 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;shaderc_shared.lib;soil2.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;vendor\SOIL2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;shaderc_shared.lib;soil2.lib;opengl32.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;vendor\SOIL2\lib;vendor\assimp\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -256,6 +256,88 @@
     <ClInclude Include="vendor\GLFW\src\x11_platform.h" />
     <ClInclude Include="vendor\GLFW\src\xkb_unicode.h" />
     <ClInclude Include="vendor\SOIL2\include\SOIL2\SOIL2.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\Base64.hpp" />
+    <ClInclude Include="vendor\assimp\include\assimp\BaseImporter.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\Bitmap.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\BlobIOSystem.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\ByteSwapper.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\ColladaMetaData.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\Compiler\poppack1.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\Compiler\pstdint.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\Compiler\pushpack1.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\CreateAnimMesh.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\DefaultIOStream.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\DefaultIOSystem.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\DefaultLogger.hpp" />
+    <ClInclude Include="vendor\assimp\include\assimp\Exceptional.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\Exporter.hpp" />
+    <ClInclude Include="vendor\assimp\include\assimp\GenericProperty.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\GltfMaterial.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\Hash.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\IOStream.hpp" />
+    <ClInclude Include="vendor\assimp\include\assimp\IOStreamBuffer.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\IOSystem.hpp" />
+    <ClInclude Include="vendor\assimp\include\assimp\Importer.hpp" />
+    <ClInclude Include="vendor\assimp\include\assimp\LineSplitter.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\LogAux.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\LogStream.hpp" />
+    <ClInclude Include="vendor\assimp\include\assimp\Logger.hpp" />
+    <ClInclude Include="vendor\assimp\include\assimp\MathFunctions.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\MemoryIOWrapper.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\NullLogger.hpp" />
+    <ClInclude Include="vendor\assimp\include\assimp\ObjMaterial.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\ParsingUtils.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\Profiler.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\ProgressHandler.hpp" />
+    <ClInclude Include="vendor\assimp\include\assimp\RemoveComments.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\SGSpatialSort.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\SceneCombiner.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\SkeletonMeshBuilder.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\SmallVector.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\SmoothingGroups.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\SpatialSort.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\StandardShapes.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\StreamReader.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\StreamWriter.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\StringComparison.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\StringUtils.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\Subdivision.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\TinyFormatter.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\Vertex.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\XMLTools.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\XmlParser.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\ZipArchiveIOSystem.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\aabb.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\ai_assert.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\anim.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\camera.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\cexport.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\cfileio.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\cimport.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\color4.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\commonMetaData.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\config.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\defs.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\fast_atof.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\importerdesc.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\light.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\material.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\matrix3x3.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\matrix4x4.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\mesh.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\metadata.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\pbrmaterial.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\port\AndroidJNI\AndroidJNIIOSystem.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\port\AndroidJNI\BundledAssetIOSystem.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\postprocess.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\qnan.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\quaternion.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\scene.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\texture.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\types.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\vector2.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\vector3.h" />
+    <ClInclude Include="vendor\assimp\include\assimp\version.h" />
     <ClInclude Include="vendor\cglm\affine-mat.h" />
     <ClInclude Include="vendor\cglm\affine.h" />
     <ClInclude Include="vendor\cglm\affine2d.h" />

@@ -91,6 +91,27 @@ namespace Magnefu
         }
     }
 
+    void CommandBuffer::begin_secondary(RenderPass* current_render_pass_) 
+    {
+        if (!is_recording) 
+        {
+            VkCommandBufferInheritanceInfo inheritance{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO };
+            inheritance.renderPass = current_render_pass_->vk_render_pass;
+            inheritance.subpass = 0;
+            inheritance.framebuffer = current_render_pass_->vk_frame_buffer;
+
+            VkCommandBufferBeginInfo beginInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT | VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+            beginInfo.pInheritanceInfo = &inheritance;
+
+            vkBeginCommandBuffer(vk_command_buffer, &beginInfo);
+
+            is_recording = true;
+
+            current_render_pass = current_render_pass_;
+        }
+    }
+
     void CommandBuffer::end()
     {
         if (is_recording)
@@ -98,6 +119,15 @@ namespace Magnefu
             vkEndCommandBuffer(vk_command_buffer);
 
             is_recording = false;
+        }
+    }
+
+    void CommandBuffer::end_current_render_pass() 
+    {
+        if (is_recording && current_render_pass != nullptr) {
+            vkCmdEndRenderPass(vk_command_buffer);
+
+            current_render_pass = nullptr;
         }
     }
 
@@ -766,11 +796,6 @@ namespace Magnefu
         gpu = gpu_;
         num_pools_per_frame = num_threads;
 
-        const u32 total_pools = num_pools_per_frame * gpu->k_max_frames;
-        vulkan_command_pools.init(gpu->allocator, total_pools, total_pools);
-        //Init per thread-frame used buffers
-        used_buffers.init(gpu->allocator, total_pools, total_pools);
-
         // Create pools: num frames * num threads;
         const u32 total_pools = num_pools_per_frame * gpu->k_max_frames;
         vulkan_command_pools.init(gpu->allocator, total_pools, total_pools);
@@ -778,7 +803,8 @@ namespace Magnefu
         used_buffers.init(gpu->allocator, total_pools, total_pools);
         used_secondary_command_buffers.init(gpu->allocator, total_pools, total_pools);
 
-        for (u32 i = 0; i < total_pools; i++) {
+        for (u32 i = 0; i < total_pools; i++) 
+        {
             VkCommandPoolCreateInfo cmd_pool_info = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO, nullptr };
             cmd_pool_info.queueFamilyIndex = gpu->vulkan_main_queue_family;
             cmd_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
@@ -788,29 +814,130 @@ namespace Magnefu
             used_buffers[i] = 0;
             used_secondary_command_buffers[i] = 0;
         }
+
+        // Create command buffers: pools * buffers per pool
+        const u32 total_buffers = total_pools * num_command_buffers_per_thread;
+        command_buffers.init(gpu->allocator, total_buffers, total_buffers);
+
+        const u32 total_secondary_buffers = total_pools * k_secondary_command_buffers_count;
+        secondary_command_buffers.init(gpu->allocator, total_secondary_buffers);
+
+        for (u32 i = 0; i < total_buffers; i++) {
+            VkCommandBufferAllocateInfo cmd = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO, nullptr };
+
+            const u32 frame_index = i / (num_command_buffers_per_thread * num_pools_per_frame);
+            const u32 thread_index = (i / num_command_buffers_per_thread) % num_pools_per_frame;
+            const u32 pool_index = pool_from_indices(frame_index, thread_index);
+            //rprint( "Indices i:%u f:%u t:%u p:%u\n", i, frame_index, thread_index, pool_index );
+            cmd.commandPool = vulkan_command_pools[pool_index];
+            cmd.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+            cmd.commandBufferCount = 1;
+
+            CommandBuffer& current_command_buffer = command_buffers[i];
+            vkAllocateCommandBuffers(gpu->vulkan_device, &cmd, &current_command_buffer.vk_command_buffer);
+
+            // TODO(marco): move to have a ring per queue per thread
+            current_command_buffer.handle = i;
+            current_command_buffer.init(gpu);
+        }
+
+        u32 handle = total_buffers;
+        for (u32 pool_index = 0; pool_index < total_pools; ++pool_index)
+        {
+            VkCommandBufferAllocateInfo cmd = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO, nullptr };
+
+            cmd.commandPool = vulkan_command_pools[pool_index];
+            cmd.level = VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+            cmd.commandBufferCount = k_secondary_command_buffers_count;
+
+            VkCommandBuffer secondary_buffers[k_secondary_command_buffers_count];
+            vkAllocateCommandBuffers(gpu->vulkan_device, &cmd, secondary_buffers);
+
+            for (u32 scb_index = 0; scb_index < k_secondary_command_buffers_count; ++scb_index) {
+                CommandBuffer cb{ };
+                cb.vk_command_buffer = secondary_buffers[scb_index];
+
+                cb.handle = handle++;
+                cb.init(gpu);
+
+                // NOTE(marco): access to the descriptor pool has to be synchronized
+                // across theads. Don't allow for now
+
+                secondary_command_buffers.push(cb);
+            }
+        }
+
+        //rprint( "Done\n" );
     }
 
     void CommandBufferManager::shutdown()
     {
+        const u32 total_pools = num_pools_per_frame * gpu->k_max_frames;
+        for (u32 i = 0; i < total_pools; i++)
+        {
+            vkDestroyCommandPool(gpu->vulkan_device, vulkan_command_pools[i], gpu->vulkan_allocation_callbacks);
+        }
+
+        for (u32 i = 0; i < command_buffers.size; i++) {
+            command_buffers[i].shutdown();
+        }
+
+        for (u32 i = 0; i < secondary_command_buffers.size; ++i) {
+            secondary_command_buffers[i].shutdown();
+        }
+
+        vulkan_command_pools.shutdown();
+        secondary_command_buffers.shutdown();
+        command_buffers.shutdown();
+        used_buffers.shutdown();
+        used_secondary_command_buffers.shutdown();
     }
 
     void CommandBufferManager::reset_pools(u32 frame_index)
     {
+        for (u32 i = 0; i < num_pools_per_frame; i++) 
+        {
+            const u32 pool_index = pool_from_indices(frame_index, i);
+            vkResetCommandPool(gpu->vulkan_device, vulkan_command_pools[pool_index], 0);
+
+            used_buffers[pool_index] = 0;
+            used_secondary_command_buffers[pool_index] = 0;
+        }
     }
 
     CommandBuffer* CommandBufferManager::get_command_buffer(u32 frame, u32 thread_index, bool begin)
     {
-        return nullptr;
+        const u32 pool_index = pool_from_indices(frame, thread_index);
+        u32 current_used_buffer = used_buffers[pool_index];
+        // TODO: how to handle fire-and-forget command buffers ?
+        //used_buffers[ pool_index ] = current_used_buffer + 1;
+        MF_CORE_ASSERT(current_used_buffer < num_command_buffers_per_thread, "");
+
+        CommandBuffer* cb = &command_buffers[(pool_index * num_command_buffers_per_thread) + current_used_buffer];
+        if (begin) {
+            cb->reset();
+            VkCommandBufferBeginInfo beginInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+            vkBeginCommandBuffer(cb->vk_command_buffer, &beginInfo);
+        }
+        return cb;
     }
 
     CommandBuffer* CommandBufferManager::get_secondary_command_buffer(u32 frame, u32 thread_index)
     {
-        return nullptr;
+        const u32 pool_index = pool_from_indices(frame, thread_index);
+        u32 current_used_buffer = used_secondary_command_buffers[pool_index];
+        used_secondary_command_buffers[pool_index] = current_used_buffer + 1;
+
+        MF_CORE_ASSERT(current_used_buffer < k_secondary_command_buffers_count, "");
+
+        CommandBuffer* cb = &secondary_command_buffers[(pool_index * k_secondary_command_buffers_count) + current_used_buffer];
+        return cb;
     }
 
     u32 CommandBufferManager::pool_from_indices(u32 frame_index, u32 thread_index)
     {
-        return u32();
+        return (frame_index * num_pools_per_frame) + thread_index;
     }
 
-} // namespace raptor
+} // namespace Magnefu

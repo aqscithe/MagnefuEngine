@@ -23,7 +23,7 @@ namespace Magnefu
 
 	}
 
-	void* Entity::GetTransformComponent()
+	/*void* Entity::GetTransformComponent()
 	{
 		return scene->registry.try_get<TransformComponent>(entity_handle);
 	}
@@ -31,5 +31,5 @@ namespace Magnefu
 	void* Entity::GetMeshComponent()
 	{
 		return scene->registry.try_get<MeshComponent>(entity_handle);
-	}
+	}*/
 }

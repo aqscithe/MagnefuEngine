@@ -16,17 +16,6 @@
 
 
 // -- other Includes ----------------- //
-#include <array>
-
-
-
-
-namespace Magnefu
-{
-
-}
-
-
 
 
 
@@ -49,14 +38,14 @@ namespace Magnefu
 		// -- Connect Component Listeners -- //
 
 		// Transform
-		registry.on_construct<TransformComponent>().connect<&Scene::OnAttachTransformComponent>();
-		registry.on_destroy<TransformComponent>().connect<&Scene::OnDetachTransformComponent>();
-		registry.on_update<TransformComponent>().connect<&Scene::OnUpdateTransformComponent>();
+		//registry.on_construct<TransformComponent>().connect<&Scene::OnAttachTransformComponent>();
+		//registry.on_destroy<TransformComponent>().connect<&Scene::OnDetachTransformComponent>();
+		//registry.on_update<TransformComponent>().connect<&Scene::OnUpdateTransformComponent>();
 
-		// Mesh
-		registry.on_construct<MeshComponent>().connect<&Scene::OnAttachMeshComponent>();
-		registry.on_destroy<MeshComponent>().connect<&Scene::OnDetachMeshComponent>();
-		registry.on_update<MeshComponent>().connect<&Scene::OnUpdateMeshComponent>();
+		//// Mesh
+		//registry.on_construct<MeshComponent>().connect<&Scene::OnAttachMeshComponent>();
+		//registry.on_destroy<MeshComponent>().connect<&Scene::OnDetachMeshComponent>();
+		//registry.on_update<MeshComponent>().connect<&Scene::OnUpdateMeshComponent>();
 
 
 	}
@@ -75,7 +64,7 @@ namespace Magnefu
 		registry.on_update<entt::entity>().disconnect();
 
 		// Component Listeners
-		registry.on_construct<TransformComponent>().disconnect();
+		/*registry.on_construct<TransformComponent>().disconnect();
 		registry.on_construct<MeshComponent>().disconnect();
 
 		registry.on_destroy<TransformComponent>().disconnect();
@@ -83,7 +72,7 @@ namespace Magnefu
 
 
 		registry.on_update<TransformComponent>().disconnect();
-		registry.on_update<MeshComponent>().disconnect();
+		registry.on_update<MeshComponent>().disconnect();*/
 
 		// --------------------------- //
 

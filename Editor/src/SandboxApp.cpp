@@ -19,7 +19,6 @@
 #include "imgui/imgui.h"
 #include "enkiTS/TaskScheduler.h"
 
-#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image/stb_image.h"
 
 
@@ -29,9 +28,9 @@
 #include "cglm/struct/cam.h"
 #include "cglm/struct/affine.h"
 
-#include <assimp/cimport.h>        // Plain-C interface
-#include <assimp/scene.h>          // Output data structure
-#include <assimp/postprocess.h>    // Post processing flags
+#include "assimp/cimport.h"
+#include "assimp/scene.h"
+#include "assimp/postprocess.h"
 
 
 
@@ -39,9 +38,6 @@
 
 // Forward Declarations
 struct glTFScene;
-struct AsynchronousLoader;
-struct RunPinnedTaskLoopTask;
-struct AsynchronousLoadTask;
 
 
 // Static variables
@@ -66,9 +62,9 @@ static Magnefu::GPUProfiler         s_gpu_profiler;
 static Magnefu::BufferHandle        scene_cb;
 
 static enki::TaskScheduler	        s_task_scheduler;
-static RunPinnedTaskLoopTask        s_run_pinned_task;
-static AsynchronousLoadTask         s_async_load_task;
-static AsynchronousLoader           s_async_loader;
+
+
+
 
 static const u16 INVALID_TEXTURE_INDEX = ~0u;
 static Magnefu::Scene* scene = nullptr;
@@ -297,6 +293,8 @@ struct AsynchronousLoader
 	VkFence								transfer_fence;
 
 }; // struct AsynchonousLoader
+
+static AsynchronousLoader           s_async_loader;
 
 // ------------------ Static Methods ------------------------------ //
 
@@ -1279,7 +1277,7 @@ void ObjScene::load(cstring filename, cstring path, Magnefu::Allocator* resident
     // Time statistics
     i64 start_scene_loading = time_now();
 
-    const struct aiScene* scene = aiImportFile(filename,
+    const struct aiScene* aiscene = aiImportFile(filename,
         aiProcess_CalcTangentSpace |
         aiProcess_GenNormals |
         aiProcess_Triangulate |
@@ -1289,7 +1287,7 @@ void ObjScene::load(cstring filename, cstring path, Magnefu::Allocator* resident
     i64 end_loading_file = time_now();
 
     // If the import failed, report it
-    if (scene == nullptr) 
+    if (aiscene == nullptr)
     {
         MF_ASSERT(false, "Failed to import scene");
         return;
@@ -1301,10 +1299,10 @@ void ObjScene::load(cstring filename, cstring path, Magnefu::Allocator* resident
 
     images.init(resident_allocator, 1024);
 
-    materials.init(resident_allocator, scene->mNumMaterials);
+    materials.init(resident_allocator, aiscene->mNumMaterials);
 
-    for (u32 material_index = 0; material_index < scene->mNumMaterials; ++material_index) {
-        aiMaterial* material = scene->mMaterials[material_index];
+    for (u32 material_index = 0; material_index < aiscene->mNumMaterials; ++material_index) {
+        aiMaterial* material = aiscene->mMaterials[material_index];
 
         ObjMaterial Magnefu_material{ };
 
@@ -1350,11 +1348,11 @@ void ObjScene::load(cstring filename, cstring path, Magnefu::Allocator* resident
     i64 end_creating_textures = time_now();
 
     // Init runtime meshes
-    mesh_draws.init(resident_allocator, scene->mNumMeshes);
+    mesh_draws.init(resident_allocator, aiscene->mNumMeshes);
 
-    for (u32 mesh_index = 0; mesh_index < scene->mNumMeshes; ++mesh_index)
+    for (u32 mesh_index = 0; mesh_index < aiscene->mNumMeshes; ++mesh_index)
     {
-        aiMesh* mesh = scene->mMeshes[mesh_index];
+        aiMesh* mesh = aiscene->mMeshes[mesh_index];
 
         MF_ASSERT((mesh->mPrimitiveTypes & aiPrimitiveType_TRIANGLE) != 0, "");
 
@@ -1370,29 +1368,30 @@ void ObjScene::load(cstring filename, cstring path, Magnefu::Allocator* resident
         Array<vec2s> uv_coords;
         uv_coords.init(resident_allocator, mesh->mNumVertices);
 
-        for (u32 vertex_index = 0; vertex_index < mesh->mNumVertices; ++vertex_index) {
+        for (u32 vertex_index = 0; vertex_index < mesh->mNumVertices; ++vertex_index)
+        {
             positions.push(vec3s{
-                mesh->mVertices[vertex_index].x,
-                mesh->mVertices[vertex_index].y,
-                mesh->mVertices[vertex_index].z
+                (float)mesh->mVertices[vertex_index].x,
+                (float)mesh->mVertices[vertex_index].y,
+                (float)mesh->mVertices[vertex_index].z
                 });
 
             tangents.push(vec4s{
-                mesh->mTangents[vertex_index].x,
-                mesh->mTangents[vertex_index].y,
-                mesh->mTangents[vertex_index].z,
+                (float)mesh->mTangents[vertex_index].x,
+                (float)mesh->mTangents[vertex_index].y,
+                (float)mesh->mTangents[vertex_index].z,
                 1.0f
                 });
 
             uv_coords.push(vec2s{
-                mesh->mTextureCoords[0][vertex_index].x,
-                mesh->mTextureCoords[0][vertex_index].y,
+                (float)mesh->mTextureCoords[0][vertex_index].x,
+                (float)mesh->mTextureCoords[0][vertex_index].y,
                 });
 
             normals.push(vec3s{
-                mesh->mNormals[vertex_index].x,
-                mesh->mNormals[vertex_index].y,
-                mesh->mNormals[vertex_index].z
+                (float)mesh->mNormals[vertex_index].x,
+                (float)mesh->mNormals[vertex_index].y,
+                (float)mesh->mNormals[vertex_index].z
                 });
         }
 
@@ -1497,7 +1496,7 @@ void ObjScene::load(cstring filename, cstring path, Magnefu::Allocator* resident
         time_delta_seconds(end_creating_textures, end_reading_buffers_data), time_delta_seconds(end_reading_buffers_data, end_creating_buffers));
 
     // We're done. Release all resources associated with this import
-    aiReleaseImport(scene);
+    aiReleaseImport(aiscene);
 }
 
 u32 ObjScene::load_texture(cstring texture_path, cstring path, Magnefu::StackAllocator* temp_allocator) {
@@ -1932,7 +1931,7 @@ struct RunPinnedTaskLoopTask : enki::IPinnedTask
 }; // RunPinnedTaskLoopTask
 
 
-
+static RunPinnedTaskLoopTask        s_run_pinned_task;
 
 struct AsynchronousLoadTask : enki::IPinnedTask
 {
@@ -1950,6 +1949,7 @@ struct AsynchronousLoadTask : enki::IPinnedTask
 
 }; // AsynchronousLoadTask
 
+static AsynchronousLoadTask         s_async_load_task;
 
 // ----------------------------------------------------------------------------------------------------------- //
 

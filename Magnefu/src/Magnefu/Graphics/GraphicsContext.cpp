@@ -193,7 +193,7 @@ namespace Magnefu
     PFN_vkCmdEndDebugUtilsLabelEXT      pfnCmdEndDebugUtilsLabelEXT;
 
     static Magnefu::FlatHashMap<u64, VkRenderPass> render_pass_cache;
-    static CommandBufferRing command_buffer_ring;
+    static CommandBufferManager command_buffer_ring;
 
     static sizet            s_ubo_alignment = 256;
     static sizet            s_ssbo_alignemnt = 256;
@@ -867,7 +867,7 @@ namespace Magnefu
         gpu_timestamp_manager = (GPUTimestampManager*)(memory);
         gpu_timestamp_manager->init(allocator, creation.gpu_time_queries_per_frame, k_max_frames);
 
-        command_buffer_ring.init(this);
+        command_buffer_ring.init(this, creation.num_threads);
 
         // Allocate queued command buffers array
         queued_command_buffers = (CommandBuffer**)(gpu_timestamp_manager + 1);
@@ -892,7 +892,7 @@ namespace Magnefu
             .set_min_mag_mip(VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR).set_name("Sampler Default");
         default_sampler = create_sampler(sc);
 
-        BufferCreation fullscreen_vb_creation = { VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, ResourceUsageType::Immutable, 0, nullptr, "Fullscreen_vb" };
+        BufferCreation fullscreen_vb_creation = { VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, ResourceUsageType::Immutable, 0, 0, 0, nullptr, "Fullscreen_vb" };
         fullscreen_vertex_buffer = create_buffer(fullscreen_vb_creation);
 
         // Create depth image
@@ -911,7 +911,7 @@ namespace Magnefu
         TextureCreation dummy_texture_creation = { nullptr, 1, 1, 1, 1, 0, VK_FORMAT_R8_UINT, TextureType::Texture2D };
         dummy_texture = create_texture(dummy_texture_creation);
 
-        BufferCreation dummy_constant_buffer_creation = { VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Immutable, 16, nullptr, "Dummy_cb" };
+        BufferCreation dummy_constant_buffer_creation = { VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Immutable, 16, 0, 0, nullptr, "Dummy_cb" };
         dummy_constant_buffer = create_buffer(dummy_constant_buffer_creation);
 
         // Get binaries path
@@ -1101,46 +1101,7 @@ namespace Magnefu
     }
 
 
-    static void transition_image_layout(VkCommandBuffer command_buffer, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, bool is_depth) {
-
-        VkImageMemoryBarrier barrier = {};
-        barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        barrier.oldLayout = oldLayout;
-        barrier.newLayout = newLayout;
-
-        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-
-        barrier.image = image;
-        barrier.subresourceRange.aspectMask = is_depth ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
-        barrier.subresourceRange.baseMipLevel = 0;
-        barrier.subresourceRange.levelCount = 1;
-        barrier.subresourceRange.baseArrayLayer = 0;
-        barrier.subresourceRange.layerCount = 1;
-
-        VkPipelineStageFlags sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-        VkPipelineStageFlags destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-
-        if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-            barrier.srcAccessMask = 0;
-            barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-            sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-        }
-        else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-            barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-            sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        }
-        else {
-            //hy_assertm( false, "Unsupported layout transition!\n" );
-        }
-
-        vkCmdPipelineBarrier(command_buffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-    }
+    
 
     // Resource Creation ////////////////////////////////////////////////////////////
     static void vulkan_create_texture(GraphicsContext& gpu, const TextureCreation& creation, TextureHandle handle, Texture* texture) {
@@ -1231,13 +1192,122 @@ namespace Magnefu
         }
     }
 
+    static void upload_texture_data(Texture* texture, void* upload_data, GraphicsContext& gpu)
+    {
+
+        // Create stating buffer
+        VkBufferCreateInfo buffer_info{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+        buffer_info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+
+        u32 image_size = texture->width * texture->height * 4;
+        buffer_info.size = image_size;
+
+        VmaAllocationCreateInfo memory_info{};
+        memory_info.flags = VMA_ALLOCATION_CREATE_STRATEGY_BEST_FIT_BIT;
+        memory_info.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+
+        VmaAllocationInfo allocation_info{};
+        VkBuffer staging_buffer;
+        VmaAllocation staging_allocation;
+        (vmaCreateBuffer(gpu.vma_allocator, &buffer_info, &memory_info,
+            &staging_buffer, &staging_allocation, &allocation_info));
+
+        // Copy buffer_data
+        void* destination_data;
+        vmaMapMemory(gpu.vma_allocator, staging_allocation, &destination_data);
+        memcpy(destination_data, upload_data, static_cast<size_t>(image_size));
+        vmaUnmapMemory(gpu.vma_allocator, staging_allocation);
+
+        // Execute command buffer
+        VkCommandBufferBeginInfo beginInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+        // TODO: threading
+        CommandBuffer* command_buffer = gpu.get_command_buffer(0, false);
+        vkBeginCommandBuffer(command_buffer->vk_command_buffer, &beginInfo);
+
+        VkBufferImageCopy region = {};
+        region.bufferOffset = 0;
+        region.bufferRowLength = 0;
+        region.bufferImageHeight = 0;
+
+        region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        region.imageSubresource.mipLevel = 0;
+        region.imageSubresource.baseArrayLayer = 0;
+        region.imageSubresource.layerCount = 1;
+
+        region.imageOffset = { 0, 0, 0 };
+        region.imageExtent = { texture->width, texture->height, texture->depth };
+
+        // Copy from the staging buffer to the image
+        util_add_image_barrier(command_buffer->vk_command_buffer, texture->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_COPY_DEST, 0, 1, false);
+
+        vkCmdCopyBufferToImage(command_buffer->vk_command_buffer, staging_buffer, texture->vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+        // Prepare first mip to create lower mipmaps
+        if (texture->mipmaps > 1) {
+            util_add_image_barrier(command_buffer->vk_command_buffer, texture->vk_image, RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_COPY_SOURCE, 0, 1, false);
+        }
+
+        i32 w = texture->width;
+        i32 h = texture->height;
+
+        for (int mip_index = 1; mip_index < texture->mipmaps; ++mip_index) {
+            util_add_image_barrier(command_buffer->vk_command_buffer, texture->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_COPY_DEST, mip_index, 1, false);
+
+            VkImageBlit blit_region{ };
+            blit_region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            blit_region.srcSubresource.mipLevel = mip_index - 1;
+            blit_region.srcSubresource.baseArrayLayer = 0;
+            blit_region.srcSubresource.layerCount = 1;
+
+            blit_region.srcOffsets[0] = { 0, 0, 0 };
+            blit_region.srcOffsets[1] = { w, h, 1 };
+
+            w /= 2;
+            h /= 2;
+
+            blit_region.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            blit_region.dstSubresource.mipLevel = mip_index;
+            blit_region.dstSubresource.baseArrayLayer = 0;
+            blit_region.dstSubresource.layerCount = 1;
+
+            blit_region.dstOffsets[0] = { 0, 0, 0 };
+            blit_region.dstOffsets[1] = { w, h, 1 };
+
+            vkCmdBlitImage(command_buffer->vk_command_buffer, texture->vk_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, texture->vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit_region, VK_FILTER_LINEAR);
+
+            // Prepare current mip for next level
+            util_add_image_barrier(command_buffer->vk_command_buffer, texture->vk_image, RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_COPY_SOURCE, mip_index, 1, false);
+        }
+
+        // Transition
+        util_add_image_barrier(command_buffer->vk_command_buffer, texture->vk_image, (texture->mipmaps > 1) ? RESOURCE_STATE_COPY_SOURCE : RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_SHADER_RESOURCE, 0, texture->mipmaps, false);
+
+        vkEndCommandBuffer(command_buffer->vk_command_buffer);
+
+        // Submit command buffer
+        VkSubmitInfo submitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &command_buffer->vk_command_buffer;
+
+        vkQueueSubmit(gpu.vulkan_main_queue, 1, &submitInfo, VK_NULL_HANDLE);
+        vkQueueWaitIdle(gpu.vulkan_main_queue);
+
+        vmaDestroyBuffer(gpu.vma_allocator, staging_buffer, staging_allocation);
+
+        // TODO: free command buffer
+        vkResetCommandBuffer(command_buffer->vk_command_buffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
+
+        texture->vk_image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    }
+
+
     TextureHandle GraphicsContext::create_texture(const TextureCreation& creation) 
     {
 
         u32 resource_index = textures.obtain_resource();
         TextureHandle handle = { resource_index };
-        if (resource_index == k_invalid_index) 
-        {
+        if (resource_index == k_invalid_index) {
             return handle;
         }
 
@@ -1246,73 +1316,9 @@ namespace Magnefu
         vulkan_create_texture(*this, creation, handle, texture);
 
         //// Copy buffer_data if present
-        if (creation.initial_data) {
-            // Create stating buffer
-            VkBufferCreateInfo buffer_info{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-            buffer_info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-
-            u32 image_size = creation.width * creation.height * 4;
-            buffer_info.size = image_size;
-
-            VmaAllocationCreateInfo memory_info{};
-            memory_info.flags = VMA_ALLOCATION_CREATE_STRATEGY_BEST_FIT_BIT;
-            memory_info.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-
-            VmaAllocationInfo allocation_info{};
-            VkBuffer staging_buffer;
-            VmaAllocation staging_allocation;
-            check(vmaCreateBuffer(vma_allocator, &buffer_info, &memory_info,
-                &staging_buffer, &staging_allocation, &allocation_info), "Failed to create buffer");
-
-            // Copy buffer_data
-            void* destination_data;
-            vmaMapMemory(vma_allocator, staging_allocation, &destination_data);
-            memcpy(destination_data, creation.initial_data, static_cast<size_t>(image_size));
-            vmaUnmapMemory(vma_allocator, staging_allocation);
-
-            // Execute command buffer
-            VkCommandBufferBeginInfo beginInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-            CommandBuffer* command_buffer = get_instant_command_buffer();
-            vkBeginCommandBuffer(command_buffer->vk_command_buffer, &beginInfo);
-
-            VkBufferImageCopy region = {};
-            region.bufferOffset = 0;
-            region.bufferRowLength = 0;
-            region.bufferImageHeight = 0;
-
-            region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            region.imageSubresource.mipLevel = 0;
-            region.imageSubresource.baseArrayLayer = 0;
-            region.imageSubresource.layerCount = 1;
-
-            region.imageOffset = { 0, 0, 0 };
-            region.imageExtent = { creation.width, creation.height, creation.depth };
-
-            // Transition
-            transition_image_layout(command_buffer->vk_command_buffer, texture->vk_image, texture->vk_format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, false);
-            // Copy
-            vkCmdCopyBufferToImage(command_buffer->vk_command_buffer, staging_buffer, texture->vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
-            // Transition
-            transition_image_layout(command_buffer->vk_command_buffer, texture->vk_image, texture->vk_format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, false);
-
-            vkEndCommandBuffer(command_buffer->vk_command_buffer);
-
-            // Submit command buffer
-            VkSubmitInfo submitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
-            submitInfo.commandBufferCount = 1;
-            submitInfo.pCommandBuffers = &command_buffer->vk_command_buffer;
-
-            vkQueueSubmit(vulkan_queue, 1, &submitInfo, VK_NULL_HANDLE);
-            vkQueueWaitIdle(vulkan_queue);
-
-            vmaDestroyBuffer(vma_allocator, staging_buffer, staging_allocation);
-
-            // TODO: free command buffer
-            vkResetCommandBuffer(command_buffer->vk_command_buffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
-
-            texture->vk_image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        if (creation.initial_data) 
+        {
+            upload_texture_data(texture, creation.initial_data, *this);
         }
 
         return handle;
@@ -2294,7 +2300,7 @@ namespace Magnefu
         VkCommandBufferBeginInfo beginInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
         beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-        CommandBuffer* command_buffer = gpu.get_instant_command_buffer();
+        CommandBuffer* command_buffer = gpu.get_command_buffer(0, false);
         vkBeginCommandBuffer(command_buffer->vk_command_buffer, &beginInfo);
 
         VkBufferImageCopy region = {};
@@ -2312,7 +2318,7 @@ namespace Magnefu
 
         // Transition
         for (size_t i = 0; i < gpu.vulkan_swapchain_image_count; i++) {
-            transition_image_layout(command_buffer->vk_command_buffer, gpu.vulkan_swapchain_images[i], gpu.vulkan_surface_format.format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, false);
+            util_add_image_barrier(command_buffer->vk_command_buffer, gpu.vulkan_swapchain_images[i], RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_PRESENT, 0, 1, false);
         }
 
         vkEndCommandBuffer(command_buffer->vk_command_buffer);
@@ -2322,8 +2328,8 @@ namespace Magnefu
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &command_buffer->vk_command_buffer;
 
-        vkQueueSubmit(gpu.vulkan_queue, 1, &submitInfo, VK_NULL_HANDLE);
-        vkQueueWaitIdle(gpu.vulkan_queue);
+        vkQueueSubmit(gpu.vulkan_main_queue, 1, &submitInfo, VK_NULL_HANDLE);
+        vkQueueWaitIdle(gpu.vulkan_main_queue);
     }
 
     static void vulkan_create_framebuffer(GraphicsContext& gpu, RenderPass* render_pass, const TextureHandle* output_textures, u32 num_render_targets, TextureHandle depth_stencil_texture) {
@@ -3477,12 +3483,12 @@ namespace Magnefu
         return cb;
     }
 
-    //
-    //
-    CommandBuffer* GraphicsContext::get_instant_command_buffer() {
-        CommandBuffer* cb = command_buffer_ring.get_command_buffer_instant(current_frame, false);
+    CommandBuffer* GraphicsContext::get_secondary_command_buffer(u32 thread_index)
+    {
+        CommandBuffer* cb = command_buffer_ring.get_secondary_command_buffer(current_frame, thread_index);
         return cb;
     }
+
 
     // Resource Description Query ///////////////////////////////////////////////////
 

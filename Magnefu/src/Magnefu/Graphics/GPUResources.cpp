@@ -485,4 +485,4 @@ namespace Magnefu
             0, nullptr, 1, &barrier, 0, nullptr);
     }
 
-} // namespace raptor
+} // namespace 
