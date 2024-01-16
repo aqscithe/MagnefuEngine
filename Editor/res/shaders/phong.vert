@@ -16,10 +16,10 @@ layout ( std140, binding = 1 ) uniform Mesh {
     // x = diffuse index, y = roughness index, z = normal index, w = occlusion index.
     // Occlusion and roughness are encoded in the same texture
     uvec4       textures;
-    vec4        base_color_factor;
-    vec4        metallic_roughness_occlusion_factor;
-    float       alpha_cutoff;
-    uint        flags;
+    vec4        diffuse;
+    vec3        specular;
+    float       specular_exp;
+    vec3        ambient;
 };
 
 layout(location=0) in vec3 position;

@@ -343,6 +343,9 @@
     <None Include="res\shaders\main.frag">
       <Filter>res\shaders</Filter>
     </None>
+    <None Include="res\shaders\main.json">
+      <Filter>res\shaders</Filter>
+    </None>
     <None Include="res\shaders\main.vert">
       <Filter>res\shaders</Filter>
     </None>
@@ -350,6 +353,12 @@
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\main_no_cull.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\phong.frag">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\phong.vert">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\textures\DDS\ltc_amp.dds">

@@ -207,9 +207,12 @@
     <None Include="res\shaders\TestModelLoading.shader" />
     <None Include="res\shaders\Texture2D.shader" />
     <None Include="res\shaders\main.frag" />
+    <None Include="res\shaders\main.json" />
     <None Include="res\shaders\main.vert" />
     <None Include="res\shaders\main_cull.cache" />
     <None Include="res\shaders\main_no_cull.cache" />
+    <None Include="res\shaders\phong.frag" />
+    <None Include="res\shaders\phong.vert" />
     <None Include="res\textures\DDS\ltc_amp.dds" />
     <None Include="res\textures\DDS\ltc_mat.dds" />
     <None Include="res\textures\DDS\rgba_dxt1.dds" />
