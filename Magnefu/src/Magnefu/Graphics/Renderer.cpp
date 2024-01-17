@@ -182,6 +182,9 @@ namespace Magnefu
         s_texture_loader.renderer = this;
         s_buffer_loader.renderer = this;
         s_sampler_loader.renderer = this;
+
+        const u32 gpu_heap_counts = gpu->get_memory_heap_count();
+        gpu_heap_budgets.init(gpu->allocator, gpu_heap_counts, gpu_heap_counts);
     }
 
     void Renderer::shutdown() 

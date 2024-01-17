@@ -35,7 +35,7 @@ namespace Magnefu
     {
         gpu = gpu_;
 
-        ////////  Create Descriptor Pools
+        // Create Descriptor Pools
         static const u32 k_global_pool_elements = 128;
         VkDescriptorPoolSize pool_sizes[] =
         {
@@ -54,13 +54,13 @@ namespace Magnefu
         VkDescriptorPoolCreateInfo pool_info = {};
         pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-        pool_info.maxSets = k_global_pool_elements * ArraySize(pool_sizes);
+        pool_info.maxSets = k_descriptor_sets_pool_size;
         pool_info.poolSizeCount = (u32)ArraySize(pool_sizes);
         pool_info.pPoolSizes = pool_sizes;
         VkResult result = vkCreateDescriptorPool(gpu->vulkan_device, &pool_info, gpu->vulkan_allocation_callbacks, &vk_descriptor_pool);
         MF_CORE_ASSERT(result == VK_SUCCESS, "Failed to create descriptor pool");
 
-        descriptor_sets.init(gpu->allocator, 256, sizeof(DescriptorSet));
+        descriptor_sets.init(gpu->allocator, k_descriptor_sets_pool_size, sizeof(DescriptorSet));
 
         reset();
     }
@@ -863,6 +863,8 @@ namespace Magnefu
                 // NOTE(marco): access to the descriptor pool has to be synchronized
                 // across theads. Don't allow for now
 
+                
+
                 secondary_command_buffers.push(cb);
             }
         }
@@ -911,7 +913,7 @@ namespace Magnefu
         u32 current_used_buffer = used_buffers[pool_index];
         // TODO: how to handle fire-and-forget command buffers ?
         //used_buffers[ pool_index ] = current_used_buffer + 1;
-        MF_CORE_ASSERT(current_used_buffer < num_command_buffers_per_thread, "");
+        MF_CORE_ASSERT((current_used_buffer < num_command_buffers_per_thread), "");
 
         CommandBuffer* cb = &command_buffers[(pool_index * num_command_buffers_per_thread) + current_used_buffer];
         if (begin) {

@@ -20,6 +20,15 @@ namespace Magnefu
 
     static const u32                    k_invalid_index = 0xffffffff;
 
+    static const u32                    k_buffers_pool_size = 16384;
+    static const u32                    k_textures_pool_size = 512;
+    static const u32                    k_render_passes_pool_size = 256;
+    static const u32                    k_descriptor_set_layouts_pool_size = 128;
+    static const u32                    k_pipelines_pool_size = 128;
+    static const u32                    k_shaders_pool_size = 128;
+    static const u32                    k_descriptor_sets_pool_size = 4096;
+    static const u32                    k_samplers_pool_size = 32;
+
     typedef u32                         ResourceHandle;
 
     struct BufferHandle 

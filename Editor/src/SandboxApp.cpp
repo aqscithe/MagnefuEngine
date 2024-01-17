@@ -1730,6 +1730,9 @@ void AsynchronousLoader::init(Magnefu::Renderer* renderer_, enki::TaskScheduler*
 		cmd_alloc_info.commandBufferCount = 1;
 
 		vkAllocateCommandBuffers(renderer->gpu->vulkan_device, &cmd_alloc_info, &command_buffers[i].vk_command_buffer);
+
+        command_buffers[i].is_recording = false;
+        command_buffers[i].gpu = renderer->gpu;
 	}
 
 	VkSemaphoreCreateInfo semaphore_info{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
@@ -1980,7 +1983,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
     MemoryServiceConfiguration memory_configuration;
     memory_configuration.maxDynamicSize = mfmega(500);
 
-    MemoryService::Instance()->Init(nullptr);
+    MemoryService::Instance()->Init(&memory_configuration);
     Allocator* allocator = &MemoryService::Instance()->systemAllocator;
 
     StackAllocator* scratch_allocator = &MemoryService::Instance()->tempStackAllocator;

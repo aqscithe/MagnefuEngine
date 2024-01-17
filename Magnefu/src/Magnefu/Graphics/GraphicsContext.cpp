@@ -837,14 +837,14 @@ namespace Magnefu
         vkCreateQueryPool(vulkan_device, &vqpci, vulkan_allocation_callbacks, &vulkan_timestamp_query_pool);
 
         //// Init pools
-        buffers.init(allocator, 4096, sizeof(Buffer));
-        textures.init(allocator, 512, sizeof(Texture));
-        render_passes.init(allocator, 256, sizeof(RenderPass));
-        descriptor_set_layouts.init(allocator, 128, sizeof(DescriptorSetLayout));
-        pipelines.init(allocator, 128, sizeof(Pipeline));
-        shaders.init(allocator, 128, sizeof(ShaderState));
-        descriptor_sets.init(allocator, 256, sizeof(DescriptorSet));
-        samplers.init(allocator, 32, sizeof(Sampler));
+        buffers.init(allocator, k_buffers_pool_size, sizeof(Buffer));
+        textures.init(allocator, k_textures_pool_size, sizeof(Texture));
+        render_passes.init(allocator, k_render_passes_pool_size, sizeof(RenderPass));
+        descriptor_set_layouts.init(allocator, k_descriptor_set_layouts_pool_size, sizeof(DescriptorSetLayout));
+        pipelines.init(allocator, k_pipelines_pool_size, sizeof(Pipeline));
+        shaders.init(allocator, k_shaders_pool_size, sizeof(ShaderState));
+        descriptor_sets.init(allocator, k_descriptor_sets_pool_size, sizeof(DescriptorSet));
+        samplers.init(allocator, k_samplers_pool_size, sizeof(Sampler));
         //command_buffers.init( allocator, 128, sizeof( CommandBuffer ) );
 
         // Init render frame informations. This includes fences, semaphores, command buffers, ...
