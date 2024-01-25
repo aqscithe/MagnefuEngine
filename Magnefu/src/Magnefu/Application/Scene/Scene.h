@@ -14,10 +14,10 @@
 #include "enkiTS/TaskScheduler.h"
 
 
-struct AsynchronousLoader;
 
 namespace Magnefu
 {
+	struct AsynchronousLoader;
 	struct ImGuiService;
 	struct Renderer;
 	struct GPUProfiler;

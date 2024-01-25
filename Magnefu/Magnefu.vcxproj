@@ -1369,6 +1369,7 @@
     <ClCompile Include="src\Magnefu\Core\String.cpp" />
     <ClCompile Include="src\Magnefu\Core\Time.cpp" />
     <ClCompile Include="src\Magnefu\Core\glTF.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\AsynchronousLoader.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\CommandBuffer.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\GPUProfiler.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\GPUResources.cpp" />
