@@ -205,6 +205,10 @@ namespace Magnefu
 
     void* HeapAllocator::allocate(sizet size, sizet alignment)
     {
+        if (size == 96)
+        {
+            int x = 3;
+        }
 #if defined (HEAP_ALLOCATOR_STATS)
         void* allocated_memory = alignment == 1 ? tlsf_malloc(tlsfHandle, size) : tlsf_memalign(tlsfHandle, alignment, size);
         sizet actual_size = tlsf_block_size(allocated_memory);

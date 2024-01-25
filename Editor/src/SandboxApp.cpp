@@ -1115,6 +1115,7 @@ void glTFScene::submit_draw_task(Magnefu::ImGuiService* imgui, Magnefu::GPUProfi
     draw_task.init(renderer->gpu, renderer, imgui, gpu_profiler, this);
     task_scheduler->AddTaskSetToPipe(&draw_task);
     task_scheduler->WaitforTaskSet(&draw_task);
+    task_scheduler->WaitforTask(&draw_task);
 
     // Avoid using the same command buffer
     renderer->add_texture_update_commands((draw_task.thread_id + 1) % task_scheduler->GetNumTaskThreads());

@@ -66,8 +66,13 @@ namespace Magnefu
     // BufferCreation //////////////////////////////////////////
     BufferCreation& BufferCreation::reset() 
     {
+        type_flags = 0;
+        usage = ResourceUsageType::Immutable;
         size = 0;
         initial_data = nullptr;
+        persistent = 0;
+        device_only = 0;
+        name = nullptr;
 
         return *this;
     }

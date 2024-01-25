@@ -572,6 +572,8 @@ namespace Magnefu
 
         }
 
+        mffree(queue_families, allocator);
+
         // Cache family indices
         vulkan_main_queue_family = main_queue_index;
         vulkan_transfer_queue_family = transfer_queue_index;
