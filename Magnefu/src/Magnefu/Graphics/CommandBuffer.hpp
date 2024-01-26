@@ -2,6 +2,7 @@
 
 #include "GraphicsContext.h"
 
+
 namespace Magnefu
 {
     static const u32 k_secondary_command_buffers_count = 2;
@@ -19,11 +20,11 @@ namespace Magnefu
         DescriptorSetHandle             create_descriptor_set(const DescriptorSetCreation& creation);
 
         void                            begin();
-        void                            begin_secondary(RenderPass* current_render_pass);
+        void                            begin_secondary(RenderPass* current_render_pass, Framebuffer* current_framebuffer);
         void                            end();
         void                            end_current_render_pass();
 
-        void                            bind_pass(RenderPassHandle handle, bool use_secondary);
+        void                            bind_pass(RenderPassHandle handle, FramebufferHandle framebuffer, bool use_secondary);
         void                            bind_pipeline(PipelineHandle handle);
         void                            bind_vertex_buffer(BufferHandle handle, u32 binding, u32 offset);
         void                            bind_index_buffer(BufferHandle handle, u32 offset, VkIndexType index_type);
@@ -53,25 +54,25 @@ namespace Magnefu
 
         // Non-drawing methods
         void                            upload_texture_data(TextureHandle texture, void* texture_data, BufferHandle staging_buffer, sizet staging_buffer_offset);
+        void                            copy_texture(TextureHandle src_, ResourceState src_state, TextureHandle dst_, ResourceState dst_state);
+
         void                            upload_buffer_data(BufferHandle buffer, void* buffer_data, BufferHandle staging_buffer, sizet staging_buffer_offset);
         void                            upload_buffer_data(BufferHandle src, BufferHandle dst);
 
         void                            reset();
 
-
-
-        // -- Members ------------------------------------------------- //
-
         VkCommandBuffer                 vk_command_buffer;
 
         VkDescriptorPool                vk_descriptor_pool;
         ResourcePool                    descriptor_sets;
+
+        GraphicsContext* gpu;
+
         VkDescriptorSet                 vk_descriptor_sets[16];
 
-        GraphicsContext*                gpu;
-
-        RenderPass*                     current_render_pass;
-        Pipeline*                       current_pipeline;
+        RenderPass* current_render_pass;
+        Framebuffer* current_framebuffer;
+        Pipeline* current_pipeline;
         VkClearValue                    clears[2];          // 0 = color, 1 = depth stencil
         bool                            is_recording;
 

@@ -13,6 +13,7 @@ namespace Magnefu
     {
         is_recording = false;
         current_render_pass = nullptr;
+        current_render_pass = nullptr;
         current_pipeline = nullptr;
         current_command = 0;
 
@@ -91,14 +92,13 @@ namespace Magnefu
         }
     }
 
-    void CommandBuffer::begin_secondary(RenderPass* current_render_pass_) 
+    void CommandBuffer::begin_secondary(RenderPass* current_render_pass_, Framebuffer* current_framebuffer_)
     {
-        if (!is_recording) 
-        {
+        if (!is_recording) {
             VkCommandBufferInheritanceInfo inheritance{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO };
             inheritance.renderPass = current_render_pass_->vk_render_pass;
             inheritance.subpass = 0;
-            inheritance.framebuffer = current_render_pass_->vk_frame_buffer;
+            inheritance.framebuffer = current_framebuffer_->vk_framebuffer;
 
             VkCommandBufferBeginInfo beginInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
             beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT | VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
@@ -181,8 +181,7 @@ namespace Magnefu
         return handle;
     }
 
-    void CommandBuffer::bind_pass(RenderPassHandle handle_, bool use_secondary)
-    {
+    void CommandBuffer::bind_pass(RenderPassHandle handle_, FramebufferHandle framebuffer_, bool use_secondary) {
 
         //if ( !is_recording )
         {
@@ -191,27 +190,119 @@ namespace Magnefu
             RenderPass* render_pass = gpu->access_render_pass(handle_);
 
             // Begin/End render pass are valid only for graphics render passes.
-            if (current_render_pass && (current_render_pass->type != RenderPassType::Compute) && (render_pass != current_render_pass)) {
-                vkCmdEndRenderPass(vk_command_buffer);
+            if (current_render_pass && (render_pass != current_render_pass)) {
+                end_current_render_pass();
             }
 
-            if (render_pass != current_render_pass && (render_pass->type != RenderPassType::Compute)) {
-                VkRenderPassBeginInfo render_pass_begin{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
-                render_pass_begin.framebuffer = render_pass->type == RenderPassType::Swapchain ? gpu->vulkan_swapchain_framebuffers[gpu->vulkan_image_index] : render_pass->vk_frame_buffer;
-                render_pass_begin.renderPass = render_pass->vk_render_pass;
+            Framebuffer* framebuffer = gpu->access_framebuffer(framebuffer_);
 
-                render_pass_begin.renderArea.offset = { 0, 0 };
-                render_pass_begin.renderArea.extent = { render_pass->width, render_pass->height };
+            if (render_pass != current_render_pass) {
+                if (gpu->dynamic_rendering_extension_present) {
+                    Array<VkRenderingAttachmentInfoKHR> color_attachments_info;
+                    color_attachments_info.init(gpu->allocator, framebuffer->num_color_attachments, framebuffer->num_color_attachments);
+                    memset(color_attachments_info.data, 0, sizeof(VkRenderingAttachmentInfoKHR) * framebuffer->num_color_attachments);
 
-                // TODO: this breaks.
-                render_pass_begin.clearValueCount = 2;// render_pass->output.color_operation ? 2 : 0;
-                render_pass_begin.pClearValues = clears;
+                    for (u32 a = 0; a < framebuffer->num_color_attachments; ++a) {
+                        Texture* texture = gpu->access_texture(framebuffer->color_attachments[a]);
 
-                vkCmdBeginRenderPass(vk_command_buffer, &render_pass_begin, use_secondary ? VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS : VK_SUBPASS_CONTENTS_INLINE);
+                        VkAttachmentLoadOp color_op;
+                        switch (render_pass->output.color_operations[a]) {
+                        case RenderPassOperation::Load:
+                            color_op = VK_ATTACHMENT_LOAD_OP_LOAD;
+                            break;
+                        case RenderPassOperation::Clear:
+                            color_op = VK_ATTACHMENT_LOAD_OP_CLEAR;
+                            break;
+                        default:
+                            color_op = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                            break;
+                        }
+
+                        VkRenderingAttachmentInfoKHR& color_attachment_info = color_attachments_info[a];
+                        color_attachment_info.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+                        color_attachment_info.imageView = texture->vk_image_view;
+                        color_attachment_info.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                        color_attachment_info.resolveMode = VK_RESOLVE_MODE_NONE;
+                        color_attachment_info.loadOp = color_op;
+                        color_attachment_info.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+                        color_attachment_info.clearValue = render_pass->output.color_operations[a] == RenderPassOperation::Enum::Clear ? clears[0] : VkClearValue{ };
+                    }
+
+                    VkRenderingAttachmentInfoKHR depth_attachment_info{ VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR };
+
+                    bool has_depth_attachment = framebuffer->depth_stencil_attachment.index != k_invalid_index;
+
+                    if (has_depth_attachment) {
+                        Texture* texture = gpu->access_texture(framebuffer->depth_stencil_attachment);
+
+                        VkAttachmentLoadOp depth_op;
+                        switch (render_pass->output.depth_operation) {
+                        case RenderPassOperation::Load:
+                            depth_op = VK_ATTACHMENT_LOAD_OP_LOAD;
+                            break;
+                        case RenderPassOperation::Clear:
+                            depth_op = VK_ATTACHMENT_LOAD_OP_CLEAR;
+                            break;
+                        default:
+                            depth_op = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                            break;
+                        }
+
+                        depth_attachment_info.imageView = texture->vk_image_view;
+                        depth_attachment_info.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                        depth_attachment_info.resolveMode = VK_RESOLVE_MODE_NONE;
+                        depth_attachment_info.loadOp = depth_op;
+                        depth_attachment_info.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+                        depth_attachment_info.clearValue = render_pass->output.depth_operation == RenderPassOperation::Enum::Clear ? clears[1] : VkClearValue{ };
+                    }
+
+                    VkRenderingInfoKHR rendering_info{ VK_STRUCTURE_TYPE_RENDERING_INFO_KHR };
+                    rendering_info.flags = use_secondary ? VK_RENDERING_CONTENTS_SECONDARY_COMMAND_BUFFERS_BIT_KHR : 0;
+                    rendering_info.renderArea = { 0, 0, framebuffer->width, framebuffer->height };
+                    rendering_info.layerCount = 1;
+                    rendering_info.viewMask = 0;
+                    rendering_info.colorAttachmentCount = framebuffer->num_color_attachments;
+                    rendering_info.pColorAttachments = framebuffer->num_color_attachments > 0 ? color_attachments_info.data : nullptr;
+                    rendering_info.pDepthAttachment = has_depth_attachment ? &depth_attachment_info : nullptr;
+                    rendering_info.pStencilAttachment = nullptr;
+
+                    gpu->cmd_begin_rendering(vk_command_buffer, &rendering_info);
+
+                    color_attachments_info.shutdown();
+                }
+                else {
+                    VkRenderPassBeginInfo render_pass_begin{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+                    render_pass_begin.framebuffer = framebuffer->vk_framebuffer;
+                    render_pass_begin.renderPass = render_pass->vk_render_pass;
+
+                    render_pass_begin.renderArea.offset = { 0, 0 };
+                    render_pass_begin.renderArea.extent = { framebuffer->width, framebuffer->height };
+
+                    VkClearValue clear_values[k_max_image_outputs + 1];
+
+                    u32 clear_values_count = 0;
+                    for (u32 o = 0; o < render_pass->output.num_color_formats; ++o) {
+                        if (render_pass->output.color_operations[o] == RenderPassOperation::Enum::Clear) {
+                            clear_values[clear_values_count++] = clears[0];
+                        }
+                    }
+
+                    if (render_pass->output.depth_stencil_format != VK_FORMAT_UNDEFINED) {
+                        if (render_pass->output.depth_operation == RenderPassOperation::Enum::Clear) {
+                            clear_values[clear_values_count++] = clears[1];
+                        }
+                    }
+
+                    render_pass_begin.clearValueCount = clear_values_count;
+                    render_pass_begin.pClearValues = clear_values;
+
+                    vkCmdBeginRenderPass(vk_command_buffer, &render_pass_begin, use_secondary ? VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS : VK_SUBPASS_CONTENTS_INLINE);
+                }
             }
 
             // Cache render pass
             current_render_pass = render_pass;
+            current_framebuffer = framebuffer;
         }
     }
 
@@ -329,13 +420,11 @@ namespace Magnefu
         }
     }
 
-    void CommandBuffer::set_viewport(const Viewport* viewport) 
-    {
+    void CommandBuffer::set_viewport(const Viewport* viewport) {
 
         VkViewport vk_viewport;
 
-        if (viewport) 
-        {
+        if (viewport) {
             vk_viewport.x = viewport->rect.x * 1.f;
             vk_viewport.width = viewport->rect.width * 1.f;
             // Invert Y with negative height and proper offset - Vulkan has unique Clipping Y.
@@ -344,19 +433,16 @@ namespace Magnefu
             vk_viewport.minDepth = viewport->min_depth;
             vk_viewport.maxDepth = viewport->max_depth;
         }
-        else 
-        {
+        else {
             vk_viewport.x = 0.f;
 
-            if (current_render_pass) 
-            {
-                vk_viewport.width = current_render_pass->width * 1.f;
+            if (current_render_pass) {
+                vk_viewport.width = current_framebuffer->width * 1.f;
                 // Invert Y with negative height and proper offset - Vulkan has unique Clipping Y.
-                vk_viewport.y = current_render_pass->height * 1.f;
-                vk_viewport.height = -current_render_pass->height * 1.f;
+                vk_viewport.y = current_framebuffer->height * 1.f;
+                vk_viewport.height = -current_framebuffer->height * 1.f;
             }
-            else 
-            {
+            else {
                 vk_viewport.width = gpu->swapchain_width * 1.f;
                 // Invert Y with negative height and proper offset - Vulkan has unique Clipping Y.
                 vk_viewport.y = gpu->swapchain_height * 1.f;
@@ -454,13 +540,13 @@ namespace Magnefu
         return s_states[stage];
     }
 
-    void CommandBuffer::barrier(const ExecutionBarrier& barrier) 
-    {
+    void CommandBuffer::barrier(const ExecutionBarrier& barrier) {
 
-        if (current_render_pass && (current_render_pass->type != RenderPassType::Compute)) {
+        if (current_render_pass) {
             vkCmdEndRenderPass(vk_command_buffer);
 
             current_render_pass = nullptr;
+            current_framebuffer = nullptr;
         }
 
         static VkImageMemoryBarrier image_barriers[8];
@@ -619,8 +705,7 @@ namespace Magnefu
 
         bool has_depth = false;
 
-        for (u32 i = 0; i < barrier.num_image_barriers; ++i) 
-        {
+        for (u32 i = 0; i < barrier.num_image_barriers; ++i) {
 
             Texture* texture_vulkan = gpu->access_texture(barrier.image_barriers[i].texture);
 
@@ -661,8 +746,7 @@ namespace Magnefu
         }
 
         static VkBufferMemoryBarrier buffer_memory_barriers[8];
-        for (u32 i = 0; i < barrier.num_memory_barriers; ++i) 
-        {
+        for (u32 i = 0; i < barrier.num_memory_barriers; ++i) {
             VkBufferMemoryBarrier& vk_barrier = buffer_memory_barriers[i];
             vk_barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 
@@ -745,6 +829,72 @@ namespace Magnefu
             QueueType::CopyTransfer, QueueType::Graphics);
 
         texture->vk_image_layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    }
+
+
+    void CommandBuffer::copy_texture(TextureHandle src_, ResourceState src_state, TextureHandle dst_, ResourceState dst_state) {
+        Texture* src = gpu->access_texture(src_);
+        Texture* dst = gpu->access_texture(dst_);
+
+        VkImageCopy region = {};
+        region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        region.srcSubresource.mipLevel = 0;
+        region.srcSubresource.baseArrayLayer = 0;
+        region.srcSubresource.layerCount = 1;
+
+        region.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        region.dstSubresource.mipLevel = 0;
+        region.dstSubresource.baseArrayLayer = 0;
+        region.dstSubresource.layerCount = 1;
+
+        region.dstOffset = { 0, 0, 0 };
+        region.extent = { src->width, src->height, src->depth };
+
+        // Copy from the staging buffer to the image
+        util_add_image_barrier(vk_command_buffer, src->vk_image, src_state, RESOURCE_STATE_COPY_SOURCE, 0, 1, false);
+        util_add_image_barrier(vk_command_buffer, dst->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_COPY_DEST, 0, 1, false);
+
+        vkCmdCopyImage(vk_command_buffer, src->vk_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst->vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+        // Prepare first mip to create lower mipmaps
+        if (dst->mipmaps > 1) {
+            util_add_image_barrier(vk_command_buffer, dst->vk_image, RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_COPY_SOURCE, 0, 1, false);
+        }
+
+        i32 w = dst->width;
+        i32 h = dst->height;
+
+        for (int mip_index = 1; mip_index < dst->mipmaps; ++mip_index) {
+            util_add_image_barrier(vk_command_buffer, dst->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_COPY_DEST, mip_index, 1, false);
+
+            VkImageBlit blit_region{ };
+            blit_region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            blit_region.srcSubresource.mipLevel = mip_index - 1;
+            blit_region.srcSubresource.baseArrayLayer = 0;
+            blit_region.srcSubresource.layerCount = 1;
+
+            blit_region.srcOffsets[0] = { 0, 0, 0 };
+            blit_region.srcOffsets[1] = { w, h, 1 };
+
+            w /= 2;
+            h /= 2;
+
+            blit_region.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            blit_region.dstSubresource.mipLevel = mip_index;
+            blit_region.dstSubresource.baseArrayLayer = 0;
+            blit_region.dstSubresource.layerCount = 1;
+
+            blit_region.dstOffsets[0] = { 0, 0, 0 };
+            blit_region.dstOffsets[1] = { w, h, 1 };
+
+            vkCmdBlitImage(vk_command_buffer, dst->vk_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst->vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit_region, VK_FILTER_LINEAR);
+
+            // Prepare current mip for next level
+            util_add_image_barrier(vk_command_buffer, dst->vk_image, RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_COPY_SOURCE, mip_index, 1, false);
+        }
+
+        // Transition
+        util_add_image_barrier(vk_command_buffer, dst->vk_image, (dst->mipmaps > 1) ? RESOURCE_STATE_COPY_SOURCE : RESOURCE_STATE_COPY_DEST, dst_state, 0, dst->mipmaps, false);
     }
 
     void CommandBuffer::upload_buffer_data(BufferHandle buffer_handle, void* buffer_data, BufferHandle staging_buffer_handle, sizet staging_buffer_offset)

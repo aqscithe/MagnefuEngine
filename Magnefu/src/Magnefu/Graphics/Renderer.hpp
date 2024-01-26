@@ -16,7 +16,7 @@ namespace Magnefu
 
     //
     //
-    struct BufferResource : public Magnefu::Resource 
+    struct BufferResource : public Resource 
     {
 
         BufferHandle                    handle;
@@ -30,7 +30,7 @@ namespace Magnefu
 
     //
     //
-    struct TextureResource : public Magnefu::Resource 
+    struct TextureResource : public Resource 
     {
 
         TextureHandle                   handle;
@@ -44,7 +44,7 @@ namespace Magnefu
 
     //
     //
-    struct SamplerResource : public Magnefu::Resource 
+    struct SamplerResource : public Resource 
     {
 
         SamplerHandle                   handle;
@@ -57,34 +57,36 @@ namespace Magnefu
     }; // struct Sampler
 
 
-    struct ProgramPass {
+    // -- Material/Shaders ----------------------------------------------------- //
 
-        PipelineHandle                  pipeline;
-        DescriptorSetLayoutHandle       descriptor_set_layout;
-    }; // struct ProgramPass
+    struct GpuTechniqueCreation
+    {
+        PipelineCreation        creations[8];
+        u32                     num_creations = 0;
+        cstring                 name = nullptr;
 
-    //
-    //
-    struct ProgramCreation {
+        GpuTechniqueCreation& reset();
+        GpuTechniqueCreation& add_pipeline(const PipelineCreation& pipeline);
+        GpuTechniqueCreation& set_name(cstring name);
+    };
 
-        // NOTE(marco): not much benefit having this abstraction for now,
-        // but it will become more powerful soon
-        PipelineCreation                pipeline_creation;
 
-    }; // struct ProgramCreation
-
-    //
-    //
-    struct Program : public Magnefu::Resource 
+    struct GpuTechniquePass 
     {
 
-        u32                             get_num_passes() const;
+        PipelineHandle                  pipeline;
+    }; // struct 
 
-        Array<ProgramPass>              passes;
+
+    //
+    struct GpuTechnique : public Resource 
+    {
+
+        Array<GpuTechniquePass>              passes;
 
         u32                             pool_index;
 
-        static constexpr cstring        k_type = "Magnefu_program_type";
+        static constexpr cstring        k_type = "Magnefu_gpu_technique_type";
         static u64                      k_type_hash;
 
     }; // struct Program
@@ -95,11 +97,11 @@ namespace Magnefu
     {
 
         MaterialCreation& reset();
-        MaterialCreation& set_program(Program* program);
+        MaterialCreation& set_technique(GpuTechnique* technique);
         MaterialCreation& set_name(cstring name);
         MaterialCreation& set_render_index(u32 render_index);
 
-        Program* program = nullptr;
+        GpuTechnique* technique = nullptr;
         cstring                         name = nullptr;
         u32                             render_index = ~0u;
 
@@ -107,10 +109,10 @@ namespace Magnefu
 
     //
     //
-    struct Material : public Magnefu::Resource 
+    struct Material : public Resource 
     {
 
-        Program* program;
+        GpuTechnique* technique;
 
         u32                             render_index;
 
@@ -136,7 +138,7 @@ namespace Magnefu
         FlatHashMap<u64, BufferResource*>  buffers;
         FlatHashMap<u64, SamplerResource*> samplers;
         FlatHashMap<u64, Material*>        materials;
-        FlatHashMap<u64, Program*>         programs;
+        FlatHashMap<u64, GpuTechnique*>    techniques;
 
     }; // struct ResourceCache
 
@@ -146,7 +148,7 @@ namespace Magnefu
     struct RendererCreation 
     {
 
-        Magnefu::GraphicsContext* gpu;
+        GraphicsContext* gpu;
         Allocator* allocator;
 
     }; // struct RendererCreation
@@ -166,11 +168,12 @@ namespace Magnefu
 
         void                        imgui_draw();
 
-        void                        set_loaders(Magnefu::ResourceManager* manager);
+        void                        set_loaders(ResourceManager* manager);
 
         void                        begin_frame();
         void                        end_frame();
 
+        void                        set_presentation_mode(PresentMode::Enum value);
         void                        resize_swapchain(u32 width, u32 height);
 
         f32                         aspect_ratio() const;
@@ -180,23 +183,22 @@ namespace Magnefu
         BufferResource*             create_buffer(VkBufferUsageFlags type, ResourceUsageType::Enum usage, u32 size, void* data, cstring name);
 
         TextureResource*            create_texture(const TextureCreation& creation);
-        TextureResource*            create_texture(cstring name, cstring filename, bool create_mipmaps);
 
         SamplerResource*            create_sampler(const SamplerCreation& creation);
 
-        Program*                    create_program(const ProgramCreation& creation);
+        GpuTechnique*               create_technique(const GpuTechniqueCreation& creation);
 
         Material*                   create_material(const MaterialCreation& creation);
-        Material*                   create_material(Program* program, cstring name);
+        Material*                   create_material(GpuTechnique* technique, cstring name);
 
         void                        destroy_buffer(BufferResource* buffer);
         void                        destroy_texture(TextureResource* texture);
         void                        destroy_sampler(SamplerResource* sampler);
-        void                        destroy_program(Program* program);
+        void                        destroy_technique(GpuTechnique* technique);
         void                        destroy_material(Material* material);
 
         // Draw
-        PipelineHandle              get_pipeline(Material* material);
+        PipelineHandle              get_pipeline(Material* material, u32 pass_index);
         DescriptorSetHandle         create_descriptor_set(CommandBuffer* gpu_commands, Material* material, DescriptorSetCreation& ds_creation);
 
 
@@ -205,10 +207,10 @@ namespace Magnefu
         void                        unmap_buffer(BufferResource* buffer);
 
         CommandBuffer*              get_command_buffer(u32 thread_index, bool begin) { return gpu->get_command_buffer(thread_index, begin); }
-        void                        queue_command_buffer(Magnefu::CommandBuffer* commands) { gpu->queue_command_buffer(commands); }
+        void                        queue_command_buffer(CommandBuffer* commands) { gpu->queue_command_buffer(commands); }
 
         // Multithread friendly update to textures
-        void                        add_texture_to_update(Magnefu::TextureHandle texture);
+        void                        add_texture_to_update(TextureHandle texture);
         void                        add_texture_update_commands(u32 thread_id);
 
 
@@ -219,7 +221,7 @@ namespace Magnefu
         ResourcePoolTyped<TextureResource>  textures;
         ResourcePoolTyped<BufferResource>   buffers;
         ResourcePoolTyped<SamplerResource>  samplers;
-        ResourcePoolTyped<Program>          programs;
+        ResourcePoolTyped<GpuTechnique>     techniques;
         ResourcePoolTyped<Material>         materials;
 
         ResourceCache               resource_cache;
@@ -227,7 +229,7 @@ namespace Magnefu
         TextureHandle               textures_to_update[128];
         u32                         num_textures_to_update = 0;
 
-        Magnefu::GraphicsContext* gpu;
+        GraphicsContext*            gpu;
 
         Array<VmaBudget>            gpu_heap_budgets;
 

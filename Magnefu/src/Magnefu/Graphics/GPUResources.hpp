@@ -71,15 +71,22 @@ namespace Magnefu
         ResourceHandle                  index;
     }; // struct RenderPassHandle
 
+    struct FramebufferHandle 
+    {
+        ResourceHandle                  index;
+    }; // struct FramebufferHandle
+
+
     // Invalid handles
-    static BufferHandle                 k_invalid_buffer{ k_invalid_index };
-    static TextureHandle                k_invalid_texture{ k_invalid_index };
-    static ShaderStateHandle            k_invalid_shader{ k_invalid_index };
-    static SamplerHandle                k_invalid_sampler{ k_invalid_index };
-    static DescriptorSetLayoutHandle    k_invalid_layout{ k_invalid_index };
-    static DescriptorSetHandle          k_invalid_set{ k_invalid_index };
-    static PipelineHandle               k_invalid_pipeline{ k_invalid_index };
-    static RenderPassHandle             k_invalid_pass{ k_invalid_index };
+    static BufferHandle                 k_invalid_buffer        { k_invalid_index };
+    static TextureHandle                k_invalid_texture       { k_invalid_index };
+    static ShaderStateHandle            k_invalid_shader        { k_invalid_index };
+    static SamplerHandle                k_invalid_sampler       { k_invalid_index };
+    static DescriptorSetLayoutHandle    k_invalid_layout        { k_invalid_index };
+    static DescriptorSetHandle          k_invalid_set           { k_invalid_index };
+    static PipelineHandle               k_invalid_pipeline      { k_invalid_index };
+    static RenderPassHandle             k_invalid_pass          { k_invalid_index };
+    static FramebufferHandle            k_invalid_framebuffer   { k_invalid_index };
 
 
 
@@ -234,8 +241,8 @@ namespace Magnefu
         BufferCreation& set(VkBufferUsageFlags flags, ResourceUsageType::Enum usage, u32 size);
         BufferCreation& set_data(void* data);
         BufferCreation& set_name(const char* name);
-        BufferCreation& set_persistent(u32 persistent);
-        BufferCreation& set_device_only(u32 value);
+        BufferCreation& set_persistent(bool value);
+        BufferCreation& set_device_only(bool value);
 
     }; // struct BufferCreation
 
@@ -253,6 +260,8 @@ namespace Magnefu
         VkFormat                        format = VK_FORMAT_UNDEFINED;
         TextureType::Enum               type = TextureType::Texture2D;
 
+        TextureHandle                   alias = k_invalid_texture;
+
         const char* name = nullptr;
 
         TextureCreation& set_size(u16 width, u16 height, u16 depth);
@@ -260,6 +269,7 @@ namespace Magnefu
         TextureCreation& set_format_type(VkFormat format, TextureType::Enum type);
         TextureCreation& set_name(const char* name);
         TextureCreation& set_data(void* data);
+        TextureCreation& set_alias(TextureHandle alias);
 
     }; // struct TextureCreation
 
@@ -309,7 +319,7 @@ namespace Magnefu
         // Building helpers
         ShaderStateCreation& reset();
         ShaderStateCreation& set_name(const char* name);
-        ShaderStateCreation& add_stage(const char* code, u32 code_size, VkShaderStageFlagBits type);
+        ShaderStateCreation& add_stage(const char* code, sizet code_size, VkShaderStageFlagBits type);
         ShaderStateCreation& set_spv_input(bool value);
 
     }; // struct ShaderStateCreation
@@ -332,12 +342,15 @@ namespace Magnefu
         Binding                         bindings[k_max_descriptors_per_set];
         u32                             num_bindings = 0;
         u32                             set_index = 0;
+        bool                            bindless = false;
+        bool                            dynamic = false;
 
         cstring                         name = nullptr;
 
         // Building helpers
         DescriptorSetLayoutCreation& reset();
         DescriptorSetLayoutCreation& add_binding(const Binding& binding);
+        DescriptorSetLayoutCreation& add_binding(VkDescriptorType type, u32 index, u32 count, cstring name);
         DescriptorSetLayoutCreation& add_binding_at_index(const Binding& binding, int index);
         DescriptorSetLayoutCreation& set_name(cstring name);
         DescriptorSetLayoutCreation& set_set_index(u32 index);
@@ -413,20 +426,25 @@ namespace Magnefu
 
     //
     //
-    struct RenderPassOutput {
+    struct RenderPassOutput
+    {
 
         VkFormat                        color_formats[k_max_image_outputs];
+        VkImageLayout                   color_final_layouts[k_max_image_outputs];
+        RenderPassOperation::Enum       color_operations[k_max_image_outputs];
+
         VkFormat                        depth_stencil_format;
+        VkImageLayout                   depth_stencil_final_layout;
+
         u32                             num_color_formats;
 
-        RenderPassOperation::Enum       color_operation = RenderPassOperation::DontCare;
         RenderPassOperation::Enum       depth_operation = RenderPassOperation::DontCare;
         RenderPassOperation::Enum       stencil_operation = RenderPassOperation::DontCare;
 
         RenderPassOutput& reset();
-        RenderPassOutput& color(VkFormat format);
-        RenderPassOutput& depth(VkFormat format);
-        RenderPassOutput& set_operations(RenderPassOperation::Enum color, RenderPassOperation::Enum depth, RenderPassOperation::Enum stencil);
+        RenderPassOutput& color(VkFormat format, VkImageLayout layout, RenderPassOperation::Enum load_op);
+        RenderPassOutput& depth(VkFormat format, VkImageLayout layout);
+        RenderPassOutput& set_depth_stencil_operations(RenderPassOperation::Enum depth, RenderPassOperation::Enum stencil);
 
     }; // struct RenderPassOutput
 
@@ -435,33 +453,54 @@ namespace Magnefu
     struct RenderPassCreation {
 
         u16                             num_render_targets = 0;
-        RenderPassType::Enum            type = RenderPassType::Geometry;
 
-        TextureHandle                   output_textures[k_max_image_outputs];
-        TextureHandle                   depth_stencil_texture;
+        VkFormat                        color_formats[k_max_image_outputs];
+        VkImageLayout                   color_final_layouts[k_max_image_outputs];
+        RenderPassOperation::Enum       color_operations[k_max_image_outputs];
 
-        f32                             scale_x = 1.f;
-        f32                             scale_y = 1.f;
-        u8                              resize = 1;
+        VkFormat                        depth_stencil_format = VK_FORMAT_UNDEFINED;
+        VkImageLayout                   depth_stencil_final_layout;
 
-        RenderPassOperation::Enum       color_operation = RenderPassOperation::DontCare;
         RenderPassOperation::Enum       depth_operation = RenderPassOperation::DontCare;
         RenderPassOperation::Enum       stencil_operation = RenderPassOperation::DontCare;
 
         const char* name = nullptr;
 
         RenderPassCreation& reset();
-        RenderPassCreation& add_render_texture(TextureHandle texture);
-        RenderPassCreation& set_scaling(f32 scale_x, f32 scale_y, u8 resize);
-        RenderPassCreation& set_depth_stencil_texture(TextureHandle texture);
+        RenderPassCreation& add_attachment(VkFormat format, VkImageLayout layout, RenderPassOperation::Enum load_op);
+        RenderPassCreation& set_depth_stencil_texture(VkFormat format, VkImageLayout layout);
         RenderPassCreation& set_name(const char* name);
-        RenderPassCreation& set_type(RenderPassType::Enum type);
-        RenderPassCreation& set_operations(RenderPassOperation::Enum color, RenderPassOperation::Enum depth, RenderPassOperation::Enum stencil);
+        RenderPassCreation& set_depth_stencil_operations(RenderPassOperation::Enum depth, RenderPassOperation::Enum stencil);
 
     }; // struct RenderPassCreation
 
-    //
-    //
+    
+    struct FramebufferCreation
+    {
+        RenderPassHandle                render_pass;
+
+        u16                             num_render_targets = 0;
+
+        TextureHandle                   output_textures[k_max_image_outputs];
+        TextureHandle                   depth_stencil_texture = { k_invalid_index };
+
+        u16                             width = 0;
+        u16                             height = 0;
+
+        f32                             scale_x = 1.f;
+        f32                             scale_y = 1.f;
+        u8                              resize = 1;
+
+        const char*                     name = nullptr;
+
+        FramebufferCreation&            reset();
+        FramebufferCreation&            add_render_texture(TextureHandle texture);
+        FramebufferCreation&            set_depth_stencil_texture(TextureHandle texture);
+        FramebufferCreation&            set_scaling(f32 scale_x, f32 scale_y, u8 resize);
+        FramebufferCreation&            set_name(const char* name);
+    };
+
+
     struct PipelineCreation {
 
         RasterizationCreation           rasterization;
@@ -512,25 +551,26 @@ namespace Magnefu
 
     } // namespace TextureFormat
 
-    struct ResourceData {
+
+    struct DescriptorData 
+    {
 
         void* data = nullptr;
 
-    }; // struct ResourceData
+    }; // struct DescriptorData
 
-    //
-    //
-    struct ResourceBinding {
-        u16                             type = 0;    // ResourceType
+
+    struct DescriptorBinding
+    {
+
+        VkDescriptorType                type;
         u16                             start = 0;
         u16                             count = 0;
         u16                             set = 0;
 
         const char* name = nullptr;
-    }; // struct ResourceBinding
+    }; // struct 
 
-
-    // API-agnostic descriptions ////////////////////////////////////////////////////
 
     //
     //
@@ -592,18 +632,20 @@ namespace Magnefu
 
     //
     //
-    struct DescriptorSetLayoutDescription {
+    struct DescriptorSetLayoutDescription
+    {
 
-        ResourceBinding                 bindings[k_max_descriptors_per_set];
+        DescriptorBinding*              bindings = nullptr;;
         u32                             num_active_bindings = 0;
 
     }; // struct DescriptorSetLayoutDescription
 
     //
     //
-    struct DescriptorSetDescription {
+    struct DescriptorSetDescription 
+    {
 
-        ResourceData                    resources[k_max_descriptors_per_set];
+        DescriptorData*                    resources = nullptr;
         u32                             num_active_resources = 0;
 
     }; // struct DescriptorSetDescription
@@ -626,26 +668,25 @@ namespace Magnefu
 
     }; // struct MapBufferParameters
 
+
+
     // Synchronization //////////////////////////////////////////////////////////////
 
-    //
-    //
+   
     struct ImageBarrier {
 
         TextureHandle                   texture;
 
     }; // struct ImageBarrier
 
-    //
-    //
+   
     struct MemoryBarrier {
 
         BufferHandle                    buffer;
 
     }; // struct MemoryBarrier
 
-    //
-    //
+  
     struct ExecutionBarrier {
 
         PipelineStage::Enum             source_pipeline_stage;
@@ -674,6 +715,7 @@ namespace Magnefu
         ResourceDeletionType::Enum      type;
         ResourceHandle                  handle;
         u32                             current_frame;
+        u32                             deleting;
     }; // struct ResourceUpdate
 
     // Resources /////////////////////////////////////////////////////////////
@@ -685,7 +727,8 @@ namespace Magnefu
 
     //
     //
-    struct Buffer {
+    struct Buffer 
+    {
 
         VkBuffer                        vk_buffer;
         VmaAllocation                   vma_allocation;
@@ -750,7 +793,8 @@ namespace Magnefu
 
     //
     //
-    struct ShaderState {
+    struct ShaderState
+    {
 
         VkPipelineShaderStageCreateInfo shader_stage_info[k_max_shader_stages];
 
@@ -762,20 +806,7 @@ namespace Magnefu
         spirv::ParseResult* parse_result;
     }; // struct ShaderStateVulkan
 
-    //
-    //
-    struct DescriptorBinding {
-
-        VkDescriptorType                type;
-        u16                             start = 0;
-        u16                             count = 0;
-        u16                             set = 0;
-
-        const char* name = nullptr;
-    }; // struct ResourceBindingVulkan
-
-    //
-    //
+    
     struct DescriptorSetLayout {
 
         VkDescriptorSetLayout           vk_descriptor_set_layout;
@@ -784,6 +815,8 @@ namespace Magnefu
         DescriptorBinding* bindings = nullptr;
         u16                             num_bindings = 0;
         u16                             set_index = 0;
+        u8                              bindless = 0;
+        u8                              dynamic = 0;
 
         DescriptorSetLayoutHandle       handle;
 
@@ -831,31 +864,56 @@ namespace Magnefu
 
     //
     //
-    struct RenderPass {
-
+    struct RenderPass 
+    {
+        // NOTE(marco): this will be a null handle if dynamic rendering is available
         VkRenderPass                    vk_render_pass;
-        VkFramebuffer                   vk_frame_buffer;
 
         RenderPassOutput                output;
 
-        TextureHandle                   output_textures[k_max_image_outputs];
-        TextureHandle                   output_depth;
-
-        RenderPassType::Enum            type;
-
-        f32                             scale_x = 1.f;
-        f32                             scale_y = 1.f;
-        u16                             width = 0;
-        u16                             height = 0;
         u16                             dispatch_x = 0;
         u16                             dispatch_y = 0;
         u16                             dispatch_z = 0;
 
-        u8                              resize = 0;
         u8                              num_render_targets = 0;
 
         const char* name = nullptr;
     }; // struct RenderPassVulkan
+
+
+    struct Framebuffer 
+    {
+
+        // NOTE(marco): this will be a null handle if dynamic rendering is available
+        VkFramebuffer                   vk_framebuffer;
+
+        // NOTE(marco): cache render pass handle
+        RenderPassHandle                render_pass;
+
+        u16                             width = 0;
+        u16                             height = 0;
+
+        f32                             scale_x = 1.f;
+        f32                             scale_y = 1.f;
+
+        TextureHandle                   color_attachments[k_max_image_outputs];
+        TextureHandle                   depth_stencil_attachment;
+        u32                             num_color_attachments;
+
+        u8                              resize = 0;
+
+        const char* name = nullptr;
+    }; // struct Framebuffer
+
+
+    struct ComputeLocalSize 
+    {
+
+        u32                             x : 10;
+        u32                             y : 10;
+        u32                             z : 10;
+        u32                             pad : 2;
+    }; // struct ComputeLocalSize
 
 
     // Enum translations. Use tables or switches depending on the case. ////////////
@@ -885,6 +943,7 @@ namespace Magnefu
             return "";
         }
     }
+
     //
     //
     static VkImageType to_vk_image_type(TextureType::Enum type) {
@@ -958,7 +1017,7 @@ namespace Magnefu
 #endif
 
         return ret;
-        }
+    }
 
     static VkImageLayout util_to_vk_image_layout(ResourceState usage) {
         if (usage & RESOURCE_STATE_COPY_SOURCE)
@@ -1015,9 +1074,9 @@ namespace Magnefu
 #ifdef ENABLE_RAYTRACING
                 if (pRenderer->mVulkan.mRaytracingExtension) {
                     flags |= VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_NV;
-                }
-#endif
             }
+#endif
+        }
 
             if ((accessFlags & VK_ACCESS_INPUT_ATTACHMENT_READ_BIT) != 0)
                 flags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
@@ -1029,7 +1088,7 @@ namespace Magnefu
                 flags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 
             break;
-                }
+        }
         case QueueType::Compute:
         {
             if ((accessFlags & (VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT)) != 0 ||
@@ -1045,7 +1104,7 @@ namespace Magnefu
         }
         case QueueType::CopyTransfer: return VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
         default: break;
-            }
+    }
 
         // Compatible with both compute and graphics queues
         if ((accessFlags & VK_ACCESS_INDIRECT_COMMAND_READ_BIT) != 0)
@@ -1061,7 +1120,7 @@ namespace Magnefu
             flags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
         return flags;
-        }
+}
 
     void util_add_image_barrier(VkCommandBuffer command_buffer, VkImage image, ResourceState old_state, ResourceState new_state,
         u32 base_mip_level, u32 mip_count, bool is_depth);
@@ -1074,6 +1133,8 @@ namespace Magnefu
         u32 buffer_size, u32 source_family, u32 destination_family,
         QueueType::Enum source_queue_type, QueueType::Enum destination_queue_type);
 
+    VkFormat util_string_to_vk_format(cstring format);
 
-} // namespace raptor
+
+} // namespace 
 

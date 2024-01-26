@@ -17,11 +17,6 @@
 
 namespace Magnefu
 {
-	struct AsynchronousLoader;
-	struct ImGuiService;
-	struct Renderer;
-	struct GPUProfiler;
-
 	struct Entity;
 	
 
@@ -42,15 +37,6 @@ namespace Magnefu
 		{
 			registry.sort<T, By>();
 		}*/
-
-		virtual void                            load(cstring filename, cstring path, Allocator* resident_allocator, StackAllocator* temp_allocator, AsynchronousLoader* async_loader) { };
-		virtual void                            free_gpu_resources(Renderer* renderer) { };
-		virtual void                            unload(Renderer* renderer) { };
-
-		virtual void                            prepare_draws(Renderer* renderer, StackAllocator* scratch_allocator) { };
-
-		virtual void                            upload_materials(float model_scale) { };
-		virtual void                            submit_draw_task(ImGuiService* imgui, GPUProfiler* gpu_profiler, enki::TaskScheduler* task_scheduler) { };
 
 
 
