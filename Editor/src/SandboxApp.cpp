@@ -4,11 +4,25 @@
 #include "AppLayers/SandboxLayer.hpp"
 #include "AppLayers/Overlay.hpp"
 #include "GameCamera.hpp"
+#include "Magnefu/Application/Windows/Window.h"
+#include "Magnefu/Application/Input/Input.h"
+#include "Magnefu/Application/Input/KeyCodes.h"
 
-#include "Magnefu/Application/Scene/Scene.h"
+#include "Magnefu/Application/ImGui/ImGuiService.hpp"
 
 // -- Graphics --------------------------- //
+#include "Magnefu/Graphics/GraphicsContext.h"
+#include "Magnefu/Graphics/CommandBuffer.hpp" 
+#include "Magnefu/Graphics/spirv_parser.hpp"
+#include "Magnefu/Graphics/GPUProfiler.hpp"
+#include "Magnefu/Graphics/Renderer.hpp"
+#include "Magnefu/Graphics/RenderScene.hpp"
+#include "Magnefu/Graphics/glTFScene.hpp"
+#include "Magnefu/Graphics/ObjScene.hpp"
+#include "Magnefu/Graphics/FrameGraph.hpp"
 #include "Magnefu/Graphics/AsynchronousLoader.hpp"
+#include "Magnefu/Graphics/SceneGraph.hpp"
+#include "Magnefu/Graphics/RenderResourcesLoader.hpp"
 
 
 // -- Core -------------------------- //
@@ -752,6 +766,26 @@ void glTFScene::upload_materials(float model_scale) {
     }
 }
 
+void Magnefu::glTFScene::init(cstring filename, cstring path, Allocator* resident_allocator, StackAllocator* temp_allocator, AsynchronousLoader* async_loader)
+{
+}
+
+void Magnefu::glTFScene::shutdown(Renderer* renderer)
+{
+}
+
+void Magnefu::glTFScene::register_render_passes(FrameGraph* frame_graph)
+{
+}
+
+void Magnefu::glTFScene::prepare_draws(Renderer* renderer, StackAllocator* scratch_allocator, SceneGraph* scene_graph)
+{
+}
+
+void Magnefu::glTFScene::upload_materials()
+{
+}
+
 void glTFScene::submit_draw_task(Magnefu::ImGuiService* imgui, Magnefu::GPUProfiler* gpu_profiler, enki::TaskScheduler* task_scheduler) {
     glTFDrawTask draw_task;
     draw_task.init(renderer->gpu, renderer, imgui, gpu_profiler, this);
@@ -761,6 +795,28 @@ void glTFScene::submit_draw_task(Magnefu::ImGuiService* imgui, Magnefu::GPUProfi
 
     // Avoid using the same command buffer
     renderer->add_texture_update_commands((draw_task.thread_id + 1) % task_scheduler->GetNumTaskThreads());
+}
+
+void Magnefu::glTFScene::draw_mesh(CommandBuffer* gpu_commands, Mesh& mesh)
+{
+}
+
+void Magnefu::glTFScene::get_mesh_vertex_buffer(i32 accessor_index, BufferHandle& out_buffer_handle, u32& out_buffer_offset)
+{
+}
+
+u16 Magnefu::glTFScene::get_material_texture(GraphicsContext& gpu, glTF::TextureInfo* texture_info)
+{
+    return u16();
+}
+
+u16 Magnefu::glTFScene::get_material_texture(GraphicsContext& gpu, i32 gltf_texture_index)
+{
+    return u16();
+}
+
+void Magnefu::glTFScene::fill_pbr_material(Renderer& renderer, glTF::Material& material, PBRMaterial& pbr_material)
+{
 }
 
 int gltf_mesh_material_compare(const void* a, const void* b) {

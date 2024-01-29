@@ -1,15 +1,5 @@
 #pragma once
 
-// -- Graphics Includes ---------------------- //
-#include "GPUResources.hpp"
-
-// -- Core Includes ------------------------ //
-#include "Magnefu/Core/DataStructures.hpp"
-#include "Magnefu/Core/MemoryAllocation/Memory.hpp"
-#include "Magnefu/Core/Array.h"
-#include "Magnefu/Core/String.hpp"
-
-
 #if (_MSC_VER)
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -18,6 +8,15 @@
 #else
 #define VK_USE_PLATFORM_XLIB_KHR
 #endif
+
+
+// -- Graphics Includes ---------------------- //
+#include "GPUResources.hpp"
+
+// -- Core Includes ------------------------ //
+#include "Magnefu/Core/DataStructures.hpp"
+
+
 #include <vulkan/vulkan.h>
 
 #include "vma/vk_mem_alloc.h"
@@ -34,65 +33,51 @@ namespace Magnefu
 	struct GPUTimestampManager;
 	struct GraphicsContext;
 
-    struct VMAMemoryStats
-    {
-        u32 blockCount;
-        u32 allocationCount;
-        u64 blockBytes;
-        u64 allocationBytes;
-        u64 usage;
-        u64 budget;
-    };
+
+    struct GPUTimestamp {
+
+        u32                             start;
+        u32                             end;
+
+        f64                             elapsed_ms;
+
+        u16                             parent_index;
+        u16                             depth;
+
+        u32                             color;
+        u32                             frame_index;
+
+        const char* name;
+    }; // struct GPUTimestamp
 
 
-	struct GPUTimestamp
-	{
+    struct GPUTimestampManager {
 
-		u32				start;
-		u32				end;
+        void                            init(Allocator* allocator, u16 queries_per_frame, u16 max_frames);
+        void                            shutdown();
 
-		f64				elapsed_ms;
+        bool                            has_valid_queries() const;
+        void                            reset();
+        u32                             resolve(u32 current_frame, GPUTimestamp* timestamps_to_fill);    // Returns the total queries for this frame.
 
-		u16				parent_index;
-		u16				depth;
+        u32                             push(u32 current_frame, const char* name);    // Returns the timestamp query index.
 
-		u32				color;
-		u32				frame_index;
-
-		const char* name;
-	};
-
-
-	struct GPUTimestampManager
-	{
-		// -- Methods ------------------------ //
-
-		void                            init(Allocator* allocator, u16 queries_per_frame, u16 max_frames);
-		void                            shutdown();
-
-		bool                            has_valid_queries() const;
-		void                            reset();
-		u32                             resolve(u32 current_frame, GPUTimestamp* timestamps_to_fill);    // Returns the total queries for this frame.
-
-		u32                             push(u32 current_frame, const char* name);    // Returns the timestamp query index.
-		u32                             pop(u32 current_frame);
+        u32                             pop(u32 current_frame);
 
 
 
-		// -- Members --------------------- //
+        Allocator* allocator = nullptr;
+        GPUTimestamp* timestamps = nullptr;
+        u64* timestamps_data = nullptr;
 
-		Allocator* allocator = nullptr;
-		GPUTimestamp* timestamps = nullptr;
-		u64* timestamps_data = nullptr;
+        u32                             queries_per_frame = 0;
+        u32                             current_query = 0;
+        u32                             parent_index = 0;
+        u32                             depth = 0;
 
-		u32                             queries_per_frame = 0;
-		u32                             current_query = 0;
-		u32                             parent_index = 0;
-		u32                             depth = 0;
+        bool                            current_frame_resolved = false;    // Used to query the GPU only once per frame if get_gpu_timestamps is called more than once per frame.
 
-		bool                            current_frame_resolved = false;    // Used to query the GPU only once per frame if get_gpu_timestamps is called more than once per frame.
-
-	};
+    }; // struct GPUTimestampManager
 
 
 
@@ -103,25 +88,26 @@ namespace Magnefu
 		DeviceCreation& set_window(u32 width, u32 height, void* handle);
 		DeviceCreation& set_allocator(Allocator* allocator);
 		DeviceCreation& set_stack_allocator(StackAllocator* allocator);
-        DeviceCreation& set_num_threads(u16 num_threads_);
+        DeviceCreation& set_num_threads(u32 value);
 
 
 		// -- Members ----------------------------------------------------- //
 
-		Allocator* allocator = nullptr;
-		StackAllocator* temporary_allocator = nullptr;
-		void* window = nullptr; // Pointer to API-specific window: SDL_Window, GLFWWindow
-		u16                             width = 1;
-		u16                             height = 1;
+        Allocator* allocator = nullptr;
+        StackAllocator* temporary_allocator = nullptr;
+        void* window = nullptr; // Pointer to API-specific window: SDL_Window, GLFWWindow
+        u16                             width = 1;
+        u16                             height = 1;
 
-		u16                             gpu_time_queries_per_frame = 32;
+        u16                             gpu_time_queries_per_frame = 32;
         u16                             num_threads = 1;
-		bool                            enable_gpu_time_queries = false;
-		bool                            debug = false;
+        bool                            enable_gpu_time_queries = false;
+        bool                            debug = false;
 
 
 
 	};
+
 
     struct SwapChainSupportDetails
     {
@@ -129,7 +115,6 @@ namespace Magnefu
         Array<VkPresentModeKHR>   PresentModes;
         VkSurfaceCapabilitiesKHR  Capabilities;
     };
-
 
 
     struct GraphicsContext : public Service 
@@ -159,6 +144,7 @@ namespace Magnefu
         DescriptorSetLayoutHandle       create_descriptor_set_layout(const DescriptorSetLayoutCreation& creation);
         DescriptorSetHandle             create_descriptor_set(const DescriptorSetCreation& creation);
         RenderPassHandle                create_render_pass(const RenderPassCreation& creation);
+        FramebufferHandle               create_framebuffer(const FramebufferCreation& creation);
         ShaderStateHandle               create_shader_state(const ShaderStateCreation& creation);
 
         void                            destroy_buffer(BufferHandle buffer);
@@ -168,6 +154,7 @@ namespace Magnefu
         void                            destroy_descriptor_set_layout(DescriptorSetLayoutHandle layout);
         void                            destroy_descriptor_set(DescriptorSetHandle set);
         void                            destroy_render_pass(RenderPassHandle render_pass);
+        void                            destroy_framebuffer(FramebufferHandle framebuffer);
         void                            destroy_shader_state(ShaderStateHandle shader);
 
 
@@ -186,8 +173,8 @@ namespace Magnefu
 
         // -- Update/Reload resources ------------------------------------------------------------------------------------- //
 
-        void                            resize_output_textures(RenderPassHandle render_pass, u32 width, u32 height);
-
+        void                            resize_output_textures(FramebufferHandle framebuffer, u32 width, u32 height);
+        void                            resize_texture(TextureHandle texture, u32 width, u32 height);
         void                            update_descriptor_set(DescriptorSetHandle set);
 
         // -- Misc ------------------------------------------------- ------------------------------------------------- //
@@ -198,10 +185,11 @@ namespace Magnefu
         void                            frame_counters_advance();
 
         bool                            get_family_queue(VkPhysicalDevice physical_device);
-        bool                            check_device_extension_support(VkPhysicalDevice physical_device);
-        SwapChainSupportDetails         query_swapchain_support(VkPhysicalDevice physical_device);
 
         VkShaderModuleCreateInfo        compile_shader(cstring code, u32 code_size, VkShaderStageFlagBits stage, cstring name);
+
+        bool                            check_device_extension_support(VkPhysicalDevice physical_device);
+        SwapChainSupportDetails         query_swapchain_support(VkPhysicalDevice physical_device);
 
 
         // -- Swapchain ------------------------------------------------- //
@@ -234,12 +222,12 @@ namespace Magnefu
         void                            new_frame();
         void                            present();
         void                            resize(u16 width, u16 height);
-        void                            set_presentation_mode(PresentMode::Enum mode);
 
-        void                            fill_barrier(RenderPassHandle render_pass, ExecutionBarrier& out_barrier);
+        void                            fill_barrier(FramebufferHandle framebuffer, ExecutionBarrier& out_barrier);
 
         BufferHandle                    get_fullscreen_vertex_buffer() const;           // Returns a vertex buffer usable for fullscreen shaders that uses no vertices.
         RenderPassHandle                get_swapchain_pass() const;                     // Returns what is considered the final pass that writes to the swapchain.
+        FramebufferHandle               get_current_framebuffer() const;                // Returns the framebuffer for the active swapchain image
 
         TextureHandle                   get_dummy_texture() const;
         BufferHandle                    get_dummy_constant_buffer() const;
@@ -265,7 +253,7 @@ namespace Magnefu
 
         // -- VMA Info ----------------------------------------------------------------------------------------------------- //
         void                            CalculateMemoryStats();
-        VMAMemoryStats                  GetMemoryStats();
+        
 
         // -- Instant methods ---------------------------------------------------------------------------------------------- //
         void                            destroy_buffer_instant(ResourceHandle buffer);
@@ -275,6 +263,7 @@ namespace Magnefu
         void                            destroy_descriptor_set_layout_instant(ResourceHandle layout);
         void                            destroy_descriptor_set_instant(ResourceHandle set);
         void                            destroy_render_pass_instant(ResourceHandle render_pass);
+        void                            destroy_framebuffer_instant(ResourceHandle framebuffer);
         void                            destroy_shader_state_instant(ResourceHandle shader);
 
         void                            update_descriptor_set_instant(const DescriptorSetUpdate& update);
@@ -309,14 +298,17 @@ namespace Magnefu
         RenderPass* access_render_pass(RenderPassHandle render_pass);
         const RenderPass* access_render_pass(RenderPassHandle render_pass) const;
 
+        Framebuffer* access_framebuffer(FramebufferHandle framebuffer);
+        const Framebuffer* access_framebuffer(FramebufferHandle framebuffer) const;
+
 
         DescriptorSetLayoutHandle get_descriptor_set_layout(PipelineHandle pipeline_handle, int layout_index);
         DescriptorSetLayoutHandle get_descriptor_set_layout(PipelineHandle pipeline_handle, int layout_index) const;
 
 
+
+
         // -- Members -------------------------------------------------------- //
-
-
 
         ResourcePool                    buffers;
         ResourcePool                    textures;
@@ -325,12 +317,13 @@ namespace Magnefu
         ResourcePool                    descriptor_set_layouts;
         ResourcePool                    descriptor_sets;
         ResourcePool                    render_passes;
+        ResourcePool                    framebuffers;
         ResourcePool                    command_buffers;
         ResourcePool                    shaders;
 
         // Primitive resources
         BufferHandle                    fullscreen_vertex_buffer;
-        RenderPassHandle                swapchain_pass;
+        RenderPassHandle                swapchain_render_pass{ k_invalid_index };
         SamplerHandle                   default_sampler;
         // Dummy resources
         TextureHandle                   dummy_texture;
@@ -369,33 +362,32 @@ namespace Magnefu
         bool                            resized = false;
         bool                            vertical_sync = false;
 
-        static constexpr cstring        k_name = "Magnefu_GPU_Service";
-
-        // -- ImGui ------------------ //
-        VkRenderPass                    imgui_render_pass;
+        static constexpr cstring        k_name = "raptor_gpu_service";
 
 
-        VkAllocationCallbacks*          vulkan_allocation_callbacks;
+        VkAllocationCallbacks* vulkan_allocation_callbacks;
         VkInstance                      vulkan_instance;
         VkPhysicalDevice                vulkan_physical_device;
         VkPhysicalDeviceProperties      vulkan_physical_properties;
-        VkPhysicalDeviceFeatures2       vulkan_physical_features;
         VkDevice                        vulkan_device;
         VkQueue                         vulkan_main_queue;
         VkQueue                         vulkan_transfer_queue;
         u32                             vulkan_main_queue_family;
         u32                             vulkan_transfer_queue_family;
         VkDescriptorPool                vulkan_descriptor_pool;
+
+        // [TAG: BINDLESS]
         VkDescriptorPool                vulkan_bindless_descriptor_pool;
-        VkDescriptorSetLayout           vulkan_bindless_descriptor_set_layout;
-        VkDescriptorSet                 vulkan_bindless_descriptor_set;
+        VkDescriptorSet                 vulkan_bindless_descriptor_set_cached;  // Cached but will be removed with its associated DescriptorSet.
+        DescriptorSetLayoutHandle       bindless_descriptor_set_layout;
+        DescriptorSetHandle             bindless_descriptor_set;
+
+
+        VkPhysicalDeviceFeatures2       vulkan_physical_features;
         VkSampleCountFlagBits           vulkan_max_sample_count_bits;
-        //VkSampleCountFlags              vulkan_max_sample_count;
 
         // Swapchain
-        VkImage                         vulkan_swapchain_images[k_max_swapchain_images];
-        VkImageView                     vulkan_swapchain_image_views[k_max_swapchain_images];
-        VkFramebuffer                   vulkan_swapchain_framebuffers[k_max_swapchain_images];
+        FramebufferHandle               vulkan_swapchain_framebuffers[k_max_swapchain_images]{ k_invalid_index, k_invalid_index, k_invalid_index };
 
         VkQueryPool                     vulkan_timestamp_query_pool;
         // Per frame synchronization
@@ -403,10 +395,7 @@ namespace Magnefu
         VkSemaphore                     vulkan_image_acquired_semaphore;
         VkFence                         vulkan_command_buffer_executed_fence[k_max_swapchain_images];
 
-        TextureHandle                   depth_texture;
-
         static const uint32_t           k_max_frames = 3;
-        
 
         // Windows specific
         VkSurfaceKHR                    vulkan_window_surface;
@@ -421,7 +410,10 @@ namespace Magnefu
         u32                             vulkan_image_index;
 
         VmaAllocator                    vma_allocator;
-        VmaBudget                       vma_budget;
+
+        // Extension functions
+        PFN_vkCmdBeginRenderingKHR      cmd_begin_rendering;
+        PFN_vkCmdEndRenderingKHR        cmd_end_rendering;
 
         // These are dynamic - so that workload can be handled correctly.
         Array<ResourceUpdate>           resource_deletion_queue;
@@ -429,13 +421,18 @@ namespace Magnefu
         // [TAG: BINDLESS]
         Array<ResourceUpdate>           texture_to_update_bindless;
 
-
         f32                             gpu_timestamp_frequency;
         bool                            gpu_timestamp_reset = true;
         bool                            debug_utils_extension_present = false;
+        bool                            dynamic_rendering_extension_present = false;
+
+        sizet                           ubo_alignment = 256;
+        sizet                           ssbo_alignemnt = 256;
 
         char                            vulkan_binaries_path[512];
 
-    }; // struct Device
+       
+
+    }; // struct GraphicsContext
 
 }

@@ -460,6 +460,14 @@ namespace Magnefu
 
     } // namespace PipelineStage
 
+
+    namespace ResourceUpdateType {
+
+        enum Enum {
+            Buffer, Texture, Pipeline, Sampler, DescriptorSetLayout, DescriptorSet, RenderPass, Framebuffer, ShaderState, Count
+        };
+    } // namespace ResourceUpdateType
+
     namespace RenderPassType 
     {
 

@@ -27,8 +27,8 @@ namespace Magnefu
 
         f32                                     transparency;
 
-        u16                                     diffuse_texture_index = INVALID_TEXTURE_INDEX;
-        u16                                     normal_texture_index = INVALID_TEXTURE_INDEX;
+        u16                                     diffuse_texture_index = k_invalid_scene_texture_index;
+        u16                                     normal_texture_index = k_invalid_scene_texture_index;
     };
 
 
@@ -54,8 +54,8 @@ namespace Magnefu
         f32                                     specular_exp;
         f32                                     transparency;
 
-        u16                                     diffuse_texture_index = INVALID_TEXTURE_INDEX;
-        u16                                     normal_texture_index = INVALID_TEXTURE_INDEX;
+        u16                                     diffuse_texture_index = k_invalid_scene_texture_index;
+        u16                                     normal_texture_index = k_invalid_scene_texture_index;
 
         u32                                     uploads_queued = 0;
         // TODO(marco): this should be an atomic value

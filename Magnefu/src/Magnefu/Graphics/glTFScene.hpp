@@ -1,6 +1,6 @@
 #pragma once
 
-//#include "FrameGraph.hpp"
+#include "FrameGraph.hpp"
 #include "GPUResources.hpp"
 #include "RenderScene.hpp"
 #include "Renderer.hpp"
@@ -91,29 +91,159 @@ namespace Magnefu
 	// -- Render Passes ------------------------------------------------------------ //
 
 	
+	struct DepthPrePass : public FrameGraphRenderPass
+	{
+		void                render(CommandBuffer* gpu_commands, RenderScene* render_scene) override;
 
+		void                prepare_draws(glTFScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator);
+		void                free_gpu_resources();
 
-	struct glTFScene : public Magnefu::RenderScene
+		Array<MeshInstance> mesh_instances;
+		Renderer* renderer;
+	}; // struct DepthPrePass
+
+	//
+	//
+	struct GBufferPass : public FrameGraphRenderPass
+	{
+		void                render(CommandBuffer* gpu_commands, RenderScene* render_scene) override;
+
+		void                prepare_draws(glTFScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator);
+		void                free_gpu_resources();
+
+		Array<MeshInstance> mesh_instances;
+		Renderer* renderer;
+	}; // struct GBufferPass
+
+	//
+	//
+	struct LightPass : public FrameGraphRenderPass
+	{
+		void                render(CommandBuffer* gpu_commands, RenderScene* render_scene) override;
+
+		void                prepare_draws(glTFScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator);
+		void                upload_materials();
+		void                free_gpu_resources();
+
+		Mesh                mesh;
+		Renderer* renderer;
+	}; // struct LighPass
+
+	//
+	//
+	struct TransparentPass : public FrameGraphRenderPass 
+	{
+		void                render(CommandBuffer* gpu_commands, RenderScene* render_scene) override;
+
+		void                prepare_draws(glTFScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator);
+		void                free_gpu_resources();
+
+		Array<MeshInstance> mesh_instances;
+		Renderer* renderer;
+	}; // struct TransparentPass
+
+	//
+	//
+	struct DoFPass : public FrameGraphRenderPass
 	{
 
-		void                                    load(cstring filename, cstring path, Magnefu::Allocator* resident_allocator, Magnefu::StackAllocator* temp_allocator, Magnefu::AsynchronousLoader* async_loader);
-		void                                    free_gpu_resources(Magnefu::Renderer* renderer);
-		void                                    unload(Magnefu::Renderer* renderer);
+		struct DoFData
+		{
+			u32                 textures[4]; // diffuse, depth
+			float               znear;
+			float               zfar;
+			float               focal_length;
+			float               plane_in_focus;
+			float               aperture;
+		}; // struct DoFData
 
-		void                                    prepare_draws(Magnefu::Renderer* renderer, Magnefu::StackAllocator* scratch_allocator);
-		void                                    upload_materials(float model_scale);
-		void                                    submit_draw_task(Magnefu::ImGuiService* imgui, Magnefu::GPUProfiler* gpu_profiler, enki::TaskScheduler* task_scheduler);
+		void                    add_ui() override;
+		void                    pre_render(CommandBuffer* gpu_commands, RenderScene* render_scene) override;
+		void                    render(CommandBuffer* gpu_commands, RenderScene* render_scene) override;
+		void                    on_resize(GraphicsContext& gpu, u32 new_width, u32 new_height) override;
 
-		Magnefu::Array<MeshDraw>                 mesh_draws;
+		void                    prepare_draws(glTFScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator);
+		void                    upload_materials();
+		void                    free_gpu_resources();
+
+		Mesh                    mesh;
+		Renderer* renderer;
+
+		TextureResource* scene_mips;
+
+		float                   znear;
+		float                   zfar;
+		float                   focal_length;
+		float                   plane_in_focus;
+		float                   aperture;
+	}; // struct DoFPass
+
+	struct glTFScene : public RenderScene
+	{
+
+		void                    init(cstring filename, cstring path, Allocator* resident_allocator, StackAllocator* temp_allocator, AsynchronousLoader* async_loader) override;
+		void                    shutdown(Renderer* renderer) override;
+
+		void                    register_render_passes(FrameGraph* frame_graph) override;
+		void                    prepare_draws(Renderer* renderer, StackAllocator* scratch_allocator, SceneGraph* scene_graph) override;
+		void                    upload_materials() override;
+		void                    submit_draw_task(ImGuiService* imgui, GPUProfiler* gpu_profiler, enki::TaskScheduler* task_scheduler) override;
+
+		void                    draw_mesh(CommandBuffer* gpu_commands, Mesh& mesh);
+
+		void                    get_mesh_vertex_buffer(i32 accessor_index, BufferHandle& out_buffer_handle, u32& out_buffer_offset);
+		u16                     get_material_texture(GraphicsContext& gpu, glTF::TextureInfo* texture_info);
+		u16                     get_material_texture(GraphicsContext& gpu, i32 gltf_texture_index);
+
+		void                    fill_pbr_material(Renderer& renderer, glTF::Material& material, PBRMaterial& pbr_material);
+
+		Array<Mesh>             meshes;
+
+		DepthPrePass            depth_pre_pass;
+		GBufferPass             gbuffer_pass;
+		LightPass                light_pass;
+		TransparentPass         transparent_pass;
+		DoFPass                 dof_pass;
+
+		// Fullscreen data
+		GpuTechnique* fullscreen_tech = nullptr;
+		DescriptorSetHandle     fullscreen_ds;
+		u32                     fullscreen_input_rt = u32_max;
 
 		// All graphics resources used by the scene
-		Magnefu::Array<Magnefu::TextureResource>  images;
-		Magnefu::Array<Magnefu::SamplerResource>  samplers;
-		Magnefu::Array<Magnefu::BufferResource>   buffers;
+		Array<TextureResource>  images;
+		Array<SamplerResource>  samplers;
+		Array<BufferResource>   buffers;
 
-		Magnefu::glTF::glTF                      gltf_scene; // Source gltf scene
+		glTF::glTF              gltf_scene; // Source gltf scene
 
-		Magnefu::Renderer* renderer;
+		Renderer* renderer;
+		FrameGraph* frame_graph;
 
-	}; // struct GltfScene
+	}; 
+
+
+
+
+	// -- glTFDrawTask ------------------------------------------------------ //
+
+	
+	
+	struct glTFDrawTask : public enki::ITaskSet
+	{
+		void init(GraphicsContext* gpu_, FrameGraph* frame_graph_, Renderer* renderer_, ImGuiService* imgui_, GPUProfiler* gpu_profiler_, glTFScene* scene_);
+
+		void ExecuteRange(enki::TaskSetPartition range_, uint32_t threadnum_) override;
+
+		GraphicsContext*		gpu = nullptr;
+		FrameGraph*				frame_graph = nullptr;
+		Renderer*				renderer = nullptr;
+		ImGuiService*			imgui = nullptr;
+		GPUProfiler*			gpu_profiler = nullptr;
+		glTFScene*				scene = nullptr;
+		u32                     thread_id = 0;
+
+		
+
+	}; // struct glTFDrawTask
 }

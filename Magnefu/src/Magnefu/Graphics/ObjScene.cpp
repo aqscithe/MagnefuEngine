@@ -46,6 +46,31 @@ namespace Magnefu
 
     // -- ObjScene ------------------------------------------- //
 
+    void ObjScene::draw_mesh(CommandBuffer* gpu_commands, ObjDraw& mesh_draw)
+    {
+
+        gpu_commands->bind_vertex_buffer(mesh_draw.geometry_buffer_gpu, 0, mesh_draw.position_offset);
+        gpu_commands->bind_vertex_buffer(mesh_draw.geometry_buffer_gpu, 1, mesh_draw.tangent_offset);
+        gpu_commands->bind_vertex_buffer(mesh_draw.geometry_buffer_gpu, 2, mesh_draw.normal_offset);
+        gpu_commands->bind_vertex_buffer(mesh_draw.geometry_buffer_gpu, 3, mesh_draw.texcoord_offset);
+        gpu_commands->bind_index_buffer(mesh_draw.geometry_buffer_gpu, mesh_draw.index_offset, VK_INDEX_TYPE_UINT32);
+
+        if (recreate_per_thread_descriptors)
+        {
+            DescriptorSetCreation ds_creation{};
+            ds_creation.buffer(scene_cb, 0).buffer(mesh_draw.geometry_buffer_gpu, 1);
+            DescriptorSetHandle descriptor_set = renderer->create_descriptor_set(gpu_commands, mesh_draw.material, ds_creation);
+
+            gpu_commands->bind_local_descriptor_set(&descriptor_set, 1, nullptr, 0);
+        }
+        else
+        {
+            gpu_commands->bind_descriptor_set(&mesh_draw.descriptor_set, 1, nullptr, 0);
+        }
+
+        gpu_commands->draw_indexed(TopologyType::Triangle, mesh_draw.primitive_count, 1, 0, 0, 0);
+    }
+
     void ObjScene::init(cstring filename, cstring path, Allocator* resident_allocator, StackAllocator* temp_allocator, AsynchronousLoader* async_loader_)
     {
         using namespace Magnefu;
@@ -361,7 +386,6 @@ namespace Magnefu
     void ObjScene::prepare_draws(Renderer* renderer, StackAllocator* scratch_allocator, SceneGraph* scene_graph)
     {
 
-
         using namespace Magnefu;
 
         // Create pipeline state
@@ -409,19 +433,21 @@ namespace Magnefu
         scene_cb = renderer->gpu->create_buffer(buffer_creation);
 
         pipeline_creation.name = "phong_opaque";
-        Program* program_opqaue = renderer->create_program({ pipeline_creation });
+        GpuTechniqueCreation gtc;
+        gtc.reset().add_pipeline(pipeline_creation);
 
         // Blend
         pipeline_creation.name = "phong_transparent";
         pipeline_creation.blend_state.add_blend_state().set_color(VK_BLEND_FACTOR_SRC_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_OP_ADD);
-        Program* program_transparent = renderer->create_program({ pipeline_creation });
+
+        GpuTechnique* technique = renderer->create_technique(gtc);
 
         MaterialCreation material_creation;
 
-        material_creation.set_name("material_phong_opaque").set_program(program_opqaue).set_render_index(0);
+        material_creation.set_name("material_phong_opaque").set_technique(technique).set_render_index(0);
         Material* phong_material_opaque = renderer->create_material(material_creation);
 
-        material_creation.set_name("material_phong_transparent").set_program(program_transparent).set_render_index(1);
+        material_creation.set_name("material_phong_transparent").set_technique(technique).set_render_index(1);
         Material* phong_material_tranparent = renderer->create_material(material_creation);
 
         for (u32 mesh_index = 0; mesh_index < mesh_draws.size; ++mesh_index) {
@@ -434,41 +460,16 @@ namespace Magnefu
                 mesh_draw.material = phong_material_tranparent;
             }
 
-            // Descriptor Set
+            // Resource list
             DescriptorSetCreation ds_creation{};
-            ds_creation.set_layout(mesh_draw.material->program->passes[0].descriptor_set_layout);
+            DescriptorSetLayoutHandle layout = renderer->gpu->get_descriptor_set_layout(mesh_draw.material->technique->passes[0].pipeline, k_material_descriptor_set_index);
             ds_creation.buffer(scene_cb, 0).buffer(mesh_draw.mesh_buffer, 1);
             mesh_draw.descriptor_set = renderer->gpu->create_descriptor_set(ds_creation);
         }
 
         qsort(mesh_draws.data, mesh_draws.size, sizeof(ObjDraw), obj_mesh_material_compare);
     }
-
-   
-    void ObjScene::draw_mesh(CommandBuffer* gpu_commands, ObjDraw& mesh_draw)
-    {
-
-        gpu_commands->bind_vertex_buffer(mesh_draw.geometry_buffer_gpu, 0, mesh_draw.position_offset);
-        gpu_commands->bind_vertex_buffer(mesh_draw.geometry_buffer_gpu, 1, mesh_draw.tangent_offset);
-        gpu_commands->bind_vertex_buffer(mesh_draw.geometry_buffer_gpu, 2, mesh_draw.normal_offset);
-        gpu_commands->bind_vertex_buffer(mesh_draw.geometry_buffer_gpu, 3, mesh_draw.texcoord_offset);
-        gpu_commands->bind_index_buffer(mesh_draw.geometry_buffer_gpu, mesh_draw.index_offset, VK_INDEX_TYPE_UINT32);
-
-        if (recreate_per_thread_descriptors)
-        {
-            DescriptorSetCreation ds_creation{};
-            ds_creation.buffer(scene_cb, 0).buffer(mesh_draw.geometry_buffer_gpu, 1);
-            DescriptorSetHandle descriptor_set = renderer->create_descriptor_set(gpu_commands, mesh_draw.material, ds_creation);
-
-            gpu_commands->bind_local_descriptor_set(&descriptor_set, 1, nullptr, 0);
-        }
-        else
-        {
-            gpu_commands->bind_descriptor_set(&mesh_draw.descriptor_set, 1, nullptr, 0);
-        }
-
-        gpu_commands->draw_indexed(TopologyType::Triangle, mesh_draw.primitive_count, 1, 0, 0, 0);
-    }
+    
 
     // -- Secondary Draw Task ----------------------------- //
 
@@ -487,7 +488,7 @@ namespace Magnefu
         cb = renderer->gpu->get_secondary_command_buffer(threadnum_);
 
         // TODO(marco): loop by material so that we can deal with multiple passes
-        cb->begin_secondary(parent->current_render_pass);
+        cb->begin_secondary(parent->current_render_pass, parent->current_framebuffer);
 
         cb->set_scissor(nullptr);
         cb->set_viewport(nullptr);
@@ -501,7 +502,7 @@ namespace Magnefu
             }
 
             if (mesh_draw.material != last_material) {
-                PipelineHandle pipeline = renderer->get_pipeline(mesh_draw.material);
+                PipelineHandle pipeline = renderer->get_pipeline(mesh_draw.material, 0);
 
                 cb->bind_pipeline(pipeline);
 
@@ -543,9 +544,8 @@ namespace Magnefu
         gpu_commands->set_scissor(nullptr);
         gpu_commands->set_viewport(nullptr);
         
-        //TAG: CHANGE
-        gpu_commands->bind_pass(gpu->get_swapchain_pass(), use_secondary);
-        //gpu_commands->bind_pass(gpu->get_swapchain_pass(), gpu->get_current_framebuffer(), use_secondary);
+        
+        gpu_commands->bind_pass(gpu->get_swapchain_pass(), gpu->get_current_framebuffer(), use_secondary);
 
 
         if (use_secondary) {
@@ -567,7 +567,7 @@ namespace Magnefu
 
             CommandBuffer* cb = renderer->gpu->get_secondary_command_buffer(threadnum_);
 
-            cb->begin_secondary(gpu_commands->current_render_pass);
+            cb->begin_secondary(gpu_commands->current_render_pass, gpu_commands->current_framebuffer);
 
             cb->set_scissor(nullptr);
             cb->set_viewport(nullptr);
@@ -582,7 +582,7 @@ namespace Magnefu
                 }
 
                 if (mesh_draw.material != last_material) {
-                    PipelineHandle pipeline = renderer->get_pipeline(mesh_draw.material);
+                    PipelineHandle pipeline = renderer->get_pipeline(mesh_draw.material, 0);
 
                     cb->bind_pipeline(pipeline);
 
@@ -621,7 +621,7 @@ namespace Magnefu
                 }
 
                 if (mesh_draw.material != last_material) {
-                    PipelineHandle pipeline = renderer->get_pipeline(mesh_draw.material);
+                    PipelineHandle pipeline = renderer->get_pipeline(mesh_draw.material, 0);
 
                     gpu_commands->bind_pipeline(pipeline);
 

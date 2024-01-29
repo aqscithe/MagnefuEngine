@@ -334,7 +334,7 @@ namespace Magnefu
         struct Binding {
 
             VkDescriptorType            type = VK_DESCRIPTOR_TYPE_MAX_ENUM;
-            u16                         start = 0;
+            u16                         index = 0;
             u16                         count = 0;
             cstring                     name = nullptr;  // Comes from external memory.
         }; // struct Binding
@@ -564,7 +564,7 @@ namespace Magnefu
     {
 
         VkDescriptorType                type;
-        u16                             start = 0;
+        u16                             index = 0;
         u16                             count = 0;
         u16                             set = 0;
 
@@ -712,7 +712,7 @@ namespace Magnefu
     //
     struct ResourceUpdate {
 
-        ResourceDeletionType::Enum      type;
+        ResourceUpdateType::Enum        type;
         ResourceHandle                  handle;
         u32                             current_frame;
         u32                             deleting;
@@ -813,6 +813,7 @@ namespace Magnefu
 
         VkDescriptorSetLayoutBinding* vk_binding = nullptr;
         DescriptorBinding* bindings = nullptr;
+        u8* index_to_binding = nullptr; // Mapping between binding point and binding data.
         u16                             num_bindings = 0;
         u16                             set_index = 0;
         u8                              bindless = 0;
@@ -849,7 +850,7 @@ namespace Magnefu
         ShaderStateHandle               shader_state;
 
         const DescriptorSetLayout* descriptor_set_layout[k_max_descriptor_set_layouts];
-        DescriptorSetLayoutHandle       descriptor_set_layout_handle[k_max_descriptor_set_layouts];
+        DescriptorSetLayoutHandle       descriptor_set_layout_handles[k_max_descriptor_set_layouts];
         u32                             num_active_layouts = 0;
 
         DepthStencilCreation            depth_stencil;
@@ -859,7 +860,8 @@ namespace Magnefu
         PipelineHandle                  handle;
         bool                            graphics_pipeline = true;
 
-    }; // struct PipelineVulkan
+    }; // struct Pipeline
+
 
 
     //
