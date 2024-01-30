@@ -1257,5 +1257,6 @@ namespace Magnefu
 
         MF_CORE_ASSERT(false, "");
         return VK_FORMAT_UNDEFINED;
+    }
 
-} // namespace 
+} // namespace Magnefu

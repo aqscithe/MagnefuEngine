@@ -213,7 +213,7 @@ namespace Magnefu
 		static constexpr u32            k_max_resources_count = 1024;
 		static constexpr u32            k_max_nodes_count = 1024;
 
-		static constexpr cstring        k_name = "raptor_frame_graph_builder_service";
+		static constexpr cstring        k_name = "Magnefu_frame_graph_builder_service";
 	};
 
 	

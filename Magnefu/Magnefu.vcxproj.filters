@@ -3834,6 +3834,12 @@
     <ClInclude Include="vendor\wyhash\wyhash.h">
       <Filter>vendor\wyhash</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\ObjScene.hpp" />
+    <ClInclude Include="src\Magnefu\Graphics\RenderScene.hpp" />
+    <ClInclude Include="src\Magnefu\Graphics\glTFScene.hpp" />
+    <ClInclude Include="src\Magnefu\Graphics\FrameGraph.hpp" />
+    <ClInclude Include="src\Magnefu\Graphics\SceneGraph.hpp" />
+    <ClInclude Include="src\Magnefu\Graphics\RenderResourcesLoader.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application\Application.cpp">
@@ -3999,6 +4005,12 @@
       <Filter>vendor\vulkan\include\glm\detail</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Graphics\AsynchronousLoader.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\ObjScene.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\RenderScene.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\glTFScene.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\FrameGraph.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\SceneGraph.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\RenderResourcesLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\vulkan\include\spirv-headers\spirv.hpp11">

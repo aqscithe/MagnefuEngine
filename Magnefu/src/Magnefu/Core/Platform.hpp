@@ -34,7 +34,7 @@
 #define MAGNEFU_UNIQUE_SUFFIX(PARAM)                 MAGNEFU_CONCAT(PARAM, __LINE__ )
 
 #define MAGNEFU_SHADER_FOLDER						"res/shaders/"
-
+#define MAGNEFU_FRAME_GRAPH_FOLDER					"res/frame_graphs/"
 
 // Native types typedefs /////////////////////////////////////////////////
 typedef uint8_t                 u8;

@@ -15,7 +15,8 @@
 
 // -- Core Includes ------------------------ //
 #include "Magnefu/Core/DataStructures.hpp"
-
+#include "Magnefu/Core/Array.h"
+#include "Magnefu/Core/String.hpp"
 
 #include <vulkan/vulkan.h>
 
@@ -27,12 +28,24 @@ namespace Magnefu
 
 	// Forward-declarations ----------------------------------------- //
 	struct Allocator;
+    struct StackAllocator;
 	struct CommandBuffer;
     struct CommandBufferManager;
 	struct DeviceRenderFrame;
 	struct GPUTimestampManager;
 	struct GraphicsContext;
 
+
+    struct VMAMemoryStats
+    {
+        u32 blockCount;
+        u32 allocationCount;
+        u64 blockBytes;
+        u64 allocationBytes;
+        u64 usage;
+        u64 budget;
+    };
+    
 
     struct GPUTimestamp {
 
@@ -253,7 +266,7 @@ namespace Magnefu
 
         // -- VMA Info ----------------------------------------------------------------------------------------------------- //
         void                            CalculateMemoryStats();
-        
+        VMAMemoryStats                  GetMemoryStats();
 
         // -- Instant methods ---------------------------------------------------------------------------------------------- //
         void                            destroy_buffer_instant(ResourceHandle buffer);
@@ -410,6 +423,7 @@ namespace Magnefu
         u32                             vulkan_image_index;
 
         VmaAllocator                    vma_allocator;
+        VmaBudget                       vma_budget;
 
         // Extension functions
         PFN_vkCmdBeginRenderingKHR      cmd_begin_rendering;

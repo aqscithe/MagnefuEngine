@@ -380,7 +380,7 @@ namespace Magnefu
         if (gpu->bindless_supported)
         {
             vkCmdBindDescriptorSets(vk_command_buffer, current_pipeline->vk_bind_point, current_pipeline->vk_pipeline_layout, 1,
-                1, &gpu->vulkan_bindless_descriptor_set, 0, nullptr);
+                1, &gpu->vulkan_bindless_descriptor_set_cached, 0, nullptr);
         }
     }
 
@@ -414,9 +414,10 @@ namespace Magnefu
         vkCmdBindDescriptorSets(vk_command_buffer, current_pipeline->vk_bind_point, current_pipeline->vk_pipeline_layout, k_first_set,
             num_lists, vk_descriptor_sets, num_offsets, offsets_cache);
 
-        if (gpu->bindless_supported) {
+        if (gpu->bindless_supported) 
+        {
             vkCmdBindDescriptorSets(vk_command_buffer, current_pipeline->vk_bind_point, current_pipeline->vk_pipeline_layout, 1,
-                1, &gpu->vulkan_bindless_descriptor_set, 0, nullptr);
+                1, &gpu->vulkan_bindless_descriptor_set_cached, 0, nullptr);
         }
     }
 

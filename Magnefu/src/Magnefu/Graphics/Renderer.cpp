@@ -13,9 +13,6 @@
 
 
 // -- Vendor Includes ------------------------- //
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image/stb_image.h"
-
 #include "imgui/imgui.h"
 
 namespace Magnefu

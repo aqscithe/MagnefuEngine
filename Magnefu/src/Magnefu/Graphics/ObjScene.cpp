@@ -371,8 +371,6 @@ namespace Magnefu
     }
 
 
-    static bool use_secondary_command_buffers = false;
-
     void ObjScene::submit_draw_task(ImGuiService* imgui, GPUProfiler* gpu_profiler, enki::TaskScheduler* task_scheduler) {
         ObjDrawTask draw_task;
         draw_task.init(task_scheduler, renderer->gpu, renderer, imgui, gpu_profiler, this, use_secondary_command_buffers);

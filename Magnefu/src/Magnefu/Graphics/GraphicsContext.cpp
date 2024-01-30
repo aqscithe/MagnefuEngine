@@ -393,7 +393,6 @@ namespace Magnefu
                 }
             }
 
-            mffree(extensions, allocator);
 
             if (!debug_utils_extension_present) 
             {
@@ -449,6 +448,8 @@ namespace Magnefu
             vkGetPhysicalDeviceProperties(physical_device, &vulkan_physical_properties);
 
             bool swapchainAdequate = false;
+
+            
             bool extensionsSupported = check_device_extension_support(physical_device); // checking REQUIRED extensions
 
             if (extensionsSupported)
@@ -495,8 +496,6 @@ namespace Magnefu
             return;
         }
 
-        mffree(gpus, allocator);
-
 
         temp_allocator->freeToMarker(initial_temp_allocator_marker);
 
@@ -530,16 +529,16 @@ namespace Magnefu
 
 
         // -- Add Indexing Feature ------------------------------- //
-        
+        vulkan_physical_features = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, nullptr };
 
         //vulkan_physical_features.features.samplerAnisotropy
        
 
         // Query bindless extension, called Descriptor Indexing (https://www.khronos.org/registry/vulkan/specs/1.3-extensions/man/html/VK_EXT_descriptor_indexing.html)
         VkPhysicalDeviceDescriptorIndexingFeatures indexing_features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES, nullptr };
-        vulkan_physical_features = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, &indexing_features };
+        VkPhysicalDeviceFeatures2 device_features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, &indexing_features };
 
-        vkGetPhysicalDeviceFeatures2(vulkan_physical_device, &vulkan_physical_features);
+        vkGetPhysicalDeviceFeatures2(vulkan_physical_device, &device_features);
         // For the feature to be correctly working, we need both the possibility to partially bind a descriptor,
         // as some entries in the bindless array will be empty, and SpirV runtime descriptors.
         bindless_supported = indexing_features.descriptorBindingPartiallyBound && indexing_features.runtimeDescriptorArray;
@@ -588,6 +587,13 @@ namespace Magnefu
         vulkan_main_queue_family = main_queue_index;
         vulkan_transfer_queue_family = transfer_queue_index;
 
+        Array<const char*> deviceExtensions(allocator, device_extensions, device_extensions + ArraySize(device_extensions));
+
+        if (dynamic_rendering_extension_present)
+        {
+            deviceExtensions.push(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+        }
+
         const float queue_priority[] = { 1.0f };
         VkDeviceQueueCreateInfo queue_info[2] = {};
         VkDeviceQueueCreateInfo& main_queue = queue_info[0];
@@ -611,7 +617,7 @@ namespace Magnefu
         // Enable all features: just pass the physical features 2 struct.
         VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamic_rendering_features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR };
         if (dynamic_rendering_extension_present) {
-            indexing_features.pNext = &dynamic_rendering_features;
+            vulkan_physical_features.pNext = &dynamic_rendering_features;
         }
         vkGetPhysicalDeviceFeatures2(vulkan_physical_device, &vulkan_physical_features);
 
@@ -621,8 +627,8 @@ namespace Magnefu
         device_create_info.queueCreateInfoCount = vulkan_transfer_queue_family < queue_family_count ? 2 : 1;
         device_create_info.pQueueCreateInfos = queue_info;
         //device_create_info.pEnabledFeatures = &vulkan_physical_features.features;
-        device_create_info.enabledExtensionCount = (u32)ArraySize(device_extensions);
-        device_create_info.ppEnabledExtensionNames = device_extensions;
+        device_create_info.enabledExtensionCount = (u32)ArraySize(deviceExtensions);
+        device_create_info.ppEnabledExtensionNames = deviceExtensions.data;
         device_create_info.enabledLayerCount = ArraySize(s_requested_layers);
         device_create_info.ppEnabledLayerNames = s_requested_layers;
         device_create_info.pNext = &vulkan_physical_features;
@@ -979,55 +985,56 @@ namespace Magnefu
             if (resource_deletion.current_frame == -1)
                 continue;
 
-            switch (resource_deletion.type) {
-
-            case ResourceDeletionType::Buffer:
+            switch (resource_deletion.type) 
             {
-                destroy_buffer_instant(resource_deletion.handle);
-                break;
-            }
 
-            case ResourceDeletionType::Pipeline:
-            {
-                destroy_pipeline_instant(resource_deletion.handle);
-                break;
-            }
+                case ResourceUpdateType::Buffer:
+                {
+                    destroy_buffer_instant(resource_deletion.handle);
+                    break;
+                }
 
-            case ResourceDeletionType::RenderPass:
-            {
-                destroy_render_pass_instant(resource_deletion.handle);
-                break;
-            }
+                case ResourceUpdateType::Pipeline:
+                {
+                    destroy_pipeline_instant(resource_deletion.handle);
+                    break;
+                }
 
-            case ResourceDeletionType::DescriptorSet:
-            {
-                destroy_descriptor_set_instant(resource_deletion.handle);
-                break;
-            }
+                case ResourceUpdateType::RenderPass:
+                {
+                    destroy_render_pass_instant(resource_deletion.handle);
+                    break;
+                }
 
-            case ResourceDeletionType::DescriptorSetLayout:
-            {
-                destroy_descriptor_set_layout_instant(resource_deletion.handle);
-                break;
-            }
+                case ResourceUpdateType::DescriptorSet:
+                {
+                    destroy_descriptor_set_instant(resource_deletion.handle);
+                    break;
+                }
 
-            case ResourceDeletionType::Sampler:
-            {
-                destroy_sampler_instant(resource_deletion.handle);
-                break;
-            }
+                case ResourceUpdateType::DescriptorSetLayout:
+                {
+                    destroy_descriptor_set_layout_instant(resource_deletion.handle);
+                    break;
+                }
 
-            case ResourceDeletionType::ShaderState:
-            {
-                destroy_shader_state_instant(resource_deletion.handle);
-                break;
-            }
+                case ResourceUpdateType::Sampler:
+                {
+                    destroy_sampler_instant(resource_deletion.handle);
+                    break;
+                }
 
-            case ResourceDeletionType::Texture:
-            {
-                destroy_texture_instant(resource_deletion.handle);
-                break;
-            }
+                case ResourceUpdateType::ShaderState:
+                {
+                    destroy_shader_state_instant(resource_deletion.handle);
+                    break;
+                }
+
+                case ResourceUpdateType::Texture:
+                {
+                    destroy_texture_instant(resource_deletion.handle);
+                    break;
+                }
             }
         }
 
@@ -3619,6 +3626,33 @@ namespace Magnefu
 
         u32 query_index = gpu_timestamp_manager->pop(current_frame);
         vkCmdWriteTimestamp(command_buffer->vk_command_buffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, vulkan_timestamp_query_pool, query_index);
+    }
+
+
+    // -- VMA ------------------------------------------------------------------ //
+
+    void GraphicsContext::CalculateMemoryStats()
+    {
+        //vmaCalculateStatistics(m_VmaAllocator, &m_VulkanMemory.TotalStats);
+        vmaGetHeapBudgets(vma_allocator, &vma_budget);
+    }
+
+    VMAMemoryStats GraphicsContext::GetMemoryStats()
+    {
+        CalculateMemoryStats();
+
+        auto& vulkanStats = vma_budget.statistics;
+        auto& vulkanBudget = vma_budget;
+        VMAMemoryStats stats;
+
+        stats.blockCount = vulkanStats.blockCount;
+        stats.blockBytes = (uint64_t)vulkanStats.blockBytes;
+        stats.allocationCount = vulkanStats.allocationCount;
+        stats.allocationBytes = (uint64_t)vulkanStats.allocationBytes;
+        stats.usage = vulkanBudget.usage;
+        stats.budget = vulkanBudget.budget;
+
+        return stats;
     }
 
 

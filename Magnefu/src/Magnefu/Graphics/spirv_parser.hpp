@@ -17,13 +17,15 @@ namespace Magnefu
 
 	namespace spirv
 	{
-		static const u32 MAX_SET_COUNT = 32;
+		static const u32 k_max_count = 8;
 
 		struct ParseResult
 		{
 			u32								set_count;
 
-			DescriptorSetLayoutCreation		sets[MAX_SET_COUNT];
+			DescriptorSetLayoutCreation		sets[k_max_count];
+
+			ComputeLocalSize            compute_local_size;
 		};
 
 		void	parse_binary(const u32* data, sizet data_size, StringBuffer& name_buffer, ParseResult* parse_result);
