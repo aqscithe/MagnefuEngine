@@ -52,6 +52,7 @@ namespace Magnefu
     // FrameGraph /////////////////////////////////////////////////////////////
 
     void FrameGraph::init(FrameGraphBuilder* builder_) {
+        MF_CORE_INFO("Frame Graph Init");
         allocator = &MemoryService::Instance()->systemAllocator;
 
         local_allocator.init(mfmega(1));
@@ -736,6 +737,7 @@ namespace Magnefu
     // FrameGraphBuilder /////////////////////////////////////////////////////////////
 
     void FrameGraphBuilder::init(GraphicsContext* gpu_) {
+        MF_CORE_INFO("Frame Graph Builder Init");
         gpu = gpu_;
 
         allocator = gpu->allocator;

@@ -1,6 +1,6 @@
 #version 450
 
-layout ( std140, binding = 0 ) uniform LocalConstants {
+layout ( std140, set = MATERIAL_SET, binding = 0 ) uniform LocalConstants {
     mat4        view_projection;
     vec4        eye;
     vec4        light;
@@ -10,7 +10,7 @@ layout ( std140, binding = 0 ) uniform LocalConstants {
 
 uint DrawFlags_AlphaMask = 1 << 0;
 
-layout ( std140, binding = 1 ) uniform Mesh {
+layout ( std140, set = MATERIAL_SET, binding = 1 ) uniform Mesh {
 
     mat4        model;
     mat4        model_inverse;
@@ -98,8 +98,7 @@ float heaviside( float v ) {
     else return 0.0;
 }
 
-void main() 
-{
+void main() {
     vec4 base_colour = diffuse;
 
     if (textures.x != INVALID_TEXTURE_INDEX) {

@@ -639,8 +639,6 @@ namespace Magnefu
             indexing_features.descriptorBindingPartiallyBound = VK_TRUE;
             indexing_features.runtimeDescriptorArray = VK_TRUE;
 
-            vulkan_physical_features.pNext = &indexing_features;
-
             // TODO(marco): more generic chaining
             if (dynamic_rendering_extension_present) 
             {
@@ -737,7 +735,9 @@ namespace Magnefu
             vulkan_surface_format = supported_formats[0];
             MF_CORE_ASSERT(false, "Surface Format not found");
         }
-        mffree(supported_formats, allocator);
+        
+        // Final use of temp allocator, free all temporary memory created here.
+        temp_allocator->freeToMarker(initial_temp_allocator_marker);
 
         swapchain_output.color(vulkan_surface_format.format, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, RenderPassOperation::Clear);
 
@@ -828,6 +828,7 @@ namespace Magnefu
         buffers.init(allocator, k_buffers_pool_size, sizeof(Buffer));
         textures.init(allocator, k_textures_pool_size, sizeof(Texture));
         render_passes.init(allocator, k_render_passes_pool_size, sizeof(RenderPass));
+        framebuffers.init(allocator, 256, sizeof(RenderPass));
         descriptor_set_layouts.init(allocator, k_descriptor_set_layouts_pool_size, sizeof(DescriptorSetLayout));
         pipelines.init(allocator, k_pipelines_pool_size, sizeof(Pipeline));
         shaders.init(allocator, k_shaders_pool_size, sizeof(ShaderState));
@@ -886,7 +887,8 @@ namespace Magnefu
             .set_min_mag_mip(VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR).set_name("Sampler Default");
         default_sampler = create_sampler(sc);
 
-        BufferCreation fullscreen_vb_creation = { VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, ResourceUsageType::Immutable, 0, 0, 0, nullptr, "Fullscreen_vb" };
+        u32 fullscreen_size = 3 * 3 * sizeof(float);
+        BufferCreation fullscreen_vb_creation = { VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, ResourceUsageType::Immutable, fullscreen_size, 1, 0, nullptr, "Fullscreen_vb" };
         fullscreen_vertex_buffer = create_buffer(fullscreen_vb_creation);
 
         // Init Dummy resources
@@ -3413,7 +3415,7 @@ namespace Magnefu
 
         static VkPresentModeKHR supported_mode_allocated[8];
         vkGetPhysicalDeviceSurfacePresentModesKHR(vulkan_physical_device, vulkan_window_surface, &supported_count, NULL);
-        MF_CORE_ASSERT(supported_count < 8, "");
+        MF_CORE_ASSERT((supported_count < 8), "");
         vkGetPhysicalDeviceSurfacePresentModesKHR(vulkan_physical_device, vulkan_window_surface, &supported_count, supported_mode_allocated);
 
         bool mode_found = false;
