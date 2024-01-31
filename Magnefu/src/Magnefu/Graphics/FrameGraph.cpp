@@ -534,7 +534,7 @@ namespace Magnefu
                         free_list.push(resource->resource_info.texture.texture);
                     }
 
-                    MF_CORE_DEBUG("Output %s deallocated on node %d\n", resource->name, nodes[i].index);
+                    MF_CORE_DEBUG("Output {} deallocated on node {}", resource->name, nodes[i].index);
                 }
             }
         }

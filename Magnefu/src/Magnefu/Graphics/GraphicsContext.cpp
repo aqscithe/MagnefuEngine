@@ -627,7 +627,7 @@ namespace Magnefu
         device_create_info.queueCreateInfoCount = vulkan_transfer_queue_family < queue_family_count ? 2 : 1;
         device_create_info.pQueueCreateInfos = queue_info;
         //device_create_info.pEnabledFeatures = &vulkan_physical_features.features;
-        device_create_info.enabledExtensionCount = (u32)ArraySize(deviceExtensions);
+        device_create_info.enabledExtensionCount = deviceExtensions.size;
         device_create_info.ppEnabledExtensionNames = deviceExtensions.data;
         device_create_info.enabledLayerCount = ArraySize(s_requested_layers);
         device_create_info.ppEnabledLayerNames = s_requested_layers;
@@ -2504,7 +2504,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::Buffer, buffer.index, current_frame, 1 });
         }
         else {
-            MF_CORE_ERROR("Graphics error: trying to free invalid Buffer %u\n", buffer.index);
+            MF_CORE_ERROR("Graphics error: trying to free invalid Buffer {}", buffer.index);
         }
     }
 
@@ -2514,7 +2514,7 @@ namespace Magnefu
             texture_to_update_bindless.push({ ResourceUpdateType::Texture, texture.index, current_frame, 1 });
         }
         else {
-            MF_CORE_ERROR("Graphics error: trying to free invalid Texture %u\n", texture.index);
+            MF_CORE_ERROR("Graphics error: trying to free invalid Texture {}", texture.index);
         }
     }
 
@@ -2534,7 +2534,7 @@ namespace Magnefu
             destroy_shader_state(v_pipeline->shader_state);
         }
         else {
-            MF_CORE_ERROR("Graphics error: trying to free invalid Pipeline %u\n", pipeline.index);
+            MF_CORE_ERROR("Graphics error: trying to free invalid Pipeline {}", pipeline.index);
         }
     }
 
@@ -2543,7 +2543,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::Sampler, sampler.index, current_frame, 1 });
         }
         else {
-            MF_CORE_ERROR("Graphics error: trying to free invalid Sampler %u\n", sampler.index);
+            MF_CORE_ERROR("Graphics error: trying to free invalid Sampler {}", sampler.index);
         }
     }
 
@@ -2552,7 +2552,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::DescriptorSetLayout, descriptor_set_layout.index, current_frame, 1 });
         }
         else {
-            MF_CORE_ERROR("Graphics error: trying to free invalid DescriptorSetLayout %u\n", descriptor_set_layout.index);
+            MF_CORE_ERROR("Graphics error: trying to free invalid DescriptorSetLayout {}", descriptor_set_layout.index);
         }
     }
 
@@ -2561,7 +2561,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::DescriptorSet, descriptor_set.index, current_frame, 1 });
         }
         else {
-            MF_CORE_ERROR("Graphics error: trying to free invalid DescriptorSet %u\n", descriptor_set.index);
+            MF_CORE_ERROR("Graphics error: trying to free invalid DescriptorSet {}", descriptor_set.index);
         }
     }
 
@@ -2570,7 +2570,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::RenderPass, render_pass.index, current_frame, 1 });
         }
         else {
-            MF_CORE_ERROR("Graphics error: trying to free invalid RenderPass %u\n", render_pass.index);
+            MF_CORE_ERROR("Graphics error: trying to free invalid RenderPass {}", render_pass.index);
         }
     }
 
@@ -2579,7 +2579,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::Framebuffer, framebuffer.index, current_frame, 1 });
         }
         else {
-            MF_CORE_ERROR("Graphics error: trying to free invalid Framebuffer %u\n", framebuffer.index);
+            MF_CORE_ERROR("Graphics error: trying to free invalid Framebuffer {}", framebuffer.index);
         }
     }
 
@@ -2592,7 +2592,7 @@ namespace Magnefu
             allocator->deallocate(state->parse_result);
         }
         else {
-            MF_CORE_ERROR("Graphics error: trying to free invalid Shader %u\n", shader.index);
+            MF_CORE_ERROR("Graphics error: trying to free invalid Shader {}", shader.index);
         }
     }
 
@@ -2935,7 +2935,7 @@ namespace Magnefu
         VkExtent2D swapchain_extent = surface_capabilities.currentExtent;
 
         // Skip zero-sized swapchain
-        //MF_CORE_ERROR( "Requested swapchain resize %u %u\n", swapchain_extent.width, swapchain_extent.height );
+        //MF_CORE_ERROR( "Requested swapchain resize %u {}", swapchain_extent.width, swapchain_extent.height );
         if (swapchain_extent.width == 0 || swapchain_extent.height == 0) {
             //MF_CORE_ERROR( "Cannot create a zero-sized swapchain\n" );
             return;
@@ -2970,7 +2970,7 @@ namespace Magnefu
 
         }
         else {
-            MF_CORE_ERROR("Graphics error: trying to update invalid DescriptorSet %u\n", descriptor_set.index);
+            MF_CORE_ERROR("Graphics error: trying to update invalid DescriptorSet {}", descriptor_set.index);
         }
     }
 
@@ -3315,7 +3315,7 @@ namespace Magnefu
             return;
         }
 
-        //Magnefu::print_format( "Index %u, %u, %u\n", current_frame, previous_frame, vulkan_image_index );
+        //Magnefu::print_format( "Index %u, %u, {}", current_frame, previous_frame, vulkan_image_index );
 
         // This is called inside resize_swapchain as well to correctly work.
         frame_counters_advance();

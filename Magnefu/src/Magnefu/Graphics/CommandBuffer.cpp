@@ -125,7 +125,12 @@ namespace Magnefu
     void CommandBuffer::end_current_render_pass() 
     {
         if (is_recording && current_render_pass != nullptr) {
-            vkCmdEndRenderPass(vk_command_buffer);
+            if (gpu->dynamic_rendering_extension_present) {
+                gpu->cmd_end_rendering(vk_command_buffer);
+            }
+            else {
+                vkCmdEndRenderPass(vk_command_buffer);
+            }
 
             current_render_pass = nullptr;
         }
@@ -373,13 +378,13 @@ namespace Magnefu
             }
         }
 
-        const u32 k_first_set = 0;
+        const u32 k_first_set = 1;
         vkCmdBindDescriptorSets(vk_command_buffer, current_pipeline->vk_bind_point, current_pipeline->vk_pipeline_layout, k_first_set,
             num_lists, vk_descriptor_sets, num_offsets, offsets_cache);
 
         if (gpu->bindless_supported)
         {
-            vkCmdBindDescriptorSets(vk_command_buffer, current_pipeline->vk_bind_point, current_pipeline->vk_pipeline_layout, 1,
+            vkCmdBindDescriptorSets(vk_command_buffer, current_pipeline->vk_bind_point, current_pipeline->vk_pipeline_layout, 0,
                 1, &gpu->vulkan_bindless_descriptor_set_cached, 0, nullptr);
         }
     }
@@ -410,13 +415,13 @@ namespace Magnefu
             }
         }
 
-        const u32 k_first_set = 0;
+        const u32 k_first_set = 1;
         vkCmdBindDescriptorSets(vk_command_buffer, current_pipeline->vk_bind_point, current_pipeline->vk_pipeline_layout, k_first_set,
             num_lists, vk_descriptor_sets, num_offsets, offsets_cache);
 
         if (gpu->bindless_supported) 
         {
-            vkCmdBindDescriptorSets(vk_command_buffer, current_pipeline->vk_bind_point, current_pipeline->vk_pipeline_layout, 1,
+            vkCmdBindDescriptorSets(vk_command_buffer, current_pipeline->vk_bind_point, current_pipeline->vk_pipeline_layout, 0,
                 1, &gpu->vulkan_bindless_descriptor_set_cached, 0, nullptr);
         }
     }
