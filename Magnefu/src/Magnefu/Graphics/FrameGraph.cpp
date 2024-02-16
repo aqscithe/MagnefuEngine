@@ -60,21 +60,25 @@ namespace Magnefu
         builder = builder_;
 
         nodes.init(allocator, FrameGraphBuilder::k_max_nodes_count);
+        all_nodes.init(allocator, FrameGraphBuilder::k_max_nodes_count);
     }
 
     void FrameGraph::shutdown() {
         for (u32 i = 0; i < nodes.size; ++i) {
-            FrameGraphNodeHandle handle = nodes[i];
+            FrameGraphNodeHandle handle = all_nodes[i];
             FrameGraphNode* node = builder->access_node(handle);
 
             builder->gpu->destroy_render_pass(node->render_pass);
-            builder->gpu->destroy_framebuffer(node->framebuffer);
+            for (u32 f = 0; f < k_max_frames; ++f) {
+                builder->gpu->destroy_framebuffer(node->framebuffer[f]);
+            }
 
             node->inputs.shutdown();
             node->outputs.shutdown();
             node->edges.shutdown();
         }
 
+        all_nodes.shutdown();
         nodes.shutdown();
 
         local_allocator.shutdown();
@@ -112,6 +116,8 @@ namespace Magnefu
             node_creation.inputs.init(temp_allocator, pass_inputs.size());
             node_creation.outputs.init(temp_allocator, pass_outputs.size());
 
+            node_creation.compute = pass.value("type", "").compare("compute") == 0;
+
             for (sizet ii = 0; ii < pass_inputs.size(); ++ii) {
                 json pass_input = pass_inputs[ii];
 
@@ -146,31 +152,78 @@ namespace Magnefu
 
                 output_creation.name = string_buffer.append_use_f("%s", output_name.c_str());
 
-                switch (output_creation.type) {
-                case FrameGraphResourceType_Attachment:
-                case FrameGraphResourceType_Texture:
+                switch (output_creation.type)
                 {
-                    std::string format = pass_output.value("format", "");
-                    MF_CORE_ASSERT(!format.empty(), "");
+                    case FrameGraphResourceType_Attachment:
+                    case FrameGraphResourceType_Texture:
+                    {
+                        std::string format = pass_output.value("format", "");
+                        MF_CORE_ASSERT(!format.empty(), "");
 
-                    output_creation.resource_info.texture.format = util_string_to_vk_format(format.c_str());
+                        output_creation.resource_info.texture.format = util_string_to_vk_format(format.c_str());
 
-                    std::string load_op = pass_output.value("op", "");
-                    MF_CORE_ASSERT(!load_op.empty(), "");
+                        std::string load_op = pass_output.value("op", "");
+                        MF_CORE_ASSERT(!load_op.empty(), "");
 
-                    output_creation.resource_info.texture.load_op = string_to_render_pass_operation(load_op.c_str());
+                        output_creation.resource_info.texture.load_op = string_to_render_pass_operation(load_op.c_str());
 
-                    json resolution = pass_output["resolution"];
+                        json resolution = pass_output["resolution"];
+                        json scaling = pass_output["resolution_scale"];
 
-                    output_creation.resource_info.texture.width = resolution[0];
-                    output_creation.resource_info.texture.height = resolution[1];
-                    output_creation.resource_info.texture.depth = 1;
-                } break;
-                case FrameGraphResourceType_Buffer:
-                {
-                    // TODO(marco)
-                    MF_CORE_ASSERT(false, "");
-                } break;
+                        if (resolution.is_array()) {
+                            output_creation.resource_info.texture.width = resolution[0];
+                            output_creation.resource_info.texture.height = resolution[1];
+                            output_creation.resource_info.texture.depth = 1;
+                            output_creation.resource_info.texture.scale_width = 0.f;
+                            output_creation.resource_info.texture.scale_height = 0.f;
+                        }
+                        else if (scaling.is_array()) {
+                            output_creation.resource_info.texture.width = 0;
+                            output_creation.resource_info.texture.height = 0;
+                            output_creation.resource_info.texture.depth = 1;
+                            output_creation.resource_info.texture.scale_width = scaling[0];
+                            output_creation.resource_info.texture.scale_height = scaling[1];
+                        }
+                        else {
+                            // Defaults
+                            output_creation.resource_info.texture.width = 0;
+                            output_creation.resource_info.texture.height = 0;
+                            output_creation.resource_info.texture.depth = 1;
+                            output_creation.resource_info.texture.scale_width = 1.f;
+                            output_creation.resource_info.texture.scale_height = 1.f;
+                        }
+
+                        output_creation.resource_info.texture.compute = node_creation.compute;
+
+                        // Parse depth/stencil values
+                        if (TextureFormat::has_depth(output_creation.resource_info.texture.format)) {
+                            output_creation.resource_info.texture.clear_values[0] = pass_output.value("clear_depth", 1.0f);
+                            output_creation.resource_info.texture.clear_values[1] = pass_output.value("clear_stencil", 0.0f);
+                        }
+                        else {
+                            // Parse color array
+                            json clear_color_array = pass_output["clear_color"];
+                            if (clear_color_array.is_array()) {
+                                for (u32 c = 0; c < clear_color_array.size(); ++c) {
+                                    output_creation.resource_info.texture.clear_values[c] = clear_color_array[c];
+                                }
+                            }
+                            else {
+                                if (output_creation.resource_info.texture.load_op == RenderPassOperation::Clear) {
+                                    MF_CORE_ERROR("Error parsing output texture %s: load operation is clear, but clear color not specified. Defaulting to 0,0,0,0.", output_creation.name);
+                                }
+                                output_creation.resource_info.texture.clear_values[0] = 0.0f;
+                                output_creation.resource_info.texture.clear_values[1] = 0.0f;
+                                output_creation.resource_info.texture.clear_values[2] = 0.0f;
+                                output_creation.resource_info.texture.clear_values[3] = 0.0f;
+                            }
+                        }
+                    } break;
+                    case FrameGraphResourceType_Buffer:
+                    {
+                        // TODO(marco)
+                        MF_CORE_ASSERT(false, "");
+                    } break;
                 }
 
                 node_creation.outputs.push(output_creation);
@@ -185,7 +238,7 @@ namespace Magnefu
             node_creation.enabled = enabled;
 
             FrameGraphNodeHandle node_handle = builder->create_node(node_creation);
-            nodes.push(node_handle);
+            all_nodes.push(node_handle);
         }
 
         temp_allocator->freeToMarker(current_allocator_marker);
@@ -210,91 +263,103 @@ namespace Magnefu
 
             // rprint( "Adding edge from %s [%d] to %s [%d]\n", parent_node->name, resource->producer.index, node->name, node_index )
 
-            parent_node->edges.push(frame_graph->nodes[node_index]);
+            parent_node->edges.push(frame_graph->all_nodes[node_index]);
         }
     }
 
     static void create_framebuffer(FrameGraph* frame_graph, FrameGraphNode* node) {
-        FramebufferCreation framebuffer_creation{ };
-        framebuffer_creation.render_pass = node->render_pass;
-        framebuffer_creation.set_name(node->name);
+        for (u32 f = 0; f < k_max_frames; ++f) {
+            FramebufferCreation framebuffer_creation{ };
+            framebuffer_creation.render_pass = node->render_pass;
+            framebuffer_creation.set_name(node->name);
 
-        u32 width = 0;
-        u32 height = 0;
+            u32 width = 0;
+            u32 height = 0;
+            f32 scale_width = 0.f;
+            f32 scale_height = 0.f;
 
-        for (u32 r = 0; r < node->outputs.size; ++r) {
-            FrameGraphResource* resource = frame_graph->access_resource(node->outputs[r]);
+            for (u32 r = 0; r < node->outputs.size; ++r) {
+                FrameGraphResource* resource = frame_graph->access_resource(node->outputs[r]);
 
-            FrameGraphResourceInfo& info = resource->resource_info;
+                FrameGraphResourceInfo& info = resource->resource_info;
 
-            if (resource->type == FrameGraphResourceType_Buffer || resource->type == FrameGraphResourceType_Reference) {
-                continue;
+                if (resource->type == FrameGraphResourceType_Buffer || resource->type == FrameGraphResourceType_Reference) {
+                    continue;
+                }
+
+                if (width == 0) {
+                    width = info.texture.width;
+                    scale_width = info.texture.scale_width > 0.f ? info.texture.scale_width : 1.f;
+                }
+                else {
+                    MF_CORE_ASSERT(width == info.texture.width, "");
+                }
+
+                if (height == 0) {
+                    height = info.texture.height;
+                    scale_height = info.texture.scale_height > 0.f ? info.texture.scale_height : 1.f;
+                }
+                else {
+                    MF_CORE_ASSERT(height == info.texture.height, "");
+                }
+
+                if (TextureFormat::has_depth(info.texture.format)) {
+                    framebuffer_creation.set_depth_stencil_texture(info.texture.handle[f]);
+                }
+                else {
+                    framebuffer_creation.add_render_texture(info.texture.handle[f]);
+                }
             }
 
-            if (width == 0) {
-                width = info.texture.width;
-            }
-            else {
-                MF_CORE_ASSERT((width == info.texture.width), "");
+            for (u32 r = 0; r < node->inputs.size; ++r) {
+                FrameGraphResource* input_resource = frame_graph->access_resource(node->inputs[r]);
+
+                if (input_resource->type == FrameGraphResourceType_Buffer || input_resource->type == FrameGraphResourceType_Reference) {
+                    continue;
+                }
+
+                FrameGraphResource* resource = frame_graph->get_resource(input_resource->name);
+
+                FrameGraphResourceInfo& info = resource->resource_info;
+
+                input_resource->resource_info.texture.handle[f] = info.texture.handle[f];
+
+                if (width == 0) {
+                    width = info.texture.width;
+                    scale_width = info.texture.scale_width > 0.f ? info.texture.scale_width : 1.f;
+                }
+                else {
+                    MF_CORE_ASSERT(width == info.texture.width, "");
+                }
+
+                if (height == 0) {
+                    height = info.texture.height;
+                    scale_height = info.texture.scale_height > 0.f ? info.texture.scale_height : 1.f;
+                }
+                else {
+                    MF_CORE_ASSERT(height == info.texture.height, "");
+                }
+
+                if (input_resource->type == FrameGraphResourceType_Texture) {
+                    continue;
+                }
+
+                if (TextureFormat::has_depth(info.texture.format)) {
+                    framebuffer_creation.set_depth_stencil_texture(info.texture.handle[f]);
+                }
+                else {
+                    framebuffer_creation.add_render_texture(info.texture.handle[f]);
+                }
             }
 
-            if (height == 0) {
-                height = info.texture.height;
-            }
-            else {
-                MF_CORE_ASSERT((height == info.texture.height), "");
-            }
+            framebuffer_creation.width = width;
+            framebuffer_creation.height = height;
+            framebuffer_creation.set_scaling(scale_width, scale_height, 1);
+            node->framebuffer[0] = frame_graph->builder->gpu->create_framebuffer(framebuffer_creation);
 
-            if (info.texture.format == VK_FORMAT_D32_SFLOAT) {
-                framebuffer_creation.set_depth_stencil_texture(info.texture.texture);
-            }
-            else {
-                framebuffer_creation.add_render_texture(info.texture.texture);
-            }
+            node->resolution_scale_width = scale_width;
+            node->resolution_scale_height = scale_height;
         }
-
-        for (u32 r = 0; r < node->inputs.size; ++r) {
-            FrameGraphResource* input_resource = frame_graph->access_resource(node->inputs[r]);
-
-            if (input_resource->type == FrameGraphResourceType_Buffer || input_resource->type == FrameGraphResourceType_Reference) {
-                continue;
-            }
-
-            FrameGraphResource* resource = frame_graph->get_resource(input_resource->name);
-
-            FrameGraphResourceInfo& info = resource->resource_info;
-
-            input_resource->resource_info.texture.texture = info.texture.texture;
-
-            if (width == 0) {
-                width = info.texture.width;
-            }
-            else {
-                MF_CORE_ASSERT((width == info.texture.width), "");
-            }
-
-            if (height == 0) {
-                height = info.texture.height;
-            }
-            else {
-                MF_CORE_ASSERT((height == info.texture.height), "");
-            }
-
-            if (input_resource->type == FrameGraphResourceType_Texture) {
-                continue;
-            }
-
-            if (info.texture.format == VK_FORMAT_D32_SFLOAT) {
-                framebuffer_creation.set_depth_stencil_texture(info.texture.texture);
-            }
-            else {
-                framebuffer_creation.add_render_texture(info.texture.texture);
-            }
-        }
-
-        framebuffer_creation.width = width;
-        framebuffer_creation.height = height;
-        node->framebuffer = frame_graph->builder->gpu->create_framebuffer(framebuffer_creation);
         
     }
 
@@ -304,13 +369,13 @@ namespace Magnefu
 
         // NOTE(marco): first create the outputs, then we can patch the input resources
         // with the right handles
-        for (sizet i = 0; i < node->outputs.size; ++i) {
+        for (u32 i = 0; i < node->outputs.size; ++i) {
             FrameGraphResource* output_resource = frame_graph->access_resource(node->outputs[i]);
 
             FrameGraphResourceInfo& info = output_resource->resource_info;
 
             if (output_resource->type == FrameGraphResourceType_Attachment) {
-                if (info.texture.format == VK_FORMAT_D32_SFLOAT) {
+                if (TextureFormat::has_depth(info.texture.format)) {
                     render_pass_creation.set_depth_stencil_texture(info.texture.format, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
                     render_pass_creation.depth_operation = RenderPassOperation::Clear;
@@ -321,13 +386,13 @@ namespace Magnefu
             }
         }
 
-        for (sizet i = 0; i < node->inputs.size; ++i) {
+        for (u32 i = 0; i < node->inputs.size; ++i) {
             FrameGraphResource* input_resource = frame_graph->access_resource(node->inputs[i]);
 
             FrameGraphResourceInfo& info = input_resource->resource_info;
 
             if (input_resource->type == FrameGraphResourceType_Attachment) {
-                if (info.texture.format == VK_FORMAT_D32_SFLOAT) {
+                if (TextureFormat::has_depth(info.texture.format)) {
                     render_pass_creation.set_depth_stencil_texture(info.texture.format, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
                     render_pass_creation.depth_operation = RenderPassOperation::Load;
@@ -352,21 +417,29 @@ namespace Magnefu
         node->enabled = false;
     }
 
+
+    namespace FrameGraphNodeVisitStatus {
+        enum Enum {
+            New = 0, Visited, Added, Count
+        }; // enum Enum
+    }; // namespace FrameGraphNodeVisitStatus
+
+
     void FrameGraph::compile() {
         // TODO(marco)
-        // - check that input has been produced by a different node
-        // - cull inactive nodes
+    // - check that input has been produced by a different node
+    // - cull inactive nodes
 
-        for (u32 i = 0; i < nodes.size; ++i) {
-            FrameGraphNode* node = builder->access_node(nodes[i]);
+        for (u32 i = 0; i < all_nodes.size; ++i) {
+            FrameGraphNode* node = builder->access_node(all_nodes[i]);
 
             // NOTE(marco): we want to clear all edges first, then populate them. If we clear them inside the loop
             // below we risk clearing the list after it has already been used by one of the child nodes
             node->edges.clear();
         }
 
-        for (u32 i = 0; i < nodes.size; ++i) {
-            FrameGraphNode* node = builder->access_node(nodes[i]);
+        for (u32 i = 0; i < all_nodes.size; ++i) {
+            FrameGraphNode* node = builder->access_node(all_nodes[i]);
             if (!node->enabled) {
                 continue;
             }
@@ -375,35 +448,35 @@ namespace Magnefu
         }
 
         Array<FrameGraphNodeHandle> sorted_nodes;
-        sorted_nodes.init(&local_allocator, nodes.size);
+        sorted_nodes.init(&local_allocator, all_nodes.size);
 
-        Array<u8> visited;
-        visited.init(&local_allocator, nodes.size, nodes.size);
-        memset(visited.data, 0, sizeof(bool) * nodes.size);
+        Array<u8> node_status;
+        node_status.init(&local_allocator, all_nodes.size, all_nodes.size);
+        memset(node_status.data, 0, sizeof(bool) * all_nodes.size);
 
         Array<FrameGraphNodeHandle> stack;
         stack.init(&local_allocator, nodes.size);
 
         // Topological sorting
-        for (u32 n = 0; n < nodes.size; ++n) {
-            FrameGraphNode* node = builder->access_node(nodes[n]);
+        for (u32 n = 0; n < all_nodes.size; ++n) {
+            FrameGraphNode* node = builder->access_node(all_nodes[n]);
             if (!node->enabled) {
                 continue;
             }
 
-            stack.push(nodes[n]);
+            stack.push(all_nodes[n]);
 
             while (stack.size > 0) {
                 FrameGraphNodeHandle node_handle = stack.back();
 
-                if (visited[node_handle.index] == 2) {
+                if (node_status[node_handle.index] == FrameGraphNodeVisitStatus::Added) {
                     stack.pop();
 
                     continue;
                 }
 
-                if (visited[node_handle.index] == 1) {
-                    visited[node_handle.index] = 2; // added
+                if (node_status[node_handle.index] == FrameGraphNodeVisitStatus::Visited) {
+                    node_status[node_handle.index] = FrameGraphNodeVisitStatus::Added;
 
                     sorted_nodes.push(node_handle);
 
@@ -412,7 +485,7 @@ namespace Magnefu
                     continue;
                 }
 
-                visited[node_handle.index] = 1; // visited
+                node_status[node_handle.index] = FrameGraphNodeVisitStatus::Visited;
 
                 FrameGraphNode* node = builder->access_node(node_handle);
 
@@ -424,27 +497,28 @@ namespace Magnefu
                 for (u32 r = 0; r < node->edges.size; ++r) {
                     FrameGraphNodeHandle child_handle = node->edges[r];
 
-                    if (!visited[child_handle.index]) {
+                    if (node_status[child_handle.index] == FrameGraphNodeVisitStatus::New) {
                         stack.push(child_handle);
                     }
                 }
             }
         }
 
-        MF_CORE_ASSERT((sorted_nodes.size == nodes.size), "");
-
         nodes.clear();
 
         for (i32 i = sorted_nodes.size - 1; i >= 0; --i) {
+            FrameGraphNode* node = builder->access_node(sorted_nodes[i]);
+            // rprint( "Node %s is at position %d\n", node->name, nodes.size );
+
             nodes.push(sorted_nodes[i]);
         }
 
-        visited.shutdown();
+        node_status.shutdown();
         stack.shutdown();
         sorted_nodes.shutdown();
 
         // NOTE(marco): allocations and deallocations are used for verification purposes only
-        sizet resource_count = builder->resource_cache.resources.used_indices;
+        u32 resource_count = builder->resource_cache.resources.used_indices;
         Array<FrameGraphNodeHandle> allocations;
         allocations.init(&local_allocator, resource_count, resource_count);
         for (u32 i = 0; i < resource_count; ++i) {
@@ -488,33 +562,43 @@ namespace Magnefu
                 FrameGraphResource* resource = builder->access_resource(node->outputs[j]);
 
                 if (!resource->resource_info.external && allocations[resource_index].index == k_invalid_index) {
-                    MF_CORE_ASSERT((deallocations[resource_index].index == k_invalid_index), "")
+                    MF_CORE_ASSERT(deallocations[resource_index].index == k_invalid_index, "");
                         allocations[resource_index] = nodes[i];
 
                     if (resource->type == FrameGraphResourceType_Attachment) {
                         FrameGraphResourceInfo& info = resource->resource_info;
 
-                        if (free_list.size > 0) {
-                            // TODO(marco): find best fit
-                            TextureHandle alias_texture = free_list.back();
-                            free_list.pop();
-
-                            TextureCreation texture_creation{ };
-                            texture_creation.set_data(nullptr).set_alias(alias_texture).set_name(resource->name).set_format_type(info.texture.format, TextureType::Enum::Texture2D).set_size(info.texture.width, info.texture.height, info.texture.depth).set_flags(1, TextureFlags::RenderTarget_mask);
-                            TextureHandle handle = builder->gpu->create_texture(texture_creation);
-
-                            info.texture.texture = handle;
+                        // Resolve texture size if needed
+                        if (info.texture.width == 0 || info.texture.height == 0) {
+                            info.texture.width =  builder->gpu->swapchain_width * info.texture.scale_width;
+                            info.texture.height = builder->gpu->swapchain_height * info.texture.scale_height;
                         }
-                        else {
-                            TextureCreation texture_creation{ };
-                            texture_creation.set_data(nullptr).set_name(resource->name).set_format_type(info.texture.format, TextureType::Enum::Texture2D).set_size(info.texture.width, info.texture.height, info.texture.depth).set_flags(1, TextureFlags::RenderTarget_mask);
-                            TextureHandle handle = builder->gpu->create_texture(texture_creation);
 
-                            info.texture.texture = handle;
+                        TextureFlags::Mask texture_creation_flags = info.texture.compute ? (TextureFlags::Mask)(TextureFlags::RenderTarget_mask | TextureFlags::Compute_mask) : TextureFlags::RenderTarget_mask;
+
+                        for (u32 f = 0; f < k_max_frames; ++f) {
+                            if (free_list.size > 0) {
+                                // TODO(marco): find best fit
+                                TextureHandle alias_texture = free_list.back();
+                                free_list.pop();
+
+                                TextureCreation texture_creation{ };
+                                texture_creation.set_data(nullptr).set_alias(alias_texture).set_name(resource->name).set_format_type(info.texture.format, TextureType::Enum::Texture2D).set_size(info.texture.width, info.texture.height, info.texture.depth).set_flags(1, texture_creation_flags);
+                                TextureHandle handle = builder->gpu->create_texture(texture_creation);
+
+                                info.texture.handle[f] = handle;
+                            }
+                            else {
+                                TextureCreation texture_creation{ };
+                                texture_creation.set_data(nullptr).set_name(resource->name).set_format_type(info.texture.format, TextureType::Enum::Texture2D).set_size(info.texture.width, info.texture.height, info.texture.depth).set_flags(1, texture_creation_flags);
+                                TextureHandle handle = builder->gpu->create_texture(texture_creation);
+
+                                info.texture.handle[f] = handle;
+                            }
                         }
                     }
 
-                    MF_CORE_DEBUG("Output {} allocated on node {}", resource->name, nodes[i].index);
+                    MF_CORE_INFO("Output {} allocated on node {}", resource->name, nodes[i].index);
                 }
             }
 
@@ -527,14 +611,16 @@ namespace Magnefu
                 resource->ref_count--;
 
                 if (!resource->resource_info.external && resource->ref_count == 0) {
-                    MF_CORE_ASSERT((deallocations[resource_index].index == k_invalid_index), "");
+                    MF_CORE_ASSERT(deallocations[resource_index].index == k_invalid_index, "");
                     deallocations[resource_index] = nodes[i];
 
-                    if (resource->type == FrameGraphResourceType_Attachment || resource->type == FrameGraphResourceType_Texture) {
-                        free_list.push(resource->resource_info.texture.texture);
+                    for (u32 f = 0; f < k_max_frames; ++f) {
+                        if (resource->type == FrameGraphResourceType_Attachment || resource->type == FrameGraphResourceType_Texture) {
+                            free_list.push(resource->resource_info.texture.handle[f]);
+                        }
                     }
 
-                    MF_CORE_DEBUG("Output {} deallocated on node {}", resource->name, nodes[i].index);
+                    MF_CORE_INFO("Output {} deallocated on node {}", resource->name, nodes[i].index);
                 }
             }
         }
@@ -545,7 +631,9 @@ namespace Magnefu
 
         for (u32 i = 0; i < nodes.size; ++i) {
             FrameGraphNode* node = builder->access_node(nodes[i]);
-            if (!node->enabled) {
+            MF_CORE_ASSERT(node->enabled, "Node {} not enabled", node->name);
+
+            if (node->compute) {
                 continue;
             }
 
@@ -553,7 +641,7 @@ namespace Magnefu
                 create_render_pass(this, node);
             }
 
-            if (node->framebuffer.index == k_invalid_index) {
+            if (node->framebuffer[0].index == k_invalid_index) {
                 create_framebuffer(this, node);
             }
         }
@@ -570,87 +658,141 @@ namespace Magnefu
         }
     }
 
-    void FrameGraph::render(CommandBuffer* gpu_commands, RenderScene* render_scene)
+    void FrameGraph::render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene)
     {
         for (u32 n = 0; n < nodes.size; ++n) {
             FrameGraphNode* node = builder->access_node(nodes[n]);
-            if (!node->enabled) {
-                continue;
-            }
+            MF_CORE_ASSERT(node->enabled, "Node {} not enabled", node->name);
 
-            gpu_commands->push_marker(node->name);
-            // TODO(marco): add clear colour to json
-            gpu_commands->clear(0.3f, 0.3f, 0.3f, 1.f);
-            gpu_commands->clear_depth_stencil(1.0f, 0);
+            if (node->compute) {
+                gpu_commands->push_marker(node->name);
 
-            u32 width = 0;
-            u32 height = 0;
+                for (u32 i = 0; i < node->inputs.size; ++i) {
+                    FrameGraphResource* resource = builder->access_resource(node->inputs[i]);
 
-            for (u32 i = 0; i < node->inputs.size; ++i) {
-                FrameGraphResource* resource = builder->access_resource(node->inputs[i]);
+                    if (resource->type == FrameGraphResourceType_Texture) {
+                        Texture* texture = gpu_commands->gpu->access_texture(resource->resource_info.texture.handle[current_frame_index]);
 
-                if (resource->type == FrameGraphResourceType_Texture) {
-                    Texture* texture = gpu_commands->gpu->access_texture(resource->resource_info.texture.texture);
-
-                    util_add_image_barrier(gpu_commands->vk_command_buffer, texture->vk_image, RESOURCE_STATE_RENDER_TARGET, RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0, 1, resource->resource_info.texture.format == VK_FORMAT_D32_SFLOAT);
-                }
-                else if (resource->type == FrameGraphResourceType_Attachment) {
-                    Texture* texture = gpu_commands->gpu->access_texture(resource->resource_info.texture.texture);
-
-                    width = texture->width;
-                    height = texture->height;
-                }
-            }
-
-            for (u32 o = 0; o < node->outputs.size; ++o) {
-                FrameGraphResource* resource = builder->access_resource(node->outputs[o]);
-
-                if (resource->type == FrameGraphResourceType_Attachment) {
-                    Texture* texture = gpu_commands->gpu->access_texture(resource->resource_info.texture.texture);
-
-                    width = texture->width;
-                    height = texture->height;
-
-                    if (texture->vk_format == VK_FORMAT_D32_SFLOAT) {
-                        util_add_image_barrier(gpu_commands->vk_command_buffer, texture->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_DEPTH_WRITE, 0, 1, resource->resource_info.texture.format == VK_FORMAT_D32_SFLOAT);
+                        util_add_image_barrier(gpu_commands->gpu, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_SHADER_RESOURCE, 0, 1, TextureFormat::has_depth(texture->vk_format));
                     }
-                    else {
-                        util_add_image_barrier(gpu_commands->vk_command_buffer, texture->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_RENDER_TARGET, 0, 1, resource->resource_info.texture.format == VK_FORMAT_D32_SFLOAT);
+                    else if (resource->type == FrameGraphResourceType_Attachment) {
+                        // TODO: what to do with attachments ?
+                        Texture* texture = gpu_commands->gpu->access_texture(resource->resource_info.texture.handle[current_frame_index]);
+                        texture = texture;
                     }
                 }
+
+                for (u32 o = 0; o < node->outputs.size; ++o) {
+                    FrameGraphResource* resource = builder->access_resource(node->outputs[o]);
+
+                    if (resource->type == FrameGraphResourceType_Attachment) {
+                        Texture* texture = gpu_commands->gpu->access_texture(resource->resource_info.texture.handle[current_frame_index]);
+
+                        if (TextureFormat::has_depth(texture->vk_format)) {
+                            // Is this supported even ?
+                            MF_CORE_ASSERT(false, "");
+                        }
+                        else {
+                            util_add_image_barrier(gpu_commands->gpu, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_UNORDERED_ACCESS, 0, 1, false);
+                        }
+                    }
+                }
+
+                node->graph_render_pass->pre_render(current_frame_index, gpu_commands, this);
+                node->graph_render_pass->render(gpu_commands, render_scene);
+
+                gpu_commands->pop_marker();
             }
+            else {
+                gpu_commands->push_marker(node->name);
 
-            Rect2DInt scissor{ 0, 0,(u16)width, (u16)height };
-            gpu_commands->set_scissor(&scissor);
+                u32 width = 0;
+                u32 height = 0;
 
-            Viewport viewport{ };
-            viewport.rect = { 0, 0, (u16)width, (u16)height };
-            viewport.min_depth = 0.0f;
-            viewport.max_depth = 1.0f;
+                for (u32 i = 0; i < node->inputs.size; ++i) {
+                    FrameGraphResource* resource = builder->access_resource(node->inputs[i]);
 
-            gpu_commands->set_viewport(&viewport);
+                    if (resource->type == FrameGraphResourceType_Texture) {
+                        Texture* texture = gpu_commands->gpu->access_texture(resource->resource_info.texture.handle[current_frame_index]);
 
-            node->graph_render_pass->pre_render(gpu_commands, render_scene);
+                        util_add_image_barrier(gpu_commands->gpu, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0, 1, TextureFormat::has_depth(texture->vk_format));
+                    }
+                    else if (resource->type == FrameGraphResourceType_Attachment) {
+                        Texture* texture = gpu_commands->gpu->access_texture(resource->resource_info.texture.handle[current_frame_index]);
 
-            gpu_commands->bind_pass(node->render_pass, node->framebuffer, false);
+                        width = texture->width;
+                        height = texture->height;
 
-            node->graph_render_pass->render(gpu_commands, render_scene);
+                        // For textures that are read-write check if a transition is needed.
+                        if (!TextureFormat::has_depth_or_stencil(texture->vk_format)) {
+                            util_add_image_barrier(gpu_commands->gpu, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_RENDER_TARGET, 0, 1, false);
+                        }
+                        else {
+                            util_add_image_barrier(gpu_commands->gpu, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_DEPTH_WRITE, 0, 1, true);
+                        }
+                    }
+                }
 
-            gpu_commands->end_current_render_pass();
-            gpu_commands->pop_marker();
+                for (u32 o = 0; o < node->outputs.size; ++o) {
+                    FrameGraphResource* resource = builder->access_resource(node->outputs[o]);
+
+                    if (resource->type == FrameGraphResourceType_Attachment) {
+                        Texture* texture = gpu_commands->gpu->access_texture(resource->resource_info.texture.handle[current_frame_index]);
+
+                        width = texture->width;
+                        height = texture->height;
+
+                        if (TextureFormat::has_depth(texture->vk_format)) {
+                            util_add_image_barrier(gpu_commands->gpu, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_DEPTH_WRITE, 0, 1, true);
+
+                            f32* clear_color = resource->resource_info.texture.clear_values;
+                            gpu_commands->clear_depth_stencil(clear_color[0], (u8)clear_color[1]);
+
+                        }
+                        else {
+                            util_add_image_barrier(gpu_commands->gpu, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_RENDER_TARGET, 0, 1, false);
+
+                            f32* clear_color = resource->resource_info.texture.clear_values;
+                            gpu_commands->clear(clear_color[0], clear_color[1], clear_color[2], clear_color[3], o);
+                        }
+                    }
+                }
+
+                Rect2DInt scissor{ 0, 0,(u16)width, (u16)height };
+                gpu_commands->set_scissor(&scissor);
+
+                Viewport viewport{ };
+                viewport.rect = { 0, 0, (u16)width, (u16)height };
+                viewport.min_depth = 0.0f;
+                viewport.max_depth = 1.0f;
+
+                gpu_commands->set_viewport(&viewport);
+
+                node->graph_render_pass->pre_render(current_frame_index, gpu_commands, this);
+
+                gpu_commands->bind_pass(node->render_pass, node->framebuffer[current_frame_index], false);
+
+                node->graph_render_pass->render(gpu_commands, render_scene);
+
+                gpu_commands->end_current_render_pass();
+                gpu_commands->pop_marker();
+            }
         }
     }
+
+    
+    
 
     void FrameGraph::on_resize(GraphicsContext& gpu, u32 new_width, u32 new_height) {
         for (u32 n = 0; n < nodes.size; ++n) {
             FrameGraphNode* node = builder->access_node(nodes[n]);
-            if (!node->enabled) {
-                continue;
-            }
+            MF_CORE_ASSERT(node->enabled, "Node {} not enabled", node->name);
 
             node->graph_render_pass->on_resize(gpu, new_width, new_height);
 
-            gpu.resize_output_textures(node->framebuffer, new_width, new_height);
+            for (u32 f = 0; f < k_max_frames; ++f) {
+                gpu.resize_output_textures(node->framebuffer[f], new_width, new_height);
+            }
         }
     }
 
@@ -772,7 +914,14 @@ namespace Magnefu
             resource->producer = producer;
             resource->ref_count = 0;
 
-            resource_cache.resource_map.insert(hash_bytes((void*)resource->name, strlen(creation.name)), resource_handle.index);
+            FrameGraphNode* producer_node = access_node(producer);
+            MF_CORE_ASSERT((producer_node != nullptr), "");
+
+            if (producer_node->enabled) {
+                // TODO(marco): eventually we want to allow enabling/disabling a node at runtime.
+                // We will need to patch the producer when the graph changes
+                resource_cache.resource_map.insert(hash_bytes((void*)resource->name, strlen(creation.name)), resource_handle.index);
+            }
         }
 
         return resource_handle;
@@ -812,17 +961,21 @@ namespace Magnefu
         FrameGraphNode* node = (FrameGraphNode*)node_cache.nodes.access_resource(node_handle.index);
         node->name = creation.name;
         node->enabled = creation.enabled;
+        node->compute = creation.compute;
         node->inputs.init(allocator, creation.inputs.size);
         node->outputs.init(allocator, creation.outputs.size);
         node->edges.init(allocator, creation.outputs.size);
-        node->framebuffer = k_invalid_framebuffer;
+
+        for (u32 f = 0; f < k_max_frames; ++f) {
+            node->framebuffer[f] = k_invalid_framebuffer;
+        }
         node->render_pass = { k_invalid_index };
 
         node_cache.node_map.insert(hash_bytes((void*)node->name, strlen(node->name)), node_handle.index);
 
         // NOTE(marco): first create the outputs, then we can patch the input resources
         // with the right handles
-        for (sizet i = 0; i < creation.outputs.size; ++i) {
+        for (u32 i = 0; i < creation.outputs.size; ++i) {
             const FrameGraphResourceOutputCreation& output_creation = creation.outputs[i];
 
             FrameGraphResourceHandle output = create_node_output(output_creation, node_handle);
@@ -830,7 +983,7 @@ namespace Magnefu
             node->outputs.push(output);
         }
 
-        for (sizet i = 0; i < creation.inputs.size; ++i) {
+        for (u32 i = 0; i < creation.inputs.size; ++i) {
             const FrameGraphResourceInputCreation& input_creation = creation.inputs[i];
 
             FrameGraphResourceHandle input_handle = create_node_input(input_creation);

@@ -78,6 +78,56 @@ namespace Magnefu
         vkDestroyDescriptorPool(gpu->vulkan_device, vk_descriptor_pool, gpu->vulkan_allocation_callbacks);
     }
 
+    DescriptorSetHandle CommandBuffer::create_descriptor_set(const DescriptorSetCreation& creation)
+    {
+        DescriptorSetHandle handle = { descriptor_sets.obtain_resource() };
+        if (handle.index == k_invalid_index) {
+            return handle;
+        }
+
+        DescriptorSet* descriptor_set = (DescriptorSet*)descriptor_sets.access_resource(handle.index);
+        const DescriptorSetLayout* descriptor_set_layout = gpu->access_descriptor_set_layout(creation.layout);
+
+        // Allocate descriptor set
+        VkDescriptorSetAllocateInfo alloc_info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+        alloc_info.descriptorPool = vk_descriptor_pool;
+        alloc_info.descriptorSetCount = 1;
+        alloc_info.pSetLayouts = &descriptor_set_layout->vk_descriptor_set_layout;
+
+        VkResult result = vkAllocateDescriptorSets(gpu->vulkan_device, &alloc_info, &descriptor_set->vk_descriptor_set);
+        MF_CORE_ASSERT(result == VK_SUCCESS, "failed to allocate descriptor sets");
+
+        // Cache data
+        u8* memory = mfallocam((sizeof(ResourceHandle) + sizeof(SamplerHandle) + sizeof(u16)) * creation.num_resources, gpu->allocator);
+        descriptor_set->resources = (ResourceHandle*)memory;
+        descriptor_set->samplers = (SamplerHandle*)(memory + sizeof(ResourceHandle) * creation.num_resources);
+        descriptor_set->bindings = (u16*)(memory + (sizeof(ResourceHandle) + sizeof(SamplerHandle)) * creation.num_resources);
+        descriptor_set->num_resources = creation.num_resources;
+        descriptor_set->layout = descriptor_set_layout;
+
+        // Update descriptor set
+        VkWriteDescriptorSet descriptor_write[8];
+        VkDescriptorBufferInfo buffer_info[8];
+        VkDescriptorImageInfo image_info[8];
+
+        Sampler* vk_default_sampler = gpu->access_sampler(gpu->default_sampler);
+
+        u32 num_resources = creation.num_resources;
+        GraphicsContext::fill_write_descriptor_sets(*gpu, descriptor_set_layout, descriptor_set->vk_descriptor_set, descriptor_write, buffer_info, image_info, vk_default_sampler->vk_sampler,
+            num_resources, creation.resources, creation.samplers, creation.bindings);
+
+        // Cache resources
+        for (u32 r = 0; r < creation.num_resources; r++) {
+            descriptor_set->resources[r] = creation.resources[r];
+            descriptor_set->samplers[r] = creation.samplers[r];
+            descriptor_set->bindings[r] = creation.bindings[r];
+        }
+
+        vkUpdateDescriptorSets(gpu->vulkan_device, num_resources, descriptor_write, 0, nullptr);
+
+        return handle;
+    }
+
     void CommandBuffer::begin() 
     {
 
@@ -136,55 +186,7 @@ namespace Magnefu
         }
     }
 
-    DescriptorSetHandle CommandBuffer::create_descriptor_set(const DescriptorSetCreation& creation)
-    {
-        DescriptorSetHandle handle = { descriptor_sets.obtain_resource() };
-        if (handle.index == k_invalid_index) {
-            return handle;
-        }
-
-        DescriptorSet* descriptor_set = (DescriptorSet*)descriptor_sets.access_resource(handle.index);
-        const DescriptorSetLayout* descriptor_set_layout = gpu->access_descriptor_set_layout(creation.layout);
-
-        // Allocate descriptor set
-        VkDescriptorSetAllocateInfo alloc_info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
-        alloc_info.descriptorPool = vk_descriptor_pool;
-        alloc_info.descriptorSetCount = 1;
-        alloc_info.pSetLayouts = &descriptor_set_layout->vk_descriptor_set_layout;
-
-        VkResult result = vkAllocateDescriptorSets(gpu->vulkan_device, &alloc_info, &descriptor_set->vk_descriptor_set);
-        MF_CORE_ASSERT(result == VK_SUCCESS, "failed to allocate descriptor sets");
-
-        // Cache data
-        u8* memory = mfallocam((sizeof(ResourceHandle) + sizeof(SamplerHandle) + sizeof(u16)) * creation.num_resources, gpu->allocator);
-        descriptor_set->resources = (ResourceHandle*)memory;
-        descriptor_set->samplers = (SamplerHandle*)(memory + sizeof(ResourceHandle) * creation.num_resources);
-        descriptor_set->bindings = (u16*)(memory + (sizeof(ResourceHandle) + sizeof(SamplerHandle)) * creation.num_resources);
-        descriptor_set->num_resources = creation.num_resources;
-        descriptor_set->layout = descriptor_set_layout;
-
-        // Update descriptor set
-        VkWriteDescriptorSet descriptor_write[8];
-        VkDescriptorBufferInfo buffer_info[8];
-        VkDescriptorImageInfo image_info[8];
-
-        Sampler* vk_default_sampler = gpu->access_sampler(gpu->default_sampler);
-
-        u32 num_resources = creation.num_resources;
-        GraphicsContext::fill_write_descriptor_sets(*gpu, descriptor_set_layout, descriptor_set->vk_descriptor_set, descriptor_write, buffer_info, image_info, vk_default_sampler->vk_sampler,
-            num_resources, creation.resources, creation.samplers, creation.bindings);
-
-        // Cache resources
-        for (u32 r = 0; r < creation.num_resources; r++) {
-            descriptor_set->resources[r] = creation.resources[r];
-            descriptor_set->samplers[r] = creation.samplers[r];
-            descriptor_set->bindings[r] = creation.bindings[r];
-        }
-
-        vkUpdateDescriptorSets(gpu->vulkan_device, num_resources, descriptor_write, 0, nullptr);
-
-        return handle;
-    }
+    
 
     void CommandBuffer::bind_pass(RenderPassHandle handle_, FramebufferHandle framebuffer_, bool use_secondary) {
 
@@ -230,7 +232,7 @@ namespace Magnefu
                         color_attachment_info.resolveMode = VK_RESOLVE_MODE_NONE;
                         color_attachment_info.loadOp = color_op;
                         color_attachment_info.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-                        color_attachment_info.clearValue = render_pass->output.color_operations[a] == RenderPassOperation::Enum::Clear ? clears[0] : VkClearValue{ };
+                        color_attachment_info.clearValue = render_pass->output.color_operations[a] == RenderPassOperation::Enum::Clear ? clear_values[a] : VkClearValue{ };
                     }
 
                     VkRenderingAttachmentInfoKHR depth_attachment_info{ VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR };
@@ -258,7 +260,7 @@ namespace Magnefu
                         depth_attachment_info.resolveMode = VK_RESOLVE_MODE_NONE;
                         depth_attachment_info.loadOp = depth_op;
                         depth_attachment_info.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-                        depth_attachment_info.clearValue = render_pass->output.depth_operation == RenderPassOperation::Enum::Clear ? clears[1] : VkClearValue{ };
+                        depth_attachment_info.clearValue = render_pass->output.depth_operation == RenderPassOperation::Enum::Clear ? clear_values[k_depth_stencil_clear_index] : VkClearValue{ };
                     }
 
                     VkRenderingInfoKHR rendering_info{ VK_STRUCTURE_TYPE_RENDERING_INFO_KHR };
@@ -275,7 +277,8 @@ namespace Magnefu
 
                     color_attachments_info.shutdown();
                 }
-                else {
+                else 
+                {
                     VkRenderPassBeginInfo render_pass_begin{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
                     render_pass_begin.framebuffer = framebuffer->vk_framebuffer;
                     render_pass_begin.renderPass = render_pass->vk_render_pass;
@@ -283,19 +286,10 @@ namespace Magnefu
                     render_pass_begin.renderArea.offset = { 0, 0 };
                     render_pass_begin.renderArea.extent = { framebuffer->width, framebuffer->height };
 
-                    VkClearValue clear_values[k_max_image_outputs + 1];
-
-                    u32 clear_values_count = 0;
-                    for (u32 o = 0; o < render_pass->output.num_color_formats; ++o) {
-                        if (render_pass->output.color_operations[o] == RenderPassOperation::Enum::Clear) {
-                            clear_values[clear_values_count++] = clears[0];
-                        }
-                    }
-
-                    if (render_pass->output.depth_stencil_format != VK_FORMAT_UNDEFINED) {
-                        if (render_pass->output.depth_operation == RenderPassOperation::Enum::Clear) {
-                            clear_values[clear_values_count++] = clears[1];
-                        }
+                    u32 clear_values_count = render_pass->output.num_color_formats;
+                    // Copy final depth/stencil clear
+                    if ((render_pass->output.depth_stencil_format != VK_FORMAT_UNDEFINED) && (render_pass->output.depth_operation == RenderPassOperation::Enum::Clear)) {
+                        clear_values[clear_values_count++] = clear_values[k_depth_stencil_clear_index];
                     }
 
                     render_pass_begin.clearValueCount = clear_values_count;
@@ -334,6 +328,35 @@ namespace Magnefu
         }
 
         vkCmdBindVertexBuffers(vk_command_buffer, binding, 1, &vk_buffer, offsets);
+    }
+
+    void CommandBuffer::bind_vertex_buffers(BufferHandle* handles, u32 first_binding, u32 binding_count, u32* offsets_)
+    {
+        VkBuffer vk_buffers[8];
+        VkDeviceSize offsets[8];
+
+        for (u32 i = 0; i < binding_count; i++)
+        {
+            Buffer* buffer = gpu->access_buffer(handles[i]);
+
+            VkBuffer vk_buffer = buffer->vk_buffer;
+            //TODO: add global vertex buffer
+            if (buffer->parent_buffer.index != k_invalid_index)
+            {
+                Buffer* parent_buffer = gpu->access_buffer(buffer->parent_buffer);
+                vk_buffer = parent_buffer->vk_buffer;
+                offsets[i] = buffer->global_offset;
+
+            }
+            else
+            {
+                offsets[i] = offsets_[i];
+            }
+
+            vk_buffers[i] = vk_buffer;
+        }
+
+        vkCmdBindVertexBuffers(vk_command_buffer, first_binding, binding_count, vk_buffers, offsets);
     }
 
     void CommandBuffer::bind_index_buffer(BufferHandle handle_, u32 offset_, VkIndexType index_type) 
@@ -482,15 +505,15 @@ namespace Magnefu
         vkCmdSetScissor(vk_command_buffer, 0, 1, &vk_scissor);
     }
 
-    void CommandBuffer::clear(f32 red, f32 green, f32 blue, f32 alpha) 
+    void CommandBuffer::clear(f32 red, f32 green, f32 blue, f32 alpha, u32 attachment_index) 
     {
-        clears[0].color = { red, green, blue, alpha };
+        clear_values[attachment_index].color = { red, green, blue, alpha };
     }
 
     void CommandBuffer::clear_depth_stencil(f32 depth, u8 value)
     {
-        clears[1].depthStencil.depth = depth;
-        clears[1].depthStencil.stencil = value;
+        clear_values[k_depth_stencil_clear_index].depthStencil.depth = depth;
+        clear_values[k_depth_stencil_clear_index].depthStencil.stencil = value;
     }
 
     void CommandBuffer::draw(TopologyType::Enum topology, u32 first_vertex, u32 vertex_count, u32 first_instance, u32 instance_count) 
@@ -837,8 +860,8 @@ namespace Magnefu
         texture->vk_image_layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
     }
 
-
-    void CommandBuffer::copy_texture(TextureHandle src_, ResourceState src_state, TextureHandle dst_, ResourceState dst_state) {
+    void CommandBuffer::copy_texture(TextureHandle src_, TextureHandle dst_, ResourceState dst_state)
+    {
         Texture* src = gpu->access_texture(src_);
         Texture* dst = gpu->access_texture(dst_);
 
@@ -857,21 +880,23 @@ namespace Magnefu
         region.extent = { src->width, src->height, src->depth };
 
         // Copy from the staging buffer to the image
-        util_add_image_barrier(vk_command_buffer, src->vk_image, src_state, RESOURCE_STATE_COPY_SOURCE, 0, 1, false);
-        util_add_image_barrier(vk_command_buffer, dst->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_COPY_DEST, 0, 1, false);
+        util_add_image_barrier(gpu, vk_command_buffer, src, RESOURCE_STATE_COPY_SOURCE, 0, 1, false);
+        // TODO(marco): maybe we need a state per mip?
+        ResourceState old_state = dst->state;
+        util_add_image_barrier(gpu, vk_command_buffer, dst, RESOURCE_STATE_COPY_DEST, 0, 1, false);
 
         vkCmdCopyImage(vk_command_buffer, src->vk_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst->vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
         // Prepare first mip to create lower mipmaps
         if (dst->mipmaps > 1) {
-            util_add_image_barrier(vk_command_buffer, dst->vk_image, RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_COPY_SOURCE, 0, 1, false);
+            util_add_image_barrier(gpu, vk_command_buffer, dst, RESOURCE_STATE_COPY_SOURCE, 0, 1, false);
         }
 
         i32 w = dst->width;
         i32 h = dst->height;
 
         for (int mip_index = 1; mip_index < dst->mipmaps; ++mip_index) {
-            util_add_image_barrier(vk_command_buffer, dst->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_COPY_DEST, mip_index, 1, false);
+            util_add_image_barrier(gpu, vk_command_buffer, dst->vk_image, old_state, RESOURCE_STATE_COPY_DEST, mip_index, 1, false);
 
             VkImageBlit blit_region{ };
             blit_region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -896,12 +921,14 @@ namespace Magnefu
             vkCmdBlitImage(vk_command_buffer, dst->vk_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst->vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit_region, VK_FILTER_LINEAR);
 
             // Prepare current mip for next level
-            util_add_image_barrier(vk_command_buffer, dst->vk_image, RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_COPY_SOURCE, mip_index, 1, false);
+            util_add_image_barrier(gpu, vk_command_buffer, dst->vk_image, RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_COPY_SOURCE, mip_index, 1, false);
         }
 
         // Transition
-        util_add_image_barrier(vk_command_buffer, dst->vk_image, (dst->mipmaps > 1) ? RESOURCE_STATE_COPY_SOURCE : RESOURCE_STATE_COPY_DEST, dst_state, 0, dst->mipmaps, false);
+        util_add_image_barrier(gpu, vk_command_buffer, dst, dst_state, 0, dst->mipmaps, false);
     }
+
+
 
     void CommandBuffer::upload_buffer_data(BufferHandle buffer_handle, void* buffer_data, BufferHandle staging_buffer_handle, sizet staging_buffer_offset)
     {
@@ -954,18 +981,12 @@ namespace Magnefu
 
         // Create pools: num frames * num threads;
         const u32 total_pools = num_pools_per_frame * gpu->k_max_frames;
-        vulkan_command_pools.init(gpu->allocator, total_pools, total_pools);
         // Init per thread-frame used buffers
         used_buffers.init(gpu->allocator, total_pools, total_pools);
         used_secondary_command_buffers.init(gpu->allocator, total_pools, total_pools);
 
         for (u32 i = 0; i < total_pools; i++) 
         {
-            VkCommandPoolCreateInfo cmd_pool_info = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO, nullptr };
-            cmd_pool_info.queueFamilyIndex = gpu->vulkan_main_queue_family;
-            cmd_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-
-            vkCreateCommandPool(gpu->vulkan_device, &cmd_pool_info, gpu->vulkan_allocation_callbacks, &vulkan_command_pools[i]);
 
             used_buffers[i] = 0;
             used_secondary_command_buffers[i] = 0;
@@ -978,6 +999,9 @@ namespace Magnefu
         const u32 total_secondary_buffers = total_pools * k_secondary_command_buffers_count;
         secondary_command_buffers.init(gpu->allocator, total_secondary_buffers);
 
+        const u32 total_compute_buffers = k_max_frames;
+        compute_command_buffers.init(gpu->allocator, k_max_frames, k_max_frames);
+
         for (u32 i = 0; i < total_buffers; i++) {
             VkCommandBufferAllocateInfo cmd = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO, nullptr };
 
@@ -985,7 +1009,7 @@ namespace Magnefu
             const u32 thread_index = (i / num_command_buffers_per_thread) % num_pools_per_frame;
             const u32 pool_index = pool_from_indices(frame_index, thread_index);
             //rprint( "Indices i:%u f:%u t:%u p:%u\n", i, frame_index, thread_index, pool_index );
-            cmd.commandPool = vulkan_command_pools[pool_index];
+            cmd.commandPool = gpu->thread_frame_pools[pool_index].vulkan_command_pool;
             cmd.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
             cmd.commandBufferCount = 1;
 
@@ -994,15 +1018,15 @@ namespace Magnefu
 
             // TODO(marco): move to have a ring per queue per thread
             current_command_buffer.handle = i;
+            current_command_buffer.thread_frame_pool = &gpu->thread_frame_pools[pool_index];
             current_command_buffer.init(gpu);
         }
 
         u32 handle = total_buffers;
-        for (u32 pool_index = 0; pool_index < total_pools; ++pool_index)
-        {
+        for (u32 pool_index = 0; pool_index < total_pools; ++pool_index) {
             VkCommandBufferAllocateInfo cmd = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO, nullptr };
 
-            cmd.commandPool = vulkan_command_pools[pool_index];
+            cmd.commandPool = gpu->thread_frame_pools[pool_index].vulkan_command_pool;
             cmd.level = VK_COMMAND_BUFFER_LEVEL_SECONDARY;
             cmd.commandBufferCount = k_secondary_command_buffers_count;
 
@@ -1014,15 +1038,28 @@ namespace Magnefu
                 cb.vk_command_buffer = secondary_buffers[scb_index];
 
                 cb.handle = handle++;
+                cb.thread_frame_pool = &gpu->thread_frame_pools[pool_index];
                 cb.init(gpu);
 
                 // NOTE(marco): access to the descriptor pool has to be synchronized
                 // across theads. Don't allow for now
-
-                
-
                 secondary_command_buffers.push(cb);
             }
+        }
+
+        for (u32 i = 0; i < total_compute_buffers; i++) {
+            VkCommandBufferAllocateInfo cmd = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO, nullptr };
+
+            cmd.commandPool = gpu->compute_frame_pools[i].vulkan_command_pool;
+            cmd.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+            cmd.commandBufferCount = 1;
+
+            CommandBuffer& current_command_buffer = compute_command_buffers[i];
+            vkAllocateCommandBuffers(gpu->vulkan_device, &cmd, &current_command_buffer.vk_command_buffer);
+
+            current_command_buffer.handle = i;
+            current_command_buffer.thread_frame_pool = &gpu->compute_frame_pools[i];
+            current_command_buffer.init(gpu);
         }
 
         //rprint( "Done\n" );
@@ -1030,11 +1067,7 @@ namespace Magnefu
 
     void CommandBufferManager::shutdown()
     {
-        const u32 total_pools = num_pools_per_frame * gpu->k_max_frames;
-        for (u32 i = 0; i < total_pools; i++)
-        {
-            vkDestroyCommandPool(gpu->vulkan_device, vulkan_command_pools[i], gpu->vulkan_allocation_callbacks);
-        }
+        
 
         for (u32 i = 0; i < command_buffers.size; i++) {
             command_buffers[i].shutdown();
@@ -1044,40 +1077,66 @@ namespace Magnefu
             secondary_command_buffers[i].shutdown();
         }
 
-        vulkan_command_pools.shutdown();
         secondary_command_buffers.shutdown();
         command_buffers.shutdown();
+        compute_command_buffers.shutdown();
         used_buffers.shutdown();
         used_secondary_command_buffers.shutdown();
     }
 
     void CommandBufferManager::reset_pools(u32 frame_index)
     {
-        for (u32 i = 0; i < num_pools_per_frame; i++) 
-        {
+        for (u32 i = 0; i < num_pools_per_frame; i++) {
             const u32 pool_index = pool_from_indices(frame_index, i);
-            vkResetCommandPool(gpu->vulkan_device, vulkan_command_pools[pool_index], 0);
+            vkResetCommandPool(gpu->vulkan_device, gpu->thread_frame_pools[pool_index].vulkan_command_pool, 0);
 
             used_buffers[pool_index] = 0;
             used_secondary_command_buffers[pool_index] = 0;
         }
     }
 
-    CommandBuffer* CommandBufferManager::get_command_buffer(u32 frame, u32 thread_index, bool begin)
-    {
-        const u32 pool_index = pool_from_indices(frame, thread_index);
-        u32 current_used_buffer = used_buffers[pool_index];
-        // TODO: how to handle fire-and-forget command buffers ?
-        //used_buffers[ pool_index ] = current_used_buffer + 1;
-        MF_CORE_ASSERT((current_used_buffer < num_command_buffers_per_thread), "");
 
-        CommandBuffer* cb = &command_buffers[(pool_index * num_command_buffers_per_thread) + current_used_buffer];
-        if (begin) {
-            cb->reset();
-            VkCommandBufferBeginInfo beginInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-            vkBeginCommandBuffer(cb->vk_command_buffer, &beginInfo);
+    CommandBuffer* CommandBufferManager::get_command_buffer(u32 frame, u32 thread_index, bool begin, bool compute)
+    {
+        CommandBuffer* cb = nullptr;
+
+        if (compute) 
+        {
+            MF_CORE_ASSERT(thread_index == 0, "");
+            cb = &compute_command_buffers[frame];
         }
+        else 
+        {
+            const u32 pool_index = pool_from_indices(frame, thread_index);
+            u32 current_used_buffer = used_buffers[pool_index];
+            // TODO: how to handle fire-and-forget command buffers ?
+            MF_CORE_ASSERT(current_used_buffer < num_command_buffers_per_thread, "");
+            if (begin) 
+            {
+                used_buffers[pool_index] = current_used_buffer + 1;
+            }
+
+            cb = &command_buffers[(pool_index * num_command_buffers_per_thread) + current_used_buffer];
+        }
+
+        if (begin) 
+        {
+            cb->reset();
+            cb->begin();
+
+            // Timestamp queries
+            GpuThreadFramePools* thread_pools = cb->thread_frame_pool;
+            thread_pools->time_queries->reset();
+            vkCmdResetQueryPool(cb->vk_command_buffer, thread_pools->vulkan_timestamp_query_pool, 0, thread_pools->time_queries->time_queries.size);
+
+            if (!compute) {
+                // Pipeline statistics
+                vkCmdResetQueryPool(cb->vk_command_buffer, thread_pools->vulkan_pipeline_stats_query_pool, 0, GpuPipelineStatistics::Count);
+
+                vkCmdBeginQuery(cb->vk_command_buffer, thread_pools->vulkan_pipeline_stats_query_pool, 0, 0);
+            }
+        }
+
         return cb;
     }
 

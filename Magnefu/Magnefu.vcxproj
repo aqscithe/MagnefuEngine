@@ -204,6 +204,7 @@
     <ClInclude Include="src\Magnefu\Core\String.hpp" />
     <ClInclude Include="src\Magnefu\Core\Time.hpp" />
     <ClInclude Include="src\Magnefu\Core\glTF.hpp" />
+    <ClInclude Include="src\Magnefu\Graphics\AsynchronousLoader.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\CommandBuffer.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\FrameGraph.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\glTFScene.hpp" />

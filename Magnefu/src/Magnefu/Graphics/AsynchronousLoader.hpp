@@ -13,7 +13,7 @@ namespace Magnefu
 {
 	struct Renderer;
 	struct Allocator;
-	struct GPUProfiler;
+	struct GPUVisualProfiler;
 	struct ImGuiService;
 	struct StackAllocator;
 
@@ -31,7 +31,6 @@ namespace Magnefu
 	{
 
 		void* data = nullptr;
-		u32* completed = nullptr;
 		TextureHandle           texture = k_invalid_texture;
 		BufferHandle            cpu_buffer = k_invalid_buffer;
 		BufferHandle            gpu_buffer = k_invalid_buffer;
@@ -48,26 +47,26 @@ namespace Magnefu
 
 		void								request_texture_data(cstring filename, TextureHandle texture);
 		void								request_buffer_upload(void* data, BufferHandle buffer);
-		void								request_buffer_copy(BufferHandle src, BufferHandle dst, u32* completed);
+		void								request_buffer_copy(BufferHandle src, BufferHandle dst);
 
 
-		Allocator* allocator = nullptr;
-		Renderer* renderer = nullptr;
-		enki::TaskScheduler* task_scheduler = nullptr;
+		Allocator*							allocator = nullptr;
+		Renderer*							renderer = nullptr;
+		enki::TaskScheduler*				task_scheduler = nullptr;
 
-		Array<FileLoadRequest>		file_load_requests;
-		Array<UploadRequest>		upload_requests;
+		Array<FileLoadRequest>				file_load_requests;
+		Array<UploadRequest>				upload_requests;
 
-		Buffer* staging_buffer = nullptr;
+		Buffer*								staging_buffer = nullptr;
 
 		std::atomic_size_t					staging_buffer_offset;
-		TextureHandle				texture_ready;
-		BufferHandle				cpu_buffer_ready;
-		BufferHandle				gpu_buffer_ready;
+		TextureHandle						texture_ready;
+		BufferHandle						cpu_buffer_ready;
+		BufferHandle						gpu_buffer_ready;
 		u32* completed;
 
-		VkCommandPool				command_pools[GraphicsContext::k_max_frames];
-		CommandBuffer				command_buffers[GraphicsContext::k_max_frames];
+		VkCommandPool						command_pools[GraphicsContext::k_max_frames];
+		CommandBuffer						command_buffers[GraphicsContext::k_max_frames];
 		VkSemaphore							transfer_complete_semaphore;
 		VkFence								transfer_fence;
 

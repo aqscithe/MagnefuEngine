@@ -3840,6 +3840,7 @@
     <ClInclude Include="src\Magnefu\Graphics\FrameGraph.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\SceneGraph.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\RenderResourcesLoader.hpp" />
+    <ClInclude Include="src\Magnefu\Graphics\AsynchronousLoader.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application\Application.cpp">

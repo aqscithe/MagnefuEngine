@@ -6,6 +6,7 @@
 
 // -- Graphics Includes ----------------------- //
 #include "CommandBuffer.hpp"
+#include "GPUProfiler.hpp"
 #include "spirv_parser.hpp"
 // -- Aplication Includes ------------------------- //
 
@@ -61,36 +62,36 @@ constexpr const T& magnefu_max(const T& a, const T& b)
 #include <GLFW/glfw3.h>
 
 
+
 namespace Magnefu
 {
+    struct SwapChainSupportDetails
+    {
+        Array<VkSurfaceFormatKHR> Formats;
+        Array<VkPresentModeKHR>   PresentModes;
+        VkSurfaceCapabilitiesKHR  Capabilities;
+    };
 
 
     static void                 check_result(VkResult result);
 #define                     check( result, message ) MF_CORE_ASSERT( result == VK_SUCCESS, "Vulkan assert code {} | {}", result, message )
 
-   
+    // Device implementation //////////////////////////////////////////////////
 
-    // -- Device implementation --------------------------------------------------------------- //
-
-    // -- Methods ---------------------------------------------------------------------------- //
+    // Methods //////////////////////////////////////////////////////////////////////
 
     // Enable this to add debugging capabilities.
     // https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_EXT_debug_utils.html
-
 #define VULKAN_DEBUG_REPORT
-#define VULKAN_MEMORY_BUDGETS
-#define VULKAN_MEMORY_PRIORITY
 
 //#define VULKAN_SYNCHRONIZATION_VALIDATION
 
-    // Vulkan INSTANCE Extensions
-    static const char* s_requested_extensions[] = 
-    {
-        VK_KHR_SURFACE_EXTENSION_NAME,      // Also obtained through glfwGetRequiredInstanceExtensions
+    static const char* s_requested_extensions[] = {
+        "VK_KHR_win32_surface",         // Also obtained through glfwGetRequiredInstanceExtensions
+        //VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
         // Platform specific extension
     #ifdef VK_USE_PLATFORM_WIN32_KHR
-            "VK_KHR_win32_surface",         // Also obtained through glfwGetRequiredInstanceExtensions
-            //VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+            VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
     #elif defined(VK_USE_PLATFORM_MACOS_MVK)
             VK_MVK_MACOS_SURFACE_EXTENSION_NAME,
     #elif defined(VK_USE_PLATFORM_XCB_KHR)
@@ -135,6 +136,8 @@ namespace Magnefu
     static const char* s_requested_layers[] = {
     #if defined (VULKAN_DEBUG_REPORT)
         "VK_LAYER_KHRONOS_validation",
+        //"VK_LAYER_AMD_switchable_graphics",
+        //"VK_LAYER_NV_optimus",
         //"VK_LAYER_LUNARG_core_validation",
         //"VK_LAYER_LUNARG_image",
         //"VK_LAYER_LUNARG_parameter_validation",
@@ -149,7 +152,7 @@ namespace Magnefu
     static VkBool32 debug_utils_callback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
         VkDebugUtilsMessageTypeFlagsEXT types,
         const VkDebugUtilsMessengerCallbackDataEXT* callback_data,
-        void* user_data) 
+        void* user_data)
     {
         bool triggerBreak = severity & (VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT);
 
@@ -162,10 +165,9 @@ namespace Magnefu
         return VK_FALSE;
     }
 
+    // GPU Timestamps ///////////////////////////////////////////////////
 
-    // -- GPU Timestamps ----------------------------------------------------------b//
-
-    VkDebugUtilsMessengerCreateInfoEXT create_debug_utils_messenger_info() 
+    VkDebugUtilsMessengerCreateInfoEXT create_debug_utils_messenger_info()
     {
         VkDebugUtilsMessengerCreateInfoEXT creation_info = { VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT };
         creation_info.pfnUserCallback = debug_utils_callback;
@@ -193,58 +195,29 @@ namespace Magnefu
     static Magnefu::FlatHashMap<u64, VkRenderPass> render_pass_cache;
     static CommandBufferManager command_buffer_ring;
 
-
     static const u32        k_bindless_texture_binding = 10;
+    static const u32        k_bindless_image_binding = 11;
     static const u32        k_max_bindless_resources = 1024;
 
-    bool GraphicsContext::get_family_queue(VkPhysicalDevice physical_device) 
-    {
-        u32 queue_family_count = 0;
-        vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_family_count, nullptr);
 
-        VkQueueFamilyProperties* queue_families = (VkQueueFamilyProperties*)mfalloca(sizeof(VkQueueFamilyProperties) * queue_family_count, allocator);
-        vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_family_count, queue_families);
 
-        u32 family_index = 0;
-        VkBool32 surface_supported;
-        for (; family_index < queue_family_count; ++family_index) 
-        {
-            VkQueueFamilyProperties queue_family = queue_families[family_index];
-
-            if (queue_family.queueCount > 0 && queue_family.queueFlags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT)) 
-            {
-                vkGetPhysicalDeviceSurfaceSupportKHR(physical_device, family_index, vulkan_window_surface, &surface_supported);
-
-                if (surface_supported) 
-                {
-                    vulkan_main_queue_family = family_index;
-                    break;
-                }
-            }
-        }
-
-        mffree(queue_families, allocator);
-
-        return surface_supported;
-    }
-
-    bool GraphicsContext::check_device_extension_support(VkPhysicalDevice physical_device)
+    static bool check_device_extension_support(VkPhysicalDevice physical_device, Allocator* allocator)
     {
         // TODO: Check device extension support
         uint32_t extensionCount;
         vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extensionCount, nullptr);
 
         Array<VkExtensionProperties> availableExtensions(allocator, extensionCount, extensionCount);
-        
+
         vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extensionCount, availableExtensions.begin());
 
 
         Array<cstring> deviceExtensions(allocator, device_extensions, device_extensions + ArraySize(device_extensions));
         std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
-        
+
 
         uint32_t apiVersion;
-        if (vkEnumerateInstanceVersion(&apiVersion) == VK_SUCCESS) 
+        if (vkEnumerateInstanceVersion(&apiVersion) == VK_SUCCESS)
         {
 
             if (apiVersion == VK_API_VERSION_1_0)
@@ -258,7 +231,7 @@ namespace Magnefu
             {
                 requiredExtensions.insert(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME);
             }
-              
+
         }
         else
         {
@@ -266,8 +239,8 @@ namespace Magnefu
         }
 
         MF_CORE_DEBUG("AVAILABLE EXTENSIONS: ");
-        for (const auto& extension : availableExtensions) 
-        {     
+        for (const auto& extension : availableExtensions)
+        {
             requiredExtensions.erase(extension.extensionName);
             MF_CORE_DEBUG("\t{}", extension.extensionName);
         }
@@ -276,7 +249,7 @@ namespace Magnefu
 
     }
 
-    SwapChainSupportDetails GraphicsContext::query_swapchain_support(VkPhysicalDevice physical_device)
+    static SwapChainSupportDetails query_swapchain_support(VkPhysicalDevice physical_device, VkSurfaceKHR vulkan_window_surface)
     {
         SwapChainSupportDetails details;
 
@@ -305,23 +278,46 @@ namespace Magnefu
         return details;
     }
 
-    void GraphicsContext::init(const DeviceCreation& creation) 
-    {
+    bool GraphicsContext::get_family_queue(VkPhysicalDevice physical_device) {
+        u32 queue_family_count = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_family_count, nullptr);
+
+        VkQueueFamilyProperties* queue_families = (VkQueueFamilyProperties*)mfalloca(sizeof(VkQueueFamilyProperties) * queue_family_count, allocator);
+        vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_family_count, queue_families);
+
+        u32 family_index = 0;
+        VkBool32 surface_supported;
+        for (; family_index < queue_family_count; ++family_index) {
+            VkQueueFamilyProperties queue_family = queue_families[family_index];
+            if (queue_family.queueCount > 0 && queue_family.queueFlags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT)) {
+                vkGetPhysicalDeviceSurfaceSupportKHR(physical_device, family_index, vulkan_window_surface, &surface_supported);
+
+                if (surface_supported) {
+                    vulkan_main_queue_family = family_index;
+                    break;
+                }
+            }
+        }
+
+        mffree(queue_families, allocator);
+
+        return surface_supported;
+    }
+
+    void GraphicsContext::init(const GraphicsContextCreation& creation) {
 
         MF_CORE_INFO("Gpu Device init");
-
-
+        // 1. Perform common code
         allocator = creation.allocator;
         temporary_allocator = creation.temporary_allocator;
-        string_buffer.init(mfmega(1), creation.allocator);
 
+        string_buffer.init(1024 * 1024, creation.allocator);
 
-        // -- Init Vulkan Instance -------------------------------------------------- //
-
+        //////// Init Vulkan instance.
         VkResult result;
         vulkan_allocation_callbacks = nullptr;
 
-        VkApplicationInfo application_info {};
+        VkApplicationInfo application_info{};
         application_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
         application_info.pApplicationName = "Magnefu Editor - Vulkan";
         application_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -335,15 +331,14 @@ namespace Magnefu
         instanceCreateInfo.pNext = nullptr;
         instanceCreateInfo.flags = 0;
         instanceCreateInfo.pApplicationInfo = &application_info;
-#if defined(VULKAN_DEBUG_REPORT)
+
+    #if defined(VULKAN_DEBUG_REPORT)
         instanceCreateInfo.enabledLayerCount = (u32)ArraySize(s_requested_layers);
         instanceCreateInfo.ppEnabledLayerNames = s_requested_layers;
-
-        
-#else
+    #else
         instanceCreateInfo.enabledLayerCount = 0;
         instanceCreateInfo.ppEnabledLayerNames = nullptr;
-#endif
+    #endif
         instanceCreateInfo.enabledExtensionCount = (u32)ArraySize(s_requested_extensions);
         instanceCreateInfo.ppEnabledExtensionNames = s_requested_extensions;
 
@@ -351,71 +346,53 @@ namespace Magnefu
 #if defined(VULKAN_DEBUG_REPORT)
         const VkDebugUtilsMessengerCreateInfoEXT debug_create_info = create_debug_utils_messenger_info();
 
-    #if defined(VULKAN_SYNCHRONIZATION_VALIDATION)
-            const VkValidationFeatureEnableEXT featuresRequested[] = { VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT, VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT/*, VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT*/ };
-            VkValidationFeaturesEXT features = {};
-            features.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
-            features.pNext = &debug_create_info;
-            features.enabledValidationFeatureCount = _countof(featuresRequested);
-            features.pEnabledValidationFeatures = featuresRequested;
-            instanceCreateInfo.pNext = &features;
-    #else
-            instanceCreateInfo.pNext = &debug_create_info;
-    #endif // VULKAN_SYNCHRONIZATION_VALIDATION
+#if defined(VULKAN_SYNCHRONIZATION_VALIDATION)
+        const VkValidationFeatureEnableEXT featuresRequested[] = { VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT, VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT/*, VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT*/ };
+        VkValidationFeaturesEXT features = {};
+        features.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
+        features.pNext = &debug_create_info;
+        features.enabledValidationFeatureCount = _countof(featuresRequested);
+        features.pEnabledValidationFeatures = featuresRequested;
+        create_info.pNext = &features;
+#else
+        instanceCreateInfo.pNext = &debug_create_info;
+#endif // VULKAN_SYNCHRONIZATION_VALIDATION
 #endif // VULKAN_DEBUG_REPORT
 
-
-        // -- Create Vulkan Instance ------------------------------------------------------------------- //
-        check(vkCreateInstance(&instanceCreateInfo, vulkan_allocation_callbacks, &vulkan_instance), "Failed to create Vulkan VkInstance");
+        //// Create Vulkan Instance
+        result = vkCreateInstance(&instanceCreateInfo, vulkan_allocation_callbacks, &vulkan_instance);
+        check(result, "Failed to create vulkan instance");
 
         swapchain_width = creation.width;
         swapchain_height = creation.height;
 
         StackAllocator* temp_allocator = creation.temporary_allocator;
         sizet initial_temp_allocator_marker = temp_allocator->getMarker();
-        
 
-        // -- Choose Extensions --------------------------------------------------------------------------- //
+        //// Choose extensions
 #ifdef VULKAN_DEBUG_REPORT
         {
-
             u32 num_instance_extensions;
             vkEnumerateInstanceExtensionProperties(nullptr, &num_instance_extensions, nullptr);
             VkExtensionProperties* extensions = (VkExtensionProperties*)mfalloca(sizeof(VkExtensionProperties) * num_instance_extensions, temp_allocator);
             vkEnumerateInstanceExtensionProperties(nullptr, &num_instance_extensions, extensions);
-            for (size_t i = 0; i < num_instance_extensions; i++) 
-            {
+            for (size_t i = 0; i < num_instance_extensions; i++) {
 
-                if (!strcmp(extensions[i].extensionName, VK_EXT_DEBUG_UTILS_EXTENSION_NAME)) 
-                {
+                if (!strcmp(extensions[i].extensionName, VK_EXT_DEBUG_UTILS_EXTENSION_NAME)) {
                     debug_utils_extension_present = true;
-                    break;
+                    continue;
                 }
             }
 
-
-            if (!debug_utils_extension_present) 
-            {
-                MF_CORE_INFO("Extension {} for debugging non present.", VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+            if (!debug_utils_extension_present) {
+                MF_CORE_INFO("Extension %s for debugging non present.", VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             }
-            else 
-            {
-             
-
+            else {
                 // Create new debug utils callback
                 PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vulkan_instance, "vkCreateDebugUtilsMessengerEXT");
+                VkDebugUtilsMessengerCreateInfoEXT debug_messenger_create_info = create_debug_utils_messenger_info();
 
-                if (vkCreateDebugUtilsMessengerEXT != nullptr)
-                {
-                    VkDebugUtilsMessengerCreateInfoEXT debug_messenger_create_info = create_debug_utils_messenger_info();
-
-                    vkCreateDebugUtilsMessengerEXT(vulkan_instance, &debug_messenger_create_info, vulkan_allocation_callbacks, &vulkan_debug_utils_messenger);
-                }
-                else
-                {
-                    MF_CORE_DEBUG("vkCreateDebugUtilsMessengerEXT - VK_ERROR_EXTENSION_NOT_PRESENT");
-                }
-                
+                vkCreateDebugUtilsMessengerEXT(vulkan_instance, &debug_messenger_create_info, vulkan_allocation_callbacks, &vulkan_debug_utils_messenger);
             }
         }
 #endif
@@ -441,27 +418,12 @@ namespace Magnefu
 
         VkPhysicalDevice discrete_gpu = VK_NULL_HANDLE;
         VkPhysicalDevice integrated_gpu = VK_NULL_HANDLE;
-        for (u32 i = 0; i < num_physical_device; ++i) 
-        {
+        for (u32 i = 0; i < num_physical_device; ++i) {
             VkPhysicalDevice physical_device = gpus[i];
-
             vkGetPhysicalDeviceProperties(physical_device, &vulkan_physical_properties);
 
-            bool swapchainAdequate = false;
-
-            
-            bool extensionsSupported = check_device_extension_support(physical_device); // checking REQUIRED extensions
-
-            if (extensionsSupported)
-            {
-                SwapChainSupportDetails swapChainSupport = query_swapchain_support(physical_device);
-                swapchainAdequate = !swapChainSupport.Formats.empty() && !swapChainSupport.PresentModes.empty();
-            }
-
-            if (vulkan_physical_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) 
-            {
-                if (get_family_queue(physical_device) && extensionsSupported && swapchainAdequate) 
-                {
+            if (vulkan_physical_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+                if (get_family_queue(physical_device)) {
                     // NOTE(marco): prefer discrete GPU over integrated one, stop at first discrete GPU that has
                     // present capabilities
                     discrete_gpu = physical_device;
@@ -471,10 +433,8 @@ namespace Magnefu
                 continue;
             }
 
-            if (vulkan_physical_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) 
-            {
-                if (get_family_queue(physical_device))
-                {
+            if (vulkan_physical_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) {
+                if (get_family_queue(physical_device)) {
                     integrated_gpu = physical_device;
                 }
 
@@ -482,24 +442,19 @@ namespace Magnefu
             }
         }
 
-        if (discrete_gpu != VK_NULL_HANDLE) 
-        {
+        if (discrete_gpu != VK_NULL_HANDLE) {
             vulkan_physical_device = discrete_gpu;
         }
-        else if (integrated_gpu != VK_NULL_HANDLE) 
-        {
+        else if (integrated_gpu != VK_NULL_HANDLE) {
             vulkan_physical_device = integrated_gpu;
         }
-        else 
-        {
+        else {
             MF_CORE_ASSERT(false, "Suitable GPU device not found!");
             return;
         }
 
-
         temp_allocator->freeToMarker(initial_temp_allocator_marker);
 
-        // Check for dynamic rendering extension
         {
             initial_temp_allocator_marker = temp_allocator->getMarker();
 
@@ -509,8 +464,18 @@ namespace Magnefu
             vkEnumerateDeviceExtensionProperties(vulkan_physical_device, nullptr, &device_extension_count, extensions);
             for (size_t i = 0; i < device_extension_count; i++) {
 
-                if (!strcmp(extensions[i].extensionName, VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)) {
+                if (!creation.force_disable_dynamic_rendering && !strcmp(extensions[i].extensionName, VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)) {
                     dynamic_rendering_extension_present = true;
+                    continue;
+                }
+
+                if (!strcmp(extensions[i].extensionName, VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME)) {
+                    timeline_semaphore_extension_present = true;
+                    continue;
+                }
+
+                if (!strcmp(extensions[i].extensionName, VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME)) {
+                    synchronization2_extension_present = true;
                     continue;
                 }
             }
@@ -525,15 +490,8 @@ namespace Magnefu
 
         ubo_alignment = vulkan_physical_properties.limits.minUniformBufferOffsetAlignment;
         ssbo_alignemnt = vulkan_physical_properties.limits.minStorageBufferOffsetAlignment;
-        
 
-
-        // -- Add Indexing Feature ------------------------------- //
-        vulkan_physical_features = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, nullptr };
-
-        //vulkan_physical_features.features.samplerAnisotropy
-       
-
+        // [TAG: BINDLESS]
         // Query bindless extension, called Descriptor Indexing (https://www.khronos.org/registry/vulkan/specs/1.3-extensions/man/html/VK_EXT_descriptor_indexing.html)
         VkPhysicalDeviceDescriptorIndexingFeatures indexing_features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES, nullptr };
         VkPhysicalDeviceFeatures2 device_features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, &indexing_features };
@@ -545,134 +503,172 @@ namespace Magnefu
         // TODO: remove when finished with bindless
         //bindless_supported = false;
 
-
-        // -- Create logical device -------------------------------------------- //
+        //////// Create logical device
         u32 queue_family_count = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(vulkan_physical_device, &queue_family_count, nullptr);
-        VkQueueFamilyProperties* queue_families = (VkQueueFamilyProperties*)mfalloca(sizeof(VkQueueFamilyProperties) * queue_family_count, allocator);
+
+        VkQueueFamilyProperties* queue_families = (VkQueueFamilyProperties*)mfalloca(sizeof(VkQueueFamilyProperties) * queue_family_count, temp_allocator);
         vkGetPhysicalDeviceQueueFamilyProperties(vulkan_physical_device, &queue_family_count, queue_families);
 
-        u32 main_queue_index = u32_max;
-        u32 transfer_queue_index = u32_max;
+        u32 main_queue_family_index = u32_max, transfer_queue_family_index = u32_max, compute_queue_family_index = u32_max, present_queue_family_index = u32_max;
         u32 compute_queue_index = u32_max;
-        u32 present_queue_index = u32_max;
+        for (u32 fi = 0; fi < queue_family_count; ++fi) {
+            VkQueueFamilyProperties queue_family = queue_families[fi];
 
-        for (u32 fi = 0; fi < queue_family_count; fi++)
-        {
-            VkQueueFamilyProperties& queue_family = queue_families[fi];
-
-            if (queue_family.queueCount == 0)
+            if (queue_family.queueCount == 0) {
                 continue;
+            }
+#if defined(_DEBUG)
+            MF_CORE_INFO("Family {}, flags {} queue count {}", fi, queue_family.queueFlags, queue_family.queueCount);
+#endif // DEBUG
 
-            MF_CORE_DEBUG("Family {} | Flags {} | Queue Count {}", fi, queue_family.queueFlags, queue_family.queueCount);
+            // Search for main queue that should be able to do all work (graphics, compute and transfer)
+            if ((queue_family.queueFlags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT)) == (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT)) {
+                main_queue_family_index = fi;
 
-            // Search for main queue that should be able to do all work (graphics, compute, transfer)
-            if ((queue_family.queueFlags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT )) == (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT ))
-            {
-                main_queue_index = fi;
+                if (queue_family.queueCount > 1) {
+                    compute_queue_family_index = fi;
+                    compute_queue_index = 1;
+                }
+
+                continue;
             }
 
-            // Search for dedicated transfer queue
-            if ((queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT) == 0 && (queue_family.queueFlags & VK_QUEUE_TRANSFER_BIT))
-            {
-                transfer_queue_index = fi;
+            // Search for another compute queue if graphics queue exposes only one queue
+            if ((queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT) && compute_queue_index == u32_max) {
+                compute_queue_family_index = fi;
+                compute_queue_index = 0;
             }
 
-
+            // Search for transfer queue
+            if ((queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT) == 0 && (queue_family.queueFlags & VK_QUEUE_TRANSFER_BIT)) {
+                transfer_queue_family_index = fi;
+                continue;
+            }
         }
-
-        mffree(queue_families, allocator);
 
         // Cache family indices
-        vulkan_main_queue_family = main_queue_index;
-        vulkan_transfer_queue_family = transfer_queue_index;
+        vulkan_main_queue_family = main_queue_family_index;
+        vulkan_compute_queue_family = compute_queue_family_index;
+        vulkan_transfer_queue_family = transfer_queue_family_index;
 
-        Array<const char*> deviceExtensions(allocator, device_extensions, device_extensions + ArraySize(device_extensions));
+        Array<const char*> device_extensions;
+        device_extensions.init(temporary_allocator, 2);
+        device_extensions.push(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+        device_extensions.push(VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME);
 
-        if (dynamic_rendering_extension_present)
-        {
-            deviceExtensions.push(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+        if (dynamic_rendering_extension_present) {
+            device_extensions.push(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
         }
 
-        const float queue_priority[] = { 1.0f };
-        VkDeviceQueueCreateInfo queue_info[2] = {};
-        VkDeviceQueueCreateInfo& main_queue = queue_info[0];
+        if (timeline_semaphore_extension_present) {
+            device_extensions.push(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME);
+        }
 
+        if (synchronization2_extension_present) {
+            device_extensions.push(VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME);
+        }
+
+        const float queue_priority[] = { 1.0f, 1.0f };
+        VkDeviceQueueCreateInfo queue_info[3] = {};
+
+        u32 queue_count = 0;
+
+        VkDeviceQueueCreateInfo& main_queue = queue_info[queue_count++];
         main_queue.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        main_queue.queueFamilyIndex = vulkan_main_queue_family;
-        main_queue.queueCount = 1;
+        main_queue.queueFamilyIndex = main_queue_family_index;
+        main_queue.queueCount = compute_queue_family_index == main_queue_family_index ? 2 : 1;
         main_queue.pQueuePriorities = queue_priority;
 
-        if (vulkan_transfer_queue_family < queue_family_count)
-        {
-            VkDeviceQueueCreateInfo& transfer_queue = queue_info[1];
-            transfer_queue.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-            transfer_queue.queueFamilyIndex = vulkan_transfer_queue_family;
-            transfer_queue.queueCount = 1;
-            transfer_queue.pQueuePriorities = queue_priority;
+        if (compute_queue_family_index != main_queue_family_index) {
+            VkDeviceQueueCreateInfo& compute_queue = queue_info[queue_count++];
+            compute_queue.queueFamilyIndex = compute_queue_family_index;
+            compute_queue.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            compute_queue.queueCount = 1;
+            compute_queue.pQueuePriorities = queue_priority;
         }
 
-        // -- Chain Dynamic Rendering Feature ----------------------------- //
-        
+        if (vulkan_transfer_queue_family < queue_family_count) {
+            VkDeviceQueueCreateInfo& transfer_queue_info = queue_info[queue_count++];
+            transfer_queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            transfer_queue_info.queueFamilyIndex = transfer_queue_family_index;
+            transfer_queue_info.queueCount = 1;
+            transfer_queue_info.pQueuePriorities = queue_priority;
+        }
+
         // Enable all features: just pass the physical features 2 struct.
+        VkPhysicalDeviceFeatures2 physical_features2{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2 };
+        VkPhysicalDeviceVulkan11Features vulkan_11_features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
+        //VkPhysicalDeviceVulkan13Features vulkan_13_features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES };
+        void* current_pnext = &vulkan_11_features;
+        //void* current_pnext = &vulkan_13_features;
+
         VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamic_rendering_features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR };
         if (dynamic_rendering_extension_present) {
-            vulkan_physical_features.pNext = &dynamic_rendering_features;
+            dynamic_rendering_features.pNext = current_pnext;
+            current_pnext = &dynamic_rendering_features;
         }
-        vkGetPhysicalDeviceFeatures2(vulkan_physical_device, &vulkan_physical_features);
 
+        VkPhysicalDeviceTimelineSemaphoreFeatures timeline_sempahore_features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES };
+        if (timeline_semaphore_extension_present) {
+            timeline_sempahore_features.pNext = current_pnext;
+            current_pnext = &timeline_sempahore_features;
+        }
 
-        VkDeviceCreateInfo device_create_info = {};
-        device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        device_create_info.queueCreateInfoCount = vulkan_transfer_queue_family < queue_family_count ? 2 : 1;
-        device_create_info.pQueueCreateInfos = queue_info;
-        //device_create_info.pEnabledFeatures = &vulkan_physical_features.features;
-        device_create_info.enabledExtensionCount = deviceExtensions.size;
-        device_create_info.ppEnabledExtensionNames = deviceExtensions.data;
-        device_create_info.enabledLayerCount = ArraySize(s_requested_layers);
-        device_create_info.ppEnabledLayerNames = s_requested_layers;
-        device_create_info.pNext = &vulkan_physical_features;
+        VkPhysicalDeviceSynchronization2FeaturesKHR synchronization2_features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES_KHR };
+        if (synchronization2_extension_present) {
+            synchronization2_features.pNext = current_pnext;
+            current_pnext = &synchronization2_features;
+        }
 
         // [TAG: BINDLESS]
-        if (bindless_supported) 
-        {
-            indexing_features.descriptorBindingPartiallyBound = VK_TRUE;
-            indexing_features.runtimeDescriptorArray = VK_TRUE;
-
-            // TODO(marco): more generic chaining
-            if (dynamic_rendering_extension_present) 
-            {
-                dynamic_rendering_features.pNext = &indexing_features;
-            }
-            else {
-                vulkan_physical_features.pNext = &indexing_features;
-            }
+        // We also add the bindless needed feature on the device creation.
+        if (bindless_supported) {
+            indexing_features.pNext = current_pnext;
+            current_pnext = &indexing_features;
         }
 
+        physical_features2.pNext = current_pnext;
+        vkGetPhysicalDeviceFeatures2(vulkan_physical_device, &physical_features2);
+
+        MF_CORE_ASSERT(vulkan_11_features.shaderDrawParameters == VK_TRUE, "");
+
+        VkDeviceCreateInfo device_create_info{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
+        device_create_info.queueCreateInfoCount = queue_count;
+        device_create_info.pQueueCreateInfos = queue_info;
+        device_create_info.enabledExtensionCount = device_extensions.size;
+        device_create_info.ppEnabledExtensionNames = device_extensions.data;
+        device_create_info.pNext = &physical_features2;
 
         result = vkCreateDevice(vulkan_physical_device, &device_create_info, vulkan_allocation_callbacks, &vulkan_device);
-        check(result, "Failed to create vulkan logical device");
+        check(result, "failed to create vulkan device");
 
         //  Get the function pointers to Debug Utils functions.
-        if (debug_utils_extension_present) 
-        {
+        if (debug_utils_extension_present) {
             pfnSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetDeviceProcAddr(vulkan_device, "vkSetDebugUtilsObjectNameEXT");
             pfnCmdBeginDebugUtilsLabelEXT = (PFN_vkCmdBeginDebugUtilsLabelEXT)vkGetDeviceProcAddr(vulkan_device, "vkCmdBeginDebugUtilsLabelEXT");
             pfnCmdEndDebugUtilsLabelEXT = (PFN_vkCmdEndDebugUtilsLabelEXT)vkGetDeviceProcAddr(vulkan_device, "vkCmdEndDebugUtilsLabelEXT");
         }
 
-        if (dynamic_rendering_extension_present) 
-        {
+        if (dynamic_rendering_extension_present) {
             cmd_begin_rendering = (PFN_vkCmdBeginRenderingKHR)vkGetDeviceProcAddr(vulkan_device, "vkCmdBeginRenderingKHR");
             cmd_end_rendering = (PFN_vkCmdEndRenderingKHR)vkGetDeviceProcAddr(vulkan_device, "vkCmdEndRenderingKHR");
         }
 
+        if (synchronization2_extension_present) {
+            queue_submit2 = (PFN_vkQueueSubmit2KHR)vkGetDeviceProcAddr(vulkan_device, "vkQueueSubmit2KHR");
+            cmd_pipeline_barrier2 = (PFN_vkCmdPipelineBarrier2KHR)vkGetDeviceProcAddr(vulkan_device, "vkCmdPipelineBarrier2KHR");
+        }
 
         // Get main queue
-        vkGetDeviceQueue(vulkan_device, main_queue_index, 0, &vulkan_main_queue);
-        if (vulkan_transfer_queue_family < queue_family_count)
-        {
-            vkGetDeviceQueue(vulkan_device, transfer_queue_index, 0, &vulkan_transfer_queue);
+        vkGetDeviceQueue(vulkan_device, main_queue_family_index, 0, &vulkan_main_queue);
+
+        // TODO(marco): handle case where we can't create a separate compute queue
+        vkGetDeviceQueue(vulkan_device, compute_queue_family_index, compute_queue_index, &vulkan_compute_queue);
+
+        // Get transfer queue if present
+        if (vulkan_transfer_queue_family < queue_family_count) {
+            vkGetDeviceQueue(vulkan_device, transfer_queue_family_index, 0, &vulkan_transfer_queue);
         }
 
         // Create Framebuffers
@@ -687,12 +683,13 @@ namespace Magnefu
         if (vulkan_max_sample_count & VK_SAMPLE_COUNT_64_BIT) { vulkan_max_sample_count_bits = VK_SAMPLE_COUNT_64_BIT; }
         else if (vulkan_max_sample_count & VK_SAMPLE_COUNT_32_BIT) { vulkan_max_sample_count_bits = VK_SAMPLE_COUNT_32_BIT; }
         else if (vulkan_max_sample_count & VK_SAMPLE_COUNT_16_BIT) { vulkan_max_sample_count_bits = VK_SAMPLE_COUNT_16_BIT; }
-        else if (vulkan_max_sample_count & VK_SAMPLE_COUNT_8_BIT)  { vulkan_max_sample_count_bits = VK_SAMPLE_COUNT_8_BIT; }
-        else if (vulkan_max_sample_count & VK_SAMPLE_COUNT_4_BIT)  { vulkan_max_sample_count_bits = VK_SAMPLE_COUNT_4_BIT; }
-        else if (vulkan_max_sample_count & VK_SAMPLE_COUNT_2_BIT)  { vulkan_max_sample_count_bits = VK_SAMPLE_COUNT_2_BIT; }
+        else if (vulkan_max_sample_count & VK_SAMPLE_COUNT_8_BIT) { vulkan_max_sample_count_bits = VK_SAMPLE_COUNT_8_BIT; }
+        else if (vulkan_max_sample_count & VK_SAMPLE_COUNT_4_BIT) { vulkan_max_sample_count_bits = VK_SAMPLE_COUNT_4_BIT; }
+        else if (vulkan_max_sample_count & VK_SAMPLE_COUNT_2_BIT) { vulkan_max_sample_count_bits = VK_SAMPLE_COUNT_2_BIT; }
         else { vulkan_max_sample_count_bits = VK_SAMPLE_COUNT_1_BIT; }
 
 #endif
+
         //// Select Surface Format
         //const TextureFormat::Enum swapchain_formats[] = { TextureFormat::B8G8R8A8_UNORM, TextureFormat::R8G8B8A8_UNORM, TextureFormat::B8G8R8X8_UNORM, TextureFormat::B8G8R8X8_UNORM };
         const VkFormat surface_image_formats[] = { VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM };
@@ -708,14 +705,11 @@ namespace Magnefu
 
         //// Check for supported formats
         bool format_found = false;
-        const u32 surface_format_count = (u32)ArraySize(surface_image_formats);
+        const u32 surface_format_count = ArraySize(surface_image_formats);
 
-        for (int i = 0; i < surface_format_count; i++) 
-        {
-            for (u32 j = 0; j < supported_count; j++) 
-            {
-                if (supported_formats[j].format == surface_image_formats[i] && supported_formats[j].colorSpace == surface_color_space) 
-                {
+        for (int i = 0; i < surface_format_count; i++) {
+            for (u32 j = 0; j < supported_count; j++) {
+                if (supported_formats[j].format == surface_image_formats[i] && supported_formats[j].colorSpace == surface_color_space) {
                     vulkan_surface_format = supported_formats[j];
                     format_found = true;
                     break;
@@ -730,12 +724,11 @@ namespace Magnefu
         swapchain_output.set_depth_stencil_operations(RenderPassOperation::Clear, RenderPassOperation::Clear);
 
         // Default to the first format supported.
-        if (!format_found) 
-        {
+        if (!format_found) {
             vulkan_surface_format = supported_formats[0];
-            MF_CORE_ASSERT(false, "Surface Format not found");
+            MF_CORE_ASSERT(false, "");
         }
-        
+
         // Final use of temp allocator, free all temporary memory created here.
         temp_allocator->freeToMarker(initial_temp_allocator_marker);
 
@@ -743,28 +736,16 @@ namespace Magnefu
 
         set_present_mode(present_mode);
 
-
         //////// Create VMA Allocator
         VmaAllocatorCreateInfo allocatorInfo = {};
         allocatorInfo.physicalDevice = vulkan_physical_device;
         allocatorInfo.device = vulkan_device;
         allocatorInfo.instance = vulkan_instance;
 
-        //allocatorInfo.flags = VMA_ALLOCATOR_CREATE_KHR_DEDICATED_ALLOCATION_BIT | VMA_ALLOCATOR_CREATE_KHR_BIND_MEMORY2_BIT | VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
-
-#if defined(VULKAN_MEMORY_BUDGETS)
-        allocatorInfo.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
-#endif
-
-#if defined(VULKAN_MEMORY_PRIORITY)
-        allocatorInfo.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_PRIORITY_BIT;
-#endif
-
-
         result = vmaCreateAllocator(&allocatorInfo, &vma_allocator);
-        check(result, "Failed to create VMA Allocator");
+        check(result, "Failed to create vma allocator");
 
-        // --  Create pools ----------------------------------------------- //
+        ////////  Create Descriptor Pools
         static const u32 k_global_pool_elements = 128;
         VkDescriptorPoolSize pool_sizes[] =
         {
@@ -780,50 +761,92 @@ namespace Magnefu
             { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, k_global_pool_elements },
             { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, k_global_pool_elements}
         };
-
-        u32 pool_size_count = (u32)ArraySize(pool_sizes);
         VkDescriptorPoolCreateInfo pool_info = {};
         pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-        pool_info.maxSets = k_global_pool_elements * pool_size_count;
-        pool_info.poolSizeCount = pool_size_count;
+        pool_info.maxSets = k_descriptor_sets_pool_size;
+        pool_info.poolSizeCount = (u32)ArraySize(pool_sizes);
         pool_info.pPoolSizes = pool_sizes;
         result = vkCreateDescriptorPool(vulkan_device, &pool_info, vulkan_allocation_callbacks, &vulkan_descriptor_pool);
-        check(result, "Fialed to create descriptor pool");
+        check(result, "failed to create descriptor pool");
 
         // [TAG: BINDLESS]
         // Create the Descriptor Pool used by bindless, that needs update after bind flag.
-
-        if (bindless_supported)
-        {
+        if (bindless_supported) {
             VkDescriptorPoolSize pool_sizes_bindless[] =
             {
-                {
-                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                    k_max_bindless_resources
-                },
-                {
-                    VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-                    k_max_bindless_resources
-                }
+                { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, k_max_bindless_resources },
+                { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, k_max_bindless_resources },
             };
 
-            const u32 pool_sizes_bindless_count = (u32)ArraySize(pool_sizes_bindless);
-            VkDescriptorPoolCreateInfo pool_info_bindless = {};
-            pool_info_bindless.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-            pool_info_bindless.flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT_EXT;
-            pool_info_bindless.maxSets = k_max_bindless_resources * pool_sizes_bindless_count;
-            pool_info_bindless.poolSizeCount = pool_sizes_bindless_count;
-            pool_info_bindless.pPoolSizes = pool_sizes_bindless;
-            result = vkCreateDescriptorPool(vulkan_device, &pool_info_bindless, vulkan_allocation_callbacks, &vulkan_bindless_descriptor_pool);
-            check(result, "Failed to create descriptor pool");
+            // Update after bind is needed here, for each binding and in the descriptor set layout creation.
+            pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT_EXT;
+            pool_info.maxSets = k_max_bindless_resources * ArraySize(pool_sizes_bindless);
+            pool_info.poolSizeCount = (u32)ArraySize(pool_sizes_bindless);
+            pool_info.pPoolSizes = pool_sizes_bindless;
+            result = vkCreateDescriptorPool(vulkan_device, &pool_info, vulkan_allocation_callbacks, &vulkan_bindless_descriptor_pool);
+            check(result, "failed to create bindless descriptor pool");
         }
 
+        // Init render frame informations. This includes fences, semaphores, command buffers, ...
+        // TODO: memory - allocate memory of all Device render frame stuff
+        u8* memory = mfallocam(sizeof(GPUTimeQueriesManager) + sizeof(CommandBuffer*) * 128, allocator);
 
-        // Create timestamp query pool used for GPU timings.
-        VkQueryPoolCreateInfo vqpci{ VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO, nullptr, 0, VK_QUERY_TYPE_TIMESTAMP, creation.gpu_time_queries_per_frame * 2u * k_max_frames, 0 };
-        vkCreateQueryPool(vulkan_device, &vqpci, vulkan_allocation_callbacks, &vulkan_timestamp_query_pool);
 
+        // Create vulkan pools
+        const u32 num_pools = creation.num_threads * k_max_frames;
+        num_threads = creation.num_threads;
+        thread_frame_pools.init(allocator, num_pools, num_pools);
+
+        // Create compute command pools and command buffers
+        compute_frame_pools.init(allocator, k_max_frames, k_max_frames);
+
+        gpu_time_queries_manager = (GPUTimeQueriesManager*)(memory);
+        gpu_time_queries_manager->init(thread_frame_pools.data, compute_frame_pools.data, allocator, creation.gpu_time_queries_per_frame, creation.num_threads, k_max_frames);
+
+        for (u32 i = 0; i < thread_frame_pools.size; ++i) {
+            GpuThreadFramePools& pool = thread_frame_pools[i];
+            pool.time_queries = &gpu_time_queries_manager->query_trees[i];
+
+            // Create command buffer pool.
+            VkCommandPoolCreateInfo cmd_pool_info = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO, nullptr };
+            cmd_pool_info.queueFamilyIndex = vulkan_main_queue_family;
+            cmd_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+            vkCreateCommandPool(vulkan_device, &cmd_pool_info, vulkan_allocation_callbacks, &pool.vulkan_command_pool);
+
+            // Create timestamp query pool used for GPU timings.
+            VkQueryPoolCreateInfo timestamp_pool_info{ VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO, nullptr, 0, VK_QUERY_TYPE_TIMESTAMP, creation.gpu_time_queries_per_frame * 2u, 0 };
+            vkCreateQueryPool(vulkan_device, &timestamp_pool_info, vulkan_allocation_callbacks, &pool.vulkan_timestamp_query_pool);
+
+            // Create pipeline statistics query pool
+            VkQueryPoolCreateInfo statistics_pool_info{ VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO, nullptr, 0, VK_QUERY_TYPE_PIPELINE_STATISTICS, 7, 0 };
+            statistics_pool_info.pipelineStatistics = VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_VERTICES_BIT |
+                VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_PRIMITIVES_BIT |
+                VK_QUERY_PIPELINE_STATISTIC_VERTEX_SHADER_INVOCATIONS_BIT |
+                VK_QUERY_PIPELINE_STATISTIC_CLIPPING_INVOCATIONS_BIT |
+                VK_QUERY_PIPELINE_STATISTIC_CLIPPING_PRIMITIVES_BIT |
+                VK_QUERY_PIPELINE_STATISTIC_FRAGMENT_SHADER_INVOCATIONS_BIT |
+                VK_QUERY_PIPELINE_STATISTIC_COMPUTE_SHADER_INVOCATIONS_BIT;
+            vkCreateQueryPool(vulkan_device, &statistics_pool_info, vulkan_allocation_callbacks, &pool.vulkan_pipeline_stats_query_pool);
+        }
+
+        for (u32 i = 0; i < compute_frame_pools.size; ++i) {
+            GpuThreadFramePools& pool = compute_frame_pools[i];
+            pool.time_queries = &gpu_time_queries_manager->query_trees[thread_frame_pools.size + i];
+
+            VkCommandPoolCreateInfo cmd_pool_info = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO, nullptr };
+            cmd_pool_info.queueFamilyIndex = vulkan_compute_queue_family;
+            cmd_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+            vkCreateCommandPool(vulkan_device, &cmd_pool_info, vulkan_allocation_callbacks, &pool.vulkan_command_pool);
+
+            // Create timestamp query pool used for GPU timings.
+            VkQueryPoolCreateInfo timestamp_pool_info{ VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO, nullptr, 0, VK_QUERY_TYPE_TIMESTAMP, creation.gpu_time_queries_per_frame * 2u, 0 };
+            vkCreateQueryPool(vulkan_device, &timestamp_pool_info, vulkan_allocation_callbacks, &pool.vulkan_timestamp_query_pool);
+        }
+
+        // Create resource pools
         //// Init pools
         buffers.init(allocator, k_buffers_pool_size, sizeof(Buffer));
         textures.init(allocator, k_textures_pool_size, sizeof(Texture));
@@ -836,35 +859,48 @@ namespace Magnefu
         samplers.init(allocator, k_samplers_pool_size, sizeof(Sampler));
         //command_buffers.init( allocator, 128, sizeof( CommandBuffer ) );
 
-        // Init render frame informations. This includes fences, semaphores, command buffers, ...
-        // TODO: memory - allocate memory of all Device render frame stuff
-        u8* memory = mfallocam(sizeof(GPUTimestampManager) + sizeof(CommandBuffer*) * 128, allocator);
-
         VkSemaphoreCreateInfo semaphore_info{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
         vkCreateSemaphore(vulkan_device, &semaphore_info, vulkan_allocation_callbacks, &vulkan_image_acquired_semaphore);
 
-        for (size_t i = 0; i < k_max_swapchain_images; i++) 
-        {
+        for (size_t i = 0; i < k_max_frames; i++) {
 
             vkCreateSemaphore(vulkan_device, &semaphore_info, vulkan_allocation_callbacks, &vulkan_render_complete_semaphore[i]);
 
             VkFenceCreateInfo fenceInfo{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
             fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-            vkCreateFence(vulkan_device, &fenceInfo, vulkan_allocation_callbacks, &vulkan_command_buffer_executed_fence[i]);
+
+            if (!timeline_semaphore_extension_present) {
+                vkCreateFence(vulkan_device, &fenceInfo, vulkan_allocation_callbacks, &vulkan_command_buffer_executed_fence[i]);
+            }
         }
 
-        gpu_timestamp_manager = (GPUTimestampManager*)(memory);
-        gpu_timestamp_manager->init(allocator, creation.gpu_time_queries_per_frame, k_max_frames);
+        if (timeline_semaphore_extension_present) {
+            VkSemaphoreTypeCreateInfo semaphore_type_info{ VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO };
+            semaphore_type_info.semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE;
+            semaphore_info.pNext = &semaphore_type_info;
+
+            vkCreateSemaphore(vulkan_device, &semaphore_info, vulkan_allocation_callbacks, &vulkan_graphics_semaphore);
+
+            vkCreateSemaphore(vulkan_device, &semaphore_info, vulkan_allocation_callbacks, &vulkan_compute_semaphore);
+        }
+        else {
+            vkCreateSemaphore(vulkan_device, &semaphore_info, vulkan_allocation_callbacks, &vulkan_compute_semaphore);
+
+            VkFenceCreateInfo fenceInfo{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+            fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+            vkCreateFence(vulkan_device, &fenceInfo, vulkan_allocation_callbacks, &vulkan_compute_fence);
+        }
 
         command_buffer_ring.init(this, creation.num_threads);
 
         // Allocate queued command buffers array
-        queued_command_buffers = (CommandBuffer**)(gpu_timestamp_manager + 1);
-        CommandBuffer** correctly_allocated_buffer = (CommandBuffer**)(memory + sizeof(GPUTimestampManager));
-        MF_CORE_ASSERT((queued_command_buffers == correctly_allocated_buffer), "Wrong calculations for queued command buffers arrays.");
+        queued_command_buffers = (CommandBuffer**)(gpu_time_queries_manager + 1);
+        CommandBuffer** correctly_allocated_buffer = (CommandBuffer**)(memory + sizeof(GPUTimeQueriesManager));
+        MF_CORE_ASSERT(queued_command_buffers == correctly_allocated_buffer, "Wrong calculations for queued command buffers arrays. Should be {}, but it is {}.", correctly_allocated_buffer, queued_command_buffers);
 
         vulkan_image_index = 0;
-        current_frame = 1;
+        current_frame = 0;
         previous_frame = 0;
         absolute_frame = 0;
         timestamps_enabled = false;
@@ -876,23 +912,23 @@ namespace Magnefu
         // Init render pass cache
         render_pass_cache.init(allocator, 16);
 
-        // Create swapchain
+        //////// Create swapchain
         create_swapchain();
 
-        
+        //
         // Init primitive resources
-        
+        //
         SamplerCreation sc{};
         sc.set_address_mode_uvw(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE)
             .set_min_mag_mip(VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR).set_name("Sampler Default");
         default_sampler = create_sampler(sc);
 
-        u32 fullscreen_size = 3 * 3 * sizeof(float);
+        u32 fullscreen_size = 3 * 3 * sizeof(f32);
         BufferCreation fullscreen_vb_creation = { VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, ResourceUsageType::Immutable, fullscreen_size, 1, 0, nullptr, "Fullscreen_vb" };
         fullscreen_vertex_buffer = create_buffer(fullscreen_vb_creation);
 
         // Init Dummy resources
-        TextureCreation dummy_texture_creation = { nullptr, 1, 1, 1, 1, 0, VK_FORMAT_R8_UINT, TextureType::Texture2D };
+        TextureCreation dummy_texture_creation = { nullptr, 1, 1, 1, 1, TextureFlags::Mask::RenderTarget_mask | TextureFlags::Mask::Compute_mask, VK_FORMAT_R8_UINT, TextureType::Texture2D };
         dummy_texture = create_texture(dummy_texture_creation);
 
         BufferCreation dummy_constant_buffer_creation = { VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Immutable, 16, 0, 0, nullptr, "Dummy_cb" };
@@ -911,11 +947,9 @@ namespace Magnefu
         strcpy(vulkan_binaries_path, compiler_path);
         string_buffer.clear();
 
-
         // [TAG: BINDLESS]
         // Bindless resources creation
-        if (bindless_supported) 
-        {
+        if (bindless_supported) {
             DescriptorSetLayoutCreation bindless_layout_creation;
             bindless_layout_creation.reset().add_binding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, k_bindless_texture_binding, k_max_bindless_resources, "BindlessTextures")
                 .add_binding(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, k_bindless_texture_binding + 1, k_max_bindless_resources, "BindlessImages").set_set_index(0)
@@ -932,7 +966,6 @@ namespace Magnefu
             vulkan_bindless_descriptor_set_cached = bindless_set->vk_descriptor_set;
         }
 
-
         // Dynamic buffer handling
         // TODO:
         dynamic_per_frame_size = 1024 * 1024 * 10;
@@ -942,32 +975,37 @@ namespace Magnefu
 
         MapBufferParameters cb_map = { dynamic_buffer, 0, 0 };
         dynamic_mapped_memory = (u8*)map_buffer(cb_map);
-        
     }
 
-    void GraphicsContext::shutdown() 
-    {
+    void GraphicsContext::shutdown() {
 
         vkDeviceWaitIdle(vulkan_device);
 
         command_buffer_ring.shutdown();
 
-        for (size_t i = 0; i < k_max_swapchain_images; i++) {
+        for (size_t i = 0; i < k_max_frames; i++) {
             vkDestroySemaphore(vulkan_device, vulkan_render_complete_semaphore[i], vulkan_allocation_callbacks);
-            vkDestroyFence(vulkan_device, vulkan_command_buffer_executed_fence[i], vulkan_allocation_callbacks);
+
+            if (!timeline_semaphore_extension_present) {
+                vkDestroyFence(vulkan_device, vulkan_command_buffer_executed_fence[i], vulkan_allocation_callbacks);
+            }
+        }
+
+        if (timeline_semaphore_extension_present) {
+            vkDestroySemaphore(vulkan_device, vulkan_graphics_semaphore, vulkan_allocation_callbacks);
+            vkDestroySemaphore(vulkan_device, vulkan_compute_semaphore, vulkan_allocation_callbacks);
         }
 
         vkDestroySemaphore(vulkan_device, vulkan_image_acquired_semaphore, vulkan_allocation_callbacks);
 
-        gpu_timestamp_manager->shutdown();
+        gpu_time_queries_manager->shutdown();
 
         MapBufferParameters cb_map = { dynamic_buffer, 0, 0 };
         unmap_buffer(cb_map);
 
         // Memory: this contains allocations for gpu timestamp memory, queued command buffers and render frames.
-        mffree(gpu_timestamp_manager, allocator);
+        mffree(gpu_time_queries_manager, allocator);
 
-        // Add resources to deletion queue
         destroy_descriptor_set_layout(bindless_descriptor_set_layout);
         destroy_descriptor_set(bindless_descriptor_set);
         destroy_buffer(fullscreen_vertex_buffer);
@@ -977,66 +1015,83 @@ namespace Magnefu
         destroy_buffer(dummy_constant_buffer);
         destroy_sampler(default_sampler);
 
-        
+        // Add pending bindless textures to delete.
+        for (u32 i = 0; i < texture_to_update_bindless.size; ++i) {
+            ResourceUpdate& update = texture_to_update_bindless[i];
+            if (update.deleting) {
+                destroy_texture_instant(update.handle);
+            }
+        }
+
         // Destroy all pending resources.
-        for (u32 i = 0; i < resource_deletion_queue.count(); i++) 
-        {
+        for (u32 i = 0; i < resource_deletion_queue.size; i++) {
             ResourceUpdate& resource_deletion = resource_deletion_queue[i];
 
             // Skip just freed resources.
             if (resource_deletion.current_frame == -1)
                 continue;
 
-            switch (resource_deletion.type) 
+            switch (resource_deletion.type) {
+
+            case ResourceUpdateType::Buffer:
             {
+                destroy_buffer_instant(resource_deletion.handle);
+                break;
+            }
 
-                case ResourceUpdateType::Buffer:
-                {
-                    destroy_buffer_instant(resource_deletion.handle);
-                    break;
-                }
+            case ResourceUpdateType::Pipeline:
+            {
+                destroy_pipeline_instant(resource_deletion.handle);
+                break;
+            }
 
-                case ResourceUpdateType::Pipeline:
-                {
-                    destroy_pipeline_instant(resource_deletion.handle);
-                    break;
-                }
+            case ResourceUpdateType::RenderPass:
+            {
+                destroy_render_pass_instant(resource_deletion.handle);
+                break;
+            }
 
-                case ResourceUpdateType::RenderPass:
-                {
-                    destroy_render_pass_instant(resource_deletion.handle);
-                    break;
-                }
+            case ResourceUpdateType::DescriptorSet:
+            {
+                destroy_descriptor_set_instant(resource_deletion.handle);
+                break;
+            }
 
-                case ResourceUpdateType::DescriptorSet:
-                {
-                    destroy_descriptor_set_instant(resource_deletion.handle);
-                    break;
-                }
+            case ResourceUpdateType::DescriptorSetLayout:
+            {
+                destroy_descriptor_set_layout_instant(resource_deletion.handle);
+                break;
+            }
 
-                case ResourceUpdateType::DescriptorSetLayout:
-                {
-                    destroy_descriptor_set_layout_instant(resource_deletion.handle);
-                    break;
-                }
+            case ResourceUpdateType::Sampler:
+            {
+                destroy_sampler_instant(resource_deletion.handle);
+                break;
+            }
 
-                case ResourceUpdateType::Sampler:
-                {
-                    destroy_sampler_instant(resource_deletion.handle);
-                    break;
-                }
+            case ResourceUpdateType::ShaderState:
+            {
+                destroy_shader_state_instant(resource_deletion.handle);
+                break;
+            }
 
-                case ResourceUpdateType::ShaderState:
-                {
-                    destroy_shader_state_instant(resource_deletion.handle);
-                    break;
-                }
+            case ResourceUpdateType::Texture:
+            {
+                destroy_texture_instant(resource_deletion.handle);
+                break;
+            }
 
-                case ResourceUpdateType::Texture:
-                {
-                    destroy_texture_instant(resource_deletion.handle);
-                    break;
-                }
+            case ResourceUpdateType::Framebuffer:
+            {
+                destroy_framebuffer_instant(resource_deletion.handle);
+                break;
+            }
+
+            default:
+            {
+                MF_CORE_ASSERT(false, "Cannot process resource type %u\n", resource_deletion.type);
+                break;
+            }
             }
         }
 
@@ -1059,9 +1114,9 @@ namespace Magnefu
 
         vmaDestroyAllocator(vma_allocator);
 
+        texture_to_update_bindless.shutdown();
         resource_deletion_queue.shutdown();
         descriptor_set_updates.shutdown();
-        texture_to_update_bindless.shutdown();
 
         //command_buffers.shutdown();
         pipelines.shutdown();
@@ -1075,24 +1130,32 @@ namespace Magnefu
         framebuffers.shutdown();
 #ifdef VULKAN_DEBUG_REPORT
         // Remove the debug report callback
-        //auto vkDestroyDebugReportCallbackEXT = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr( vulkan_instance, "vkDestroyDebugReportCallbackEXT" );
-        //if(vkDestroyDebugReportCallbackEXT)
-        //    vkDestroyDebugReportCallbackEXT( vulkan_instance, vulkan_debug_callback, vulkan_allocation_callbacks );
-
         auto vkDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vulkan_instance, "vkDestroyDebugUtilsMessengerEXT");
-
-        if(vkDestroyDebugUtilsMessengerEXT)
-            vkDestroyDebugUtilsMessengerEXT(vulkan_instance, vulkan_debug_utils_messenger, vulkan_allocation_callbacks);
+        vkDestroyDebugUtilsMessengerEXT(vulkan_instance, vulkan_debug_utils_messenger, vulkan_allocation_callbacks);
 #endif // IMGUI_VULKAN_DEBUG_REPORT
 
         // [TAG: BINDLESS]
-        if (bindless_supported) 
-        {
+        if (bindless_supported) {
             vkDestroyDescriptorPool(vulkan_device, vulkan_bindless_descriptor_pool, vulkan_allocation_callbacks);
         }
 
         vkDestroyDescriptorPool(vulkan_device, vulkan_descriptor_pool, vulkan_allocation_callbacks);
-        vkDestroyQueryPool(vulkan_device, vulkan_timestamp_query_pool, vulkan_allocation_callbacks);
+
+        for (u32 i = 0; i < thread_frame_pools.size; ++i) {
+            GpuThreadFramePools& pool = thread_frame_pools[i];
+            vkDestroyQueryPool(vulkan_device, pool.vulkan_timestamp_query_pool, vulkan_allocation_callbacks);
+            vkDestroyQueryPool(vulkan_device, pool.vulkan_pipeline_stats_query_pool, vulkan_allocation_callbacks);
+            vkDestroyCommandPool(vulkan_device, pool.vulkan_command_pool, vulkan_allocation_callbacks);
+        }
+
+        for (u32 i = 0; i < compute_frame_pools.size; ++i) {
+            GpuThreadFramePools& pool = compute_frame_pools[i];
+            vkDestroyQueryPool(vulkan_device, pool.vulkan_timestamp_query_pool, vulkan_allocation_callbacks);
+            vkDestroyCommandPool(vulkan_device, pool.vulkan_command_pool, vulkan_allocation_callbacks);
+        }
+
+        thread_frame_pools.shutdown();
+        compute_frame_pools.shutdown();
 
         vkDestroyDevice(vulkan_device, vulkan_allocation_callbacks);
 
@@ -1103,12 +1166,8 @@ namespace Magnefu
         MF_CORE_INFO("Gpu Device shutdown");
     }
 
-
-    
-
     // Resource Creation ////////////////////////////////////////////////////////////
-    static void vulkan_create_texture(GraphicsContext& gpu, const TextureCreation& creation, TextureHandle handle, Texture* texture) 
-    {
+    static void vulkan_create_texture(GraphicsContext& gpu, const TextureCreation& creation, TextureHandle handle, Texture* texture) {
 
         texture->width = creation.width;
         texture->height = creation.height;
@@ -1161,7 +1220,7 @@ namespace Magnefu
 
         if (creation.alias.index == k_invalid_texture.index) {
             check(vmaCreateImage(gpu.vma_allocator, &image_info, &memory_info,
-                &texture->vk_image, &texture->vma_allocation, nullptr), "Failed to create Image");
+                &texture->vk_image, &texture->vma_allocation, nullptr), "failed vmaCreateImage");
 
 #if defined (_DEBUG)
             vmaSetAllocationName(gpu.vma_allocator, texture->vma_allocation, creation.name);
@@ -1172,7 +1231,7 @@ namespace Magnefu
             MF_CORE_ASSERT((alias_texture != nullptr), "");
 
             texture->vma_allocation = 0;
-            check(vmaCreateAliasingImage(gpu.vma_allocator, alias_texture->vma_allocation, &image_info, &texture->vk_image), "Failed to crea");
+            check(vmaCreateAliasingImage(gpu.vma_allocator, alias_texture->vma_allocation, &image_info, &texture->vk_image), "failed vmaCreateAliasingImage");
         }
 
         gpu.set_resource_name(VK_OBJECT_TYPE_IMAGE, (u64)texture->vk_image, creation.name);
@@ -1195,22 +1254,20 @@ namespace Magnefu
 
         info.subresourceRange.levelCount = creation.mipmaps;
         info.subresourceRange.layerCount = 1;
-        check(vkCreateImageView(gpu.vulkan_device, &info, gpu.vulkan_allocation_callbacks, &texture->vk_image_view), "Failed to create image view");
+        check(vkCreateImageView(gpu.vulkan_device, &info, gpu.vulkan_allocation_callbacks, &texture->vk_image_view), "failed vkCreateImageView");
 
         gpu.set_resource_name(VK_OBJECT_TYPE_IMAGE_VIEW, (u64)texture->vk_image_view, creation.name);
 
-        texture->vk_image_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+        texture->state = RESOURCE_STATE_UNDEFINED;
 
         // Add deferred bindless update.
-        if (gpu.bindless_supported) 
-        {
+        if (gpu.bindless_supported) {
             ResourceUpdate resource_update{ ResourceUpdateType::Texture, texture->handle.index, gpu.current_frame, 0 };
             gpu.texture_to_update_bindless.push(resource_update);
         }
     }
 
-    static void upload_texture_data(Texture* texture, void* upload_data, GraphicsContext& gpu) 
-    {
+    static void upload_texture_data(Texture* texture, void* upload_data, GraphicsContext& gpu) {
 
         // Create stating buffer
         VkBufferCreateInfo buffer_info{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
@@ -1240,7 +1297,7 @@ namespace Magnefu
         beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
         // TODO: threading
-        CommandBuffer* command_buffer = gpu.get_command_buffer(false, 0);
+        CommandBuffer* command_buffer = gpu.get_command_buffer(0, gpu.current_frame, false);
         vkBeginCommandBuffer(command_buffer->vk_command_buffer, &beginInfo);
 
         VkBufferImageCopy region = {};
@@ -1257,19 +1314,19 @@ namespace Magnefu
         region.imageExtent = { texture->width, texture->height, texture->depth };
 
         // Copy from the staging buffer to the image
-        util_add_image_barrier(command_buffer->vk_command_buffer, texture->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_COPY_DEST, 0, 1, false);
+        util_add_image_barrier(&gpu, command_buffer->vk_command_buffer, texture->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_COPY_DEST, 0, 1, false);
 
         vkCmdCopyBufferToImage(command_buffer->vk_command_buffer, staging_buffer, texture->vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
         // Prepare first mip to create lower mipmaps
         if (texture->mipmaps > 1) {
-            util_add_image_barrier(command_buffer->vk_command_buffer, texture->vk_image, RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_COPY_SOURCE, 0, 1, false);
+            util_add_image_barrier(&gpu, command_buffer->vk_command_buffer, texture->vk_image, RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_COPY_SOURCE, 0, 1, false);
         }
 
         i32 w = texture->width;
         i32 h = texture->height;
 
         for (int mip_index = 1; mip_index < texture->mipmaps; ++mip_index) {
-            util_add_image_barrier(command_buffer->vk_command_buffer, texture->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_COPY_DEST, mip_index, 1, false);
+            util_add_image_barrier(&gpu, command_buffer->vk_command_buffer, texture->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_COPY_DEST, mip_index, 1, false);
 
             VkImageBlit blit_region{ };
             blit_region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -1294,33 +1351,42 @@ namespace Magnefu
             vkCmdBlitImage(command_buffer->vk_command_buffer, texture->vk_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, texture->vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit_region, VK_FILTER_LINEAR);
 
             // Prepare current mip for next level
-            util_add_image_barrier(command_buffer->vk_command_buffer, texture->vk_image, RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_COPY_SOURCE, mip_index, 1, false);
+            util_add_image_barrier(&gpu, command_buffer->vk_command_buffer, texture->vk_image, RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_COPY_SOURCE, mip_index, 1, false);
         }
 
         // Transition
-        util_add_image_barrier(command_buffer->vk_command_buffer, texture->vk_image, (texture->mipmaps > 1) ? RESOURCE_STATE_COPY_SOURCE : RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_SHADER_RESOURCE, 0, texture->mipmaps, false);
+        util_add_image_barrier(&gpu, command_buffer->vk_command_buffer, texture->vk_image, (texture->mipmaps > 1) ? RESOURCE_STATE_COPY_SOURCE : RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_SHADER_RESOURCE, 0, texture->mipmaps, false);
+        texture->state = RESOURCE_STATE_SHADER_RESOURCE;
 
         vkEndCommandBuffer(command_buffer->vk_command_buffer);
 
         // Submit command buffer
-        VkSubmitInfo submitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &command_buffer->vk_command_buffer;
+        if (gpu.synchronization2_extension_present) {
+            VkCommandBufferSubmitInfoKHR command_buffer_info{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO_KHR };
+            command_buffer_info.commandBuffer = command_buffer->vk_command_buffer;
 
-        vkQueueSubmit(gpu.vulkan_main_queue, 1, &submitInfo, VK_NULL_HANDLE);
+            VkSubmitInfo2KHR submit_info{ VK_STRUCTURE_TYPE_SUBMIT_INFO_2_KHR };
+            submit_info.commandBufferInfoCount = 1;
+            submit_info.pCommandBufferInfos = &command_buffer_info;
+
+            gpu.queue_submit2(gpu.vulkan_main_queue, 1, &submit_info, VK_NULL_HANDLE);
+        }
+        else {
+            VkSubmitInfo submitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+            submitInfo.commandBufferCount = 1;
+            submitInfo.pCommandBuffers = &command_buffer->vk_command_buffer;
+
+            vkQueueSubmit(gpu.vulkan_main_queue, 1, &submitInfo, VK_NULL_HANDLE);
+        }
         vkQueueWaitIdle(gpu.vulkan_main_queue);
 
         vmaDestroyBuffer(gpu.vma_allocator, staging_buffer, staging_allocation);
 
         // TODO: free command buffer
         vkResetCommandBuffer(command_buffer->vk_command_buffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
-
-        texture->vk_image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     }
 
-
-    TextureHandle GraphicsContext::create_texture(const TextureCreation& creation) 
-    {
+    TextureHandle GraphicsContext::create_texture(const TextureCreation& creation) {
 
         u32 resource_index = textures.obtain_resource();
         TextureHandle handle = { resource_index };
@@ -1333,8 +1399,7 @@ namespace Magnefu
         vulkan_create_texture(*this, creation, handle, texture);
 
         //// Copy buffer_data if present
-        if (creation.initial_data) 
-        {
+        if (creation.initial_data) {
             upload_texture_data(texture, creation.initial_data, *this);
         }
 
@@ -1347,9 +1412,8 @@ namespace Magnefu
         return(result);
     }
 
-    void dump_shader_code(StringBuffer& temp_string_buffer, cstring code, VkShaderStageFlagBits stage, cstring name)
-    {
-        MF_CORE_ERROR("Error in creation of shader {}, stage {}. Writing shader:", name, to_stage_defines(stage));
+    void dump_shader_code(StringBuffer& temp_string_buffer, cstring code, VkShaderStageFlagBits stage, cstring name) {
+        MF_CORE_INFO("Error in creation of shader {}, stage {}. Writing shader:", name, to_stage_defines(stage));
 
         cstring current_code = code;
         u32 line_index = 1;
@@ -1377,9 +1441,7 @@ namespace Magnefu
         }
     }
 
-
-    VkShaderModuleCreateInfo GraphicsContext::compile_shader(cstring code, u32 code_size, VkShaderStageFlagBits stage, cstring name) 
-    {
+    VkShaderModuleCreateInfo GraphicsContext::compile_shader(cstring code, u32 code_size, VkShaderStageFlagBits stage, cstring name) {
 
         VkShaderModuleCreateInfo shader_create_info = { VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
 
@@ -1453,7 +1515,7 @@ namespace Magnefu
         ShaderStateHandle handle = { k_invalid_index };
 
         if (creation.stages_count == 0 || creation.stages == nullptr) {
-            MF_CORE_ERROR("Shader {} does not contain shader stages.", creation.name);
+            MF_CORE_ERROR("Shader %s does not contain shader stages.\n", creation.name);
             return handle;
         }
 
@@ -1469,6 +1531,7 @@ namespace Magnefu
         shader_state->graphics_pipeline = true;
         shader_state->active_shaders = 0;
 
+        // TODO(marco): should we keep this around?
         sizet current_temporary_marker = temporary_allocator->getMarker();
 
         StringBuffer name_buffer;
@@ -1531,7 +1594,7 @@ namespace Magnefu
             handle.index = k_invalid_index;
 
             // Dump shader code
-            MF_CORE_ERROR("Error in creation of shader {}. Dumping all shader informations.\n", creation.name);
+            MF_CORE_ERROR("Error in creation of shader {}. Dumping all shader informations.", creation.name);
             for (compiled_shaders = 0; compiled_shaders < creation.stages_count; ++compiled_shaders) {
                 const ShaderStage& stage = creation.stages[compiled_shaders];
                 MF_CORE_DEBUG("{}:\n{}\n", stage.type, stage.code);
@@ -1677,7 +1740,7 @@ namespace Magnefu
 
             //// Input Assembly
             VkPipelineInputAssemblyStateCreateInfo input_assembly{ VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
-            input_assembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+            input_assembly.topology = creation.topology;
             input_assembly.primitiveRestartEnable = VK_FALSE;
 
             pipeline_info.pInputAssemblyState = &input_assembly;
@@ -1686,7 +1749,7 @@ namespace Magnefu
             VkPipelineColorBlendAttachmentState color_blend_attachment[8];
 
             if (creation.blend_state.active_states) {
-                MF_CORE_ASSERT(creation.blend_state.active_states == creation.render_pass.num_color_formats, "Blend states (count: {}) mismatch with output targets (count {})!If blend states are active, they must be defined for all outputs", creation.blend_state.active_states, creation.render_pass.num_color_formats);
+                MF_CORE_ASSERT(creation.blend_state.active_states == creation.render_pass.num_color_formats, "Blend states (count: %u) mismatch with output targets (count %u)!If blend states are active, they must be defined for all outputs", creation.blend_state.active_states, creation.render_pass.num_color_formats);
                 for (size_t i = 0; i < creation.blend_state.active_states; i++) {
                     const BlendState& blend_state = creation.blend_state.blend_states[i];
 
@@ -1738,7 +1801,7 @@ namespace Magnefu
             depth_stencil.depthCompareOp = creation.depth_stencil.depth_comparison;
             if (creation.depth_stencil.stencil_enable) {
                 // TODO: add stencil
-                MF_CORE_ASSERT(false, "");
+                MF_CORE_ASSERT(false, "" );
             }
 
             pipeline_info.pDepthStencilState = &depth_stencil;
@@ -1818,7 +1881,7 @@ namespace Magnefu
 
             pipeline_info.pDynamicState = &dynamic_state;
 
-            check(vkCreateGraphicsPipelines(vulkan_device, pipeline_cache, 1, &pipeline_info, vulkan_allocation_callbacks, &pipeline->vk_pipeline), "Failed to create Graphics Pipeline");
+            check(vkCreateGraphicsPipelines(vulkan_device, pipeline_cache, 1, &pipeline_info, vulkan_allocation_callbacks, &pipeline->vk_pipeline));
 
             pipeline->vk_bind_point = VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS;
         }
@@ -1828,17 +1891,17 @@ namespace Magnefu
             pipeline_info.stage = shader_state_data->shader_stage_info[0];
             pipeline_info.layout = pipeline_layout;
 
-            check(vkCreateComputePipelines(vulkan_device, pipeline_cache, 1, &pipeline_info, vulkan_allocation_callbacks, &pipeline->vk_pipeline), "Failed to create Compute Pipeline");
+            check(vkCreateComputePipelines(vulkan_device, pipeline_cache, 1, &pipeline_info, vulkan_allocation_callbacks, &pipeline->vk_pipeline));
 
             pipeline->vk_bind_point = VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_COMPUTE;
         }
 
         if (cache_path != nullptr && !cache_exists) {
             sizet cache_data_size = 0;
-            check(vkGetPipelineCacheData(vulkan_device, pipeline_cache, &cache_data_size, nullptr), "Failed to retrieve pipeline cache data");
+            check(vkGetPipelineCacheData(vulkan_device, pipeline_cache, &cache_data_size, nullptr));
 
             void* cache_data = allocator->allocate(cache_data_size, 64);
-            check(vkGetPipelineCacheData(vulkan_device, pipeline_cache, &cache_data_size, cache_data), "Failed to retrieve pipeline cache data");
+            check(vkGetPipelineCacheData(vulkan_device, pipeline_cache, &cache_data_size, cache_data));
 
             file_write_binary(cache_path, cache_data, cache_data_size);
 
@@ -1882,7 +1945,7 @@ namespace Magnefu
         // with MEMORY_PROPERTY_DEVICE_LOCAL_BIT and MEMORY_PROPERTY_HOST_VISIBLE_BIT
         // but that's usually very small (256MB) unless resizable bar is enabled.
         // We simply don't allow it for now.
-        MF_CORE_ASSERT(!(creation.persistent && creation.device_only), "");
+        MF_CORE_ASSERT(!(creation.persistent && creation.device_only));
 
         VmaAllocationCreateInfo allocation_create_info{};
         allocation_create_info.flags = VMA_ALLOCATION_CREATE_STRATEGY_BEST_FIT_BIT;
@@ -1899,7 +1962,7 @@ namespace Magnefu
 
         VmaAllocationInfo allocation_info{};
         check(vmaCreateBuffer(vma_allocator, &buffer_info, &allocation_create_info,
-            &buffer->vk_buffer, &buffer->vma_allocation, &allocation_info), "Failed to create vma buffer");
+            &buffer->vk_buffer, &buffer->vma_allocation, &allocation_info));
 #if defined (_DEBUG)
         vmaSetAllocationName(vma_allocator, buffer->vma_allocation, creation.name);
 #endif // _DEBUG
@@ -1978,7 +2041,7 @@ namespace Magnefu
         u16 max_binding = 0;
         for (u32 r = 0; r < creation.num_bindings; ++r) {
             const DescriptorSetLayoutCreation::Binding& input_binding = creation.bindings[r];
-            max_binding = magnefu_max(max_binding, input_binding.index);
+            max_binding = Magnefu_max(max_binding, input_binding.index);
         }
         max_binding += 1;
 
@@ -2190,7 +2253,7 @@ namespace Magnefu
 
             default:
             {
-                MF_CORE_ASSERT(false, "Resource type {} not supported in descriptor set creation!", binding.type);
+                MF_CORE_ASSERT(false, "Resource type %d not supported in descriptor set creation!\n", binding.type);
                 break;
             }
             }
@@ -2221,10 +2284,10 @@ namespace Magnefu
             // This number is the max allocatable count
             count_info.pDescriptorCounts = &max_binding;
             alloc_info.pNext = &count_info;
-            check(vkAllocateDescriptorSets(vulkan_device, &alloc_info, &descriptor_set->vk_descriptor_set), "Failed to allocate descriptor sets");
+            check(vkAllocateDescriptorSets(vulkan_device, &alloc_info, &descriptor_set->vk_descriptor_set));
         }
         else {
-            check(vkAllocateDescriptorSets(vulkan_device, &alloc_info, &descriptor_set->vk_descriptor_set), "Failed to allocate descriptor sets");
+            check(vkAllocateDescriptorSets(vulkan_device, &alloc_info, &descriptor_set->vk_descriptor_set));
         }
 
         // Cache data
@@ -2282,7 +2345,7 @@ namespace Magnefu
         framebuffer_info.pAttachments = framebuffer_attachments;
         framebuffer_info.attachmentCount = active_attachments;
 
-        check(vkCreateFramebuffer(gpu.vulkan_device, &framebuffer_info, nullptr, &framebuffer->vk_framebuffer), "Failed to create framebuffer");
+        check(vkCreateFramebuffer(gpu.vulkan_device, &framebuffer_info, nullptr, &framebuffer->vk_framebuffer));
         gpu.set_resource_name(VK_OBJECT_TYPE_FRAMEBUFFER, (u64)framebuffer->vk_framebuffer, framebuffer->name);
     }
 
@@ -2412,7 +2475,7 @@ namespace Magnefu
         //u32 num_external_dependencies = 0;
 
         VkRenderPass vk_render_pass;
-        check(vkCreateRenderPass(gpu.vulkan_device, &render_pass_info, nullptr, &vk_render_pass), "Failed to create Render pass");
+        check(vkCreateRenderPass(gpu.vulkan_device, &render_pass_info, nullptr, &vk_render_pass));
 
         gpu.set_resource_name(VK_OBJECT_TYPE_RENDER_PASS, (u64)vk_render_pass, name);
 
@@ -2501,20 +2564,20 @@ namespace Magnefu
 
     void GraphicsContext::destroy_buffer(BufferHandle buffer) {
         if (buffer.index < buffers.pool_size) {
-            resource_deletion_queue.push({ ResourceUpdateType::Buffer, buffer.index, current_frame, 1 });
+            resource_deletion_queue.push({ ResourceUpdateType::Buffer, buffer.index, current_frame + k_max_frames, 1 });
         }
         else {
-            MF_CORE_ERROR("Graphics error: trying to free invalid Buffer {}", buffer.index);
+            rprint("Graphics error: trying to free invalid Buffer %u\n", buffer.index);
         }
     }
 
     void GraphicsContext::destroy_texture(TextureHandle texture) {
         if (texture.index < textures.pool_size) {
-            resource_deletion_queue.push({ ResourceUpdateType::Texture, texture.index, current_frame, 1 });
+            // Do not add textures to deletion queue, textures will be deleted after bindless descriptor is updated.
             texture_to_update_bindless.push({ ResourceUpdateType::Texture, texture.index, current_frame, 1 });
         }
         else {
-            MF_CORE_ERROR("Graphics error: trying to free invalid Texture {}", texture.index);
+            rprint("Graphics error: trying to free invalid Texture %u\n", texture.index);
         }
     }
 
@@ -2534,7 +2597,7 @@ namespace Magnefu
             destroy_shader_state(v_pipeline->shader_state);
         }
         else {
-            MF_CORE_ERROR("Graphics error: trying to free invalid Pipeline {}", pipeline.index);
+            rprint("Graphics error: trying to free invalid Pipeline %u\n", pipeline.index);
         }
     }
 
@@ -2543,7 +2606,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::Sampler, sampler.index, current_frame, 1 });
         }
         else {
-            MF_CORE_ERROR("Graphics error: trying to free invalid Sampler {}", sampler.index);
+            rprint("Graphics error: trying to free invalid Sampler %u\n", sampler.index);
         }
     }
 
@@ -2552,7 +2615,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::DescriptorSetLayout, descriptor_set_layout.index, current_frame, 1 });
         }
         else {
-            MF_CORE_ERROR("Graphics error: trying to free invalid DescriptorSetLayout {}", descriptor_set_layout.index);
+            rprint("Graphics error: trying to free invalid DescriptorSetLayout %u\n", descriptor_set_layout.index);
         }
     }
 
@@ -2561,7 +2624,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::DescriptorSet, descriptor_set.index, current_frame, 1 });
         }
         else {
-            MF_CORE_ERROR("Graphics error: trying to free invalid DescriptorSet {}", descriptor_set.index);
+            rprint("Graphics error: trying to free invalid DescriptorSet %u\n", descriptor_set.index);
         }
     }
 
@@ -2570,7 +2633,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::RenderPass, render_pass.index, current_frame, 1 });
         }
         else {
-            MF_CORE_ERROR("Graphics error: trying to free invalid RenderPass {}", render_pass.index);
+            rprint("Graphics error: trying to free invalid RenderPass %u\n", render_pass.index);
         }
     }
 
@@ -2579,7 +2642,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::Framebuffer, framebuffer.index, current_frame, 1 });
         }
         else {
-            MF_CORE_ERROR("Graphics error: trying to free invalid Framebuffer {}", framebuffer.index);
+            rprint("Graphics error: trying to free invalid Framebuffer %u\n", framebuffer.index);
         }
     }
 
@@ -2592,7 +2655,7 @@ namespace Magnefu
             allocator->deallocate(state->parse_result);
         }
         else {
-            MF_CORE_ERROR("Graphics error: trying to free invalid Shader {}", shader.index);
+            rprint("Graphics error: trying to free invalid Shader %u\n", shader.index);
         }
     }
 
@@ -2616,6 +2679,7 @@ namespace Magnefu
         }
 
         if (v_texture) {
+            // Default texture view added as separate destroy command.
             vkDestroyImageView(vulkan_device, v_texture->vk_image_view, vulkan_allocation_callbacks);
             v_texture->vk_image_view = VK_NULL_HANDLE;
 
@@ -2747,7 +2811,7 @@ namespace Magnefu
 
     template<class T>
     constexpr const T& clamp(const T& v, const T& lo, const T& hi) {
-        MF_CORE_ASSERT(!(hi < lo), "");
+        MF_CORE_ASSERT(!(hi < lo));
         return (v < lo) ? lo : (hi < v) ? hi : v;
     }
 
@@ -2758,7 +2822,7 @@ namespace Magnefu
         VkBool32 surface_supported;
         vkGetPhysicalDeviceSurfaceSupportKHR(vulkan_physical_device, vulkan_main_queue_family, vulkan_window_surface, &surface_supported);
         if (surface_supported != VK_TRUE) {
-            MF_CORE_ERROR("Error no WSI support on physical device 0\n");
+            rprint("Error no WSI support on physical device 0\n");
         }
 
         VkSurfaceCapabilitiesKHR surface_capabilities;
@@ -2770,7 +2834,7 @@ namespace Magnefu
             swapchain_extent.height = clamp(swapchain_extent.height, surface_capabilities.minImageExtent.height, surface_capabilities.maxImageExtent.height);
         }
 
-        MF_CORE_INFO("Create swapchain {} {} - saved {} {}, min image {}", swapchain_extent.width, swapchain_extent.height, swapchain_width, swapchain_height, surface_capabilities.minImageCount);
+        rprint("Create swapchain %u %u - saved %u %u, min image %u\n", swapchain_extent.width, swapchain_extent.height, swapchain_width, swapchain_height, surface_capabilities.minImageCount);
 
         swapchain_width = (u16)swapchain_extent.width;
         swapchain_height = (u16)swapchain_extent.height;
@@ -2792,7 +2856,7 @@ namespace Magnefu
         swapchain_create_info.presentMode = vulkan_present_mode;
 
         VkResult result = vkCreateSwapchainKHR(vulkan_device, &swapchain_create_info, 0, &vulkan_swapchain);
-        check(result, "Failed to create swapchain");
+        check(result);
 
         if (swapchain_render_pass.index == k_invalid_index) {
             RenderPassCreation swapchain_pass_creation = {};
@@ -2815,7 +2879,7 @@ namespace Magnefu
         VkCommandBufferBeginInfo beginInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
         beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-        CommandBuffer* command_buffer = get_command_buffer(0, false);
+        CommandBuffer* command_buffer = get_command_buffer(0, current_frame, false);
         vkBeginCommandBuffer(command_buffer->vk_command_buffer, &beginInfo);
 
 
@@ -2858,23 +2922,35 @@ namespace Magnefu
             view_info.components.b = VK_COMPONENT_SWIZZLE_B;
             view_info.components.a = VK_COMPONENT_SWIZZLE_A;
 
-            check(vkCreateImageView(vulkan_device, &view_info, vulkan_allocation_callbacks, &color->vk_image_view), "Failed to create image view");
+            check(vkCreateImageView(vulkan_device, &view_info, vulkan_allocation_callbacks, &color->vk_image_view));
 
             if (!dynamic_rendering_extension_present) {
                 vulkan_create_framebuffer(*this, vk_framebuffer);
             }
 
-            util_add_image_barrier(command_buffer->vk_command_buffer, color->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_PRESENT, 0, 1, false);
+            util_add_image_barrier(this, command_buffer->vk_command_buffer, color->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_PRESENT, 0, 1, false);
         }
 
         vkEndCommandBuffer(command_buffer->vk_command_buffer);
 
         // Submit command buffer
-        VkSubmitInfo submitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &command_buffer->vk_command_buffer;
+        if (synchronization2_extension_present) {
+            VkCommandBufferSubmitInfoKHR command_buffer_info{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO_KHR };
+            command_buffer_info.commandBuffer = command_buffer->vk_command_buffer;
 
-        vkQueueSubmit(vulkan_main_queue, 1, &submitInfo, VK_NULL_HANDLE);
+            VkSubmitInfo2KHR submit_info{ VK_STRUCTURE_TYPE_SUBMIT_INFO_2_KHR };
+            submit_info.commandBufferInfoCount = 1;
+            submit_info.pCommandBufferInfos = &command_buffer_info;
+
+            queue_submit2(vulkan_main_queue, 1, &submit_info, VK_NULL_HANDLE);
+        }
+        else {
+            VkSubmitInfo submitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+            submitInfo.commandBufferCount = 1;
+            submitInfo.pCommandBuffers = &command_buffer->vk_command_buffer;
+
+            vkQueueSubmit(vulkan_main_queue, 1, &submitInfo, VK_NULL_HANDLE);
+        }
         vkQueueWaitIdle(vulkan_main_queue);
 
         swapchain_images.shutdown();
@@ -2935,9 +3011,9 @@ namespace Magnefu
         VkExtent2D swapchain_extent = surface_capabilities.currentExtent;
 
         // Skip zero-sized swapchain
-        //MF_CORE_ERROR( "Requested swapchain resize %u {}", swapchain_extent.width, swapchain_extent.height );
+        //rprint( "Requested swapchain resize %u %u\n", swapchain_extent.width, swapchain_extent.height );
         if (swapchain_extent.width == 0 || swapchain_extent.height == 0) {
-            //MF_CORE_ERROR( "Cannot create a zero-sized swapchain\n" );
+            //rprint( "Cannot create a zero-sized swapchain\n" );
             return;
         }
 
@@ -2947,10 +3023,9 @@ namespace Magnefu
         vkDestroySurfaceKHR(vulkan_instance, vulkan_window_surface, vulkan_allocation_callbacks);
 
         // Recreate window surface
-        check(
-            glfwCreateWindowSurface(vulkan_instance, glfw_window, vulkan_allocation_callbacks, &vulkan_window_surface),
-            "Failed to create a window surface!"
-        );
+        if (SDL_Vulkan_CreateSurface(sdl_window, vulkan_instance, &vulkan_window_surface) == SDL_FALSE) {
+            rprint("Failed to create Vulkan surface.\n");
+        }
 
         // Create swapchain
         create_swapchain();
@@ -2970,7 +3045,7 @@ namespace Magnefu
 
         }
         else {
-            MF_CORE_ERROR("Graphics error: trying to update invalid DescriptorSet {}", descriptor_set.index);
+            rprint("Graphics error: trying to update invalid DescriptorSet %u\n", descriptor_set.index);
         }
     }
 
@@ -3017,8 +3092,7 @@ namespace Magnefu
 
     //
     //
-    void GraphicsContext::resize_output_textures(FramebufferHandle framebuffer, u32 width, u32 height) 
-    {
+    void GraphicsContext::resize_output_textures(FramebufferHandle framebuffer, u32 width, u32 height) {
 
         // For each texture, create a temporary pooled texture and cache the handles to delete.
         // This is because we substitute just the Vulkan texture when resizing so that
@@ -3061,7 +3135,7 @@ namespace Magnefu
             vk_framebuffer->height = new_height;
 
             // Recreate framebuffer if present (mainly for dispatch only passes)
-            if (vk_framebuffer->vk_framebuffer) {
+            if (vk_framebuffer->vk_framebuffer && !dynamic_rendering_extension_present) {
                 vulkan_create_framebuffer(*this, vk_framebuffer);
             }
         }
@@ -3082,7 +3156,7 @@ namespace Magnefu
         // Cache all informations (image, image view, flags, ...) into texture to delete.
         // Missing even one information (like it is a texture view, sparse, ...)
         // can lead to memory leaks.
-        memoryCopy(vk_texture_to_delete, vk_texture, sizeof(Texture));
+        memory_copy(vk_texture_to_delete, vk_texture, sizeof(Texture));
         // Update handle so it can be used to update bindless to dummy texture
         // and delete the old image and image view.
         vk_texture_to_delete->handle = texture_to_delete;
@@ -3114,16 +3188,45 @@ namespace Magnefu
         }
     }
 
+    bool GraphicsContext::buffer_ready(BufferHandle buffer_) {
+        Buffer* buffer = access_buffer(buffer_);
+        return buffer->ready;
+    }
+
     void GraphicsContext::new_frame() {
 
         // Fence wait and reset
-        VkFence* render_complete_fence = &vulkan_command_buffer_executed_fence[current_frame];
+        if (timeline_semaphore_extension_present) {
+            if (absolute_frame >= k_max_frames) {
+                u64 graphics_timeline_value = absolute_frame - (k_max_frames - 1);
+                u64 compute_timeline_value = last_compute_semaphore_value;
 
-        if (vkGetFenceStatus(vulkan_device, *render_complete_fence) != VK_SUCCESS) {
-            vkWaitForFences(vulkan_device, 1, render_complete_fence, VK_TRUE, UINT64_MAX);
+                u64 wait_values[]{ graphics_timeline_value, compute_timeline_value };
+
+                VkSemaphore semaphores[]{ vulkan_graphics_semaphore, vulkan_compute_semaphore };
+
+                VkSemaphoreWaitInfo semaphore_wait_info{ VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO };
+                semaphore_wait_info.semaphoreCount = has_async_work ? 2 : 1;
+                semaphore_wait_info.pSemaphores = semaphores;
+                semaphore_wait_info.pValues = wait_values;
+
+                vkWaitSemaphores(vulkan_device, &semaphore_wait_info, ~0ull);
+            }
         }
+        else {
+            VkFence render_complete_fence = vulkan_command_buffer_executed_fence[current_frame];
 
-        vkResetFences(vulkan_device, 1, render_complete_fence);
+            VkFence fences[]{ render_complete_fence, vulkan_compute_fence };
+
+            // if ( vkGetFenceStatus( vulkan_device, *render_complete_fence ) != VK_SUCCESS ) {
+            //     vkWaitForFences( vulkan_device, 1, render_complete_fence, VK_TRUE, UINT64_MAX );
+            // }
+
+            u32 fence_count = has_async_work ? 2 : 1;
+            vkWaitForFences(vulkan_device, fence_count, fences, VK_TRUE, UINT64_MAX);
+
+            vkResetFences(vulkan_device, fence_count, fences);
+        }
 
         VkResult result = vkAcquireNextImageKHR(vulkan_device, vulkan_swapchain, UINT64_MAX, vulkan_image_acquired_semaphore, VK_NULL_HANDLE, &vulkan_image_index);
         if (result == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -3134,7 +3237,7 @@ namespace Magnefu
         command_buffer_ring.reset_pools(current_frame);
         // Dynamic memory update
         const u32 used_size = dynamic_allocated_size - (dynamic_per_frame_size * previous_frame);
-        dynamic_max_per_frame_size = magnefu_max(used_size, dynamic_max_per_frame_size);
+        dynamic_max_per_frame_size = Magnefu_max(used_size, dynamic_max_per_frame_size);
         dynamic_allocated_size = dynamic_per_frame_size * current_frame;
 
         // Descriptor Set Updates
@@ -3151,11 +3254,16 @@ namespace Magnefu
                 }
             }
         }
+
+        // Reset time queries
+        for (u32 i = 0; i < thread_frame_pools.size / k_max_frames; ++i) {
+            GpuThreadFramePools& thread_pool = thread_frame_pools[(current_frame * num_threads) + i];
+            thread_pool.time_queries->reset();
+        }
     }
 
-    void GraphicsContext::present() {
+    void GraphicsContext::present(CommandBuffer* async_compute_command_buffer) {
 
-        VkFence* render_complete_fence = &vulkan_command_buffer_executed_fence[current_frame];
         VkSemaphore* render_complete_semaphore = &vulkan_render_complete_semaphore[current_frame];
 
         // Copy all commands
@@ -3168,6 +3276,11 @@ namespace Magnefu
             // NOTE: why it was needing current_pipeline to be setup ?
             // TODO(marco): store queue type in command buffer to avoid this if not needed
             command_buffer->end_current_render_pass();
+
+            // If marker are present, then queries are as well.
+            if (command_buffer->thread_frame_pool->time_queries->allocated_time_query) {
+                vkCmdEndQuery(command_buffer->vk_command_buffer, command_buffer->thread_frame_pool->vulkan_pipeline_stats_query_pool, 0);
+            }
 
             vkEndCommandBuffer(command_buffer->vk_command_buffer);
             command_buffer->is_recording = false;
@@ -3197,7 +3310,7 @@ namespace Magnefu
                     descriptor_write.dstBinding = k_bindless_texture_binding;
 
                     // Handles should be the same.
-                    MF_CORE_ASSERT(texture->handle.index == texture_to_update.handle, "");
+                    MF_CORE_ASSERT(texture->handle.index == texture_to_update.handle);
 
                     Sampler* vk_default_sampler = access_sampler(default_sampler);
                     VkDescriptorImageInfo& descriptor_image_info = bindless_image_info[current_write_index];
@@ -3227,6 +3340,29 @@ namespace Magnefu
                     texture_to_update_bindless.delete_swap(it);
 
                     ++current_write_index;
+
+                    // Add texture to delete
+                    if (texture_to_update.deleting) {
+                        resource_deletion_queue.push({ ResourceUpdateType::Texture, texture->handle.index, current_frame, 1 });
+                    }
+
+                    // Add optional compute bindless descriptor update
+                    if (texture->flags & TextureFlags::Compute_mask) {
+                        VkWriteDescriptorSet& descriptor_write_image = bindless_descriptor_writes[current_write_index];
+                        VkDescriptorImageInfo& descriptor_image_info_compute = bindless_image_info[current_write_index];
+
+                        // Copy common data from descriptor and image info
+                        descriptor_write_image = descriptor_write;
+                        descriptor_image_info_compute = descriptor_image_info;
+
+                        descriptor_image_info_compute.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+                        descriptor_write_image.dstBinding = k_bindless_image_binding;
+                        descriptor_write_image.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+                        descriptor_write_image.pImageInfo = &descriptor_image_info_compute;
+
+                        ++current_write_index;
+                    }
                 }
             }
 
@@ -3237,19 +3373,128 @@ namespace Magnefu
 
 
         // Submit command buffers
-        VkSemaphore wait_semaphores[] = { vulkan_image_acquired_semaphore };
-        VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+        u32 wait_semaphore_count = 1;
 
-        VkSubmitInfo submit_info = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
-        submit_info.waitSemaphoreCount = 1;
-        submit_info.pWaitSemaphores = wait_semaphores;
-        submit_info.pWaitDstStageMask = wait_stages;
-        submit_info.commandBufferCount = num_queued_command_buffers;
-        submit_info.pCommandBuffers = enqueued_command_buffers;
-        submit_info.signalSemaphoreCount = 1;
-        submit_info.pSignalSemaphores = render_complete_semaphore;
+        if (timeline_semaphore_extension_present) {
+            bool wait_for_compute_semaphore = (last_compute_semaphore_value > 0) && has_async_work;
+            if (wait_for_compute_semaphore) wait_semaphore_count++;
 
-        vkQueueSubmit(vulkan_main_queue, 1, &submit_info, *render_complete_fence);
+            bool wait_for_timeline_semaphore = absolute_frame >= k_max_frames;
+            if (wait_for_timeline_semaphore) wait_semaphore_count++;
+
+            if (synchronization2_extension_present) {
+                VkCommandBufferSubmitInfoKHR command_buffer_info[4]{ };
+                for (u32 c = 0; c < num_queued_command_buffers; c++) {
+                    command_buffer_info[c].sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO_KHR;
+                    command_buffer_info[c].commandBuffer = enqueued_command_buffers[c];
+                }
+
+                VkSemaphoreSubmitInfoKHR wait_semaphores[]{
+                    { VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO_KHR, nullptr, vulkan_image_acquired_semaphore, 0, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, 0 },
+                    { VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO_KHR, nullptr, vulkan_compute_semaphore, last_compute_semaphore_value, VK_PIPELINE_STAGE_2_VERTEX_ATTRIBUTE_INPUT_BIT_KHR, 0 },
+                    { VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO_KHR, nullptr, vulkan_graphics_semaphore, absolute_frame - (k_max_frames - 1), VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT_KHR , 0 },
+                };
+
+                VkSemaphoreSubmitInfoKHR signal_semaphores[]{
+                    { VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO_KHR, nullptr, *render_complete_semaphore, 0, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, 0 },
+                    { VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO_KHR, nullptr, vulkan_graphics_semaphore, absolute_frame + 1, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR , 0 }
+                };
+
+                VkSubmitInfo2KHR submit_info{ VK_STRUCTURE_TYPE_SUBMIT_INFO_2_KHR };
+                submit_info.waitSemaphoreInfoCount = wait_semaphore_count;
+                submit_info.pWaitSemaphoreInfos = wait_semaphores;
+                submit_info.commandBufferInfoCount = num_queued_command_buffers;
+                submit_info.pCommandBufferInfos = command_buffer_info;
+                submit_info.signalSemaphoreInfoCount = 2;
+                submit_info.pSignalSemaphoreInfos = signal_semaphores;
+
+                queue_submit2(vulkan_main_queue, 1, &submit_info, VK_NULL_HANDLE);
+            }
+            else {
+                VkSemaphore wait_semaphores[] = { vulkan_image_acquired_semaphore, vulkan_compute_semaphore, vulkan_graphics_semaphore };
+                VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
+
+                VkSemaphore signal_semaphores[] = { *render_complete_semaphore, vulkan_graphics_semaphore };
+
+                // NOTE(marco): timeline semaphore values have to be monotonically increasing, so we need to start from 1
+                // NOTE(marco): we still have to provide a value even for non-timeline semaphores
+                u64 signal_values[] = { 0, absolute_frame + 1 };
+                VkTimelineSemaphoreSubmitInfo semaphore_info{ VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO };
+                semaphore_info.signalSemaphoreValueCount = 2;
+                semaphore_info.pSignalSemaphoreValues = signal_values;
+
+                u64 wait_values[] = { 0, last_compute_semaphore_value, absolute_frame - (k_max_frames - 1) };
+                semaphore_info.waitSemaphoreValueCount = wait_semaphore_count;
+                semaphore_info.pWaitSemaphoreValues = wait_values;
+
+                VkSubmitInfo submit_info = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+                submit_info.waitSemaphoreCount = wait_semaphore_count;
+                submit_info.pWaitSemaphores = wait_semaphores;
+                submit_info.pWaitDstStageMask = wait_stages;
+                submit_info.commandBufferCount = num_queued_command_buffers;
+                submit_info.pCommandBuffers = enqueued_command_buffers;
+                submit_info.signalSemaphoreCount = 2;
+                submit_info.pSignalSemaphores = signal_semaphores;
+
+                submit_info.pNext = &semaphore_info;
+
+                vkQueueSubmit(vulkan_main_queue, 1, &submit_info, VK_NULL_HANDLE);
+            }
+
+        }
+        else {
+            VkFence render_complete_fence = vulkan_command_buffer_executed_fence[current_frame];
+
+            if (has_async_work) wait_semaphore_count++;
+
+            if (synchronization2_extension_present) {
+                VkCommandBufferSubmitInfoKHR command_buffer_info[4]{ };
+                for (u32 c = 0; c < num_queued_command_buffers; c++) {
+                    command_buffer_info[c].sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO_KHR;
+                    command_buffer_info[c].commandBuffer = enqueued_command_buffers[c];
+                }
+
+                VkSemaphoreSubmitInfoKHR wait_semaphores[]{
+                    { VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO_KHR, nullptr, vulkan_image_acquired_semaphore, 0, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, 0 },
+                    { VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO_KHR, nullptr, vulkan_compute_semaphore, 0, VK_PIPELINE_STAGE_2_VERTEX_ATTRIBUTE_INPUT_BIT_KHR, 0 }
+                };
+
+                VkSemaphoreSubmitInfoKHR signal_semaphores[]{
+                    { VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO_KHR, nullptr, *render_complete_semaphore, 0, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, 0 },
+                };
+
+                VkSubmitInfo2KHR submit_info{ VK_STRUCTURE_TYPE_SUBMIT_INFO_2_KHR };
+                submit_info.waitSemaphoreInfoCount = wait_semaphore_count;
+                submit_info.pWaitSemaphoreInfos = wait_semaphores;
+                submit_info.commandBufferInfoCount = num_queued_command_buffers;
+                submit_info.pCommandBufferInfos = command_buffer_info;
+                submit_info.signalSemaphoreInfoCount = 1;
+                submit_info.pSignalSemaphoreInfos = signal_semaphores;
+
+                queue_submit2(vulkan_main_queue, 1, &submit_info, render_complete_fence);
+            }
+            else {
+                VkSemaphore wait_semaphores[] = { vulkan_image_acquired_semaphore, vulkan_compute_semaphore };
+                VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT };
+
+                VkSubmitInfo submit_info = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+                submit_info.waitSemaphoreCount = wait_semaphore_count;
+                submit_info.pWaitSemaphores = wait_semaphores;
+                submit_info.pWaitDstStageMask = wait_stages;
+                submit_info.commandBufferCount = num_queued_command_buffers;
+                submit_info.pCommandBuffers = enqueued_command_buffers;
+                submit_info.signalSemaphoreCount = 1;
+                submit_info.pSignalSemaphores = render_complete_semaphore;
+
+                vkQueueSubmit(vulkan_main_queue, 1, &submit_info, render_complete_fence);
+            }
+        }
+
+        has_async_work = false;
+
+        if (async_compute_command_buffer != nullptr) {
+            submit_compute_load(async_compute_command_buffer);
+        }
 
         VkPresentInfoKHR present_info{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
         present_info.waitSemaphoreCount = 1;
@@ -3267,43 +3512,98 @@ namespace Magnefu
         //
         // GPU Timestamp resolve
         if (timestamps_enabled) {
-            if (gpu_timestamp_manager->has_valid_queries()) {
-                // Query GPU for all timestamps.
-                const u32 query_offset = (current_frame * gpu_timestamp_manager->queries_per_frame) * 2;
-                const u32 query_count = gpu_timestamp_manager->current_query * 2;
-                vkGetQueryPoolResults(vulkan_device, vulkan_timestamp_query_pool, query_offset, query_count,
-                    sizeof(u64) * query_count * 2, &gpu_timestamp_manager->timestamps_data[query_offset],
-                    sizeof(gpu_timestamp_manager->timestamps_data[0]), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
 
-                // Calculate and cache the elapsed time
-                for (u32 i = 0; i < gpu_timestamp_manager->current_query; i++) {
-                    u32 index = (current_frame * gpu_timestamp_manager->queries_per_frame) + i;
+            // Reset the frame statistics
+            gpu_time_queries_manager->frame_pipeline_statistics.reset();
 
-                    GPUTimestamp& timestamp = gpu_timestamp_manager->timestamps[index];
+            temporary_allocator->clear();
 
-                    double start = (double)gpu_timestamp_manager->timestamps_data[(index * 2)];
-                    double end = (double)gpu_timestamp_manager->timestamps_data[(index * 2) + 1];
-                    double range = end - start;
-                    double elapsed_time = range * gpu_timestamp_frequency;
+            // Query results from previous frame.
+            for (u32 i = 0; i < num_threads; ++i) {
+                const u32 pool_index = (previous_frame * num_threads) + i;
+                GpuThreadFramePools& thread_pool = thread_frame_pools[pool_index];
+                GpuTimeQueryTree* time_query = thread_pool.time_queries;
 
-                    timestamp.elapsed_ms = elapsed_time;
-                    timestamp.frame_index = absolute_frame;
+                // For each active time query pool
+                if (time_query && time_query->allocated_time_query) {
 
-                    //print_format( "%s: %2.3f d(%u) - ", timestamp.name, elapsed_time, timestamp.depth );
+                    // Query GPU for all timestamps.
+                    const u32 query_offset = (pool_index * gpu_time_queries_manager->queries_per_thread);
+                    const u32 query_count = time_query->allocated_time_query;
+                    u64* timestamps_data = (u64*)mfalloca(query_count * 2 * sizeof(u64), temporary_allocator);
+                    vkGetQueryPoolResults(vulkan_device, thread_pool.vulkan_timestamp_query_pool, 0, query_count * 2,
+                        sizeof(u64) * query_count * 2, timestamps_data,
+                        sizeof(u64), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
+
+                    // Calculate and cache the elapsed time
+                    for (u32 i = 0; i < query_count; i++) {
+                        u32 index = (query_offset)+i;
+
+                        GPUTimeQuery& timestamp = gpu_time_queries_manager->timestamps[index];
+
+                        double start = (double)timestamps_data[(i * 2)];
+                        double end = (double)timestamps_data[(i * 2) + 1];
+                        double range = end - start;
+                        double elapsed_time = range * gpu_timestamp_frequency;
+
+                        timestamp.elapsed_ms = elapsed_time;
+                        timestamp.frame_index = absolute_frame;
+
+                        //print_format( "%s: %2.3f d(%u) - ", timestamp.name, elapsed_time, timestamp.depth );
+                    }
+
+                    // Query and sum pipeline statistics
+                    u64* pipeline_statistics_data = (u64*)mfalloca(GpuPipelineStatistics::Count * sizeof(u64), temporary_allocator);
+                    vkGetQueryPoolResults(vulkan_device, thread_pool.vulkan_pipeline_stats_query_pool, 0, 1,
+                        GpuPipelineStatistics::Count * sizeof(u64), pipeline_statistics_data, sizeof(u64), VK_QUERY_RESULT_64_BIT);
+
+                    for (u32 i = 0; i < GpuPipelineStatistics::Count; ++i) {
+                        gpu_time_queries_manager->frame_pipeline_statistics.statistics[i] += pipeline_statistics_data[i];
+                    }
                 }
-                //print_format( "\n" );
-            }
-            else if (gpu_timestamp_manager->current_query) {
-                MF_CORE_ERROR("Asymmetrical GPU queries, missing pop of some markers!\n");
+
+                temporary_allocator->clear();
             }
 
-            gpu_timestamp_manager->reset();
-            gpu_timestamp_reset = true;
-        }
-        else {
-            gpu_timestamp_reset = false;
-        }
+            {
+                const u32 pool_index = previous_frame;
+                GpuThreadFramePools& thread_pool = compute_frame_pools[pool_index];
+                GpuTimeQueryTree* time_query = thread_pool.time_queries;
 
+                // For each active time query pool
+                if (time_query && time_query->allocated_time_query) {
+
+                    // Query GPU for all timestamps.
+                    const u32 query_offset = (num_threads * gpu_time_queries_manager->queries_per_thread) + pool_index;
+                    const u32 query_count = time_query->allocated_time_query;
+                    u64* timestamps_data = (u64*)mfalloca(query_count * 2 * sizeof(u64), temporary_allocator);
+                    vkGetQueryPoolResults(vulkan_device, thread_pool.vulkan_timestamp_query_pool, 0, query_count * 2,
+                        sizeof(u64) * query_count * 2, timestamps_data,
+                        sizeof(u64), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
+
+                    // Calculate and cache the elapsed time
+                    for (u32 i = 0; i < query_count; i++) {
+                        u32 index = (query_offset)+i;
+
+                        GPUTimeQuery& timestamp = gpu_time_queries_manager->timestamps[index];
+
+                        double start = (double)timestamps_data[(i * 2)];
+                        double end = (double)timestamps_data[(i * 2) + 1];
+                        double range = end - start;
+                        double elapsed_time = range * gpu_timestamp_frequency;
+
+                        timestamp.elapsed_ms = elapsed_time;
+                        timestamp.frame_index = absolute_frame;
+
+                        //print_format( "%s: %2.3f d(%u) - ", timestamp.name, elapsed_time, timestamp.depth );
+                    }
+                }
+
+                temporary_allocator->clear();
+            }
+
+            //rprint( "%llu %f\n", gpu_time_queries_manager->frame_pipeline_statistics.statistics[ 6 ], ( gpu_time_queries_manager->frame_pipeline_statistics.statistics[ 6 ] * 1.0 ) / ( swapchain_width * swapchain_height ) );
+        }
 
         if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || resized) {
             resized = false;
@@ -3315,7 +3615,7 @@ namespace Magnefu
             return;
         }
 
-        //Magnefu::print_format( "Index %u, %u, {}", current_frame, previous_frame, vulkan_image_index );
+        //Magnefu::print_format( "Index %u, %u, %u\n", current_frame, previous_frame, vulkan_image_index );
 
         // This is called inside resize_swapchain as well to correctly work.
         frame_counters_advance();
@@ -3394,6 +3694,109 @@ namespace Magnefu
         }
     }
 
+    void GraphicsContext::submit_compute_load(CommandBuffer* command_buffer) {
+        has_async_work = true;
+
+        if (timeline_semaphore_extension_present) {
+            bool has_wait_semaphore = last_compute_semaphore_value > 0;
+
+            if (synchronization2_extension_present) {
+
+                VkSemaphoreSubmitInfoKHR wait_semaphores[]{
+                    { VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO_KHR, nullptr, vulkan_compute_semaphore, last_compute_semaphore_value, VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT_KHR, 0 }
+                };
+
+                last_compute_semaphore_value++;
+
+                VkSemaphoreSubmitInfoKHR signal_semaphores[]{
+                    { VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO_KHR, nullptr, vulkan_compute_semaphore, last_compute_semaphore_value, VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT_KHR, 0 },
+                };
+
+                VkCommandBufferSubmitInfoKHR command_buffer_info{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO_KHR };
+                command_buffer_info.commandBuffer = command_buffer->vk_command_buffer;
+
+                VkSubmitInfo2KHR submit_info{ VK_STRUCTURE_TYPE_SUBMIT_INFO_2_KHR };
+                submit_info.waitSemaphoreInfoCount = has_wait_semaphore ? 1 : 0;
+                submit_info.pWaitSemaphoreInfos = wait_semaphores;
+                submit_info.commandBufferInfoCount = 1;
+                submit_info.pCommandBufferInfos = &command_buffer_info;
+                submit_info.signalSemaphoreInfoCount = 1;
+                submit_info.pSignalSemaphoreInfos = signal_semaphores;
+
+                queue_submit2(vulkan_compute_queue, 1, &submit_info, VK_NULL_HANDLE);
+            }
+            else {
+                VkSemaphore wait_semaphores[] = { vulkan_compute_semaphore };
+                VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT };
+
+                VkSemaphore signal_semaphores[] = { vulkan_compute_semaphore };
+
+                VkTimelineSemaphoreSubmitInfo semaphore_info{ VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO };
+
+                u64 wait_values[] = { last_compute_semaphore_value };
+                semaphore_info.waitSemaphoreValueCount = has_wait_semaphore ? 1 : 0;
+                semaphore_info.pWaitSemaphoreValues = wait_values;
+
+                last_compute_semaphore_value++;
+
+                u64 signal_values[] = { last_compute_semaphore_value };
+                semaphore_info.signalSemaphoreValueCount = 1;
+                semaphore_info.pSignalSemaphoreValues = signal_values;
+
+                VkSubmitInfo submit_info = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+                submit_info.waitSemaphoreCount = has_wait_semaphore ? 1 : 0;
+                submit_info.pWaitSemaphores = wait_semaphores;
+                submit_info.pWaitDstStageMask = wait_stages;
+                submit_info.commandBufferCount = 1;
+                submit_info.pCommandBuffers = &command_buffer->vk_command_buffer;
+                submit_info.signalSemaphoreCount = 1;
+                submit_info.pSignalSemaphores = signal_semaphores;
+
+                submit_info.pNext = &semaphore_info;
+
+                vkQueueSubmit(vulkan_main_queue, 1, &submit_info, VK_NULL_HANDLE);
+            }
+        }
+        else {
+            if (vkGetFenceStatus(vulkan_device, vulkan_compute_fence) != VK_SUCCESS) {
+                vkWaitForFences(vulkan_device, 1, &vulkan_compute_fence, VK_TRUE, UINT64_MAX);
+            }
+
+            vkResetFences(vulkan_device, 1, &vulkan_compute_fence);
+
+            if (synchronization2_extension_present) {
+                VkCommandBufferSubmitInfoKHR command_buffer_info{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO_KHR };
+                command_buffer_info.commandBuffer = command_buffer->vk_command_buffer;
+
+                VkSemaphoreSubmitInfoKHR signal_semaphores[]{
+                    { VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO_KHR, nullptr, vulkan_compute_semaphore, 0, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, 0 },
+                };
+
+                VkSubmitInfo2KHR submit_info{ VK_STRUCTURE_TYPE_SUBMIT_INFO_2_KHR };
+                submit_info.waitSemaphoreInfoCount = 0;
+                submit_info.pWaitSemaphoreInfos = nullptr;
+                submit_info.commandBufferInfoCount = 1;
+                submit_info.pCommandBufferInfos = &command_buffer_info;
+                submit_info.signalSemaphoreInfoCount = 1;
+                submit_info.pSignalSemaphoreInfos = signal_semaphores;
+
+                queue_submit2(vulkan_compute_queue, 1, &submit_info, vulkan_compute_fence);
+            }
+            else {
+                VkSubmitInfo submit_info = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+                submit_info.waitSemaphoreCount = 0;
+                submit_info.pWaitSemaphores = nullptr;
+                submit_info.pWaitDstStageMask = nullptr;
+                submit_info.commandBufferCount = 1;
+                submit_info.pCommandBuffers = &command_buffer->vk_command_buffer;
+                submit_info.signalSemaphoreCount = 1;
+                submit_info.pSignalSemaphores = &vulkan_compute_semaphore;
+
+                vkQueueSubmit(vulkan_compute_queue, 1, &submit_info, vulkan_compute_fence);
+            }
+        }
+    }
+
     static VkPresentModeKHR to_vk_present_mode(PresentMode::Enum mode) {
         switch (mode) {
         case PresentMode::VSyncFast:
@@ -3415,7 +3818,7 @@ namespace Magnefu
 
         static VkPresentModeKHR supported_mode_allocated[8];
         vkGetPhysicalDeviceSurfacePresentModesKHR(vulkan_physical_device, vulkan_window_surface, &supported_count, NULL);
-        MF_CORE_ASSERT((supported_count < 8), "");
+        MF_CORE_ASSERT(supported_count < 8);
         vkGetPhysicalDeviceSurfacePresentModesKHR(vulkan_physical_device, vulkan_window_surface, &supported_count, supported_mode_allocated);
 
         bool mode_found = false;
@@ -3445,7 +3848,7 @@ namespace Magnefu
 
     void GraphicsContext::frame_counters_advance() {
         previous_frame = current_frame;
-        current_frame = (current_frame + 1) % vulkan_swapchain_image_count;
+        current_frame = (current_frame + 1) % k_max_frames;
 
         ++absolute_frame;
     }
@@ -3459,25 +3862,15 @@ namespace Magnefu
 
     //
     //
-    CommandBuffer* GraphicsContext::get_command_buffer(u32 thread_index, bool begin) {
-        CommandBuffer* cb = command_buffer_ring.get_command_buffer(current_frame, thread_index, begin);
-
-        // The first command buffer issued in the frame is used to reset the timestamp queries used.
-        if (gpu_timestamp_reset && begin) {
-            // These are currently indices!
-            vkCmdResetQueryPool(cb->vk_command_buffer, vulkan_timestamp_query_pool, current_frame * gpu_timestamp_manager->queries_per_frame * 2, gpu_timestamp_manager->queries_per_frame);
-
-            gpu_timestamp_reset = false;
-        }
-
+    CommandBuffer* GraphicsContext::get_command_buffer(u32 thread_index, u32 frame_index, bool begin, bool compute /*= false*/) {
+        CommandBuffer* cb = command_buffer_ring.get_command_buffer(frame_index, thread_index, begin, compute);
         return cb;
     }
 
     //
     //
-    CommandBuffer* GraphicsContext::get_secondary_command_buffer(u32 thread_index) {
-        CommandBuffer* cb = command_buffer_ring.get_secondary_command_buffer(current_frame, thread_index);
-
+    CommandBuffer* GraphicsContext::get_secondary_command_buffer(u32 thread_index, u32 frame_index) {
+        CommandBuffer* cb = command_buffer_ring.get_secondary_command_buffer(frame_index, thread_index);
         return cb;
     }
 
@@ -3597,7 +3990,7 @@ namespace Magnefu
 
     void* GraphicsContext::dynamic_allocate(u32 size) {
         void* mapped_memory = dynamic_mapped_memory + dynamic_allocated_size;
-        dynamic_allocated_size += (u32)memoryAlign(size, ubo_alignment);
+        dynamic_allocated_size += (u32)Magnefu::memory_align(size, ubo_alignment);
         return mapped_memory;
     }
 
@@ -3609,54 +4002,10 @@ namespace Magnefu
         vulkan_buffer->global_offset = offset;
     }
 
-    u32 GraphicsContext::get_gpu_timestamps(GPUTimestamp* out_timestamps) {
-        return gpu_timestamp_manager->resolve(previous_frame, out_timestamps);
+    u32 GraphicsContext::copy_gpu_timestamps(GPUTimeQuery* out_timestamps) {
+        return gpu_time_queries_manager->resolve(previous_frame, out_timestamps);
 
     }
-
-    void GraphicsContext::push_gpu_timestamp(CommandBuffer* command_buffer, const char* name) {
-        if (!timestamps_enabled)
-            return;
-
-        u32 query_index = gpu_timestamp_manager->push(current_frame, name);
-        vkCmdWriteTimestamp(command_buffer->vk_command_buffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, vulkan_timestamp_query_pool, query_index);
-    }
-
-    void GraphicsContext::pop_gpu_timestamp(CommandBuffer* command_buffer) {
-        if (!timestamps_enabled)
-            return;
-
-        u32 query_index = gpu_timestamp_manager->pop(current_frame);
-        vkCmdWriteTimestamp(command_buffer->vk_command_buffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, vulkan_timestamp_query_pool, query_index);
-    }
-
-
-    // -- VMA ------------------------------------------------------------------ //
-
-    void GraphicsContext::CalculateMemoryStats()
-    {
-        //vmaCalculateStatistics(m_VmaAllocator, &m_VulkanMemory.TotalStats);
-        vmaGetHeapBudgets(vma_allocator, &vma_budget);
-    }
-
-    VMAMemoryStats GraphicsContext::GetMemoryStats()
-    {
-        CalculateMemoryStats();
-
-        auto& vulkanStats = vma_budget.statistics;
-        auto& vulkanBudget = vma_budget;
-        VMAMemoryStats stats;
-
-        stats.blockCount = vulkanStats.blockCount;
-        stats.blockBytes = (uint64_t)vulkanStats.blockBytes;
-        stats.allocationCount = vulkanStats.allocationCount;
-        stats.allocationBytes = (uint64_t)vulkanStats.allocationBytes;
-        stats.usage = vulkanBudget.usage;
-        stats.budget = vulkanBudget.budget;
-
-        return stats;
-    }
-
 
     // Utility methods //////////////////////////////////////////////////////////////
 
@@ -3665,7 +4014,7 @@ namespace Magnefu
             return;
         }
 
-        MF_CORE_ERROR("Vulkan error: code(%u)", result);
+        rprint("Vulkan error: code(%u)", result);
         if (result < 0) {
             MF_CORE_ASSERT(false, "Vulkan error: aborting.");
         }
@@ -3751,14 +4100,14 @@ namespace Magnefu
 
     DescriptorSetLayoutHandle GraphicsContext::get_descriptor_set_layout(PipelineHandle pipeline_handle, int layout_index) {
         Pipeline* pipeline = access_pipeline(pipeline_handle);
-        MF_CORE_ASSERT((pipeline != nullptr), "");
+        MF_CORE_ASSERT(pipeline != nullptr);
 
         return  pipeline->descriptor_set_layout_handles[layout_index];
     }
 
     DescriptorSetLayoutHandle GraphicsContext::get_descriptor_set_layout(PipelineHandle pipeline_handle, int layout_index) const {
         const Pipeline* pipeline = access_pipeline(pipeline_handle);
-        MF_CORE_ASSERT((pipeline != nullptr), "");
+        MF_CORE_ASSERT(pipeline != nullptr);
 
         return  pipeline->descriptor_set_layout_handles[layout_index];
     }
@@ -3788,104 +4137,28 @@ namespace Magnefu
     {
         return (Framebuffer*)framebuffers.access_resource(framebuffer.index);
     }
-    /*
-    // Building Helpers /////////////////////////////////////////////////////////////
 
-    // SortKey //////////////////////////////////////////////////////////////////////
-    static const u64                    k_stage_shift               = (56);
-
-    u64 SortKey::get_key( u64 stage_index ) {
-        return ( ( stage_index << k_stage_shift ) );
-    }*/
-
-    // GPU Timestamp Manager ////////////////////////////////////////////////////////
-
-    void GPUTimestampManager::init(Allocator* allocator_, u16 queries_per_frame_, u16 max_frames) {
-
-        allocator = allocator_;
-        queries_per_frame = queries_per_frame_;
-
-        // Data is start, end in 2 u64 numbers.
-        const u32 k_data_per_query = 2;
-        const sizet allocated_size = sizeof(GPUTimestamp) * queries_per_frame * max_frames + sizeof(u64) * queries_per_frame * max_frames * k_data_per_query;
-        u8* memory = mfallocam(allocated_size, allocator);
-
-        timestamps = (GPUTimestamp*)memory;
-        // Data is start, end in 2 u64 numbers.
-        timestamps_data = (u64*)(memory + sizeof(GPUTimestamp) * queries_per_frame * max_frames);
-
-        reset();
-    }
-
-    void GPUTimestampManager::shutdown() {
-
-        mffree(timestamps, allocator);
-    }
-
-    void GPUTimestampManager::reset() {
-        current_query = 0;
-        parent_index = 0;
-        current_frame_resolved = false;
-        depth = 0;
-    }
-
-    bool GPUTimestampManager::has_valid_queries() const {
-        // Even number of queries means asymettrical queries, thus we don't sample.
-        return current_query > 0 && (depth == 0);
-    }
-
-    u32 GPUTimestampManager::resolve(u32 current_frame, GPUTimestamp* timestamps_to_fill) {
-        memoryCopy(timestamps_to_fill, &timestamps[current_frame * queries_per_frame], sizeof(GPUTimestamp) * current_query);
-        return current_query;
-    }
-
-    u32 GPUTimestampManager::push(u32 current_frame, const char* name) {
-        u32 query_index = (current_frame * queries_per_frame) + current_query;
-
-        GPUTimestamp& timestamp = timestamps[query_index];
-        timestamp.parent_index = (u16)parent_index;
-        timestamp.start = query_index * 2;
-        timestamp.end = timestamp.start + 1;
-        timestamp.name = name;
-        timestamp.depth = (u16)depth++;
-
-        parent_index = current_query;
-        ++current_query;
-
-        return (query_index * 2);
-    }
-
-    u32 GPUTimestampManager::pop(u32 current_frame) {
-
-        u32 query_index = (current_frame * queries_per_frame) + parent_index;
-        GPUTimestamp& timestamp = timestamps[query_index];
-        // Go up a level
-        parent_index = timestamp.parent_index;
-        --depth;
-
-        return (query_index * 2) + 1;
-    }
-
-    DeviceCreation& DeviceCreation::set_window(u32 width_, u32 height_, void* handle) {
+    // GraphicsContextCreation //////////////////////////////////////////////////////
+    GraphicsContextCreation& GraphicsContextCreation::set_window(u32 width_, u32 height_, void* handle) {
         width = (u16)width_;
         height = (u16)height_;
         window = handle;
         return *this;
     }
 
-    DeviceCreation& DeviceCreation::set_allocator(Allocator* allocator_) {
+    GraphicsContextCreation& GraphicsContextCreation::set_allocator(Allocator* allocator_) {
         allocator = allocator_;
         return *this;
     }
 
-    DeviceCreation& DeviceCreation::set_stack_allocator(StackAllocator* allocator) {
+    GraphicsContextCreation& GraphicsContextCreation::set_linear_allocator(StackAllocator* allocator) {
         temporary_allocator = allocator;
         return *this;
     }
 
-    DeviceCreation& DeviceCreation::set_num_threads(u32 value) {
+    GraphicsContextCreation& GraphicsContextCreation::set_num_threads(u32 value) {
         num_threads = value;
         return *this;
     }
 
-} // namespace raptor
+} // namespace Magnefu

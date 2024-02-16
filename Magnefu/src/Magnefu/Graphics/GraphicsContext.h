@@ -23,88 +23,36 @@
 #include "vma/vk_mem_alloc.h"
 
 
+
 namespace Magnefu
 {
 
-	// Forward-declarations ----------------------------------------- //
-	struct Allocator;
-    struct StackAllocator;
-	struct CommandBuffer;
+    struct Allocator;
+
+    // Forward-declarations //////////////////////////////////////////////////
+    struct CommandBuffer;
     struct CommandBufferManager;
-	struct DeviceRenderFrame;
-	struct GPUTimestampManager;
-	struct GraphicsContext;
+    struct DeviceRenderFrame;
+    struct GPUTimeQueriesManager;
+    struct GraphicsContext;
+    struct GPUTimeQuery;
+    struct GpuTimeQueryTree;
+    struct GpuPipelineStatistics;
 
+    //
+    struct GpuThreadFramePools {
 
-    struct VMAMemoryStats
-    {
-        u32 blockCount;
-        u32 allocationCount;
-        u64 blockBytes;
-        u64 allocationBytes;
-        u64 usage;
-        u64 budget;
-    };
-    
+        VkCommandPool                   vulkan_command_pool = nullptr;
+        VkQueryPool                     vulkan_timestamp_query_pool = nullptr;
+        VkQueryPool                     vulkan_pipeline_stats_query_pool = nullptr;
 
-    struct GPUTimestamp {
+        GpuTimeQueryTree* time_queries = nullptr;
 
-        u32                             start;
-        u32                             end;
+    }; // struct GpuThreadFramePools
 
-        f64                             elapsed_ms;
-
-        u16                             parent_index;
-        u16                             depth;
-
-        u32                             color;
-        u32                             frame_index;
-
-        const char* name;
-    }; // struct GPUTimestamp
-
-
-    struct GPUTimestampManager {
-
-        void                            init(Allocator* allocator, u16 queries_per_frame, u16 max_frames);
-        void                            shutdown();
-
-        bool                            has_valid_queries() const;
-        void                            reset();
-        u32                             resolve(u32 current_frame, GPUTimestamp* timestamps_to_fill);    // Returns the total queries for this frame.
-
-        u32                             push(u32 current_frame, const char* name);    // Returns the timestamp query index.
-
-        u32                             pop(u32 current_frame);
-
-
-
-        Allocator* allocator = nullptr;
-        GPUTimestamp* timestamps = nullptr;
-        u64* timestamps_data = nullptr;
-
-        u32                             queries_per_frame = 0;
-        u32                             current_query = 0;
-        u32                             parent_index = 0;
-        u32                             depth = 0;
-
-        bool                            current_frame_resolved = false;    // Used to query the GPU only once per frame if get_gpu_timestamps is called more than once per frame.
-
-    }; // struct GPUTimestampManager
-
-
-
-	struct DeviceCreation
-	{
-		// -- Methods ------------------------------------------------------ //
-
-		DeviceCreation& set_window(u32 width, u32 height, void* handle);
-		DeviceCreation& set_allocator(Allocator* allocator);
-		DeviceCreation& set_stack_allocator(StackAllocator* allocator);
-        DeviceCreation& set_num_threads(u32 value);
-
-
-		// -- Members ----------------------------------------------------- //
+    //
+    //
+    struct GraphicsContextCreation {
 
         Allocator* allocator = nullptr;
         StackAllocator* temporary_allocator = nullptr;
@@ -115,41 +63,35 @@ namespace Magnefu
         u16                             gpu_time_queries_per_frame = 32;
         u16                             num_threads = 1;
         bool                            enable_gpu_time_queries = false;
+        bool                            enable_pipeline_statistics = true;
         bool                            debug = false;
+        bool                            force_disable_dynamic_rendering = false;
 
+        GraphicsContextCreation& set_window(u32 width, u32 height, void* handle);
+        GraphicsContextCreation& set_allocator(Allocator* allocator);
+        GraphicsContextCreation& set_linear_allocator(StackAllocator* allocator);
+        GraphicsContextCreation& set_num_threads(u32 value);
 
+    }; // struct GraphicsContextCreation
 
-	};
+    //
+    //
+    struct GraphicsContext : public Service {
 
-
-    struct SwapChainSupportDetails
-    {
-        Array<VkSurfaceFormatKHR> Formats;
-        Array<VkPresentModeKHR>   PresentModes;
-        VkSurfaceCapabilitiesKHR  Capabilities;
-    };
-
-
-    struct GraphicsContext : public Service 
-    {
-        MF_DECLARE_SERVICE(GraphicsContext);
+        static GraphicsContext* Instance();
 
         static void* get_window_handle();
-
-        // Init/Terminate methods ------------------------------------------------ //
-
-        void                            init(const DeviceCreation& creation);
-        void                            shutdown();
-
 
         // Helper methods
         static void                     fill_write_descriptor_sets(GraphicsContext& gpu, const DescriptorSetLayout* descriptor_set_layout, VkDescriptorSet vk_descriptor_set,
             VkWriteDescriptorSet* descriptor_write, VkDescriptorBufferInfo* buffer_info, VkDescriptorImageInfo* image_info,
             VkSampler vk_default_sampler, u32& num_resources, const ResourceHandle* resources, const SamplerHandle* samplers, const u16* bindings);
 
+        // Init/Terminate methods
+        void                            init(const GraphicsContextCreation& creation);
+        void                            shutdown();
 
-        // Creation/Destruction of resources ------------------------------------------------- //
-
+        // Creation/Destruction of resources /////////////////////////////////
         BufferHandle                    create_buffer(const BufferCreation& creation);
         TextureHandle                   create_texture(const TextureCreation& creation);
         PipelineHandle                  create_pipeline(const PipelineCreation& creation, const char* cache_path = nullptr);
@@ -170,9 +112,7 @@ namespace Magnefu
         void                            destroy_framebuffer(FramebufferHandle framebuffer);
         void                            destroy_shader_state(ShaderStateHandle shader);
 
-
-        // Query Description -------------------------------------------------------------------------------------------------- //
-
+        // Query Description /////////////////////////////////////////////////
         void                            query_buffer(BufferHandle buffer, BufferDescription& out_description);
         void                            query_texture(TextureHandle texture, TextureDescription& out_description);
         void                            query_pipeline(PipelineHandle pipeline, PipelineDescription& out_description);
@@ -181,16 +121,15 @@ namespace Magnefu
         void                            query_descriptor_set(DescriptorSetHandle set, DescriptorSetDescription& out_description);
         void                            query_shader_state(ShaderStateHandle shader, ShaderStateDescription& out_description);
 
-        const RenderPassOutput&         get_render_pass_output(RenderPassHandle render_pass) const;
+        const RenderPassOutput& get_render_pass_output(RenderPassHandle render_pass) const;
 
-
-        // -- Update/Reload resources ------------------------------------------------------------------------------------- //
-
-        void                            resize_output_textures(FramebufferHandle framebuffer, u32 width, u32 height);
+        // Update/Reload resources ///////////////////////////////////////////
+        void                            resize_output_textures(FramebufferHandle render_pass, u32 width, u32 height);
         void                            resize_texture(TextureHandle texture, u32 width, u32 height);
+
         void                            update_descriptor_set(DescriptorSetHandle set);
 
-        // -- Misc ------------------------------------------------- ------------------------------------------------- //
+        // Misc //////////////////////////////////////////////////////////////
         void                            link_texture_sampler(TextureHandle texture, SamplerHandle sampler);   // TODO: for now specify a sampler for a texture or use the default one.
 
         void                            set_present_mode(PresentMode::Enum mode);
@@ -201,42 +140,33 @@ namespace Magnefu
 
         VkShaderModuleCreateInfo        compile_shader(cstring code, u32 code_size, VkShaderStageFlagBits stage, cstring name);
 
-        bool                            check_device_extension_support(VkPhysicalDevice physical_device);
-        SwapChainSupportDetails         query_swapchain_support(VkPhysicalDevice physical_device);
-
-
-        // -- Swapchain ------------------------------------------------- //
-
+        // Swapchain //////////////////////////////////////////////////////////
         void                            create_swapchain();
         void                            destroy_swapchain();
         void                            resize_swapchain();
 
-
-        // -- Map/Unmap ------------------------------------------------- //
-
-        void*                           map_buffer(const MapBufferParameters& parameters);
+        // Map/Unmap /////////////////////////////////////////////////////////
+        void* map_buffer(const MapBufferParameters& parameters);
         void                            unmap_buffer(const MapBufferParameters& parameters);
 
-        void*                           dynamic_allocate(u32 size);
+        void* dynamic_allocate(u32 size);
 
         void                            set_buffer_global_offset(BufferHandle buffer, u32 offset);
 
-
-        // -- Command Buffers ------------------------------------------------- //
-
-        CommandBuffer*                  get_command_buffer(u32 thread_index, bool begin);
-        CommandBuffer*                  get_secondary_command_buffer(u32 thread_index);
+        // Command Buffers ///////////////////////////////////////////////////
+        CommandBuffer* get_command_buffer(u32 thread_index, u32 frame_index, bool begin, bool compute = false);
+        CommandBuffer* get_secondary_command_buffer(u32 thread_index, u32 frame_index);
 
         void                            queue_command_buffer(CommandBuffer* command_buffer);          // Queue command buffer that will not be executed until present is called.
 
-
-        // -- Rendering ------------------------------------------------- //
-
+        // Rendering /////////////////////////////////////////////////////////
         void                            new_frame();
-        void                            present();
+        void                            present(CommandBuffer* async_compute_command_buffer);
         void                            resize(u16 width, u16 height);
 
-        void                            fill_barrier(FramebufferHandle framebuffer, ExecutionBarrier& out_barrier);
+        void                            fill_barrier(FramebufferHandle render_pass, ExecutionBarrier& out_barrier);
+
+        bool                            buffer_ready(BufferHandle buffer);
 
         BufferHandle                    get_fullscreen_vertex_buffer() const;           // Returns a vertex buffer usable for fullscreen shaders that uses no vertices.
         RenderPassHandle                get_swapchain_pass() const;                     // Returns what is considered the final pass that writes to the swapchain.
@@ -244,31 +174,25 @@ namespace Magnefu
 
         TextureHandle                   get_dummy_texture() const;
         BufferHandle                    get_dummy_constant_buffer() const;
-        const RenderPassOutput&         get_swapchain_output() const { return swapchain_output; }
+        const RenderPassOutput& get_swapchain_output() const { return swapchain_output; }
 
         VkRenderPass                    get_vulkan_render_pass(const RenderPassOutput& output, cstring name);
 
+        // Compute ///////////////////////////////////////////////////////////
+        void                            submit_compute_load(CommandBuffer* command_buffer);
 
-        // -- Names and markers --------------------------------------------------------------------------------------------- //
-
+        // Names and markers /////////////////////////////////////////////////
         void                            set_resource_name(VkObjectType object_type, uint64_t handle, const char* name);
         void                            push_marker(VkCommandBuffer command_buffer, cstring name);
         void                            pop_marker(VkCommandBuffer command_buffer);
 
-
-        // -- GPU Timings ---------------------------------------------------------------------------------------------- //
+        // GPU Timings ///////////////////////////////////////////////////////
         void                            set_gpu_timestamps_enable(bool value) { timestamps_enabled = value; }
 
-        u32                             get_gpu_timestamps(GPUTimestamp* out_timestamps);
-        void                            push_gpu_timestamp(CommandBuffer* command_buffer, const char* name);
-        void                            pop_gpu_timestamp(CommandBuffer* command_buffer);
+        u32                             copy_gpu_timestamps(GPUTimeQuery* out_timestamps);
 
 
-        // -- VMA Info ----------------------------------------------------------------------------------------------------- //
-        void                            CalculateMemoryStats();
-        VMAMemoryStats                  GetMemoryStats();
-
-        // -- Instant methods ---------------------------------------------------------------------------------------------- //
+        // Instant methods ///////////////////////////////////////////////////
         void                            destroy_buffer_instant(ResourceHandle buffer);
         void                            destroy_texture_instant(ResourceHandle texture);
         void                            destroy_pipeline_instant(ResourceHandle pipeline);
@@ -281,47 +205,9 @@ namespace Magnefu
 
         void                            update_descriptor_set_instant(const DescriptorSetUpdate& update);
 
-        // -- Memory Stats --------------------------------------------- //
+        // Memory Statistics //////////////////////////////////////////////////
+        cstring                         get_gpu_name() const { return vulkan_physical_properties.deviceName; }
         u32                             get_memory_heap_count();
-        
-
-        // -- Resource Acquisition -------------------------------------------------------- //
-
-        ShaderState* access_shader_state(ShaderStateHandle shader);
-        const ShaderState* access_shader_state(ShaderStateHandle shader) const;
-
-        Texture* access_texture(TextureHandle texture);
-        const Texture* access_texture(TextureHandle texture) const;
-
-        Buffer* access_buffer(BufferHandle buffer);
-        const Buffer* access_buffer(BufferHandle buffer) const;
-
-        Pipeline* access_pipeline(PipelineHandle pipeline);
-        const Pipeline* access_pipeline(PipelineHandle pipeline) const;
-
-        Sampler* access_sampler(SamplerHandle sampler);
-        const Sampler* access_sampler(SamplerHandle sampler) const;
-
-        DescriptorSetLayout* access_descriptor_set_layout(DescriptorSetLayoutHandle layout);
-        const DescriptorSetLayout* access_descriptor_set_layout(DescriptorSetLayoutHandle layout) const;
-
-        DescriptorSet* access_descriptor_set(DescriptorSetHandle set);
-        const DescriptorSet* access_descriptor_set(DescriptorSetHandle set) const;
-
-        RenderPass* access_render_pass(RenderPassHandle render_pass);
-        const RenderPass* access_render_pass(RenderPassHandle render_pass) const;
-
-        Framebuffer* access_framebuffer(FramebufferHandle framebuffer);
-        const Framebuffer* access_framebuffer(FramebufferHandle framebuffer) const;
-
-
-        DescriptorSetLayoutHandle get_descriptor_set_layout(PipelineHandle pipeline_handle, int layout_index);
-        DescriptorSetLayoutHandle get_descriptor_set_layout(PipelineHandle pipeline_handle, int layout_index) const;
-
-
-
-
-        // -- Members -------------------------------------------------------- //
 
         ResourcePool                    buffers;
         ResourcePool                    textures;
@@ -363,12 +249,12 @@ namespace Magnefu
         u32                             current_frame;
         u32                             previous_frame;
 
-        u32                             absolute_frame;
+        u64                             absolute_frame;
 
         u16                             swapchain_width = 1;
         u16                             swapchain_height = 1;
 
-        GPUTimestampManager* gpu_timestamp_manager = nullptr;
+        GPUTimeQueriesManager* gpu_time_queries_manager = nullptr;
 
         bool                            bindless_supported = false;
         bool                            timestamps_enabled = false;
@@ -377,6 +263,9 @@ namespace Magnefu
 
         static constexpr cstring        k_name = "raptor_gpu_service";
 
+        VkPhysicalDeviceFeatures2       vulkan_physical_features;
+        VkSampleCountFlagBits           vulkan_max_sample_count_bits;
+
 
         VkAllocationCallbacks* vulkan_allocation_callbacks;
         VkInstance                      vulkan_instance;
@@ -384,8 +273,10 @@ namespace Magnefu
         VkPhysicalDeviceProperties      vulkan_physical_properties;
         VkDevice                        vulkan_device;
         VkQueue                         vulkan_main_queue;
+        VkQueue                         vulkan_compute_queue;
         VkQueue                         vulkan_transfer_queue;
         u32                             vulkan_main_queue_family;
+        u32                             vulkan_compute_queue_family;
         u32                             vulkan_transfer_queue_family;
         VkDescriptorPool                vulkan_descriptor_pool;
 
@@ -395,20 +286,22 @@ namespace Magnefu
         DescriptorSetLayoutHandle       bindless_descriptor_set_layout;
         DescriptorSetHandle             bindless_descriptor_set;
 
-
-        VkPhysicalDeviceFeatures2       vulkan_physical_features;
-        VkSampleCountFlagBits           vulkan_max_sample_count_bits;
-
         // Swapchain
         FramebufferHandle               vulkan_swapchain_framebuffers[k_max_swapchain_images]{ k_invalid_index, k_invalid_index, k_invalid_index };
 
-        VkQueryPool                     vulkan_timestamp_query_pool;
-        // Per frame synchronization
-        VkSemaphore                     vulkan_render_complete_semaphore[k_max_swapchain_images];
-        VkSemaphore                     vulkan_image_acquired_semaphore;
-        VkFence                         vulkan_command_buffer_executed_fence[k_max_swapchain_images];
+        Array<GpuThreadFramePools>      thread_frame_pools;
+        Array<GpuThreadFramePools>      compute_frame_pools;
 
-        static const uint32_t           k_max_frames = 3;
+        // Per frame synchronization
+        VkSemaphore                     vulkan_render_complete_semaphore[k_max_frames];
+        VkSemaphore                     vulkan_image_acquired_semaphore;
+        VkSemaphore                     vulkan_graphics_semaphore;
+        VkFence                         vulkan_command_buffer_executed_fence[k_max_frames];
+
+        VkSemaphore                     vulkan_compute_semaphore;
+        VkFence                         vulkan_compute_fence;
+        u64                             last_compute_semaphore_value = 0;
+        bool                            has_async_work = false;
 
         // Windows specific
         VkSurfaceKHR                    vulkan_window_surface;
@@ -423,11 +316,12 @@ namespace Magnefu
         u32                             vulkan_image_index;
 
         VmaAllocator                    vma_allocator;
-        VmaBudget                       vma_budget;
 
         // Extension functions
         PFN_vkCmdBeginRenderingKHR      cmd_begin_rendering;
         PFN_vkCmdEndRenderingKHR        cmd_end_rendering;
+        PFN_vkQueueSubmit2KHR           queue_submit2;
+        PFN_vkCmdPipelineBarrier2KHR    cmd_pipeline_barrier2;
 
         // These are dynamic - so that workload can be handled correctly.
         Array<ResourceUpdate>           resource_deletion_queue;
@@ -435,18 +329,50 @@ namespace Magnefu
         // [TAG: BINDLESS]
         Array<ResourceUpdate>           texture_to_update_bindless;
 
+        u32                             num_threads = 1;
         f32                             gpu_timestamp_frequency;
-        bool                            gpu_timestamp_reset = true;
         bool                            debug_utils_extension_present = false;
         bool                            dynamic_rendering_extension_present = false;
+        bool                            timeline_semaphore_extension_present = false;
+        bool                            synchronization2_extension_present = false;
 
         sizet                           ubo_alignment = 256;
         sizet                           ssbo_alignemnt = 256;
 
         char                            vulkan_binaries_path[512];
 
-       
+
+        ShaderState* access_shader_state(ShaderStateHandle shader);
+        const ShaderState* access_shader_state(ShaderStateHandle shader) const;
+
+        Texture* access_texture(TextureHandle texture);
+        const Texture* access_texture(TextureHandle texture) const;
+
+        Buffer* access_buffer(BufferHandle buffer);
+        const Buffer* access_buffer(BufferHandle buffer) const;
+
+        Pipeline* access_pipeline(PipelineHandle pipeline);
+        const Pipeline* access_pipeline(PipelineHandle pipeline) const;
+
+        Sampler* access_sampler(SamplerHandle sampler);
+        const Sampler* access_sampler(SamplerHandle sampler) const;
+
+        DescriptorSetLayout* access_descriptor_set_layout(DescriptorSetLayoutHandle layout);
+        const DescriptorSetLayout* access_descriptor_set_layout(DescriptorSetLayoutHandle layout) const;
+
+        DescriptorSetLayoutHandle get_descriptor_set_layout(PipelineHandle pipeline_handle, int layout_index);
+        DescriptorSetLayoutHandle get_descriptor_set_layout(PipelineHandle pipeline_handle, int layout_index) const;
+
+        DescriptorSet* access_descriptor_set(DescriptorSetHandle set);
+        const DescriptorSet* access_descriptor_set(DescriptorSetHandle set) const;
+
+        RenderPass* access_render_pass(RenderPassHandle render_pass);
+        const RenderPass* access_render_pass(RenderPassHandle render_pass) const;
+
+        Framebuffer* access_framebuffer(FramebufferHandle framebuffer);
+        const Framebuffer* access_framebuffer(FramebufferHandle framebuffer) const;
 
     }; // struct GraphicsContext
 
-}
+
+} // namespace Magnefu

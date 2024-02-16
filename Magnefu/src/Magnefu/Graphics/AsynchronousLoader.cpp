@@ -26,7 +26,6 @@ namespace Magnefu
 		cpu_buffer_ready.index = k_invalid_texture.index;
 		gpu_buffer_ready.index = k_invalid_texture.index;
 
-		completed = nullptr;
 
 		using namespace Magnefu;
 
@@ -41,7 +40,7 @@ namespace Magnefu
 		staging_buffer_offset = 0;
 
 		// Create command pools linked to transfer queue
-		for (u32 i = 0; i < GraphicsContext::k_max_frames; i++)
+		for (u32 i = 0; i < k_max_frames; i++)
 		{
 			VkCommandPoolCreateInfo cmd_pool_info{};
 			cmd_pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -52,7 +51,7 @@ namespace Magnefu
 			vkCreateCommandPool(renderer->gpu->vulkan_device, &cmd_pool_info, renderer->gpu->vulkan_allocation_callbacks, &command_pools[i]);
 		}
 
-		for (u32 i = 0; i < GraphicsContext::k_max_frames; i++)
+		for (u32 i = 0; i < k_max_frames; i++)
 		{
 			VkCommandBufferAllocateInfo cmd_alloc_info{};
 			cmd_alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -84,7 +83,7 @@ namespace Magnefu
 		file_load_requests.shutdown();
 		upload_requests.shutdown();
 
-		for (u32 i = 0; i < GraphicsContext::k_max_frames; ++i)
+		for (u32 i = 0; i < k_max_frames; ++i)
 		{
 			vkDestroyCommandPool(renderer->gpu->vulkan_device, command_pools[i], renderer->gpu->vulkan_allocation_callbacks);
 			// Command buffers are destroyed with the pool associated.
@@ -98,55 +97,70 @@ namespace Magnefu
 	{
 		using namespace Magnefu;
 
+		// If a texture was processed in the previous commands, signal the renderer
+		if (texture_ready.index != k_invalid_texture.index) {
+			// Add update request.
+			// This method is multithreaded_safe
+			renderer->add_texture_to_update(texture_ready);
+		}
+
+		if (cpu_buffer_ready.index != k_invalid_buffer.index && gpu_buffer_ready.index != k_invalid_buffer.index) {
+			// TODO(marco): free cpu buffer
+			renderer->gpu->destroy_buffer(cpu_buffer_ready);
+
+			Buffer* buffer = renderer->gpu->access_buffer(gpu_buffer_ready);
+			buffer->ready = true;
+
+			gpu_buffer_ready.index = k_invalid_buffer.index;
+			cpu_buffer_ready.index = k_invalid_buffer.index;
+		}
+
+		texture_ready.index = k_invalid_texture.index;
+
 		// Process upload requests
 		if (upload_requests.size)
 		{
-			if (vkGetFenceStatus(renderer->gpu->vulkan_device, transfer_fence) != VK_SUCCESS)
-			{
+			// Wait for transfer fence to be finished
+			if (vkGetFenceStatus(renderer->gpu->vulkan_device, transfer_fence) != VK_SUCCESS) {
 				return;
 			}
-
+			// Reset if file requests are present.
 			vkResetFences(renderer->gpu->vulkan_device, 1, &transfer_fence);
 
 			// Get last request
-			UploadRequest upload_request = upload_requests.back();
+			UploadRequest request = upload_requests.back();
 			upload_requests.pop();
 
 			CommandBuffer* cb = &command_buffers[renderer->gpu->current_frame];
 			cb->begin();
 
-			if (upload_request.texture.index != k_invalid_texture.index)
-			{
-				Texture* texture = renderer->gpu->access_texture(upload_request.texture);
-
+			if (request.texture.index != k_invalid_texture.index) {
+				Texture* texture = renderer->gpu->access_texture(request.texture);
 				const u32 k_texture_channels = 4;
 				const u32 k_texture_alignment = 4;
 				const sizet aligned_image_size = memoryAlign(texture->width * texture->height * k_texture_channels, k_texture_alignment);
 				// Request place in buffer
 				const sizet current_offset = std::atomic_fetch_add(&staging_buffer_offset, aligned_image_size);
 
-				cb->upload_texture_data(texture->handle, upload_request.data, staging_buffer->handle, current_offset);
+				cb->upload_texture_data(texture->handle, request.data, staging_buffer->handle, current_offset);
 
-				free(upload_request.data);
+				free(request.data);
 			}
-			else if (upload_request.cpu_buffer.index != k_invalid_buffer.index && upload_request.gpu_buffer.index != k_invalid_buffer.index)
-			{
-				Buffer* src = renderer->gpu->access_buffer(upload_request.cpu_buffer);
-				Buffer* dst = renderer->gpu->access_buffer(upload_request.gpu_buffer);
+			else if (request.cpu_buffer.index != k_invalid_buffer.index && request.gpu_buffer.index != k_invalid_buffer.index) {
+				Buffer* src = renderer->gpu->access_buffer(request.cpu_buffer);
+				Buffer* dst = renderer->gpu->access_buffer(request.gpu_buffer);
 
 				cb->upload_buffer_data(src->handle, dst->handle);
 			}
-			else if (upload_request.cpu_buffer.index != k_invalid_buffer.index)
-			{
-				Buffer* buffer = renderer->gpu->access_buffer(upload_request.cpu_buffer);
+			else if (request.cpu_buffer.index != k_invalid_buffer.index) {
+				Buffer* buffer = renderer->gpu->access_buffer(request.cpu_buffer);
 				// TODO: proper alignment
 				const sizet aligned_image_size = memoryAlign(buffer->size, 64);
 				const sizet current_offset = std::atomic_fetch_add(&staging_buffer_offset, aligned_image_size);
-				cb->upload_buffer_data(buffer->handle, upload_request.data, staging_buffer->handle, current_offset);
+				cb->upload_buffer_data(buffer->handle, request.data, staging_buffer->handle, current_offset);
 
-				free(upload_request.data);
+				free(request.data);
 			}
-
 
 			cb->end();
 
@@ -163,24 +177,23 @@ namespace Magnefu
 
 			// TODO(marco): better management for state machine. We need to account for file -> buffer,
 			// buffer -> texture and buffer -> buffer. One the CPU buffer has been used it should be freed.
-			if (upload_request.texture.index != k_invalid_index)
+			if (request.texture.index != k_invalid_index && request.gpu_buffer.index != k_invalid_buffer.index)
 			{
 				MF_ASSERT(texture_ready.index == k_invalid_texture.index, "");
-				texture_ready = upload_request.texture;
+				texture_ready = request.texture;
 			}
-			else if (upload_request.cpu_buffer.index != k_invalid_buffer.index && upload_request.gpu_buffer.index != k_invalid_buffer.index)
+			else if (request.cpu_buffer.index != k_invalid_buffer.index )
 			{
 				MF_ASSERT(cpu_buffer_ready.index == k_invalid_index, "");
 				MF_ASSERT(gpu_buffer_ready.index == k_invalid_index, "");
 				MF_ASSERT((completed == nullptr), "");
-				cpu_buffer_ready = upload_request.cpu_buffer;
-				gpu_buffer_ready = upload_request.gpu_buffer;
-				completed = upload_request.completed;
+				cpu_buffer_ready = request.cpu_buffer;
+				gpu_buffer_ready = request.gpu_buffer;
 			}
-			else if (upload_request.cpu_buffer.index != k_invalid_index)
+			else if (request.cpu_buffer.index != k_invalid_index)
 			{
 				MF_ASSERT(cpu_buffer_ready.index == k_invalid_index, "");
-				cpu_buffer_ready = upload_request.cpu_buffer;
+				cpu_buffer_ready = request.cpu_buffer;
 			}
 		}
 
@@ -235,14 +248,16 @@ namespace Magnefu
 		upload_request.texture = k_invalid_texture;
 	}
 
-	void AsynchronousLoader::request_buffer_copy(BufferHandle src, BufferHandle dst, u32* completed)
+	void AsynchronousLoader::request_buffer_copy(BufferHandle src, BufferHandle dst)
 	{
 
 		UploadRequest& upload_request = upload_requests.push_use();
-		upload_request.completed = completed;
 		upload_request.data = nullptr;
 		upload_request.cpu_buffer = src;
 		upload_request.gpu_buffer = dst;
 		upload_request.texture = k_invalid_texture;
+
+		Buffer* buffer = renderer->gpu->access_buffer(dst);
+		buffer->ready = false;
 	}
 }
