@@ -1881,7 +1881,7 @@ namespace Magnefu
 
             pipeline_info.pDynamicState = &dynamic_state;
 
-            check(vkCreateGraphicsPipelines(vulkan_device, pipeline_cache, 1, &pipeline_info, vulkan_allocation_callbacks, &pipeline->vk_pipeline));
+            check(vkCreateGraphicsPipelines(vulkan_device, pipeline_cache, 1, &pipeline_info, vulkan_allocation_callbacks, &pipeline->vk_pipeline), "Failed to create graphics pipelines");
 
             pipeline->vk_bind_point = VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS;
         }
@@ -1891,17 +1891,17 @@ namespace Magnefu
             pipeline_info.stage = shader_state_data->shader_stage_info[0];
             pipeline_info.layout = pipeline_layout;
 
-            check(vkCreateComputePipelines(vulkan_device, pipeline_cache, 1, &pipeline_info, vulkan_allocation_callbacks, &pipeline->vk_pipeline));
+            check(vkCreateComputePipelines(vulkan_device, pipeline_cache, 1, &pipeline_info, vulkan_allocation_callbacks, &pipeline->vk_pipeline), "Failed to create compute pipeline");
 
             pipeline->vk_bind_point = VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_COMPUTE;
         }
 
         if (cache_path != nullptr && !cache_exists) {
             sizet cache_data_size = 0;
-            check(vkGetPipelineCacheData(vulkan_device, pipeline_cache, &cache_data_size, nullptr));
+            check(vkGetPipelineCacheData(vulkan_device, pipeline_cache, &cache_data_size, nullptr), "Issue getting pipeline cache data");
 
             void* cache_data = allocator->allocate(cache_data_size, 64);
-            check(vkGetPipelineCacheData(vulkan_device, pipeline_cache, &cache_data_size, cache_data));
+            check(vkGetPipelineCacheData(vulkan_device, pipeline_cache, &cache_data_size, cache_data), "Issue getting pipeline cache data");
 
             file_write_binary(cache_path, cache_data, cache_data_size);
 
@@ -1945,7 +1945,7 @@ namespace Magnefu
         // with MEMORY_PROPERTY_DEVICE_LOCAL_BIT and MEMORY_PROPERTY_HOST_VISIBLE_BIT
         // but that's usually very small (256MB) unless resizable bar is enabled.
         // We simply don't allow it for now.
-        MF_CORE_ASSERT(!(creation.persistent && creation.device_only));
+        MF_CORE_ASSERT(!(creation.persistent && creation.device_only), "");
 
         VmaAllocationCreateInfo allocation_create_info{};
         allocation_create_info.flags = VMA_ALLOCATION_CREATE_STRATEGY_BEST_FIT_BIT;
@@ -1962,7 +1962,7 @@ namespace Magnefu
 
         VmaAllocationInfo allocation_info{};
         check(vmaCreateBuffer(vma_allocator, &buffer_info, &allocation_create_info,
-            &buffer->vk_buffer, &buffer->vma_allocation, &allocation_info));
+            &buffer->vk_buffer, &buffer->vma_allocation, &allocation_info), "Failed to create buffer");
 #if defined (_DEBUG)
         vmaSetAllocationName(vma_allocator, buffer->vma_allocation, creation.name);
 #endif // _DEBUG
@@ -2041,7 +2041,7 @@ namespace Magnefu
         u16 max_binding = 0;
         for (u32 r = 0; r < creation.num_bindings; ++r) {
             const DescriptorSetLayoutCreation::Binding& input_binding = creation.bindings[r];
-            max_binding = Magnefu_max(max_binding, input_binding.index);
+            max_binding = magnefu_max(max_binding, input_binding.index);
         }
         max_binding += 1;
 
@@ -2284,10 +2284,10 @@ namespace Magnefu
             // This number is the max allocatable count
             count_info.pDescriptorCounts = &max_binding;
             alloc_info.pNext = &count_info;
-            check(vkAllocateDescriptorSets(vulkan_device, &alloc_info, &descriptor_set->vk_descriptor_set));
+            check(vkAllocateDescriptorSets(vulkan_device, &alloc_info, &descriptor_set->vk_descriptor_set), "Issue allocating descriptor sets");
         }
         else {
-            check(vkAllocateDescriptorSets(vulkan_device, &alloc_info, &descriptor_set->vk_descriptor_set));
+            check(vkAllocateDescriptorSets(vulkan_device, &alloc_info, &descriptor_set->vk_descriptor_set), "Issue allocating descriptor sets");
         }
 
         // Cache data
@@ -2345,7 +2345,7 @@ namespace Magnefu
         framebuffer_info.pAttachments = framebuffer_attachments;
         framebuffer_info.attachmentCount = active_attachments;
 
-        check(vkCreateFramebuffer(gpu.vulkan_device, &framebuffer_info, nullptr, &framebuffer->vk_framebuffer));
+        check(vkCreateFramebuffer(gpu.vulkan_device, &framebuffer_info, nullptr, &framebuffer->vk_framebuffer), "Issue creating framebuffer");
         gpu.set_resource_name(VK_OBJECT_TYPE_FRAMEBUFFER, (u64)framebuffer->vk_framebuffer, framebuffer->name);
     }
 
@@ -2475,7 +2475,7 @@ namespace Magnefu
         //u32 num_external_dependencies = 0;
 
         VkRenderPass vk_render_pass;
-        check(vkCreateRenderPass(gpu.vulkan_device, &render_pass_info, nullptr, &vk_render_pass));
+        check(vkCreateRenderPass(gpu.vulkan_device, &render_pass_info, nullptr, &vk_render_pass), "Failed to create renderpass");
 
         gpu.set_resource_name(VK_OBJECT_TYPE_RENDER_PASS, (u64)vk_render_pass, name);
 
@@ -2567,7 +2567,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::Buffer, buffer.index, current_frame + k_max_frames, 1 });
         }
         else {
-            rprint("Graphics error: trying to free invalid Buffer %u\n", buffer.index);
+            MF_CORE_ERROR("Graphics error: trying to free invalid Buffer {}", buffer.index);
         }
     }
 
@@ -2577,7 +2577,7 @@ namespace Magnefu
             texture_to_update_bindless.push({ ResourceUpdateType::Texture, texture.index, current_frame, 1 });
         }
         else {
-            rprint("Graphics error: trying to free invalid Texture %u\n", texture.index);
+            MF_CORE_ERROR("Graphics error: trying to free invalid Texture {}", texture.index);
         }
     }
 
@@ -2597,7 +2597,7 @@ namespace Magnefu
             destroy_shader_state(v_pipeline->shader_state);
         }
         else {
-            rprint("Graphics error: trying to free invalid Pipeline %u\n", pipeline.index);
+            MF_CORE_ERROR("Graphics error: trying to free invalid Pipeline {}", pipeline.index);
         }
     }
 
@@ -2606,7 +2606,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::Sampler, sampler.index, current_frame, 1 });
         }
         else {
-            rprint("Graphics error: trying to free invalid Sampler %u\n", sampler.index);
+            MF_CORE_ERROR("Graphics error: trying to free invalid Sampler {}", sampler.index);
         }
     }
 
@@ -2615,7 +2615,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::DescriptorSetLayout, descriptor_set_layout.index, current_frame, 1 });
         }
         else {
-            rprint("Graphics error: trying to free invalid DescriptorSetLayout %u\n", descriptor_set_layout.index);
+            MF_CORE_ERROR("Graphics error: trying to free invalid DescriptorSetLayout {}", descriptor_set_layout.index);
         }
     }
 
@@ -2624,7 +2624,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::DescriptorSet, descriptor_set.index, current_frame, 1 });
         }
         else {
-            rprint("Graphics error: trying to free invalid DescriptorSet %u\n", descriptor_set.index);
+            MF_CORE_ERROR("Graphics error: trying to free invalid DescriptorSet {}", descriptor_set.index);
         }
     }
 
@@ -2633,7 +2633,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::RenderPass, render_pass.index, current_frame, 1 });
         }
         else {
-            rprint("Graphics error: trying to free invalid RenderPass %u\n", render_pass.index);
+            MF_CORE_ERROR("Graphics error: trying to free invalid RenderPass {}", render_pass.index);
         }
     }
 
@@ -2642,7 +2642,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::Framebuffer, framebuffer.index, current_frame, 1 });
         }
         else {
-            rprint("Graphics error: trying to free invalid Framebuffer %u\n", framebuffer.index);
+            MF_CORE_ERROR("Graphics error: trying to free invalid Framebuffer {}", framebuffer.index);
         }
     }
 
@@ -2655,7 +2655,7 @@ namespace Magnefu
             allocator->deallocate(state->parse_result);
         }
         else {
-            rprint("Graphics error: trying to free invalid Shader %u\n", shader.index);
+            MF_CORE_ERROR("Graphics error: trying to free invalid Shader {}", shader.index);
         }
     }
 
@@ -2822,7 +2822,7 @@ namespace Magnefu
         VkBool32 surface_supported;
         vkGetPhysicalDeviceSurfaceSupportKHR(vulkan_physical_device, vulkan_main_queue_family, vulkan_window_surface, &surface_supported);
         if (surface_supported != VK_TRUE) {
-            rprint("Error no WSI support on physical device 0\n");
+            MF_CORE_ERROR("Error no WSI support on physical device 0");
         }
 
         VkSurfaceCapabilitiesKHR surface_capabilities;
@@ -2834,7 +2834,7 @@ namespace Magnefu
             swapchain_extent.height = clamp(swapchain_extent.height, surface_capabilities.minImageExtent.height, surface_capabilities.maxImageExtent.height);
         }
 
-        rprint("Create swapchain %u %u - saved %u %u, min image %u\n", swapchain_extent.width, swapchain_extent.height, swapchain_width, swapchain_height, surface_capabilities.minImageCount);
+        MF_CORE_INFO("Create swapchain {} {} - saved {} {}, min image {}", swapchain_extent.width, swapchain_extent.height, swapchain_width, swapchain_height, surface_capabilities.minImageCount);
 
         swapchain_width = (u16)swapchain_extent.width;
         swapchain_height = (u16)swapchain_extent.height;
@@ -2856,7 +2856,7 @@ namespace Magnefu
         swapchain_create_info.presentMode = vulkan_present_mode;
 
         VkResult result = vkCreateSwapchainKHR(vulkan_device, &swapchain_create_info, 0, &vulkan_swapchain);
-        check(result);
+        check(result, "Issue creating swapchain");
 
         if (swapchain_render_pass.index == k_invalid_index) {
             RenderPassCreation swapchain_pass_creation = {};
@@ -2922,7 +2922,7 @@ namespace Magnefu
             view_info.components.b = VK_COMPONENT_SWIZZLE_B;
             view_info.components.a = VK_COMPONENT_SWIZZLE_A;
 
-            check(vkCreateImageView(vulkan_device, &view_info, vulkan_allocation_callbacks, &color->vk_image_view));
+            check(vkCreateImageView(vulkan_device, &view_info, vulkan_allocation_callbacks, &color->vk_image_view), "Issue creating image view");
 
             if (!dynamic_rendering_extension_present) {
                 vulkan_create_framebuffer(*this, vk_framebuffer);
@@ -3023,9 +3023,10 @@ namespace Magnefu
         vkDestroySurfaceKHR(vulkan_instance, vulkan_window_surface, vulkan_allocation_callbacks);
 
         // Recreate window surface
-        if (SDL_Vulkan_CreateSurface(sdl_window, vulkan_instance, &vulkan_window_surface) == SDL_FALSE) {
-            rprint("Failed to create Vulkan surface.\n");
-        }
+        check(
+            glfwCreateWindowSurface(vulkan_instance, glfw_window, vulkan_allocation_callbacks, &vulkan_window_surface),
+            "Failed to create a window surface!"
+        );
 
         // Create swapchain
         create_swapchain();
@@ -3045,7 +3046,7 @@ namespace Magnefu
 
         }
         else {
-            rprint("Graphics error: trying to update invalid DescriptorSet %u\n", descriptor_set.index);
+            MF_CORE_ERROR("Graphics error: trying to update invalid DescriptorSet {}", descriptor_set.index);
         }
     }
 
@@ -3156,7 +3157,7 @@ namespace Magnefu
         // Cache all informations (image, image view, flags, ...) into texture to delete.
         // Missing even one information (like it is a texture view, sparse, ...)
         // can lead to memory leaks.
-        memory_copy(vk_texture_to_delete, vk_texture, sizeof(Texture));
+        memoryCopy(vk_texture_to_delete, vk_texture, sizeof(Texture));
         // Update handle so it can be used to update bindless to dummy texture
         // and delete the old image and image view.
         vk_texture_to_delete->handle = texture_to_delete;
@@ -3237,7 +3238,7 @@ namespace Magnefu
         command_buffer_ring.reset_pools(current_frame);
         // Dynamic memory update
         const u32 used_size = dynamic_allocated_size - (dynamic_per_frame_size * previous_frame);
-        dynamic_max_per_frame_size = Magnefu_max(used_size, dynamic_max_per_frame_size);
+        dynamic_max_per_frame_size = magnefu_max(used_size, dynamic_max_per_frame_size);
         dynamic_allocated_size = dynamic_per_frame_size * current_frame;
 
         // Descriptor Set Updates
@@ -3310,7 +3311,7 @@ namespace Magnefu
                     descriptor_write.dstBinding = k_bindless_texture_binding;
 
                     // Handles should be the same.
-                    MF_CORE_ASSERT(texture->handle.index == texture_to_update.handle);
+                    MF_CORE_ASSERT(texture->handle.index == texture_to_update.handle, "");
 
                     Sampler* vk_default_sampler = access_sampler(default_sampler);
                     VkDescriptorImageInfo& descriptor_image_info = bindless_image_info[current_write_index];
@@ -3818,7 +3819,7 @@ namespace Magnefu
 
         static VkPresentModeKHR supported_mode_allocated[8];
         vkGetPhysicalDeviceSurfacePresentModesKHR(vulkan_physical_device, vulkan_window_surface, &supported_count, NULL);
-        MF_CORE_ASSERT(supported_count < 8);
+        MF_CORE_ASSERT(supported_count < 8, "");
         vkGetPhysicalDeviceSurfacePresentModesKHR(vulkan_physical_device, vulkan_window_surface, &supported_count, supported_mode_allocated);
 
         bool mode_found = false;
@@ -3990,7 +3991,7 @@ namespace Magnefu
 
     void* GraphicsContext::dynamic_allocate(u32 size) {
         void* mapped_memory = dynamic_mapped_memory + dynamic_allocated_size;
-        dynamic_allocated_size += (u32)Magnefu::memory_align(size, ubo_alignment);
+        dynamic_allocated_size += (u32)Magnefu::memoryAlign(size, ubo_alignment);
         return mapped_memory;
     }
 
@@ -4014,7 +4015,7 @@ namespace Magnefu
             return;
         }
 
-        rprint("Vulkan error: code(%u)", result);
+        MF_CORE_ERROR("Vulkan error: code({})", result);
         if (result < 0) {
             MF_CORE_ASSERT(false, "Vulkan error: aborting.");
         }
@@ -4100,14 +4101,14 @@ namespace Magnefu
 
     DescriptorSetLayoutHandle GraphicsContext::get_descriptor_set_layout(PipelineHandle pipeline_handle, int layout_index) {
         Pipeline* pipeline = access_pipeline(pipeline_handle);
-        MF_CORE_ASSERT(pipeline != nullptr);
+        MF_CORE_ASSERT((pipeline != nullptr), "");
 
         return  pipeline->descriptor_set_layout_handles[layout_index];
     }
 
     DescriptorSetLayoutHandle GraphicsContext::get_descriptor_set_layout(PipelineHandle pipeline_handle, int layout_index) const {
         const Pipeline* pipeline = access_pipeline(pipeline_handle);
-        MF_CORE_ASSERT(pipeline != nullptr);
+        MF_CORE_ASSERT((pipeline != nullptr), "");
 
         return  pipeline->descriptor_set_layout_handles[layout_index];
     }

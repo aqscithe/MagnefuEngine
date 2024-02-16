@@ -4,6 +4,8 @@
 // -- Core Includes ----------------- //
 #include "Magnefu/Core/Platform.hpp"
 
+
+
 #if !defined(_MSC_VER)
 // NOTE(marco): avoid conflicts with X header...
 #ifdef True
@@ -22,14 +24,13 @@
 
 namespace Magnefu
 {
-    // Keeping this message for my awareness
-    // 
+
     // !!! WARNING !!!
     // THIS CODE IS GENERATED WITH HYDRA DATA FORMAT CODE GENERATOR.
 
+    /////////////////////////////////////////////////////////////////////////////////
 
-    namespace Blend
-    {
+    namespace Blend {
         enum Enum {
             Zero, One, SrcColor, InvSrcColor, SrcAlpha, InvSrcAlpha, DestAlpha, InvDestAlpha, DestColor, InvDestColor, SrcAlphasat, Src1Color, InvSrc1Color, Src1Alpha, InvSrc1Alpha, Count
         };
@@ -41,10 +42,7 @@ namespace Magnefu
         static const char* ToString(Enum e) {
             return ((u32)e < Enum::Count ? s_value_names[(int)e] : "unsupported");
         }
-    }
-
-
-
+    } // namespace Blend
 
     namespace BlendOperation {
         enum Enum {
@@ -539,4 +537,9 @@ namespace Magnefu
         RESOURCE_STATE_SHADING_RATE_SOURCE = 0x8000,
     } ResourceState;
 
-}
+    static cstring ResourceStateName(ResourceState value);
+
+    // TODO: Error enum?
+
+
+} // namespace raptor

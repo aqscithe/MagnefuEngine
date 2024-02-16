@@ -65,8 +65,8 @@ namespace Magnefu
 		BufferHandle						gpu_buffer_ready;
 		u32* completed;
 
-		VkCommandPool						command_pools[GraphicsContext::k_max_frames];
-		CommandBuffer						command_buffers[GraphicsContext::k_max_frames];
+		VkCommandPool						command_pools[k_max_frames];
+		CommandBuffer						command_buffers[k_max_frames];
 		VkSemaphore							transfer_complete_semaphore;
 		VkFence								transfer_fence;
 

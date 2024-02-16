@@ -17,7 +17,7 @@ namespace Magnefu
 	static VkBlendFactor    get_blend_factor(const std::string factor);
 	static VkBlendOp        get_blend_op(const std::string op);
 	static void             parse_gpu_pipeline(nlohmann::json& pipeline, PipelineCreation& pc, StringBuffer& path_buffer,
-								StringBuffer& shader_buffer, Allocator* temp_allocator, Renderer* renderer, FrameGraph* frame_graph);
+								StringBuffer& shader_buffer, Allocator* temp_allocator, Renderer* renderer, FrameGraph* frame_graph, StringBuffer& pass_name_buffer);
 
 
 	// -- RenderResourcesLoader --------------------------------------------------------- //
@@ -108,7 +108,7 @@ namespace Magnefu
 
 	}
 
-	void RenderResourcesLoader::load_texture(cstring path)
+	void RenderResourcesLoader::load_texture(cstring path, bool generate_mipmaps)
 	{
 		int comp, width, height;
 		uint8_t* image_data = stbi_load(path, &width, &height, &comp, 4);

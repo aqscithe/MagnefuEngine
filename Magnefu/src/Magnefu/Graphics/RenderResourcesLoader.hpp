@@ -16,7 +16,7 @@ namespace Magnefu
         void            shutdown();
 
         void            load_gpu_technique(cstring json_path);
-        void            load_texture(cstring path);
+        void            load_texture(cstring path, bool generate_mipmaps = true);
 
 
         Renderer* renderer;

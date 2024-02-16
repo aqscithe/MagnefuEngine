@@ -63,7 +63,7 @@ namespace Magnefu
 			vkAllocateCommandBuffers(renderer->gpu->vulkan_device, &cmd_alloc_info, &command_buffers[i].vk_command_buffer);
 
 			command_buffers[i].is_recording = false;
-			command_buffers[i].gpu = renderer->gpu;
+			command_buffers[i].device = renderer->gpu;
 		}
 
 		VkSemaphoreCreateInfo semaphore_info{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };

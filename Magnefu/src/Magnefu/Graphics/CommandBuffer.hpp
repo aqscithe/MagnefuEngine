@@ -3,12 +3,13 @@
 #include "GraphicsContext.h"
 
 
-namespace Magnefu
-{
+namespace Magnefu {
+
     static const u32 k_secondary_command_buffers_count = 2;
 
-    struct CommandBuffer 
-    {
+    //
+    //
+    struct CommandBuffer {
 
         void                            init(GraphicsContext* gpu);
         void                            shutdown();
@@ -40,7 +41,7 @@ namespace Magnefu
 
         void                            draw(TopologyType::Enum topology, u32 first_vertex, u32 vertex_count, u32 first_instance, u32 instance_count);
         void                            draw_indexed(TopologyType::Enum topology, u32 index_count, u32 instance_count, u32 first_index, i32 vertex_offset, u32 first_instance);
-        void                            draw_indirect(BufferHandle handle, u32 offset, u32 stride);
+        void                            draw_indirect(BufferHandle handle, u32 draw_count, u32 offset, u32 stride);
         void                            draw_indexed_indirect(BufferHandle handle, u32 offset, u32 stride);
 
         void                            dispatch(u32 group_x, u32 group_y, u32 group_z);
@@ -69,16 +70,15 @@ namespace Magnefu
         VkDescriptorPool                vk_descriptor_pool;
         ResourcePool                    descriptor_sets;
 
-        GpuThreadFramePools*            thread_frame_pool;
-
-        GraphicsContext*                gpu;
+        GpuThreadFramePools* thread_frame_pool;
+        GraphicsContext* device;
 
         VkDescriptorSet                 vk_descriptor_sets[16];
 
         RenderPass* current_render_pass;
         Framebuffer* current_framebuffer;
         Pipeline* current_pipeline;
-        VkClearValue                    clear_values[k_max_image_outputs + 1];  // Clear value for each attachment with depth/stencil at the end.
+        VkClearValue                    clear_values[k_max_image_outputs + 1];    // Clear value for each attachment with depth/stencil at the end.
         bool                            is_recording;
 
         u32                             handle;
@@ -89,16 +89,15 @@ namespace Magnefu
     }; // struct CommandBuffer
 
 
-    struct CommandBufferManager 
-    {
+    struct CommandBufferManager {
 
         void                    init(GraphicsContext* gpu, u32 num_threads);
         void                    shutdown();
 
         void                    reset_pools(u32 frame_index);
 
-        CommandBuffer*          get_command_buffer(u32 frame, u32 thread_index, bool begin, bool compute);
-        CommandBuffer*          get_secondary_command_buffer(u32 frame, u32 thread_index);
+        CommandBuffer* get_command_buffer(u32 frame, u32 thread_index, bool begin, bool compute);
+        CommandBuffer* get_secondary_command_buffer(u32 frame, u32 thread_index);
 
         u16                     pool_from_index(u32 index) { return (u16)index / num_pools_per_frame; }
         u32                     pool_from_indices(u32 frame_index, u32 thread_index);
@@ -106,15 +105,14 @@ namespace Magnefu
         Array<CommandBuffer>    command_buffers;
         Array<CommandBuffer>    secondary_command_buffers;
         Array<CommandBuffer>    compute_command_buffers;
-
         Array<u8>               used_buffers;       // Track how many buffers were used per thread per frame.
         Array<u8>               used_secondary_command_buffers;
 
-        GraphicsContext*        gpu = nullptr;
+        GraphicsContext* gpu = nullptr;
         u32                     num_pools_per_frame = 0;
         u32                     num_command_buffers_per_thread = 3;
 
     }; // struct CommandBufferManager
 
 
-} // namespace Magnefu
+} // namespace raptor

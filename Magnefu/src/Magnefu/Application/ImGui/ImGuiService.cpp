@@ -210,6 +210,8 @@ namespace Magnefu
 		pipeline_creation.vertex_input.add_vertex_stream({ 0, 20, VertexInputRate::PerVertex });
 		pipeline_creation.render_pass = gpu->get_swapchain_output();
 
+		pipeline_creation.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
 		DescriptorSetLayoutCreation descriptor_set_layout_creation{};
 		if (!gpu->bindless_supported) {
 			descriptor_set_layout_creation.add_binding({ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10, 1, "Texture" });
