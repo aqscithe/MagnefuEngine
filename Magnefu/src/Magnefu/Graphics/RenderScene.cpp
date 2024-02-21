@@ -1099,7 +1099,7 @@ namespace Magnefu {
         gpu_commands->bind_descriptor_set(&frame_renderer->fullscreen_ds, 1, nullptr, 0);
         gpu_commands->draw(TopologyType::Triangle, 0, 3, texture->resource_info.texture.handle[current_frame_index].index, 1);
 
-        imgui->render(*gpu_commands, false);
+        imgui->Render(*gpu_commands, false);
 
         gpu_commands->pop_marker(); // Fullscreen marker
         gpu_commands->pop_marker(); // Frame marker

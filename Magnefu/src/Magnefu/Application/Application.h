@@ -55,7 +55,7 @@ namespace Magnefu
 		// Variable time update. Called only once per frame.
 		virtual void                VariableUpdate(f32 delta) {}
 		// Rendering with optional interpolation factor.
-		virtual void                Render(f32 interpolation, void* render_data) {}
+		virtual void                Render(f32 delta_time, f32 interpolation, void* render_data) {}
 		// Per frame begin/end.
 		virtual void                BeginFrame() {}
 		virtual void                EndFrame() {}
@@ -95,7 +95,7 @@ namespace Magnefu
 		ImGuiService* imgui = nullptr;
 
 		ResourceManager* rm = nullptr;
-		GPUProfiler* gpu_profiler = nullptr;
+		GpuVisualProfiler* gpu_profiler = nullptr;
 
 
 #if defined(MF_PLATFORM_WINDOWS)

@@ -13,7 +13,7 @@ namespace Magnefu
 {
 	struct Renderer;
 	struct Allocator;
-	struct GPUVisualProfiler;
+	struct GpuVisualProfiler;
 	struct ImGuiService;
 	struct StackAllocator;
 

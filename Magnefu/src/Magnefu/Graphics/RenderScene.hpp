@@ -6,6 +6,8 @@
 #include "GPUResources.hpp"
 #include "FrameGraph.hpp"
 
+#include "Magnefu/Core/Color.hpp"
+
 #include "enkiTS/TaskScheduler.h"
 
 #include "cglm/types-struct.h"

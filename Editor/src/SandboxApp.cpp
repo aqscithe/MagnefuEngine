@@ -63,7 +63,7 @@ static Magnefu::MacWindow s_window;
 
 
 static Magnefu::ResourceManager     s_rm;
-static Magnefu::GPUProfiler         s_gpu_profiler;
+static Magnefu::GpuVisualProfiler         s_gpu_profiler;
 
 static Magnefu::BufferHandle        scene_cb;
 
@@ -83,9 +83,14 @@ static Magnefu::AsynchronousLoader           s_async_loader;
 static Magnefu::FrameGraphBuilder	s_frame_graph_builder;
 static Magnefu::FrameGraph			s_frame_graph;
 
+
 static Magnefu::RenderResourcesLoader s_render_resources_loader;
 
 static Magnefu::SceneGraph			s_scene_graph;
+
+static Magnefu::FrameRenderer			s_frame_renderer;
+
+static Magnefu::TextureResource* dither_texture = nullptr;
 
 
 // -- IO Tasks ------------------------------------------------------ //
@@ -146,6 +151,15 @@ struct RenderData
 	float model_scale = 1.0f;
 	float light_range = 20.0f;
 	float light_intensity = 80.0f;
+
+	// Cloth physics
+	f32 spring_stiffness = 10000.0f;
+	f32 spring_damping = 5000.0f;
+	f32 air_density = 10.0f;
+	bool reset_simulation = false;
+	vec3s wind_direction{ -5.0f, 0.0f, 0.0f };
+
+
 };
 
 // ----------------------------------------------------------------------------------------------------------- //
@@ -209,10 +223,10 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	input->SetEventCallback(BIND_EVENT_FN(this, Sandbox::OnEvent));
 
 	// graphics
-	DeviceCreation dc;
+	GraphicsContextCreation dc;
     dc.set_window(window->GetWidth(), window->GetHeight(), window->GetWindowHandle()).
         set_allocator(allocator).
-        set_stack_allocator(scratch_allocator).
+        set_linear_allocator(scratch_allocator).
         set_num_threads(s_task_scheduler.GetNumTaskThreads());
 
 	GraphicsContext* gpu = service_manager->get<GraphicsContext>();
@@ -224,7 +238,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 
 	//GPUProfiler
 	gpu_profiler = &s_gpu_profiler;
-	gpu_profiler->init(&MemoryService::Instance()->systemAllocator, 100);
+	gpu_profiler->init(&MemoryService::Instance()->systemAllocator, 100, dc.gpu_time_queries_per_frame);
 
 
 	
@@ -250,6 +264,13 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	s_frame_graph.init(&s_frame_graph_builder);
 
 
+	
+
+	sizet scratch_marker = scratch_allocator->getMarker();
+
+	StringBuffer temporary_name_buffer;
+	temporary_name_buffer.init(1024, scratch_allocator);
+
 
 	// will eventually have an EditorLayer
 	// may even have more specific layers like Physics Collisions and AI...
@@ -265,43 +286,52 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	// Load frame graph and parse gpu techniques
 
 	{
-		sizet scratch_marker = scratch_allocator->getMarker();
-
-		StringBuffer temp_name_buffer;
-		temp_name_buffer.init(1024, scratch_allocator);
-		cstring frame_graph_path = temp_name_buffer.append_use_f("%s%s", MAGNEFU_FRAME_GRAPH_FOLDER, "graph.json");
+		cstring frame_graph_path = temporary_name_buffer.append_use_f("%s%s", MAGNEFU_FRAME_GRAPH_FOLDER, "graph.json");
 
 		s_frame_graph.parse(frame_graph_path, scratch_allocator);
 		s_frame_graph.compile();
 
 		s_render_resources_loader.init(renderer, scratch_allocator, &s_frame_graph);
 
+		// TODO: add this to render graph itself.
+		// Add utility textures (dithering, ...)
+		temporary_name_buffer.clear();
+		cstring dither_texture_path = temporary_name_buffer.append_use_f("%s/BayerDither4x4.png", MAGNEFU_TEXTURE_FOLDER);
+		dither_texture = s_render_resources_loader.load_texture(dither_texture_path, false);
+
 		// Parse techniques
 		GpuTechniqueCreation gtc;
-		temp_name_buffer.clear();
-		cstring full_screen_pipeline_path = temp_name_buffer.append_use_f("%s/%s", MAGNEFU_SHADER_FOLDER, "fullscreen.json");
+		temporary_name_buffer.clear();
+		cstring full_screen_pipeline_path = temporary_name_buffer.append_use_f("%s/%s", MAGNEFU_SHADER_FOLDER, "fullscreen.json");
 		s_render_resources_loader.load_gpu_technique(full_screen_pipeline_path);
 
-		temp_name_buffer.clear();
-		cstring main_pipeline_path = temp_name_buffer.append_use_f("%s/%s", MAGNEFU_SHADER_FOLDER, "main.json");
+		temporary_name_buffer.clear();
+		cstring main_pipeline_path = temporary_name_buffer.append_use_f("%s/%s", MAGNEFU_SHADER_FOLDER, "main.json");
 		s_render_resources_loader.load_gpu_technique(main_pipeline_path);
 
-		temp_name_buffer.clear();
-		cstring pbr_pipeline_path = temp_name_buffer.append_use_f("%s/%s", MAGNEFU_SHADER_FOLDER, "pbr_lighting.json");
+		temporary_name_buffer.clear();
+		cstring pbr_pipeline_path = temporary_name_buffer.append_use_f("%s/%s", MAGNEFU_SHADER_FOLDER, "pbr_lighting.json");
 		s_render_resources_loader.load_gpu_technique(pbr_pipeline_path);
 
-		temp_name_buffer.clear();
-		cstring dof_pipeline_path = temp_name_buffer.append_use_f("%s/%s", MAGNEFU_SHADER_FOLDER, "dof.json");
+		temporary_name_buffer.clear();
+		cstring dof_pipeline_path = temporary_name_buffer.append_use_f("%s/%s", MAGNEFU_SHADER_FOLDER, "dof.json");
 		s_render_resources_loader.load_gpu_technique(dof_pipeline_path);
 
-		scratch_allocator->freeToMarker(scratch_marker);
-	}
+		temporary_name_buffer.clear();
+		cstring cloth_pipeline_path = temporary_name_buffer.append_use_f("%s/%s", MAGNEFU_SHADER_FOLDER, "cloth.json");
+		s_render_resources_loader.load_gpu_technique(cloth_pipeline_path);
 
+		temporary_name_buffer.clear();
+		cstring debug_pipeline_path = temporary_name_buffer.append_use_f("%s/%s", MAGNEFU_SHADER_FOLDER, "debug.json");
+		s_render_resources_loader.load_gpu_technique(debug_pipeline_path);
+
+	}
+	
 	s_scene_graph.init(allocator, 4);
 
 	// -- Grab Scene Data ------------------------------------------------ //
-	cstring file_path = "";
-	InjectDefault3DModel(file_path);
+
+	
 
 
     // [TAG: Multithreading]
@@ -310,16 +340,28 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
     Directory cwd{ };
     directory_current(&cwd);
 
+	temporary_name_buffer.clear();
+	cstring scene_path = nullptr;
+
+	InjectDefault3DModel(scene_path);
+
+	if (scene_path == nullptr) 
+	{
+		scene_path = temporary_name_buffer.append_use_f("%s/%s", MAGNEFU_MODEL_FOLDER, "plane.obj");
+	}
+
     char file_base_path[512]{ };
 
-    memcpy(file_base_path, file_path, strlen(file_path));
+    memcpy(file_base_path, scene_path, strlen(scene_path));
     file_directory_from_path(file_base_path);
 
     directory_change(file_base_path);
 
     char file_name[512]{ };
-    memcpy(file_name, file_path, strlen(file_path));
+    memcpy(file_name, scene_path, strlen(scene_path));
     file_name_from_path(file_name);
+
+	scratch_allocator->freeToMarker(scratch_marker);
 
 
     char* file_extension = file_extension_from_path(file_name);
@@ -338,8 +380,8 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
     // NOTE(marco): restore working directory
     directory_change(cwd.path);
 
-	scene->register_render_passes(&s_frame_graph);
-    scene->prepare_draws(renderer, scratch_allocator, &s_scene_graph);
+	s_frame_renderer.init(allocator, renderer, &s_frame_graph, &s_scene_graph, scene);
+	s_frame_renderer.prepare_draws(scratch_allocator);
 
 
     // Start multithreading IO
@@ -386,7 +428,7 @@ void Sandbox::Destroy()
 	s_frame_graph_builder.shutdown();
 
     scene->shutdown(renderer);
-
+	s_frame_renderer.shutdown();
 
 	rm->shutdown();
 	renderer->shutdown();
@@ -448,7 +490,7 @@ bool Sandbox::MainLoop()
 		if (window->resized)
 		{
             // Resize Framebuffer
-			gpu->resize(window->GetWidth(), window->GetHeight());
+			renderer->resize_swapchain(window->GetWidth(), window->GetHeight());
 
 			window->resized = false;
 			s_frame_graph.on_resize(*gpu, window->GetWidth(), window->GetHeight());
@@ -475,6 +517,8 @@ bool Sandbox::MainLoop()
 		VariableUpdate(delta_time);
 
 
+		static f32 animation_speed_multiplier = 0.05f;
+
 		// -- ImGui New Frame -------------- //
 		imgui->BeginFrame();
 		
@@ -497,9 +541,18 @@ bool Sandbox::MainLoop()
 				ImGui::InputFloat3("Camera position", s_game_camera.camera.position.raw);
 				ImGui::InputFloat3("Camera target movement", s_game_camera.target_movement.raw);
 
+				ImGui::SeparatorText("CLOTH PHYSICS");
+				ImGui::InputFloat3("Wind direction", render_data.wind_direction.raw);
+				ImGui::InputFloat("Air density", &render_data.air_density);
+				ImGui::InputFloat("Spring stiffness", &render_data.spring_stiffness);
+				ImGui::InputFloat("Spring damping", &render_data.spring_damping);
+				ImGui::Checkbox("Reset simulation", &render_data.reset_simulation);
+
                 ImGui::SeparatorText("OPTIONS");
                 ImGui::Checkbox("Dynamically recreate descriptor sets", &recreate_per_thread_descriptors);
                 ImGui::Checkbox("Use secondary command buffers", &use_secondary_command_buffers);
+
+				ImGui::SliderFloat("Animation Speed Multiplier", &animation_speed_multiplier, 0.0f, 10.0f);
 
 				static bool fullscreen = false;
 				if (ImGui::Checkbox("Fullscreen", &fullscreen))
@@ -518,6 +571,35 @@ bool Sandbox::MainLoop()
 			}
 			ImGui::End();
 
+			if (ImGui::Begin("Scene")) {
+
+				static u32 selected_node = u32_max;
+
+				ImGui::Text("Selected node %u", selected_node);
+				if (selected_node < s_scene_graph.nodes_hierarchy.size) {
+
+					mat4s& local_transform = s_scene_graph.local_matrices[selected_node];
+					f32 position[3]{ local_transform.m30, local_transform.m31, local_transform.m32 };
+
+					if (ImGui::SliderFloat3("Node Position", position, -100.0f, 100.0f)) {
+						local_transform.m30 = position[0];
+						local_transform.m31 = position[1];
+						local_transform.m32 = position[2];
+
+						s_scene_graph.set_local_matrix(selected_node, local_transform);
+					}
+					ImGui::Separator();
+				}
+
+				for (u32 n = 0; n < s_scene_graph.nodes_hierarchy.size; ++n) {
+					const SceneGraphNodeDebugData& node_debug_data = s_scene_graph.nodes_debug_data[n];
+					if (ImGui::Selectable(node_debug_data.name ? node_debug_data.name : "-", n == selected_node)) {
+						selected_node = n;
+					}
+				}
+			}
+			ImGui::End();
+
 			if (ImGui::Begin("GPU"))
 			{
                 renderer->imgui_draw();
@@ -529,10 +611,24 @@ bool Sandbox::MainLoop()
 			DrawGUI();
 		}
 
-		s_scene_graph.update_matrices();
+
+		{
+			MF_PROFILE_SCOPE("Animation Updates");
+			scene->update_animations(delta_time * animation_speed_multiplier);
+		}
+
+		{
+			MF_PROFILE_SCOPE("Matrices Updates");
+			s_scene_graph.update_matrices();
+		}
+
+		{
+			MF_PROFILE_SCOPE("Scene Joint Updates");
+			scene->update_joints();
+		}
 
 		const f32 interpolation_factor = Maths::clamp(0.0f, 1.0f, (f32)(accumulator / step));
-		Render(interpolation_factor, &render_data);
+		Render(delta_time, interpolation_factor, &render_data);
 
 		
 
@@ -543,7 +639,7 @@ bool Sandbox::MainLoop()
 	return false;
 }
 
-void Sandbox::Render(f32 interpolation_factor, void* data)
+void Sandbox::Render(f32 delta_time, f32 interpolation_factor, void* data)
 {
     using namespace Magnefu;
 
@@ -560,25 +656,42 @@ void Sandbox::Render(f32 interpolation_factor, void* data)
             // Update common constant buffer
             MF_PROFILE_SCOPE("Uniform Buffer Update");
 
-            MapBufferParameters cb_map = { scene->scene_cb, 0, 0 };
-			GpuSceneData* uniform_data = (GpuSceneData*)gpu->map_buffer(cb_map);
-            if (uniform_data)
+            MapBufferParameters scene_cb_map = { scene->scene_cb, 0, 0 };
+			GpuSceneData* gpu_scene_data = (GpuSceneData*)gpu->map_buffer(scene_cb_map);
+            if (gpu_scene_data)
             {
-                uniform_data->view_projection = s_game_camera.camera.view_projection;
-                uniform_data->eye = vec4s{ s_game_camera.camera.position.x, s_game_camera.camera.position.y, s_game_camera.camera.position.z, 1.0f };
-                uniform_data->light_position = vec4s{ render_data->light_position.x, render_data->light_position.y, render_data->light_position.z, 1.0f };
-                uniform_data->light_range = render_data->light_range;
-                uniform_data->light_intensity = render_data->light_intensity;
+                gpu_scene_data->view_projection = s_game_camera.camera.view_projection;
+				gpu_scene_data->inverse_view_projection = glms_mat4_inv(s_game_camera.camera.view_projection);
+                gpu_scene_data->eye = vec4s{ s_game_camera.camera.position.x, s_game_camera.camera.position.y, s_game_camera.camera.position.z, 1.0f };
+                gpu_scene_data->light_position = vec4s{ render_data->light_position.x, render_data->light_position.y, render_data->light_position.z, 1.0f };
+                gpu_scene_data->light_range = render_data->light_range;
+                gpu_scene_data->light_intensity = render_data->light_intensity;
+				gpu_scene_data->dither_texture_index = dither_texture ? dither_texture->handle.index : 0;
 
-                gpu->unmap_buffer(cb_map);
+                gpu->unmap_buffer(scene_cb_map);
             }
 
-            scene->upload_materials(/* model scale */);
+			s_frame_renderer.upload_gpu_data();
         }
 
-        scene->submit_draw_task(imgui, gpu_profiler, &s_task_scheduler);
+		DrawTask draw_task;
+		draw_task.init(renderer->gpu, &s_frame_graph, renderer, imgui, &s_gpu_profiler, scene, &s_frame_renderer);
+		s_task_scheduler.AddTaskSetToPipe(&draw_task);
 
-        gpu->present();
+
+		// TODO: May need to be moved to fixed update above
+		CommandBuffer* async_compute_command_buffer = nullptr;
+		{
+			MF_PROFILE_SCOPE("PhysicsUpdate");
+			async_compute_command_buffer = scene->update_physics(delta_time, render_data->air_density, render_data->spring_stiffness, render_data->spring_damping, render_data->wind_direction, render_data->reset_simulation);
+			render_data->reset_simulation = false;
+		}
+
+		s_task_scheduler.WaitforTaskSet(&draw_task);
+
+		// Avoid using the same command buffer
+		renderer->add_texture_update_commands((draw_task.thread_id + 1) % s_task_scheduler.GetNumTaskThreads());
+		gpu->present(async_compute_command_buffer);
 
     }
     else

@@ -15,7 +15,8 @@
 // -- Vendor Includes ------------------------- //
 #include "imgui/imgui.h"
 
-namespace Magnefu
+
+namespace Magnefu 
 {
 
     // GpuTechniqueCreation ///////////////////////////////////////////////////
@@ -35,7 +36,8 @@ namespace Magnefu
         return *this;
     }
 
-    // MaterialCreation ------------------------------------------------------------ //
+
+    // MaterialCreation ///////////////////////////////////////////////////////
     MaterialCreation& MaterialCreation::reset() {
         technique = nullptr;
         name = nullptr;
@@ -58,30 +60,27 @@ namespace Magnefu
         return *this;
     }
 
+    // Renderer /////////////////////////////////////////////////////////////////////
 
-    // -- Renderer ----------------------------------------------------------- //
-
-    
     u64 TextureResource::k_type_hash = 0;
     u64 BufferResource::k_type_hash = 0;
     u64 SamplerResource::k_type_hash = 0;
-    u64 GpuTechnique::k_type_hash = 0;
     u64 Material::k_type_hash = 0;
-
+    u64 GpuTechnique::k_type_hash = 0;
 
     static Renderer s_renderer;
 
-    Renderer* Renderer::Instance() 
-    {
+    Renderer* Renderer::Instance() {
         return &s_renderer;
     }
 
-    void Renderer::init(const RendererCreation& creation) 
-    {
+    void Renderer::init(const RendererCreation& creation) {
 
         MF_CORE_INFO("Renderer init");
 
         gpu = creation.gpu;
+        resident_allocator = creation.allocator;
+        temporary_allocator.init(mfkilo(2));
 
         width = gpu->swapchain_width;
         height = gpu->swapchain_height;
@@ -89,8 +88,8 @@ namespace Magnefu
         textures.init(creation.allocator, k_textures_pool_size);
         buffers.init(creation.allocator, k_buffers_pool_size);
         samplers.init(creation.allocator, k_samplers_pool_size);
-        techniques.init(creation.allocator, 128);
         materials.init(creation.allocator, 128);
+        techniques.init(creation.allocator, 128);
 
         resource_cache.init(creation.allocator);
 
@@ -98,16 +97,16 @@ namespace Magnefu
         TextureResource::k_type_hash = hash_calculate(TextureResource::k_type);
         BufferResource::k_type_hash = hash_calculate(BufferResource::k_type);
         SamplerResource::k_type_hash = hash_calculate(SamplerResource::k_type);
-        GpuTechnique::k_type_hash = hash_calculate(GpuTechnique::k_type);
         Material::k_type_hash = hash_calculate(Material::k_type);
-
+        GpuTechnique::k_type_hash = hash_calculate(GpuTechnique::k_type);
 
         const u32 gpu_heap_counts = gpu->get_memory_heap_count();
-        gpu_heap_budgets.init(gpu->allocator, gpu_heap_counts, gpu_heap_counts);
+        gpu_heap_budgets.init(resident_allocator, gpu_heap_counts, gpu_heap_counts);
     }
 
-    void Renderer::shutdown() 
-    {
+    void Renderer::shutdown() {
+
+        temporary_allocator.shutdown();
 
         resource_cache.shutdown(this);
         gpu_heap_budgets.shutdown();
@@ -123,34 +122,22 @@ namespace Magnefu
         gpu->shutdown();
     }
 
-    void Renderer::set_loaders(Magnefu::ResourceManager* manager) 
-    {
+    void Renderer::set_loaders(Magnefu::ResourceManager* manager) {
 
-        
     }
 
-    void Renderer::begin_frame() {
-        gpu->new_frame();
-    }
+    void Renderer::imgui_draw() {
 
-    void Renderer::end_frame() {
-        // Present
-        gpu->present();
-    }
-
-    void Renderer::imgui_draw() 
-    {
-
+        ImGui::Text("GPU used: %s", gpu->get_gpu_name());
         // Print memory stats
         vmaGetHeapBudgets(gpu->vma_allocator, gpu_heap_budgets.data);
 
         sizet total_memory_used = 0;
-        for (u32 i = 0; i < gpu->get_memory_heap_count(); ++i) 
-        {
+        for (u32 i = 0; i < gpu->get_memory_heap_count(); ++i) {
             total_memory_used += gpu_heap_budgets[i].usage;
         }
 
-        ImGui::Text("GPU Memory Total: {}MB", total_memory_used / (1024 * 1024));
+        ImGui::Text("GPU Memory Total: %lluMB", total_memory_used / (1024 * 1024));
     }
 
     void Renderer::set_presentation_mode(PresentMode::Enum value) {
@@ -189,8 +176,7 @@ namespace Magnefu
         return nullptr;
     }
 
-    BufferResource* Renderer::create_buffer(VkBufferUsageFlags type, ResourceUsageType::Enum usage, u32 size, void* data, cstring name) 
-    {
+    BufferResource* Renderer::create_buffer(VkBufferUsageFlags type, ResourceUsageType::Enum usage, u32 size, void* data, cstring name) {
         BufferCreation creation{ type, usage, size, 0, 0, data, name };
         return create_buffer(creation);
     }
@@ -215,8 +201,6 @@ namespace Magnefu
         return nullptr;
     }
 
-    
-
     SamplerResource* Renderer::create_sampler(const SamplerCreation& creation) {
         SamplerResource* sampler = samplers.obtain();
         if (sampler) {
@@ -239,13 +223,16 @@ namespace Magnefu
     GpuTechnique* Renderer::create_technique(const GpuTechniqueCreation& creation) {
         GpuTechnique* technique = techniques.obtain();
         if (technique) {
-            technique->passes.init(gpu->allocator, creation.num_creations, creation.num_creations);
+            technique->passes.init(resident_allocator, creation.num_creations, creation.num_creations);
+            technique->name_hash_to_index.init(resident_allocator, creation.num_creations);
             technique->name = creation.name;
 
-            StringBuffer pipeline_cache_path;
-            pipeline_cache_path.init(1024, gpu->allocator);
+            temporary_allocator.clear();
 
-            for (uint32_t i = 0; i < creation.num_creations; ++i) {
+            StringBuffer pipeline_cache_path;
+            pipeline_cache_path.init(1024, &temporary_allocator);
+
+            for (u32 i = 0; i < creation.num_creations; ++i) {
                 GpuTechniquePass& pass = technique->passes[i];
                 const PipelineCreation& pass_creation = creation.creations[i];
                 if (pass_creation.name != nullptr) {
@@ -256,9 +243,12 @@ namespace Magnefu
                 else {
                     pass.pipeline = gpu->create_pipeline(pass_creation);
                 }
+
+                MF_CORE_ASSERT((pass_creation.name != nullptr), "");
+                technique->name_hash_to_index.insert(hash_calculate(pass_creation.name), (u32)i);
             }
 
-            pipeline_cache_path.shutdown();
+            temporary_allocator.clear();
 
             if (creation.name != nullptr) {
                 resource_cache.techniques.insert(hash_calculate(creation.name), technique);
@@ -269,9 +259,7 @@ namespace Magnefu
         return technique;
     }
 
-
-    Material* Renderer::create_material(const MaterialCreation& creation)
-    {
+    Material* Renderer::create_material(const MaterialCreation& creation) {
         Material* material = materials.obtain();
         if (material) {
             material->technique = creation.technique;
@@ -289,13 +277,10 @@ namespace Magnefu
         return nullptr;
     }
 
-    Material* Renderer::create_material(GpuTechnique* technique, cstring name)
-    {
-        MaterialCreation material{ technique, name };
-        
-        return create_material(material);
+    Material* Renderer::create_material(GpuTechnique* technique, cstring name) {
+        MaterialCreation creation{ technique, name };
+        return create_material(creation);
     }
-
 
     PipelineHandle Renderer::get_pipeline(Material* material, u32 pass_index) {
         MF_CORE_ASSERT((material != nullptr), "");
@@ -303,17 +288,16 @@ namespace Magnefu
         return material->technique->passes[pass_index].pipeline;
     }
 
-    DescriptorSetHandle Renderer::create_descriptor_set(CommandBuffer* gpu_commands, Material* material, DescriptorSetCreation& ds_creation)
-    {
-        MF_CORE_ASSERT((material != nullptr), "Mat doesn't exist");
+    DescriptorSetHandle Renderer::create_descriptor_set(CommandBuffer* gpu_commands, Material* material, DescriptorSetCreation& ds_creation) {
+        MF_CORE_ASSERT((material != nullptr), "");
 
+        // TODO:
         DescriptorSetLayoutHandle set_layout = gpu->get_descriptor_set_layout(material->technique->passes[0].pipeline, 1);
 
         ds_creation.set_layout(set_layout);
 
         return gpu_commands->create_descriptor_set(ds_creation);
     }
-
 
     void Renderer::destroy_buffer(BufferResource* buffer) {
         if (!buffer) {
@@ -325,7 +309,10 @@ namespace Magnefu
             return;
         }
 
-        resource_cache.buffers.remove(hash_calculate(buffer->desc.name));
+        if (buffer->desc.name) {
+            resource_cache.buffers.remove(hash_calculate(buffer->desc.name));
+        }
+
         gpu->destroy_buffer(buffer->handle);
         buffers.release(buffer);
     }
@@ -340,7 +327,10 @@ namespace Magnefu
             return;
         }
 
-        resource_cache.textures.remove(hash_calculate(texture->desc.name));
+        if (texture->desc.name) {
+            resource_cache.textures.remove(hash_calculate(texture->desc.name));
+        }
+
         gpu->destroy_texture(texture->handle);
         textures.release(texture);
     }
@@ -355,9 +345,26 @@ namespace Magnefu
             return;
         }
 
-        resource_cache.samplers.remove(hash_calculate(sampler->desc.name));
+        if (sampler->desc.name) {
+            resource_cache.samplers.remove(hash_calculate(sampler->desc.name));
+        }
+
         gpu->destroy_sampler(sampler->handle);
         samplers.release(sampler);
+    }
+
+    void Renderer::destroy_material(Material* material) {
+        if (!material) {
+            return;
+        }
+
+        material->remove_reference();
+        if (material->references) {
+            return;
+        }
+
+        resource_cache.materials.remove(hash_calculate(material->name));
+        materials.release(material);
     }
 
     void Renderer::destroy_technique(GpuTechnique* technique) {
@@ -375,28 +382,11 @@ namespace Magnefu
         }
 
         technique->passes.shutdown();
+        technique->name_hash_to_index.shutdown();
 
         resource_cache.techniques.remove(hash_calculate(technique->name));
         techniques.release(technique);
     }
-
-    void Renderer::destroy_material(Material* material)
-    {
-        if (!material) {
-            return;
-        }
-
-        material->remove_reference();
-        if (material->references) {
-            return;
-        }
-
-        resource_cache.materials.remove(hash_calculate(material->name));
-        materials.release(material);
-    }
-
-
-    
 
     void* Renderer::map_buffer(BufferResource* buffer, u32 offset, u32 size) {
 
@@ -412,29 +402,25 @@ namespace Magnefu
         }
     }
 
-    void Renderer::add_texture_to_update(Magnefu::TextureHandle texture)
-    {
+    void Renderer::add_texture_to_update(Magnefu::TextureHandle texture) {
         std::lock_guard<std::mutex> guard(texture_update_mutex);
 
         textures_to_update[num_textures_to_update++] = texture;
     }
 
     //TODO:
-    static void generate_mipmaps(Magnefu::Texture* texture, Magnefu::CommandBuffer* cb, bool from_transfer_queue) 
-    {
+    static void generate_mipmaps(Magnefu::Texture* texture, Magnefu::CommandBuffer* cb, bool from_transfer_queue) {
         using namespace Magnefu;
 
-        if (texture->mipmaps > 1) 
-        {
-            util_add_image_barrier(cb->vk_command_buffer, texture->vk_image, from_transfer_queue ? RESOURCE_STATE_COPY_SOURCE : RESOURCE_STATE_COPY_SOURCE, RESOURCE_STATE_COPY_SOURCE, 0, 1, false);
+        if (texture->mipmaps > 1) {
+            util_add_image_barrier(cb->device, cb->vk_command_buffer, texture->vk_image, from_transfer_queue ? RESOURCE_STATE_COPY_SOURCE : RESOURCE_STATE_COPY_SOURCE, RESOURCE_STATE_COPY_SOURCE, 0, 1, false);
         }
 
         i32 w = texture->width;
         i32 h = texture->height;
 
-        for (int mip_index = 1; mip_index < texture->mipmaps; ++mip_index)
-        {
-            util_add_image_barrier(cb->vk_command_buffer, texture->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_COPY_DEST, mip_index, 1, false);
+        for (int mip_index = 1; mip_index < texture->mipmaps; ++mip_index) {
+            util_add_image_barrier(cb->device, cb->vk_command_buffer, texture->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_COPY_DEST, mip_index, 1, false);
 
             VkImageBlit blit_region{ };
             blit_region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -459,41 +445,35 @@ namespace Magnefu
             vkCmdBlitImage(cb->vk_command_buffer, texture->vk_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, texture->vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit_region, VK_FILTER_LINEAR);
 
             // Prepare current mip for next level
-            util_add_image_barrier(cb->vk_command_buffer, texture->vk_image, RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_COPY_SOURCE, mip_index, 1, false);
+            util_add_image_barrier(cb->device, cb->vk_command_buffer, texture->vk_image, RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_COPY_SOURCE, mip_index, 1, false);
         }
 
         // Transition
-        if (from_transfer_queue && false) {
-            util_add_image_barrier(cb->vk_command_buffer, texture->vk_image, (texture->mipmaps > 1) ? RESOURCE_STATE_COPY_SOURCE : RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_SHADER_RESOURCE, 0, texture->mipmaps, false);
+        if (from_transfer_queue) {
+            util_add_image_barrier(cb->device, cb->vk_command_buffer, texture->vk_image, (texture->mipmaps > 1) ? RESOURCE_STATE_COPY_SOURCE : RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_SHADER_RESOURCE, 0, texture->mipmaps, false);
         }
         else {
-            util_add_image_barrier(cb->vk_command_buffer, texture->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_SHADER_RESOURCE, 0, texture->mipmaps, false);
+            util_add_image_barrier(cb->device, cb->vk_command_buffer, texture->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_SHADER_RESOURCE, 0, texture->mipmaps, false);
         }
-
-
-        texture->vk_image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     }
 
-    void Renderer::add_texture_update_commands(u32 thread_id)
-    {
+
+    void Renderer::add_texture_update_commands(u32 thread_id) {
         std::lock_guard<std::mutex> guard(texture_update_mutex);
 
-        if (num_textures_to_update == 0) 
-        {
+        if (num_textures_to_update == 0) {
             return;
         }
 
-        CommandBuffer* cb = gpu->get_command_buffer(thread_id, false);
+        CommandBuffer* cb = gpu->get_command_buffer(thread_id, gpu->current_frame, false);
         cb->begin();
 
         for (u32 i = 0; i < num_textures_to_update; ++i) {
 
             Texture* texture = gpu->access_texture(textures_to_update[i]);
 
-            util_add_image_barrier_ext(cb->vk_command_buffer, texture->vk_image, RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_COPY_SOURCE,
+            util_add_image_barrier_ext(cb->device, cb->vk_command_buffer, texture->vk_image, RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_COPY_SOURCE,
                 0, 1, false, gpu->vulkan_transfer_queue_family, gpu->vulkan_main_queue_family, QueueType::CopyTransfer, QueueType::Graphics);
-
-            texture->vk_image_layout = util_to_vk_image_layout(RESOURCE_STATE_COPY_SOURCE);
 
             generate_mipmaps(texture, cb, true);
         }
@@ -507,18 +487,16 @@ namespace Magnefu
 
 
     // ResourceCache
-    void ResourceCache::init(Allocator* allocator) 
-    {
+    void ResourceCache::init(Allocator* allocator) {
         // Init resources caching
         textures.init(allocator, 16);
         buffers.init(allocator, 16);
         samplers.init(allocator, 16);
-        techniques.init(allocator, 16);
         materials.init(allocator, 16);
+        techniques.init(allocator, 16);
     }
 
-    void ResourceCache::shutdown(Renderer* renderer) 
-    {
+    void ResourceCache::shutdown(Renderer* renderer) {
 
         Magnefu::FlatHashMapIterator it = textures.iterator_begin();
 
@@ -559,7 +537,7 @@ namespace Magnefu
         it = techniques.iterator_begin();
 
         while (it.is_valid()) {
-            GpuTechnique* technique = techniques.get(it);
+            Magnefu::GpuTechnique* technique = techniques.get(it);
             renderer->destroy_technique(technique);
 
             techniques.iterator_advance(it);

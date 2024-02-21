@@ -11,6 +11,8 @@
 
 #include <string>
 
+
+
 namespace Magnefu
 {
 
@@ -38,10 +40,10 @@ namespace Magnefu
     }
 
     RenderPassOperation::Enum string_to_render_pass_operation(cstring op) {
-        if (strcmp(op, "VK_ATTACHMENT_LOAD_OP_CLEAR") == 0) {
+        if (strcmp(op, "clear") == 0) {
             return RenderPassOperation::Clear;
         }
-        else if (strcmp(op, "VK_ATTACHMENT_LOAD_OP_LOAD") == 0) {
+        else if (strcmp(op, "load") == 0) {
             return RenderPassOperation::Load;
         }
 
@@ -52,7 +54,6 @@ namespace Magnefu
     // FrameGraph /////////////////////////////////////////////////////////////
 
     void FrameGraph::init(FrameGraphBuilder* builder_) {
-        MF_CORE_INFO("Frame Graph Init");
         allocator = &MemoryService::Instance()->systemAllocator;
 
         local_allocator.init(mfmega(1));
@@ -64,11 +65,12 @@ namespace Magnefu
     }
 
     void FrameGraph::shutdown() {
-        for (u32 i = 0; i < nodes.size; ++i) {
+        for (u32 i = 0; i < all_nodes.size; ++i) {
             FrameGraphNodeHandle handle = all_nodes[i];
             FrameGraphNode* node = builder->access_node(handle);
 
             builder->gpu->destroy_render_pass(node->render_pass);
+
             for (u32 f = 0; f < k_max_frames; ++f) {
                 builder->gpu->destroy_framebuffer(node->framebuffer[f]);
             }
@@ -87,8 +89,7 @@ namespace Magnefu
     void FrameGraph::parse(cstring file_path, StackAllocator* temp_allocator) {
         using json = nlohmann::json;
 
-        if (!file_exists(file_path))
-        {
+        if (!file_exists(file_path)) {
             MF_CORE_ERROR("Cannot find file {}", file_path);
             return;
         }
@@ -113,8 +114,8 @@ namespace Magnefu
             json pass_outputs = pass["outputs"];
 
             FrameGraphNodeCreation node_creation{ };
-            node_creation.inputs.init(temp_allocator, pass_inputs.size());
-            node_creation.outputs.init(temp_allocator, pass_outputs.size());
+            node_creation.inputs.init(temp_allocator, (u32)pass_inputs.size());
+            node_creation.outputs.init(temp_allocator, (u32)pass_outputs.size());
 
             node_creation.compute = pass.value("type", "").compare("compute") == 0;
 
@@ -127,7 +128,7 @@ namespace Magnefu
                 MF_CORE_ASSERT(!input_type.empty(), "");
 
                 std::string input_name = pass_input.value("name", "");
-                MF_CORE_ASSERT(!input_name.empty(),"" );
+                MF_CORE_ASSERT(!input_name.empty(), "");
 
                 input_creation.type = string_to_resource_type(input_type.c_str());
                 input_creation.resource_info.external = false;
@@ -149,81 +150,80 @@ namespace Magnefu
                 MF_CORE_ASSERT(!output_name.empty(), "");
 
                 output_creation.type = string_to_resource_type(output_type.c_str());
-
                 output_creation.name = string_buffer.append_use_f("%s", output_name.c_str());
 
-                switch (output_creation.type)
+                switch (output_creation.type) {
+                case FrameGraphResourceType_Attachment:
+                case FrameGraphResourceType_Texture:
                 {
-                    case FrameGraphResourceType_Attachment:
-                    case FrameGraphResourceType_Texture:
-                    {
-                        std::string format = pass_output.value("format", "");
-                        MF_CORE_ASSERT(!format.empty(), "");
+                    std::string format = pass_output.value("format", "");
+                    MF_CORE_ASSERT(!format.empty(), "");
 
-                        output_creation.resource_info.texture.format = util_string_to_vk_format(format.c_str());
+                    output_creation.resource_info.texture.format = util_string_to_vk_format(format.c_str());
 
-                        std::string load_op = pass_output.value("op", "");
-                        MF_CORE_ASSERT(!load_op.empty(), "");
+                    std::string load_op = pass_output.value("load_operation", "");
+                    MF_CORE_ASSERT(!load_op.empty(), "");
 
-                        output_creation.resource_info.texture.load_op = string_to_render_pass_operation(load_op.c_str());
+                    output_creation.resource_info.texture.load_op = string_to_render_pass_operation(load_op.c_str());
 
-                        json resolution = pass_output["resolution"];
-                        json scaling = pass_output["resolution_scale"];
+                    json resolution = pass_output["resolution"];
+                    json scaling = pass_output["resolution_scale"];
 
-                        if (resolution.is_array()) {
-                            output_creation.resource_info.texture.width = resolution[0];
-                            output_creation.resource_info.texture.height = resolution[1];
-                            output_creation.resource_info.texture.depth = 1;
-                            output_creation.resource_info.texture.scale_width = 0.f;
-                            output_creation.resource_info.texture.scale_height = 0.f;
-                        }
-                        else if (scaling.is_array()) {
-                            output_creation.resource_info.texture.width = 0;
-                            output_creation.resource_info.texture.height = 0;
-                            output_creation.resource_info.texture.depth = 1;
-                            output_creation.resource_info.texture.scale_width = scaling[0];
-                            output_creation.resource_info.texture.scale_height = scaling[1];
-                        }
-                        else {
-                            // Defaults
-                            output_creation.resource_info.texture.width = 0;
-                            output_creation.resource_info.texture.height = 0;
-                            output_creation.resource_info.texture.depth = 1;
-                            output_creation.resource_info.texture.scale_width = 1.f;
-                            output_creation.resource_info.texture.scale_height = 1.f;
-                        }
+                    if (resolution.is_array()) {
+                        output_creation.resource_info.texture.width = resolution[0];
+                        output_creation.resource_info.texture.height = resolution[1];
+                        output_creation.resource_info.texture.depth = 1;
+                        output_creation.resource_info.texture.scale_width = 0.f;
+                        output_creation.resource_info.texture.scale_height = 0.f;
+                    }
+                    else if (scaling.is_array()) {
+                        output_creation.resource_info.texture.width = 0;
+                        output_creation.resource_info.texture.height = 0;
+                        output_creation.resource_info.texture.depth = 1;
+                        output_creation.resource_info.texture.scale_width = scaling[0];
+                        output_creation.resource_info.texture.scale_height = scaling[1];
+                    }
+                    else {
+                        // Defaults
+                        output_creation.resource_info.texture.width = 0;
+                        output_creation.resource_info.texture.height = 0;
+                        output_creation.resource_info.texture.depth = 1;
+                        output_creation.resource_info.texture.scale_width = 1.f;
+                        output_creation.resource_info.texture.scale_height = 1.f;
+                    }
 
-                        output_creation.resource_info.texture.compute = node_creation.compute;
+                    output_creation.resource_info.texture.compute = node_creation.compute;
 
-                        // Parse depth/stencil values
-                        if (TextureFormat::has_depth(output_creation.resource_info.texture.format)) {
-                            output_creation.resource_info.texture.clear_values[0] = pass_output.value("clear_depth", 1.0f);
-                            output_creation.resource_info.texture.clear_values[1] = pass_output.value("clear_stencil", 0.0f);
-                        }
-                        else {
-                            // Parse color array
-                            json clear_color_array = pass_output["clear_color"];
-                            if (clear_color_array.is_array()) {
-                                for (u32 c = 0; c < clear_color_array.size(); ++c) {
-                                    output_creation.resource_info.texture.clear_values[c] = clear_color_array[c];
-                                }
-                            }
-                            else {
-                                if (output_creation.resource_info.texture.load_op == RenderPassOperation::Clear) {
-                                    MF_CORE_ERROR("Error parsing output texture %s: load operation is clear, but clear color not specified. Defaulting to 0,0,0,0.", output_creation.name);
-                                }
-                                output_creation.resource_info.texture.clear_values[0] = 0.0f;
-                                output_creation.resource_info.texture.clear_values[1] = 0.0f;
-                                output_creation.resource_info.texture.clear_values[2] = 0.0f;
-                                output_creation.resource_info.texture.clear_values[3] = 0.0f;
+                    // Parse depth/stencil values
+                    if (TextureFormat::has_depth(output_creation.resource_info.texture.format)) {
+                        output_creation.resource_info.texture.clear_values[0] = pass_output.value("clear_depth", 1.0f);
+                        output_creation.resource_info.texture.clear_values[1] = pass_output.value("clear_stencil", 0.0f);
+                    }
+                    else {
+                        // Parse color array
+                        json clear_color_array = pass_output["clear_color"];
+                        if (clear_color_array.is_array()) {
+                            for (u32 c = 0; c < clear_color_array.size(); ++c) {
+                                output_creation.resource_info.texture.clear_values[c] = clear_color_array[c];
                             }
                         }
-                    } break;
-                    case FrameGraphResourceType_Buffer:
-                    {
-                        // TODO(marco)
-                        MF_CORE_ASSERT(false, "");
-                    } break;
+                        else {
+                            if (output_creation.resource_info.texture.load_op == RenderPassOperation::Clear) {
+                                MF_CORE_ERROR("Error parsing output texture {}: load operation is clear, but clear color not specified. Defaulting to 0,0,0,0.", output_creation.name);
+                            }
+                            output_creation.resource_info.texture.clear_values[0] = 0.0f;
+                            output_creation.resource_info.texture.clear_values[1] = 0.0f;
+                            output_creation.resource_info.texture.clear_values[2] = 0.0f;
+                            output_creation.resource_info.texture.clear_values[3] = 0.0f;
+                        }
+                    }
+
+                } break;
+                case FrameGraphResourceType_Buffer:
+                {
+                    // TODO(marco)
+                    MF_CORE_ASSERT(false, "");
+                } break;
                 }
 
                 node_creation.outputs.push(output_creation);
@@ -292,7 +292,7 @@ namespace Magnefu
                     scale_width = info.texture.scale_width > 0.f ? info.texture.scale_width : 1.f;
                 }
                 else {
-                    MF_CORE_ASSERT(width == info.texture.width, "");
+                    MF_CORE_ASSERT((width == info.texture.width), "");
                 }
 
                 if (height == 0) {
@@ -300,7 +300,7 @@ namespace Magnefu
                     scale_height = info.texture.scale_height > 0.f ? info.texture.scale_height : 1.f;
                 }
                 else {
-                    MF_CORE_ASSERT(height == info.texture.height, "");
+                    MF_CORE_ASSERT((height == info.texture.height), "");
                 }
 
                 if (TextureFormat::has_depth(info.texture.format)) {
@@ -360,7 +360,6 @@ namespace Magnefu
             node->resolution_scale_width = scale_width;
             node->resolution_scale_height = scale_height;
         }
-        
     }
 
     static void create_render_pass(FrameGraph* frame_graph, FrameGraphNode* node) {
@@ -417,18 +416,16 @@ namespace Magnefu
         node->enabled = false;
     }
 
-
     namespace FrameGraphNodeVisitStatus {
         enum Enum {
             New = 0, Visited, Added, Count
         }; // enum Enum
     }; // namespace FrameGraphNodeVisitStatus
 
-
     void FrameGraph::compile() {
         // TODO(marco)
-    // - check that input has been produced by a different node
-    // - cull inactive nodes
+        // - check that input has been produced by a different node
+        // - cull inactive nodes
 
         for (u32 i = 0; i < all_nodes.size; ++i) {
             FrameGraphNode* node = builder->access_node(all_nodes[i]);
@@ -562,7 +559,7 @@ namespace Magnefu
                 FrameGraphResource* resource = builder->access_resource(node->outputs[j]);
 
                 if (!resource->resource_info.external && allocations[resource_index].index == k_invalid_index) {
-                    MF_CORE_ASSERT(deallocations[resource_index].index == k_invalid_index, "");
+                    MF_CORE_ASSERT(deallocations[resource_index].index == k_invalid_index, "")
                         allocations[resource_index] = nodes[i];
 
                     if (resource->type == FrameGraphResourceType_Attachment) {
@@ -570,7 +567,7 @@ namespace Magnefu
 
                         // Resolve texture size if needed
                         if (info.texture.width == 0 || info.texture.height == 0) {
-                            info.texture.width =  builder->gpu->swapchain_width * info.texture.scale_width;
+                            info.texture.width = builder->gpu->swapchain_width * info.texture.scale_width;
                             info.texture.height = builder->gpu->swapchain_height * info.texture.scale_height;
                         }
 
@@ -611,7 +608,7 @@ namespace Magnefu
                 resource->ref_count--;
 
                 if (!resource->resource_info.external && resource->ref_count == 0) {
-                    MF_CORE_ASSERT(deallocations[resource_index].index == k_invalid_index, "");
+                    MF_CORE_ASSERT((deallocations[resource_index].index == k_invalid_index), "");
                     deallocations[resource_index] = nodes[i];
 
                     for (u32 f = 0; f < k_max_frames; ++f) {
@@ -631,7 +628,7 @@ namespace Magnefu
 
         for (u32 i = 0; i < nodes.size; ++i) {
             FrameGraphNode* node = builder->access_node(nodes[i]);
-            MF_CORE_ASSERT(node->enabled, "Node {} not enabled", node->name);
+            MF_CORE_ASSERT(node->enabled, "");
 
             if (node->compute) {
                 continue;
@@ -650,9 +647,7 @@ namespace Magnefu
     void FrameGraph::add_ui() {
         for (u32 n = 0; n < nodes.size; ++n) {
             FrameGraphNode* node = builder->access_node(nodes[n]);
-            if (!node->enabled) {
-                continue;
-            }
+            MF_CORE_ASSERT(node->enabled, "");
 
             node->graph_render_pass->add_ui();
         }
@@ -662,7 +657,7 @@ namespace Magnefu
     {
         for (u32 n = 0; n < nodes.size; ++n) {
             FrameGraphNode* node = builder->access_node(nodes[n]);
-            MF_CORE_ASSERT(node->enabled, "Node {} not enabled", node->name);
+            MF_CORE_ASSERT(node->enabled, "");
 
             if (node->compute) {
                 gpu_commands->push_marker(node->name);
@@ -671,13 +666,13 @@ namespace Magnefu
                     FrameGraphResource* resource = builder->access_resource(node->inputs[i]);
 
                     if (resource->type == FrameGraphResourceType_Texture) {
-                        Texture* texture = gpu_commands->gpu->access_texture(resource->resource_info.texture.handle[current_frame_index]);
+                        Texture* texture = gpu_commands->device->access_texture(resource->resource_info.texture.handle[current_frame_index]);
 
-                        util_add_image_barrier(gpu_commands->gpu, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_SHADER_RESOURCE, 0, 1, TextureFormat::has_depth(texture->vk_format));
+                        util_add_image_barrier(gpu_commands->device, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_SHADER_RESOURCE, 0, 1, TextureFormat::has_depth(texture->vk_format));
                     }
                     else if (resource->type == FrameGraphResourceType_Attachment) {
                         // TODO: what to do with attachments ?
-                        Texture* texture = gpu_commands->gpu->access_texture(resource->resource_info.texture.handle[current_frame_index]);
+                        Texture* texture = gpu_commands->device->access_texture(resource->resource_info.texture.handle[current_frame_index]);
                         texture = texture;
                     }
                 }
@@ -686,14 +681,14 @@ namespace Magnefu
                     FrameGraphResource* resource = builder->access_resource(node->outputs[o]);
 
                     if (resource->type == FrameGraphResourceType_Attachment) {
-                        Texture* texture = gpu_commands->gpu->access_texture(resource->resource_info.texture.handle[current_frame_index]);
+                        Texture* texture = gpu_commands->device->access_texture(resource->resource_info.texture.handle[current_frame_index]);
 
                         if (TextureFormat::has_depth(texture->vk_format)) {
                             // Is this supported even ?
                             MF_CORE_ASSERT(false, "");
                         }
                         else {
-                            util_add_image_barrier(gpu_commands->gpu, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_UNORDERED_ACCESS, 0, 1, false);
+                            util_add_image_barrier(gpu_commands->device, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_UNORDERED_ACCESS, 0, 1, false);
                         }
                     }
                 }
@@ -713,22 +708,22 @@ namespace Magnefu
                     FrameGraphResource* resource = builder->access_resource(node->inputs[i]);
 
                     if (resource->type == FrameGraphResourceType_Texture) {
-                        Texture* texture = gpu_commands->gpu->access_texture(resource->resource_info.texture.handle[current_frame_index]);
+                        Texture* texture = gpu_commands->device->access_texture(resource->resource_info.texture.handle[current_frame_index]);
 
-                        util_add_image_barrier(gpu_commands->gpu, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0, 1, TextureFormat::has_depth(texture->vk_format));
+                        util_add_image_barrier(gpu_commands->device, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0, 1, TextureFormat::has_depth(texture->vk_format));
                     }
                     else if (resource->type == FrameGraphResourceType_Attachment) {
-                        Texture* texture = gpu_commands->gpu->access_texture(resource->resource_info.texture.handle[current_frame_index]);
+                        Texture* texture = gpu_commands->device->access_texture(resource->resource_info.texture.handle[current_frame_index]);
 
                         width = texture->width;
                         height = texture->height;
 
                         // For textures that are read-write check if a transition is needed.
                         if (!TextureFormat::has_depth_or_stencil(texture->vk_format)) {
-                            util_add_image_barrier(gpu_commands->gpu, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_RENDER_TARGET, 0, 1, false);
+                            util_add_image_barrier(gpu_commands->device, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_RENDER_TARGET, 0, 1, false);
                         }
                         else {
-                            util_add_image_barrier(gpu_commands->gpu, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_DEPTH_WRITE, 0, 1, true);
+                            util_add_image_barrier(gpu_commands->device, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_DEPTH_WRITE, 0, 1, true);
                         }
                     }
                 }
@@ -737,20 +732,20 @@ namespace Magnefu
                     FrameGraphResource* resource = builder->access_resource(node->outputs[o]);
 
                     if (resource->type == FrameGraphResourceType_Attachment) {
-                        Texture* texture = gpu_commands->gpu->access_texture(resource->resource_info.texture.handle[current_frame_index]);
+                        Texture* texture = gpu_commands->device->access_texture(resource->resource_info.texture.handle[current_frame_index]);
 
                         width = texture->width;
                         height = texture->height;
 
                         if (TextureFormat::has_depth(texture->vk_format)) {
-                            util_add_image_barrier(gpu_commands->gpu, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_DEPTH_WRITE, 0, 1, true);
+                            util_add_image_barrier(gpu_commands->device, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_DEPTH_WRITE, 0, 1, true);
 
                             f32* clear_color = resource->resource_info.texture.clear_values;
                             gpu_commands->clear_depth_stencil(clear_color[0], (u8)clear_color[1]);
 
                         }
                         else {
-                            util_add_image_barrier(gpu_commands->gpu, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_RENDER_TARGET, 0, 1, false);
+                            util_add_image_barrier(gpu_commands->device, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_RENDER_TARGET, 0, 1, false);
 
                             f32* clear_color = resource->resource_info.texture.clear_values;
                             gpu_commands->clear(clear_color[0], clear_color[1], clear_color[2], clear_color[3], o);
@@ -780,13 +775,10 @@ namespace Magnefu
         }
     }
 
-    
-    
-
     void FrameGraph::on_resize(GraphicsContext& gpu, u32 new_width, u32 new_height) {
         for (u32 n = 0; n < nodes.size; ++n) {
             FrameGraphNode* node = builder->access_node(nodes[n]);
-            MF_CORE_ASSERT(node->enabled, "Node {} not enabled", node->name);
+            MF_CORE_ASSERT(node->enabled, "");
 
             node->graph_render_pass->on_resize(gpu, new_width, new_height);
 
@@ -842,13 +834,15 @@ namespace Magnefu
             u32 resource_index = resource_map.get(it);
             FrameGraphResource* resource = resources.get(resource_index);
 
-            if (resource->type == FrameGraphResourceType_Texture || resource->type == FrameGraphResourceType_Attachment) {
-                Texture* texture = device->access_texture(resource->resource_info.texture.texture);
-                device->destroy_texture(texture->handle);
-            }
-            else if (resource->type == FrameGraphResourceType_Buffer) {
-                Buffer* buffer = device->access_buffer(resource->resource_info.buffer.buffer);
-                device->destroy_buffer(buffer->handle);
+            for (u32 f = 0; f < k_max_frames; ++f) {
+                if (resource->type == FrameGraphResourceType_Texture || resource->type == FrameGraphResourceType_Attachment) {
+                    Texture* texture = device->access_texture(resource->resource_info.texture.handle[f]);
+                    device->destroy_texture(texture->handle);
+                }
+                else if (resource->type == FrameGraphResourceType_Buffer) {
+                    Buffer* buffer = device->access_buffer(resource->resource_info.buffer.handle[f]);
+                    device->destroy_buffer(buffer->handle);
+                }
             }
 
             resource_map.iterator_advance(it);
@@ -878,9 +872,8 @@ namespace Magnefu
 
     // FrameGraphBuilder /////////////////////////////////////////////////////////////
 
-    void FrameGraphBuilder::init(GraphicsContext* gpu_) {
-        MF_CORE_INFO("Frame Graph Builder Init");
-        gpu = gpu_;
+    void FrameGraphBuilder::init(GraphicsContext* device_) {
+        gpu = device_;
 
         allocator = gpu->allocator;
 
@@ -915,7 +908,7 @@ namespace Magnefu
             resource->ref_count = 0;
 
             FrameGraphNode* producer_node = access_node(producer);
-            MF_CORE_ASSERT((producer_node != nullptr), "");
+            MF_CORE_ASSERT(producer_node != nullptr, "");
 
             if (producer_node->enabled) {
                 // TODO(marco): eventually we want to allow enabling/disabling a node at runtime.
@@ -1046,4 +1039,4 @@ namespace Magnefu
         node->graph_render_pass = render_pass;
     }
 
-} // namespace Magnefu
+} // namespace raptor

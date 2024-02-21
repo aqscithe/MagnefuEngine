@@ -87,8 +87,7 @@ namespace Magnefu
 //#define VULKAN_SYNCHRONIZATION_VALIDATION
 
     static const char* s_requested_extensions[] = {
-        "VK_KHR_win32_surface",         // Also obtained through glfwGetRequiredInstanceExtensions
-        //VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+        VK_KHR_SURFACE_EXTENSION_NAME,
         // Platform specific extension
     #ifdef VK_USE_PLATFORM_WIN32_KHR
             VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
@@ -897,7 +896,11 @@ namespace Magnefu
         // Allocate queued command buffers array
         queued_command_buffers = (CommandBuffer**)(gpu_time_queries_manager + 1);
         CommandBuffer** correctly_allocated_buffer = (CommandBuffer**)(memory + sizeof(GPUTimeQueriesManager));
-        MF_CORE_ASSERT(queued_command_buffers == correctly_allocated_buffer, "Wrong calculations for queued command buffers arrays. Should be {}, but it is {}.", correctly_allocated_buffer, queued_command_buffers);
+
+        //TODO: error with MF_CORE_ASSERT in this situation. Need to fix
+        assert(queued_command_buffers == correctly_allocated_buffer);
+
+        /*MF_CORE_ASSERT((queued_command_buffers == correctly_allocated_buffer), "Wrong calculations for queued command buffers arrays. Should be {}, but it is {}.", correctly_allocated_buffer, queued_command_buffers);*/
 
         vulkan_image_index = 0;
         current_frame = 0;
@@ -2811,7 +2814,7 @@ namespace Magnefu
 
     template<class T>
     constexpr const T& clamp(const T& v, const T& lo, const T& hi) {
-        MF_CORE_ASSERT(!(hi < lo));
+        MF_CORE_ASSERT(!(hi < lo), "");
         return (v < lo) ? lo : (hi < v) ? hi : v;
     }
 
@@ -3819,7 +3822,7 @@ namespace Magnefu
 
         static VkPresentModeKHR supported_mode_allocated[8];
         vkGetPhysicalDeviceSurfacePresentModesKHR(vulkan_physical_device, vulkan_window_surface, &supported_count, NULL);
-        MF_CORE_ASSERT(supported_count < 8, "");
+        MF_CORE_ASSERT((supported_count < 8), "");
         vkGetPhysicalDeviceSurfacePresentModesKHR(vulkan_physical_device, vulkan_window_surface, &supported_count, supported_mode_allocated);
 
         bool mode_found = false;

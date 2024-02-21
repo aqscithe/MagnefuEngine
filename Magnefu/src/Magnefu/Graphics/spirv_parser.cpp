@@ -4,6 +4,8 @@
 
 #include "Magnefu/Core/Numerics.hpp"
 
+#include <cstdlib>
+
 namespace Magnefu
 {
 
@@ -483,7 +485,46 @@ namespace Magnefu
 				{
 					switch (id.storage_class)
 					{
+						case SpvStorageClassStorageBuffer:
+						{
+							// NOTE(marco): get actual type
+							Id& uniform_type = ids[ids[id.type_index].type_index];
 
+							DescriptorSetLayoutCreation& setLayout = parse_result->sets[id.set];
+							setLayout.set_set_index(id.set);
+
+							DescriptorSetLayoutCreation::Binding binding{ };
+							binding.index = id.binding;
+							binding.count = 1;
+
+							switch (uniform_type.op)
+							{
+								case (SpvOpTypeStruct):
+								{
+									binding.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+									binding.name = uniform_type.name.text;
+									break;
+								}
+
+								default:
+								{
+									MF_CORE_ERROR("Error reading op {} {}", uniform_type.op, uniform_type.name.text);
+									break;
+								}
+							}
+
+							//rprint( "Adding binding %u %s, set %u. Total %u\n", binding.index, binding.name, id.set, setLayout.num_bindings );
+							add_binding_if_unique(setLayout, binding);
+
+							parse_result->set_count = max(parse_result->set_count, (id.set + 1));
+
+							break;
+						}
+						case SpvStorageClassImage:
+						{
+							//MF_CORE_INFO( "Image!\n" );
+							break;
+						}
 						case SpvStorageClassUniform:
 						case SpvStorageClassUniformConstant:
 						{
@@ -547,6 +588,32 @@ namespace Magnefu
 			}
 
 			ids.shutdown();
+
+			// Sort layout based on binding point
+			for (size_t i = 0; i < parse_result->set_count; i++) {
+				DescriptorSetLayoutCreation& layout_creation = parse_result->sets[i];
+				// Sort only for 2 or more elements
+				if (layout_creation.num_bindings <= 1) {
+					continue;
+				}
+
+				auto sorting_func = [](const void* a, const void* b) -> i32 {
+					const DescriptorSetLayoutCreation::Binding* b0 = (const DescriptorSetLayoutCreation::Binding*)a;
+					const DescriptorSetLayoutCreation::Binding* b1 = (const DescriptorSetLayoutCreation::Binding*)b;
+
+					if (b0->index > b1->index) {
+						return 1;
+					}
+
+					if (b0->index < b1->index) {
+						return -1;
+					}
+
+					return 0;
+				};
+
+				qsort(layout_creation.bindings, layout_creation.num_bindings, sizeof(DescriptorSetLayoutCreation::Binding), sorting_func);
+			}
 
 		}
 	}

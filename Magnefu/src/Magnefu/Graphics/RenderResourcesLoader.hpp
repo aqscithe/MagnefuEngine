@@ -12,16 +12,16 @@ namespace Magnefu
     struct RenderResourcesLoader 
     {
 
-        void            init(Renderer* renderer, StackAllocator* temp_allocator, FrameGraph* frame_graph);
-        void            shutdown();
+        void                init(Renderer* renderer, StackAllocator* temp_allocator, FrameGraph* frame_graph);
+        void                shutdown();
 
-        void            load_gpu_technique(cstring json_path);
-        void            load_texture(cstring path, bool generate_mipmaps = true);
+        GpuTechnique*       load_gpu_technique(cstring json_path);
+        TextureResource*    load_texture(cstring path, bool generate_mipmaps = true);
 
 
-        Renderer* renderer;
-        FrameGraph* frame_graph;
-        StackAllocator* temp_allocator;
+        Renderer*           renderer;
+        FrameGraph*         frame_graph;
+        StackAllocator*     temp_allocator;
 
     }; // struct RenderResourcesLoader
 

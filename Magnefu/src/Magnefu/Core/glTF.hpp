@@ -19,8 +19,7 @@ static const char* kDefault3DModel = "res/models/Sponza/glTF/Sponza.gltf";
     }\
     else \
     {\
-        MF_CORE_ERROR("Invalid default model path! | {}", kDefault3DModel); \
-        exit(-1);\
+        MF_CORE_WARN("Invalid default model path! | {}", kDefault3DModel); \
     }
 
 namespace Magnefu

@@ -1068,7 +1068,7 @@ namespace Magnefu {
             const u32 pool_index = pool_from_indices(frame, thread_index);
             u32 current_used_buffer = used_buffers[pool_index];
             // TODO: how to handle fire-and-forget command buffers ?
-            MF_CORE_ASSERT(current_used_buffer < num_command_buffers_per_thread, "");
+            MF_CORE_ASSERT((current_used_buffer < num_command_buffers_per_thread), "");
             if (begin) {
                 used_buffers[pool_index] = current_used_buffer + 1;
             }

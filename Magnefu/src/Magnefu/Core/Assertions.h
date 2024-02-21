@@ -16,7 +16,7 @@
 
 #ifdef MF_ENABLE_ASSERTS
 	#define MF_ASSERT(x, ...) { if(!x) {MF_APP_ERROR("Assertion Failed: {0}\n\t {1} {2}", __VA_ARGS__, __FILE__, __LINE__); __debugbreak();}}
-	#define MF_CORE_ASSERT(x, ...) { if(!x) {MF_CORE_ERROR("Assertion Failed: {0}\n\t {1} {2}", __VA_ARGS__, __FILE__, __LINE__); __debugbreak();}}
+	#define MF_CORE_ASSERT(x, ...) { if(!(x)) {MF_CORE_ERROR("Assertion Failed: {0}\n\t {1} {2}", __VA_ARGS__, __FILE__, __LINE__); __debugbreak();}}
 #else
 	#define MF_ASSERT(x, ...)
 	#define MF_CORE_ASSERT(x, ...)
