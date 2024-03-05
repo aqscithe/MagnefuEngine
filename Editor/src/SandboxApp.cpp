@@ -256,7 +256,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 
 
 	// Game Camera:
-	s_game_camera.camera.init_perpective(0.1f, 4000.f, 60.f, wconf.width * 1.f / wconf.height);
+	s_game_camera.camera.init_perpective(0.1f, 1000.f, 60.f, wconf.width * 1.f / wconf.height);
 	s_game_camera.init(true, 20.f, 6.f, 0.1f);
 
 
@@ -343,7 +343,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	temporary_name_buffer.clear();
 	cstring scene_path = nullptr;
 
-	InjectDefault3DModel(scene_path);
+	//InjectDefault3DModel(scene_path);
 
 	if (scene_path == nullptr) 
 	{
