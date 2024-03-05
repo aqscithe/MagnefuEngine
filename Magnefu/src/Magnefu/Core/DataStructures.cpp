@@ -47,7 +47,7 @@ namespace Magnefu
 
             for (u32 i = 0; i < free_indices_head; ++i) 
             {
-                MF_CORE_WARN("\tResource %u\n", free_indices[i]);
+                MF_CORE_WARN("\tResource {}", free_indices[i]);
             }
         }
 

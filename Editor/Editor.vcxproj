@@ -79,7 +79,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\vulkan\include;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Magnefu\vendor\GLAD\include;..\Magnefu\vendor\entt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\vulkan\include;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Magnefu\vendor\GLAD\include;..\Magnefu\vendor\entt\include;..\Magnefu\vendor\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -99,7 +99,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\vulkan\include;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Magnefu\vendor\GLAD\include;..\Magnefu\vendor\entt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\vulkan\include;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Magnefu\vendor\GLAD\include;..\Magnefu\vendor\entt\include;..\Magnefu\vendor\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -123,7 +123,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\vulkan\include;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Magnefu\vendor\GLAD\include;..\Magnefu\vendor\entt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\vulkan\include;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Magnefu\vendor\GLAD\include;..\Magnefu\vendor\entt\include;..\Magnefu\vendor\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -144,15 +144,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\AppLayers\Overlay.hpp" />
+    <ClInclude Include="src\AppLayers\SandboxLayer.hpp" />
     <ClInclude Include="src\GameCamera.hpp" />
     <ClInclude Include="src\SandboxApp.hpp" />
-    <ClInclude Include="src\AppLayers\SandboxLayer.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AppLayers\Overlay.cpp" />
+    <ClCompile Include="src\AppLayers\SandboxLayer.cpp" />
     <ClCompile Include="src\GameCamera.cpp" />
     <ClCompile Include="src\SandboxApp.cpp" />
-    <ClCompile Include="src\AppLayers\SandboxLayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\materials\12221_Cat_v1_l3.mtl" />
@@ -176,6 +176,20 @@
     <None Include="res\meshes\usd\The_Hunters_Rest.usdz" />
     <None Include="res\meshes\viking_room.obj" />
     <None Include="res\meshes\wooden_watch_tower2.obj" />
+    <None Include="res\models\FlightHelmet\LICENSE.md" />
+    <None Include="res\models\FlightHelmet\README.body.md" />
+    <None Include="res\models\FlightHelmet\README.md" />
+    <None Include="res\models\FlightHelmet\glTF\FlightHelmet.bin" />
+    <None Include="res\models\FlightHelmet\glTF\FlightHelmet.gltf" />
+    <None Include="res\models\FlightHelmet\metadata.json" />
+    <None Include="res\models\SciFiHelmet\LICENSE.md" />
+    <None Include="res\models\SciFiHelmet\README.md" />
+    <None Include="res\models\SciFiHelmet\glTF\SciFiHelmet.bin" />
+    <None Include="res\models\SciFiHelmet\glTF\SciFiHelmet.gltf" />
+    <None Include="res\models\SciFiHelmet\metadata.json" />
+    <None Include="res\models\corridor\glTF\corridor.bin" />
+    <None Include="res\models\corridor\glTF\corridor.gltf" />
+    <None Include="res\models\extract_gltf_bin_data.py" />
     <None Include="res\shaders\AreaLight.shader" />
     <None Include="res\shaders\AreaLightLTC.shader" />
     <None Include="res\shaders\Basic.shader" />
@@ -192,6 +206,13 @@
     <None Include="res\shaders\TestLighting.shader" />
     <None Include="res\shaders\TestModelLoading.shader" />
     <None Include="res\shaders\Texture2D.shader" />
+    <None Include="res\shaders\main.frag" />
+    <None Include="res\shaders\main.json" />
+    <None Include="res\shaders\main.vert" />
+    <None Include="res\shaders\main_cull.cache" />
+    <None Include="res\shaders\main_no_cull.cache" />
+    <None Include="res\shaders\phong.frag" />
+    <None Include="res\shaders\phong.vert" />
     <None Include="res\textures\DDS\ltc_amp.dds" />
     <None Include="res\textures\DDS\ltc_mat.dds" />
     <None Include="res\textures\DDS\rgba_dxt1.dds" />
@@ -199,6 +220,36 @@
     <None Include="res\textures\create_arm_texture.py" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_GlassPlasticMat_BaseColor.png" />
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_GlassPlasticMat_Normal.png" />
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_GlassPlasticMat_OcclusionRoughMetal.png" />
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_LeatherPartsMat_BaseColor.png" />
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_LeatherPartsMat_Normal.png" />
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_LeatherPartsMat_OcclusionRoughMetal.png" />
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_LensesMat_BaseColor.png" />
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_LensesMat_Normal.png" />
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_LensesMat_OcclusionRoughMetal.png" />
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_MetalPartsMat_BaseColor.png" />
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_MetalPartsMat_Normal.png" />
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_MetalPartsMat_OcclusionRoughMetal.png" />
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_RubberWoodMat_BaseColor.png" />
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_RubberWoodMat_Normal.png" />
+    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_RubberWoodMat_OcclusionRoughMetal.png" />
+    <Image Include="res\models\FlightHelmet\screenshot\screenshot-x150.jpg" />
+    <Image Include="res\models\FlightHelmet\screenshot\screenshot.jpg" />
+    <Image Include="res\models\SciFiHelmet\glTF\SciFiHelmet_AmbientOcclusion.png" />
+    <Image Include="res\models\SciFiHelmet\glTF\SciFiHelmet_BaseColor.png" />
+    <Image Include="res\models\SciFiHelmet\glTF\SciFiHelmet_MetallicRoughness.png" />
+    <Image Include="res\models\SciFiHelmet\glTF\SciFiHelmet_Normal.png" />
+    <Image Include="res\models\SciFiHelmet\screenshot\screenshot-x150.jpg" />
+    <Image Include="res\models\SciFiHelmet\screenshot\screenshot.jpg" />
+    <Image Include="res\models\corridor\glTF\scene_1001_AO.png" />
+    <Image Include="res\models\corridor\glTF\scene_1001_ARM.png" />
+    <Image Include="res\models\corridor\glTF\scene_1001_BaseColor.png" />
+    <Image Include="res\models\corridor\glTF\scene_1001_Emissive.png" />
+    <Image Include="res\models\corridor\glTF\scene_1001_Metalness.png" />
+    <Image Include="res\models\corridor\glTF\scene_1001_Normal.png" />
+    <Image Include="res\models\corridor\glTF\scene_1001_Roughness.png" />
     <Image Include="res\textures\12221_Cat_v1_l3\Cat_ao.jpg" />
     <Image Include="res\textures\12221_Cat_v1_l3\Cat_bump.jpg" />
     <Image Include="res\textures\12221_Cat_v1_l3\Cat_diffuse.jpg" />

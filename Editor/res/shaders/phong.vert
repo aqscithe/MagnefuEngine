@@ -1,8 +1,6 @@
 #version 450
 
-
-layout(std140, binding = 0) uniform LocalConstants 
-{
+layout ( std140, set = MATERIAL_SET, binding = 0 ) uniform LocalConstants {
     mat4        view_projection;
     vec4        eye;
     vec4        light;
@@ -10,8 +8,7 @@ layout(std140, binding = 0) uniform LocalConstants
     float       light_intensity;
 };
 
-layout ( std140, binding = 1 ) uniform Mesh 
-{
+layout ( std140, set = MATERIAL_SET, binding = 1 ) uniform Mesh {
 
     mat4        model;
     mat4        model_inverse;
@@ -19,10 +16,10 @@ layout ( std140, binding = 1 ) uniform Mesh
     // x = diffuse index, y = roughness index, z = normal index, w = occlusion index.
     // Occlusion and roughness are encoded in the same texture
     uvec4       textures;
-    vec4        base_color_factor;
-    vec4        metallic_roughness_occlusion_factor;
-    float       alpha_cutoff;
-    uint        flags;
+    vec4        diffuse;
+    vec3        specular;
+    float       specular_exp;
+    vec3        ambient;
 };
 
 layout(location=0) in vec3 position;
@@ -36,8 +33,7 @@ layout (location = 2) out vec3 vTangent;
 layout (location = 3) out vec3 vBiTangent;
 layout (location = 4) out vec3 vPosition;
 
-void main() 
-{
+void main() {
     vec4 worldPosition = model * vec4(position, 1.0);
     gl_Position = view_projection * worldPosition;
     vPosition = worldPosition.xyz / worldPosition.w;

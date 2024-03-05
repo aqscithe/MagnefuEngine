@@ -1,6 +1,6 @@
 //
 //// -- PCH -- //
-//#include "mfpch.h"
+#include "mfpch.h"
 //
 //// -- .h -- //
 //#include "SceneManager.h"

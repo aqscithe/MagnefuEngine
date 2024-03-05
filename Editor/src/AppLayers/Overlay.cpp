@@ -683,10 +683,10 @@ void Overlay::ShowMemoryStats()
 	{
 		if (ImGui::Button("Update Memory Stats"))
 		{
-			m_gpu->CalculateMemoryStats();
+			//m_gpu->CalculateMemoryStats();
 		}
 
-		MemoryService::Instance()->imguiDraw();
+		/*MemoryService::Instance()->imguiDraw();
 
 		auto [blockCount, blockBytes, allocCount, allocBytes, usage, budget] =
 			m_gpu->GetMemoryStats();
@@ -725,7 +725,7 @@ void Overlay::ShowMemoryStats()
 
 		ImGui::ProgressBar((float)allocBytes / blockBytes, ImVec2(0.0f, 0.0f), "VmaAllocation Byte Usage");
 		if (ImGui::IsItemHovered()) { ImGui::SetTooltip("%d bytes remaining", blockBytes - allocBytes); }
-		ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram] = originalColor;
+		ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram] = originalColor;*/
 
 
 		ImGui::End();

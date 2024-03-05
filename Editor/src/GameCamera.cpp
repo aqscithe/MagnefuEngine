@@ -12,6 +12,7 @@
 // -- GameCamera ------------------------------------------------------------------------------- //
 void GameCamera::init(bool enabled_, f32 rotation_speed_, f32 movement_speed_, f32 movement_delta_) 
 {
+    MF_APP_INFO("Game Camera Init");
 
     reset();
     enabled = enabled_;
@@ -19,6 +20,8 @@ void GameCamera::init(bool enabled_, f32 rotation_speed_, f32 movement_speed_, f
     rotation_speed = rotation_speed_;
     movement_speed = movement_speed_;
     movement_delta = movement_delta_;
+
+    
 }
 
 void GameCamera::reset() {
