@@ -15,6 +15,12 @@
 
 
 // -- Other Includes ----------------------- //
+#if defined(_MSC_VER)
+    #define WIN32_LEAN_AND_MEAN
+    #include <windows.h>
+#endif
+
+#include <vma/vk_mem_alloc.h>
 #include <set>
 
 
@@ -477,6 +483,11 @@ namespace Magnefu
                     synchronization2_extension_present = true;
                     continue;
                 }
+
+                if (!strcmp(extensions[i].extensionName, VK_NV_MESH_SHADER_EXTENSION_NAME)) {
+                    mesh_shaders_extension_present = true;
+                    continue;
+                }
             }
 
             temp_allocator->freeToMarker(initial_temp_allocator_marker);
@@ -568,6 +579,10 @@ namespace Magnefu
             device_extensions.push(VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME);
         }
 
+        if (mesh_shaders_extension_present) {
+            device_extensions.push(VK_NV_MESH_SHADER_EXTENSION_NAME);
+        }
+
         const float queue_priority[] = { 1.0f, 1.0f };
         VkDeviceQueueCreateInfo queue_info[3] = {};
 
@@ -598,20 +613,16 @@ namespace Magnefu
         // Enable all features: just pass the physical features 2 struct.
         VkPhysicalDeviceFeatures2 physical_features2{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2 };
         VkPhysicalDeviceVulkan11Features vulkan_11_features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
-        //VkPhysicalDeviceVulkan13Features vulkan_13_features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES };
         void* current_pnext = &vulkan_11_features;
-        //void* current_pnext = &vulkan_13_features;
+
+        VkPhysicalDeviceVulkan12Features vulkan_12_features = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
+        vulkan_12_features.pNext = current_pnext;
+        current_pnext = &vulkan_12_features;
 
         VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamic_rendering_features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR };
         if (dynamic_rendering_extension_present) {
             dynamic_rendering_features.pNext = current_pnext;
             current_pnext = &dynamic_rendering_features;
-        }
-
-        VkPhysicalDeviceTimelineSemaphoreFeatures timeline_sempahore_features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES };
-        if (timeline_semaphore_extension_present) {
-            timeline_sempahore_features.pNext = current_pnext;
-            current_pnext = &timeline_sempahore_features;
         }
 
         VkPhysicalDeviceSynchronization2FeaturesKHR synchronization2_features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES_KHR };
@@ -620,11 +631,14 @@ namespace Magnefu
             current_pnext = &synchronization2_features;
         }
 
-        // [TAG: BINDLESS]
-        // We also add the bindless needed feature on the device creation.
-        if (bindless_supported) {
-            indexing_features.pNext = current_pnext;
-            current_pnext = &indexing_features;
+        VkPhysicalDeviceMeshShaderFeaturesNV mesh_shaders_feature = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_NV };
+        if (mesh_shaders_extension_present) 
+        {
+            mesh_shaders_feature.taskShader = true;
+            mesh_shaders_feature.meshShader = true;
+
+            mesh_shaders_feature.pNext = current_pnext;
+            current_pnext = &mesh_shaders_feature;
         }
 
         physical_features2.pNext = current_pnext;
@@ -657,6 +671,12 @@ namespace Magnefu
         if (synchronization2_extension_present) {
             queue_submit2 = (PFN_vkQueueSubmit2KHR)vkGetDeviceProcAddr(vulkan_device, "vkQueueSubmit2KHR");
             cmd_pipeline_barrier2 = (PFN_vkCmdPipelineBarrier2KHR)vkGetDeviceProcAddr(vulkan_device, "vkCmdPipelineBarrier2KHR");
+        }
+
+        if (mesh_shaders_extension_present) {
+            cmd_draw_mesh_tasks = (PFN_vkCmdDrawMeshTasksNV)vkGetDeviceProcAddr(vulkan_device, "vkCmdDrawMeshTasksNV");
+            cmd_draw_mesh_tasks_indirect = (PFN_vkCmdDrawMeshTasksIndirectNV)vkGetDeviceProcAddr(vulkan_device, "vkCmdDrawMeshTasksIndirectNV");
+            cmd_draw_mesh_tasks_indirect_count = (PFN_vkCmdDrawMeshTasksIndirectCountNV)vkGetDeviceProcAddr(vulkan_device, "vkCmdDrawMeshTasksIndirectCountNV");
         }
 
         // Get main queue
@@ -797,11 +817,10 @@ namespace Magnefu
         num_threads = creation.num_threads;
         thread_frame_pools.init(allocator, num_pools, num_pools);
 
-        // Create compute command pools and command buffers
-        compute_frame_pools.init(allocator, k_max_frames, k_max_frames);
+        
 
         gpu_time_queries_manager = (GPUTimeQueriesManager*)(memory);
-        gpu_time_queries_manager->init(thread_frame_pools.data, compute_frame_pools.data, allocator, creation.gpu_time_queries_per_frame, creation.num_threads, k_max_frames);
+        gpu_time_queries_manager->init(thread_frame_pools.data, allocator, creation.gpu_time_queries_per_frame, creation.num_threads, k_max_frames);
 
         for (u32 i = 0; i < thread_frame_pools.size; ++i) {
             GpuThreadFramePools& pool = thread_frame_pools[i];
@@ -830,20 +849,7 @@ namespace Magnefu
             vkCreateQueryPool(vulkan_device, &statistics_pool_info, vulkan_allocation_callbacks, &pool.vulkan_pipeline_stats_query_pool);
         }
 
-        for (u32 i = 0; i < compute_frame_pools.size; ++i) {
-            GpuThreadFramePools& pool = compute_frame_pools[i];
-            pool.time_queries = &gpu_time_queries_manager->query_trees[thread_frame_pools.size + i];
-
-            VkCommandPoolCreateInfo cmd_pool_info = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO, nullptr };
-            cmd_pool_info.queueFamilyIndex = vulkan_compute_queue_family;
-            cmd_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-
-            vkCreateCommandPool(vulkan_device, &cmd_pool_info, vulkan_allocation_callbacks, &pool.vulkan_command_pool);
-
-            // Create timestamp query pool used for GPU timings.
-            VkQueryPoolCreateInfo timestamp_pool_info{ VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO, nullptr, 0, VK_QUERY_TYPE_TIMESTAMP, creation.gpu_time_queries_per_frame * 2u, 0 };
-            vkCreateQueryPool(vulkan_device, &timestamp_pool_info, vulkan_allocation_callbacks, &pool.vulkan_timestamp_query_pool);
-        }
+        
 
         // Create resource pools
         //// Init pools
@@ -856,7 +862,6 @@ namespace Magnefu
         shaders.init(allocator, k_shaders_pool_size, sizeof(ShaderState));
         descriptor_sets.init(allocator, k_descriptor_sets_pool_size, sizeof(DescriptorSet));
         samplers.init(allocator, k_samplers_pool_size, sizeof(Sampler));
-        //command_buffers.init( allocator, 128, sizeof( CommandBuffer ) );
 
         VkSemaphoreCreateInfo semaphore_info{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
         vkCreateSemaphore(vulkan_device, &semaphore_info, vulkan_allocation_callbacks, &vulkan_image_acquired_semaphore);
@@ -931,8 +936,8 @@ namespace Magnefu
         fullscreen_vertex_buffer = create_buffer(fullscreen_vb_creation);
 
         // Init Dummy resources
-        TextureCreation dummy_texture_creation = { nullptr, 1, 1, 1, 1, TextureFlags::Mask::RenderTarget_mask | TextureFlags::Mask::Compute_mask, VK_FORMAT_R8_UINT, TextureType::Texture2D };
-        dummy_texture = create_texture(dummy_texture_creation);
+        TextureCreation dummy_texture_creation;
+        dummy_texture_creation.set_size(1, 1, 1).set_flags(TextureFlags::Mask::RenderTarget_mask | TextureFlags::Mask::Compute_mask).set_format_type(VK_FORMAT_R8_UINT, TextureType::Texture2D).set_name("Dummy_texture");
 
         BufferCreation dummy_constant_buffer_creation = { VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Immutable, 16, 0, 0, nullptr, "Dummy_cb" };
         dummy_constant_buffer = create_buffer(dummy_constant_buffer_creation);
@@ -1006,8 +1011,6 @@ namespace Magnefu
         MapBufferParameters cb_map = { dynamic_buffer, 0, 0 };
         unmap_buffer(cb_map);
 
-        // Memory: this contains allocations for gpu timestamp memory, queued command buffers and render frames.
-        mffree(gpu_time_queries_manager, allocator);
 
         destroy_descriptor_set_layout(bindless_descriptor_set_layout);
         destroy_descriptor_set(bindless_descriptor_set);
@@ -1115,13 +1118,11 @@ namespace Magnefu
         destroy_swapchain();
         vkDestroySurfaceKHR(vulkan_instance, vulkan_window_surface, vulkan_allocation_callbacks);
 
-        vmaDestroyAllocator(vma_allocator);
 
         texture_to_update_bindless.shutdown();
         resource_deletion_queue.shutdown();
         descriptor_set_updates.shutdown();
 
-        //command_buffers.shutdown();
         pipelines.shutdown();
         buffers.shutdown();
         shaders.shutdown();
@@ -1144,6 +1145,7 @@ namespace Magnefu
 
         vkDestroyDescriptorPool(vulkan_device, vulkan_descriptor_pool, vulkan_allocation_callbacks);
 
+        // Destroy all query and command pools
         for (u32 i = 0; i < thread_frame_pools.size; ++i) {
             GpuThreadFramePools& pool = thread_frame_pools[i];
             vkDestroyQueryPool(vulkan_device, pool.vulkan_timestamp_query_pool, vulkan_allocation_callbacks);
@@ -1151,14 +1153,13 @@ namespace Magnefu
             vkDestroyCommandPool(vulkan_device, pool.vulkan_command_pool, vulkan_allocation_callbacks);
         }
 
-        for (u32 i = 0; i < compute_frame_pools.size; ++i) {
-            GpuThreadFramePools& pool = compute_frame_pools[i];
-            vkDestroyQueryPool(vulkan_device, pool.vulkan_timestamp_query_pool, vulkan_allocation_callbacks);
-            vkDestroyCommandPool(vulkan_device, pool.vulkan_command_pool, vulkan_allocation_callbacks);
-        }
 
+        // Memory: this contains allocations for gpu timestamp memory, queued command buffers and render frames.
+        mffree(gpu_time_queries_manager, allocator);
         thread_frame_pools.shutdown();
-        compute_frame_pools.shutdown();
+
+        // Put this here so that pools catch which kind of resource has leaked.
+        vmaDestroyAllocator(vma_allocator);
 
         vkDestroyDevice(vulkan_device, vulkan_allocation_callbacks);
 
@@ -1170,12 +1171,42 @@ namespace Magnefu
     }
 
     // Resource Creation ////////////////////////////////////////////////////////////
+    static void vulkan_create_texture_view(GraphicsContext& gpu, const TextureViewCreation& creation, Texture* texture) {
+
+        //// Create the image view
+        VkImageViewCreateInfo info = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+        info.image = texture->vk_image;
+        info.viewType = to_vk_image_view_type(texture->type);
+        info.format = texture->vk_format;
+
+        if (TextureFormat::has_depth_or_stencil(texture->vk_format)) {
+
+            info.subresourceRange.aspectMask = TextureFormat::has_depth(texture->vk_format) ? VK_IMAGE_ASPECT_DEPTH_BIT : 0;
+            // TODO:gs
+            //info.subresourceRange.aspectMask |= TextureFormat::has_stencil( creation.format ) ? VK_IMAGE_ASPECT_STENCIL_BIT : 0;
+        }
+        else {
+            info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        }
+
+        info.subresourceRange.baseMipLevel = creation.mip_base_level;
+        info.subresourceRange.levelCount = creation.mip_level_count;
+        info.subresourceRange.baseArrayLayer = creation.array_base_layer;
+        info.subresourceRange.layerCount = creation.array_layer_count;
+        check(vkCreateImageView(gpu.vulkan_device, &info, gpu.vulkan_allocation_callbacks, &texture->vk_image_view), "Failed to create image view");
+
+        gpu.set_resource_name(VK_OBJECT_TYPE_IMAGE_VIEW, (u64)texture->vk_image_view, creation.name);
+    }
+
     static void vulkan_create_texture(GraphicsContext& gpu, const TextureCreation& creation, TextureHandle handle, Texture* texture) {
 
         texture->width = creation.width;
         texture->height = creation.height;
         texture->depth = creation.depth;
-        texture->mipmaps = creation.mipmaps;
+        texture->mip_base_level = 0;        // For new textures, we have a view that is for all mips and layers.
+        texture->array_base_layer = 0;      // For new textures, we have a view that is for all mips and layers.
+        texture->array_layer_count = creation.array_layer_count;
+        texture->mip_level_count = creation.mip_level_count;
         texture->type = creation.type;
         texture->name = creation.name;
         texture->vk_format = creation.format;
@@ -1183,6 +1214,8 @@ namespace Magnefu
         texture->flags = creation.flags;
 
         texture->handle = handle;
+
+        texture->parent_texture = k_invalid_texture;
 
         //// Create the image
         VkImageCreateInfo image_info = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
@@ -1192,8 +1225,8 @@ namespace Magnefu
         image_info.extent.width = creation.width;
         image_info.extent.height = creation.height;
         image_info.extent.depth = creation.depth;
-        image_info.mipLevels = creation.mipmaps;
-        image_info.arrayLayers = 1;
+        image_info.mipLevels = creation.mip_level_count;
+        image_info.arrayLayers = creation.array_layer_count;
         image_info.samples = VK_SAMPLE_COUNT_1_BIT;
         image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
 
@@ -1239,28 +1272,11 @@ namespace Magnefu
 
         gpu.set_resource_name(VK_OBJECT_TYPE_IMAGE, (u64)texture->vk_image, creation.name);
 
-        //// Create the image view
-        VkImageViewCreateInfo info = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-        info.image = texture->vk_image;
-        info.viewType = to_vk_image_view_type(creation.type);
-        info.format = image_info.format;
+        // Create default texture view.
+        TextureViewCreation tvc;
+        tvc.set_mips(0, creation.mip_level_count).set_array(0, creation.array_layer_count).set_name(creation.name);
 
-        if (TextureFormat::has_depth_or_stencil(creation.format)) {
-
-            info.subresourceRange.aspectMask = TextureFormat::has_depth(creation.format) ? VK_IMAGE_ASPECT_DEPTH_BIT : 0;
-            // TODO:gs
-            //info.subresourceRange.aspectMask |= TextureFormat::has_stencil( creation.format ) ? VK_IMAGE_ASPECT_STENCIL_BIT : 0;
-        }
-        else {
-            info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        }
-
-        info.subresourceRange.levelCount = creation.mipmaps;
-        info.subresourceRange.layerCount = 1;
-        check(vkCreateImageView(gpu.vulkan_device, &info, gpu.vulkan_allocation_callbacks, &texture->vk_image_view), "failed vkCreateImageView");
-
-        gpu.set_resource_name(VK_OBJECT_TYPE_IMAGE_VIEW, (u64)texture->vk_image_view, creation.name);
-
+        vulkan_create_texture_view(gpu, tvc, texture);
         texture->state = RESOURCE_STATE_UNDEFINED;
 
         // Add deferred bindless update.
@@ -1321,14 +1337,14 @@ namespace Magnefu
 
         vkCmdCopyBufferToImage(command_buffer->vk_command_buffer, staging_buffer, texture->vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
         // Prepare first mip to create lower mipmaps
-        if (texture->mipmaps > 1) {
+        if (texture->mip_level_count > 1) {
             util_add_image_barrier(&gpu, command_buffer->vk_command_buffer, texture->vk_image, RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_COPY_SOURCE, 0, 1, false);
         }
 
         i32 w = texture->width;
         i32 h = texture->height;
 
-        for (int mip_index = 1; mip_index < texture->mipmaps; ++mip_index) {
+        for (int mip_index = 1; mip_index < texture->mip_level_count; ++mip_index) {
             util_add_image_barrier(&gpu, command_buffer->vk_command_buffer, texture->vk_image, RESOURCE_STATE_UNDEFINED, RESOURCE_STATE_COPY_DEST, mip_index, 1, false);
 
             VkImageBlit blit_region{ };
@@ -1358,7 +1374,7 @@ namespace Magnefu
         }
 
         // Transition
-        util_add_image_barrier(&gpu, command_buffer->vk_command_buffer, texture->vk_image, (texture->mipmaps > 1) ? RESOURCE_STATE_COPY_SOURCE : RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_SHADER_RESOURCE, 0, texture->mipmaps, false);
+        util_add_image_barrier(&gpu, command_buffer->vk_command_buffer, texture->vk_image, (texture->mip_level_count > 1) ? RESOURCE_STATE_COPY_SOURCE : RESOURCE_STATE_COPY_DEST, RESOURCE_STATE_SHADER_RESOURCE, 0, texture->mip_level_count, false);
         texture->state = RESOURCE_STATE_SHADER_RESOURCE;
 
         vkEndCommandBuffer(command_buffer->vk_command_buffer);
@@ -1405,6 +1421,29 @@ namespace Magnefu
         if (creation.initial_data) {
             upload_texture_data(texture, creation.initial_data, *this);
         }
+
+        return handle;
+    }
+
+    TextureHandle GraphicsContext::create_texture_view(const TextureViewCreation& creation) {
+        u32 resource_index = textures.obtain_resource();
+        TextureHandle handle = { resource_index };
+        if (resource_index == k_invalid_index) {
+            return handle;
+        }
+
+        Texture* parent_texture = access_texture(creation.parent_texture);
+        Texture* texture_view = access_texture(handle);
+
+        // Copy parent texture data to texture view
+        memory_copy(texture_view, parent_texture, sizeof(Texture));
+        // Add texture view data
+        texture_view->parent_texture = creation.parent_texture;
+        texture_view->handle = handle;
+        texture_view->array_base_layer = creation.array_base_layer;
+        texture_view->mip_base_level = creation.mip_base_level;
+
+        vulkan_create_texture_view(*this, creation, texture_view);
 
         return handle;
     }
@@ -1538,11 +1577,13 @@ namespace Magnefu
         sizet current_temporary_marker = temporary_allocator->getMarker();
 
         StringBuffer name_buffer;
-        name_buffer.init(4096, temporary_allocator);
+        name_buffer.init(8000, temporary_allocator);
 
         // Parse result needs to be always in memory as its used to free descriptor sets.
         shader_state->parse_result = (spirv::ParseResult*)allocator->allocate(sizeof(spirv::ParseResult), 64);
         memset(shader_state->parse_result, 0, sizeof(spirv::ParseResult));
+
+        u32 broken_stage = u32_max;
 
         for (compiled_shaders = 0; compiled_shaders < creation.stages_count; ++compiled_shaders) {
             const ShaderStage& stage = creation.stages[compiled_shaders];
@@ -1575,11 +1616,7 @@ namespace Magnefu
             }
 
             spirv::parse_binary(shader_create_info.pCode, shader_create_info.codeSize, name_buffer, shader_state->parse_result);
-            // Not needed anymore - temp allocator freed at the end.
-            //if ( compiled ) {
-            //    mffree( ( void* )createInfo.pCode, allocator );
-            //}
-
+            
             set_resource_name(VK_OBJECT_TYPE_SHADER_MODULE, (u64)shader_state->shader_stage_info[compiled_shaders].module, creation.name);
         }
         // Not needed anymore - temp allocator freed at the end.
@@ -1596,11 +1633,9 @@ namespace Magnefu
             destroy_shader_state(handle);
             handle.index = k_invalid_index;
 
-            // Dump shader code
-            MF_CORE_ERROR("Error in creation of shader {}. Dumping all shader informations.", creation.name);
-            for (compiled_shaders = 0; compiled_shaders < creation.stages_count; ++compiled_shaders) {
-                const ShaderStage& stage = creation.stages[compiled_shaders];
-                MF_CORE_DEBUG("{}:\n{}\n", stage.type, stage.code);
+            if (!creation.spv_input) {
+                const ShaderStage& stage = creation.stages[broken_stage];
+                dump_shader_code(name_buffer, stage.code, stage.type, creation.name);
             }
         }
 
@@ -2004,6 +2039,8 @@ namespace Magnefu
         sampler->mag_filter = creation.mag_filter;
         sampler->mip_filter = creation.mip_filter;
         sampler->name = creation.name;
+        sampler->reduction_mode = creation.reduction_mode;
+
 
         VkSamplerCreateInfo create_info{ VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
         create_info.addressModeU = creation.address_mode_u;
@@ -2024,6 +2061,14 @@ namespace Magnefu
         VkCompareOp             compareOp;
         VkBorderColor           borderColor;
         VkBool32                unnormalizedCoordinates;*/
+
+        VkSamplerReductionModeCreateInfoEXT createInfoReduction = { VK_STRUCTURE_TYPE_SAMPLER_REDUCTION_MODE_CREATE_INFO_EXT };
+        // Add optional reduction mode.
+        if (creation.reduction_mode != VK_SAMPLER_REDUCTION_MODE_WEIGHTED_AVERAGE_EXT) {
+            createInfoReduction.reductionMode = creation.reduction_mode;
+
+            create_info.pNext = &createInfoReduction;
+        }
 
         vkCreateSampler(vulkan_device, &create_info, vulkan_allocation_callbacks, &sampler->vk_sampler);
 
@@ -2076,7 +2121,8 @@ namespace Magnefu
 
             // [TAG: BINDLESS]
             // Skip bindings for images and textures as they are bindless, thus bound in the global bindless arrays (one for images, one for textures).
-            if (skip_bindless_bindings && (binding.type == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER || binding.type == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE)) {
+            // TODO(marco): better solution to allow individual image views to be bound
+            if (creation.set_index == 0 && skip_bindless_bindings && (binding.type == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER || binding.type == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE)) {
                 continue;
             }
 
@@ -2129,7 +2175,8 @@ namespace Magnefu
     //
     void GraphicsContext::fill_write_descriptor_sets(GraphicsContext& gpu, const DescriptorSetLayout* descriptor_set_layout, VkDescriptorSet vk_descriptor_set,
         VkWriteDescriptorSet* descriptor_write, VkDescriptorBufferInfo* buffer_info, VkDescriptorImageInfo* image_info,
-        VkSampler vk_default_sampler, u32& num_resources, const ResourceHandle* resources, const SamplerHandle* samplers, const u16* bindings) {
+        VkSampler vk_default_sampler, u32& num_resources, const ResourceHandle* resources,
+        const SamplerHandle* samplers, const u16* bindings) {
 
         u32 used_resources = 0;
         const bool skip_bindless_bindings = gpu.bindless_supported && !descriptor_set_layout->bindless;
@@ -2165,23 +2212,33 @@ namespace Magnefu
             {
                 descriptor_write[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 
-                TextureHandle texture_handle = { resources[r] };
-                Texture* texture_data = gpu.access_texture(texture_handle);
+                
 
                 // Find proper sampler.
                 // TODO: improve. Remove the single texture interface ?
                 image_info[i].sampler = vk_default_sampler;
+
+                TextureHandle texture_handle = { resources[r] };
+                Texture* texture_data = gpu.access_texture(texture_handle);
+
+                image_info[i].imageView = texture_data->vk_image_view;
+
                 if (texture_data->sampler) {
                     image_info[i].sampler = texture_data->sampler->vk_sampler;
                 }
+
+                if (gpu.synchronization2_extension_present) {
+                    image_info[i].imageLayout = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL_KHR;
+                }
+                else {
+                    image_info[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                }
+
                 // TODO: else ?
                 if (samplers[r].index != k_invalid_index) {
                     Sampler* sampler = gpu.access_sampler({ samplers[r] });
                     image_info[i].sampler = sampler->vk_sampler;
                 }
-
-                image_info[i].imageLayout = TextureFormat::has_depth_or_stencil(texture_data->vk_format) ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                image_info[i].imageView = texture_data->vk_image_view;
 
                 descriptor_write[i].pImageInfo = &image_info[i];
 
@@ -2301,10 +2358,12 @@ namespace Magnefu
         descriptor_set->num_resources = creation.num_resources;
         descriptor_set->layout = descriptor_set_layout;
 
+        MF_CORE_ASSERT(creation.num_resources < k_max_descriptors_per_set, "Overflow in resources, please bump k_max_descriptors_per_set.");
+
         // Update descriptor set
-        VkWriteDescriptorSet descriptor_write[8];
-        VkDescriptorBufferInfo buffer_info[8];
-        VkDescriptorImageInfo image_info[8];
+        VkWriteDescriptorSet descriptor_write[k_max_descriptors_per_set];
+        VkDescriptorBufferInfo buffer_info[k_max_descriptors_per_set];
+        VkDescriptorImageInfo image_info[k_max_descriptors_per_set];
 
         Sampler* vk_default_sampler = access_sampler(default_sampler);
 
@@ -2314,6 +2373,8 @@ namespace Magnefu
 
         // Cache resources
         for (u32 r = 0; r < creation.num_resources; r++) {
+            // TODO(marco): should resources simply be a union of VkBufferView and VkImageView?
+
             descriptor_set->resources[r] = creation.resources[r];
             descriptor_set->samplers[r] = creation.samplers[r];
             descriptor_set->bindings[r] = creation.bindings[r];

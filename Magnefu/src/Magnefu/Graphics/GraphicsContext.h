@@ -1,13 +1,26 @@
 #pragma once
 
-#if (_MSC_VER)
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#define VK_USE_PLATFORM_WIN32_KHR
+
+#if defined(_MSC_VER)
+    #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+    #endif
+
+    #include "Magnefu/Core/WindowsDeclarations.h"
+
+    #include <vulkan/vk_platform.h>
+    #include <vulkan/vulkan_core.h>
+    
+    #include <vulkan/vulkan_win32.h>
+    
+    #define VK_USE_PLATFORM_WIN32_KHR
 #else
-#define VK_USE_PLATFORM_XLIB_KHR
+    #define VK_USE_PLATFORM_XLIB_KHR
+    #include <vulkan/vulkan.h>
 #endif
+
+
+VK_DEFINE_HANDLE(VmaAllocator)
 
 
 // -- Graphics Includes ---------------------- //
@@ -18,9 +31,8 @@
 #include "Magnefu/Core/Array.h"
 #include "Magnefu/Core/String.hpp"
 
-#include <vulkan/vulkan.h>
 
-#include "vma/vk_mem_alloc.h"
+
 
 
 
@@ -94,6 +106,7 @@ namespace Magnefu
         // Creation/Destruction of resources /////////////////////////////////
         BufferHandle                    create_buffer(const BufferCreation& creation);
         TextureHandle                   create_texture(const TextureCreation& creation);
+        TextureHandle                   create_texture_view(const TextureViewCreation& creation);
         PipelineHandle                  create_pipeline(const PipelineCreation& creation, const char* cache_path = nullptr);
         SamplerHandle                   create_sampler(const SamplerCreation& creation);
         DescriptorSetLayoutHandle       create_descriptor_set_layout(const DescriptorSetLayoutCreation& creation);
@@ -154,7 +167,7 @@ namespace Magnefu
         void                            set_buffer_global_offset(BufferHandle buffer, u32 offset);
 
         // Command Buffers ///////////////////////////////////////////////////
-        CommandBuffer* get_command_buffer(u32 thread_index, u32 frame_index, bool begin, bool compute = false);
+        CommandBuffer* get_command_buffer(u32 thread_index, u32 frame_index, bool begin);
         CommandBuffer* get_secondary_command_buffer(u32 thread_index, u32 frame_index);
 
         void                            queue_command_buffer(CommandBuffer* command_buffer);          // Queue command buffer that will not be executed until present is called.
@@ -323,6 +336,11 @@ namespace Magnefu
         PFN_vkQueueSubmit2KHR           queue_submit2;
         PFN_vkCmdPipelineBarrier2KHR    cmd_pipeline_barrier2;
 
+        // Mesh shaders functions
+        PFN_vkCmdDrawMeshTasksNV        cmd_draw_mesh_tasks;
+        PFN_vkCmdDrawMeshTasksIndirectCountNV cmd_draw_mesh_tasks_indirect_count;
+        PFN_vkCmdDrawMeshTasksIndirectNV cmd_draw_mesh_tasks_indirect;
+
         // These are dynamic - so that workload can be handled correctly.
         Array<ResourceUpdate>           resource_deletion_queue;
         Array<DescriptorSetUpdate>      descriptor_set_updates;
@@ -335,6 +353,7 @@ namespace Magnefu
         bool                            dynamic_rendering_extension_present = false;
         bool                            timeline_semaphore_extension_present = false;
         bool                            synchronization2_extension_present = false;
+        bool                            mesh_shaders_extension_present = false;
 
         sizet                           ubo_alignment = 256;
         sizet                           ssbo_alignemnt = 256;
@@ -360,8 +379,8 @@ namespace Magnefu
         DescriptorSetLayout* access_descriptor_set_layout(DescriptorSetLayoutHandle layout);
         const DescriptorSetLayout* access_descriptor_set_layout(DescriptorSetLayoutHandle layout) const;
 
-        DescriptorSetLayoutHandle get_descriptor_set_layout(PipelineHandle pipeline_handle, int layout_index);
-        DescriptorSetLayoutHandle get_descriptor_set_layout(PipelineHandle pipeline_handle, int layout_index) const;
+        DescriptorSetLayoutHandle       get_descriptor_set_layout(PipelineHandle pipeline_handle, int layout_index);
+        DescriptorSetLayoutHandle       get_descriptor_set_layout(PipelineHandle pipeline_handle, int layout_index) const;
 
         DescriptorSet* access_descriptor_set(DescriptorSetHandle set);
         const DescriptorSet* access_descriptor_set(DescriptorSetHandle set) const;
