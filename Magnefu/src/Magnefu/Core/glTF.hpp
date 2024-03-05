@@ -7,8 +7,9 @@
 #include "String.hpp"
 #include "File.hpp"
 
-//static const char* kDefault3DModel = "res/models/SciFiHelmet/glTF/SciFiHelmet.gltf";
-static const char* kDefault3DModel = "res/models/FlightHelmet/glTF/FlightHelmet.gltf";
+//static const char* kDefault3DModel = "res/models/FlightHelmet/glTF/FlightHelmet.gltf";
+static const char* kDefault3DModel = "res/models/Sponza/glTF/Sponza.gltf";
+//static const char* kDefault3DModel = "res/models/buster_drone/glTF/buster_drone.gltf";
 //static const char* kDefault3DModel = "res/models/corridor/glTF/corridor.gltf";
 
 #define InjectDefault3DModel(x) \
@@ -18,8 +19,7 @@ static const char* kDefault3DModel = "res/models/FlightHelmet/glTF/FlightHelmet.
     }\
     else \
     {\
-        MF_CORE_ERROR("Invalid default model path! | {}", kDefault3DModel); \
-        exit(-1);\
+        MF_CORE_WARN("Invalid default model path! | {}", kDefault3DModel); \
     }
 
 namespace Magnefu

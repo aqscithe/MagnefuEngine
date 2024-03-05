@@ -4,12 +4,14 @@
 
 #include "Magnefu/Core/Numerics.hpp"
 
+#include <cstdlib>
+
 namespace Magnefu
 {
 
 	namespace spirv
 	{
-
+		static const u32		k_bindless_set_index = 0;
 		static const u32		k_bindless_texture_binding = 10;
 
 		struct Member
@@ -43,6 +45,8 @@ namespace Magnefu
 			// for structs
 			StringView		name;
 			Array<Member>	members;
+
+			bool            structured_buffer;
 
 		};
 
@@ -78,12 +82,34 @@ namespace Magnefu
 				case SpvExecutionModelTaskEXT:
 					return VK_SHADER_STAGE_TASK_BIT_EXT;
 
+				case SpvExecutionModelGLCompute:
+				case SpvExecutionModelKernel:
+				{
+					return VK_SHADER_STAGE_COMPUTE_BIT;
+				}
+
 			}
 
 			return 0;
 		}
 
+		static void add_binding_if_unique(DescriptorSetLayoutCreation& creation, DescriptorSetLayoutCreation::Binding& binding) 
+		{
+			bool found = false;
+			for (u32 i = 0; i < creation.num_bindings; ++i) 
+			{
+				const DescriptorSetLayoutCreation::Binding& b = creation.bindings[i];
+				if (b.type == binding.type && b.index == binding.index) {
+					found = true;
+					break;
+				}
+			}
 
+			if (!found)
+			{
+				creation.add_binding(binding);
+			}
+		}
 
 		void	parse_binary(const u32* data, sizet data_size, StringBuffer& name_buffer, ParseResult* parse_result)
 		{
@@ -124,6 +150,26 @@ namespace Magnefu
 						break;
 					}
 
+					case (SpvOpExecutionMode):
+					{
+						MF_CORE_ASSERT(word_count >= 3, "");
+
+						SpvExecutionMode mode = (SpvExecutionMode)data[word_index + 2];
+
+						switch (mode)
+						{
+							case SpvExecutionModeLocalSize:
+							{
+								parse_result->compute_local_size.x = data[word_index + 3];
+								parse_result->compute_local_size.y = data[word_index + 4];
+								parse_result->compute_local_size.z = data[word_index + 5];
+								break;
+							}
+						}
+
+						break;
+					}
+
 					case SpvOpDecorate:
 					{
 						MF_CORE_ASSERT((word_count >= 3), "");
@@ -145,6 +191,18 @@ namespace Magnefu
 							case (SpvDecorationDescriptorSet):
 							{
 								id.set = data[word_index + 3];
+								break;
+							}
+
+							case (SpvDecorationBlock):
+							{
+								id.structured_buffer = false;
+								break;
+							}
+
+							case (SpvDecorationBufferBlock):
+							{
+								id.structured_buffer = true;
 								break;
 							}
 						}
@@ -427,11 +485,50 @@ namespace Magnefu
 				{
 					switch (id.storage_class)
 					{
+						case SpvStorageClassStorageBuffer:
+						{
+							// NOTE(marco): get actual type
+							Id& uniform_type = ids[ids[id.type_index].type_index];
 
+							DescriptorSetLayoutCreation& setLayout = parse_result->sets[id.set];
+							setLayout.set_set_index(id.set);
+
+							DescriptorSetLayoutCreation::Binding binding{ };
+							binding.index = id.binding;
+							binding.count = 1;
+
+							switch (uniform_type.op)
+							{
+								case (SpvOpTypeStruct):
+								{
+									binding.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+									binding.name = uniform_type.name.text;
+									break;
+								}
+
+								default:
+								{
+									MF_CORE_ERROR("Error reading op {} {}", uniform_type.op, uniform_type.name.text);
+									break;
+								}
+							}
+
+							//rprint( "Adding binding %u %s, set %u. Total %u\n", binding.index, binding.name, id.set, setLayout.num_bindings );
+							add_binding_if_unique(setLayout, binding);
+
+							parse_result->set_count = max(parse_result->set_count, (id.set + 1));
+
+							break;
+						}
+						case SpvStorageClassImage:
+						{
+							//MF_CORE_INFO( "Image!\n" );
+							break;
+						}
 						case SpvStorageClassUniform:
 						case SpvStorageClassUniformConstant:
 						{
-							if (id.set == 1 && (id.binding == k_bindless_texture_binding || id.binding == (k_bindless_texture_binding + 1))) 
+							if (id.set == k_bindless_set_index && (id.binding == k_bindless_texture_binding || id.binding == (k_bindless_texture_binding + 1)))
 							{
 								// NOTE(marco): these are managed by the GPU device
 								continue;
@@ -444,14 +541,14 @@ namespace Magnefu
 							setLayout.set_set_index(id.set);
 
 							DescriptorSetLayoutCreation::Binding binding{ };
-							binding.start = id.binding;
+							binding.index = id.binding;
 							binding.count = 1;
 
 							switch (uniform_type.op)
 							{
 								case SpvOpTypeStruct:
 								{
-									binding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+									binding.type = uniform_type.structured_buffer ? VK_DESCRIPTOR_TYPE_STORAGE_BUFFER : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 									binding.name = uniform_type.name.text;
 									break;
 								}
@@ -462,9 +559,22 @@ namespace Magnefu
 									binding.name = id.name.text;
 									break;
 								}
+
+								case SpvOpTypeImage:
+								{
+									binding.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+									binding.name = id.name.text;
+									break;
+								}
+
+								default:
+								{
+									MF_CORE_ERROR("Error reading op {} {}", uniform_type.op, uniform_type.name.text);
+								}
 							}
 
-							setLayout.add_binding_at_index(binding, id.binding);
+							//setLayout.add_binding_at_index(binding, id.binding);
+							add_binding_if_unique(setLayout, binding);
 
 							parse_result->set_count = max(parse_result->set_count, (id.set + 1));
 
@@ -473,6 +583,36 @@ namespace Magnefu
 					
 					}
 				}
+
+				id.members.shutdown();
+			}
+
+			ids.shutdown();
+
+			// Sort layout based on binding point
+			for (size_t i = 0; i < parse_result->set_count; i++) {
+				DescriptorSetLayoutCreation& layout_creation = parse_result->sets[i];
+				// Sort only for 2 or more elements
+				if (layout_creation.num_bindings <= 1) {
+					continue;
+				}
+
+				auto sorting_func = [](const void* a, const void* b) -> i32 {
+					const DescriptorSetLayoutCreation::Binding* b0 = (const DescriptorSetLayoutCreation::Binding*)a;
+					const DescriptorSetLayoutCreation::Binding* b1 = (const DescriptorSetLayoutCreation::Binding*)b;
+
+					if (b0->index > b1->index) {
+						return 1;
+					}
+
+					if (b0->index < b1->index) {
+						return -1;
+					}
+
+					return 0;
+				};
+
+				qsort(layout_creation.bindings, layout_creation.num_bindings, sizeof(DescriptorSetLayoutCreation::Binding), sorting_func);
 			}
 
 		}

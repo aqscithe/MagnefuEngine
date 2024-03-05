@@ -43,6 +43,7 @@
 #include "Magnefu/Core/Time.hpp"
 #include "Magnefu/Core/HashMap.hpp"
 #include "Magnefu/Core/Debug/Instrumentor.h"
+#include "Magnefu/Core/DataStructures.hpp"
 
 
 #define GLM_ENABLE_EXPERIMENTAL

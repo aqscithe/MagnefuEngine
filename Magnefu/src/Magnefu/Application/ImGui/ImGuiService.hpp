@@ -61,7 +61,7 @@ namespace Magnefu
 		void                            Shutdown() override;
 
 		void                            BeginFrame();
-		void                            Render(CommandBuffer& commands);
+		void                            Render(CommandBuffer& commands, bool use_secondary);
 
 		// Removes the Texture from the Cache and destroy the associated Descriptor Set.
 		void                            RemoveCachedTexture(TextureHandle& texture);

@@ -1,81 +1,60 @@
-//#pragma once
-//
-//// -- Application Includes ---------//
-//
-//
-//// -- Graphics Includes --------------------- //
-//#include "Magnefu/Graphics/Mesh.h"
-//
-//// -- Core Includes ---------------------------------- //
-//#include "Magnefu/Core/Maths/MathsCommon.h"
-//#include "Magnefu/Core/Maths/Matrices.h"
-//
-//
-//
-//namespace Magnefu
-//{
+#pragma once
+
+// -- Application Includes ---------//
+
+
+// -- Graphics Includes --------------------- //
+
+// -- Core Includes ---------------------------------- //
+#include "Magnefu/Core/Maths/MathsCommon.h"
+#include "Magnefu/Core/Maths/Matrices.h"
+
+
+
+namespace Magnefu
+{
 //	struct MeshComponent
 //	{
 //		MeshComponent() = default;
 //		MeshComponent(const MeshComponent&) = default;
-//		MeshComponent(const Mesh& mesh)
-//			: Mesh_(mesh) {}
+//		MeshComponent(const MeshDraw& mesh_)
+//			: mesh(mesh_) {}
 //
-//		MeshComponent(void* verticesData, void* indicesData, const uint32_t verticesCount, 
-//			const uint32_t indicesCount, const uint32_t index)
-//		{
-//			Mesh_.VerticesData = verticesData;
-//			Mesh_.IndicesData = indicesData;
-//			Mesh_.VerticesCount = verticesCount;
-//			Mesh_.IndicesCount = indicesCount;
-//			Mesh_.MeshListIndex = index;
+//		
+//		operator MeshDraw& () { return mesh; }
+//		operator const MeshDraw&() const { return mesh; }
 //
-//		}
-//
-//		// TODO: Properly handle the creation of MeshComponent by name
-//		MeshComponent(std::string& name)
-//		{
-//			Mesh_.VerticesData = nullptr;
-//			Mesh_.IndicesData = nullptr;
-//			Mesh_.VerticesCount = 0;
-//			Mesh_.IndicesCount = 0;
-//			Mesh_.MeshListIndex = 99;
-//		}
-//
-//		operator Mesh& () { return Mesh_; }
-//		operator const Mesh&() const { return Mesh_; }
-//
-//		Mesh Mesh_;
+//		MeshDraw mesh;
 //	};
 //
 //	struct TransformComponent
 //	{
 //		TransformComponent() = default;
 //		TransformComponent(const TransformComponent&) = default;
-//		TransformComponent(const Maths::mat3& transform)
+//		TransformComponent(const mat3s& transform)
 //			: Transform(transform) {}
 //
-//		TransformComponent(const Maths::vec3& pos, const Maths::vec3& rot, const Maths::vec3& scale)
+//		TransformComponent(const vec3s& pos, const vec3s& rot, const vec3s& scale)
 //		{
-//			Transform.c[0] = pos;
-//			Transform.c[1] = rot;
-//			Transform.c[2] = scale;
+//			Transform.col[0] = pos;
+//			Transform.col[1] = rot;
+//			Transform.col[2] = scale;
 //		}
 //
 //		// Direct access functions
-//		Maths::vec3& Position() { return Transform.position; }
-//		const Maths::vec3& Position() const { return Transform.position; }
+//		vec3s& Position() { return Transform.col[0]; }
+//		const vec3s& Position() const { return Transform.col[0]; }
 //
-//		Maths::vec3& Rotation() { return Transform.rotation; }
-//		const Maths::vec3& Rotation() const { return Transform.rotation; }
+//		vec3s& Rotation() { return Transform.col[1]; }
+//		const vec3s& Rotation() const { return Transform.col[1]; }
 //
-//		Maths::vec3& Scale() { return Transform.scale; }
-//		const Maths::vec3& Scale() const { return Transform.scale; }
+//		vec3s& Scale() { return Transform.col[2]; }
+//		const vec3s& Scale() const { return Transform.col[2]; }
 //
 //		// Get direct access to Transform member
-//		operator Maths::mat3& () { return Transform; }
-//		operator const Maths::mat3& () const { return Transform; }
+//		operator mat3s& () { return Transform; }
+//		operator const mat3s& () const { return Transform; }
 //
-//		Maths::mat3 Transform;
+//		mat3s Transform;
 //	};
-//}
+}

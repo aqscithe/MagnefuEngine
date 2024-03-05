@@ -25,7 +25,7 @@ class Sandbox : public Magnefu::Application
 		 //Variable time update. Called only once per frame.
 		 void                VariableUpdate(f32 delta) override;
 		 //Rendering with optional interpolation factor.
-		 void                Render(f32 interpolation, void* render_data) override;
+		 void                Render(f32 delta_time, f32 interpolation, void* render_data) override;
 		 //Per frame begin/end.
 		 void                BeginFrame() override;
 		 void                EndFrame() override;
