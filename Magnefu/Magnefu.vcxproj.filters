@@ -175,6 +175,9 @@
     <Filter Include="vendor\json">
       <UniqueIdentifier>{5C537BC1-C808-F4B6-51FD-ED8DBDB1EABA}</UniqueIdentifier>
     </Filter>
+    <Filter Include="vendor\meshoptimizer">
+      <UniqueIdentifier>{D2B4B977-BE43-4341-6762-573C53D053E7}</UniqueIdentifier>
+    </Filter>
     <Filter Include="vendor\spdlog">
       <UniqueIdentifier>{8BBC5F22-F77C-DB58-C0B7-24D62C372035}</UniqueIdentifier>
     </Filter>
@@ -450,10 +453,19 @@
     <ClInclude Include="src\Magnefu\Core\Time.hpp">
       <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Core\WindowsDeclarations.h">
+      <Filter>src\Magnefu\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\Magnefu\Core\glTF.hpp">
       <Filter>src\Magnefu\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\AsynchronousLoader.hpp">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClInclude>
     <ClInclude Include="src\Magnefu\Graphics\CommandBuffer.hpp">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\FrameGraph.hpp">
       <Filter>src\Magnefu\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Graphics\GPUEnum.hpp">
@@ -474,7 +486,16 @@
     <ClInclude Include="src\Magnefu\Graphics\Mesh.h">
       <Filter>src\Magnefu\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\ObjScene.hpp">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClInclude>
     <ClInclude Include="src\Magnefu\Graphics\RenderConstants.h">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\RenderResourcesLoader.hpp">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\RenderScene.hpp">
       <Filter>src\Magnefu\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Graphics\Renderer.hpp">
@@ -485,6 +506,12 @@
     </ClInclude>
     <ClInclude Include="src\Magnefu\Graphics\ResourceManagement\ResourcePaths.h">
       <Filter>src\Magnefu\Graphics\ResourceManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\SceneGraph.hpp">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Magnefu\Graphics\glTFScene.hpp">
+      <Filter>src\Magnefu\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Graphics\spirv_parser.hpp">
       <Filter>src\Magnefu\Graphics</Filter>
@@ -2153,6 +2180,9 @@
     </ClInclude>
     <ClInclude Include="vendor\json\json.hpp">
       <Filter>vendor\json</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\meshoptimizer\meshoptimizer.h">
+      <Filter>vendor\meshoptimizer</Filter>
     </ClInclude>
     <ClInclude Include="vendor\spdlog\async.h">
       <Filter>vendor\spdlog</Filter>
@@ -3834,14 +3864,6 @@
     <ClInclude Include="vendor\wyhash\wyhash.h">
       <Filter>vendor\wyhash</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Graphics\ObjScene.hpp" />
-    <ClInclude Include="src\Magnefu\Graphics\RenderScene.hpp" />
-    <ClInclude Include="src\Magnefu\Graphics\glTFScene.hpp" />
-    <ClInclude Include="src\Magnefu\Graphics\FrameGraph.hpp" />
-    <ClInclude Include="src\Magnefu\Graphics\SceneGraph.hpp" />
-    <ClInclude Include="src\Magnefu\Graphics\RenderResourcesLoader.hpp" />
-    <ClInclude Include="src\Magnefu\Graphics\AsynchronousLoader.hpp" />
-    <ClInclude Include="src\Magnefu\Core\WindowsDeclarations.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application\Application.cpp">
@@ -3952,7 +3974,13 @@
     <ClCompile Include="src\Magnefu\Core\glTF.cpp">
       <Filter>src\Magnefu\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\Magnefu\Graphics\AsynchronousLoader.cpp">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClCompile>
     <ClCompile Include="src\Magnefu\Graphics\CommandBuffer.cpp">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Graphics\FrameGraph.cpp">
       <Filter>src\Magnefu\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Graphics\GPUProfiler.cpp">
@@ -3964,7 +3992,22 @@
     <ClCompile Include="src\Magnefu\Graphics\GraphicsContext.cpp">
       <Filter>src\Magnefu\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="src\Magnefu\Graphics\ObjScene.cpp">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Graphics\RenderResourcesLoader.cpp">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Graphics\RenderScene.cpp">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClCompile>
     <ClCompile Include="src\Magnefu\Graphics\Renderer.cpp">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Graphics\SceneGraph.cpp">
+      <Filter>src\Magnefu\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Graphics\glTFScene.cpp">
       <Filter>src\Magnefu\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Graphics\spirv_parser.cpp">
@@ -3997,6 +4040,51 @@
     <ClCompile Include="vendor\imgui\imgui_widgets.cpp">
       <Filter>vendor\imgui</Filter>
     </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\allocator.cpp">
+      <Filter>vendor\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\clusterizer.cpp">
+      <Filter>vendor\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\indexcodec.cpp">
+      <Filter>vendor\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\indexgenerator.cpp">
+      <Filter>vendor\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\overdrawanalyzer.cpp">
+      <Filter>vendor\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\overdrawoptimizer.cpp">
+      <Filter>vendor\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\simplifier.cpp">
+      <Filter>vendor\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\spatialorder.cpp">
+      <Filter>vendor\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\stripifier.cpp">
+      <Filter>vendor\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\vcacheanalyzer.cpp">
+      <Filter>vendor\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\vcacheoptimizer.cpp">
+      <Filter>vendor\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\vertexcodec.cpp">
+      <Filter>vendor\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\vertexfilter.cpp">
+      <Filter>vendor\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\vfetchanalyzer.cpp">
+      <Filter>vendor\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\vfetchoptimizer.cpp">
+      <Filter>vendor\meshoptimizer</Filter>
+    </ClCompile>
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
@@ -4006,13 +4094,6 @@
     <ClCompile Include="vendor\vulkan\include\glm\detail\glm.cpp">
       <Filter>vendor\vulkan\include\glm\detail</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Graphics\AsynchronousLoader.cpp" />
-    <ClCompile Include="src\Magnefu\Graphics\ObjScene.cpp" />
-    <ClCompile Include="src\Magnefu\Graphics\RenderScene.cpp" />
-    <ClCompile Include="src\Magnefu\Graphics\glTFScene.cpp" />
-    <ClCompile Include="src\Magnefu\Graphics\FrameGraph.cpp" />
-    <ClCompile Include="src\Magnefu\Graphics\SceneGraph.cpp" />
-    <ClCompile Include="src\Magnefu\Graphics\RenderResourcesLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\vulkan\include\spirv-headers\spirv.hpp11">

@@ -4,6 +4,9 @@
     <Filter Include="res">
       <UniqueIdentifier>{4FA5880B-BBAE-887C-442A-9F7CB032947C}</UniqueIdentifier>
     </Filter>
+    <Filter Include="res\frame_graphs">
+      <UniqueIdentifier>{8D388D8D-7931-ACDF-A263-91648EBB8BEB}</UniqueIdentifier>
+    </Filter>
     <Filter Include="res\materials">
       <UniqueIdentifier>{00F71BAF-6CB7-97E5-35F2-E062A171DCC1}</UniqueIdentifier>
     </Filter>
@@ -43,6 +46,24 @@
     <Filter Include="res\models\SciFiHelmet\screenshot">
       <UniqueIdentifier>{AB75A114-17E4-F693-60CD-B193CC7AEC2F}</UniqueIdentifier>
     </Filter>
+    <Filter Include="res\models\Sponza">
+      <UniqueIdentifier>{2C8C42CE-98A2-4064-E119-CC854D6F11EC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\models\Sponza\glTF">
+      <UniqueIdentifier>{E8D8E903-D4D2-1256-BD3F-A966A9D878C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\models\Sponza\screenshot">
+      <UniqueIdentifier>{D9707682-C52B-662E-6EE3-DE785A7DB0BE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\models\buster_drone">
+      <UniqueIdentifier>{1D8D48F0-89C4-9087-92CE-F4AAFE84B780}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\models\buster_drone\glTF">
+      <UniqueIdentifier>{7918DB8B-65D3-CA37-0E8B-4382FA2415C8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\models\buster_drone\glTF\textures">
+      <UniqueIdentifier>{8C1E9CE8-F8E2-9AD8-C148-CBA22DCC360E}</UniqueIdentifier>
+    </Filter>
     <Filter Include="res\models\corridor">
       <UniqueIdentifier>{75FD77E7-E15E-55F5-6ACC-9BA7D62C8CB4}</UniqueIdentifier>
     </Filter>
@@ -51,6 +72,9 @@
     </Filter>
     <Filter Include="res\shaders">
       <UniqueIdentifier>{4841F028-B4F6-681E-3DEB-62F5A99F5F22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\shaders\other">
+      <UniqueIdentifier>{99907AC2-05A7-7858-4E1E-047ABA7349E0}</UniqueIdentifier>
     </Filter>
     <Filter Include="res\textures">
       <UniqueIdentifier>{227C1C83-0EDF-AB27-B764-E4DDA3A677AA}</UniqueIdentifier>
@@ -159,6 +183,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="res\shaders\lighting.h">
+      <Filter>res\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="res\shaders\mesh.h">
+      <Filter>res\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="res\shaders\platform.h">
+      <Filter>res\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="res\shaders\scene.h">
+      <Filter>res\shaders</Filter>
+    </ClInclude>
     <ClInclude Include="src\AppLayers\Overlay.hpp">
       <Filter>src\AppLayers</Filter>
     </ClInclude>
@@ -187,6 +223,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="res\frame_graphs\graph.json">
+      <Filter>res\frame_graphs</Filter>
+    </None>
     <None Include="res\materials\12221_Cat_v1_l3.mtl">
       <Filter>res\materials</Filter>
     </None>
@@ -283,6 +322,39 @@
     <None Include="res\models\SciFiHelmet\metadata.json">
       <Filter>res\models\SciFiHelmet</Filter>
     </None>
+    <None Include="res\models\Sponza\LICENSE.md">
+      <Filter>res\models\Sponza</Filter>
+    </None>
+    <None Include="res\models\Sponza\README.body.md">
+      <Filter>res\models\Sponza</Filter>
+    </None>
+    <None Include="res\models\Sponza\README.md">
+      <Filter>res\models\Sponza</Filter>
+    </None>
+    <None Include="res\models\Sponza\glTF\Sponza.bin">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </None>
+    <None Include="res\models\Sponza\glTF\Sponza.gltf">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </None>
+    <None Include="res\models\Sponza\metadata.json">
+      <Filter>res\models\Sponza</Filter>
+    </None>
+    <None Include="res\models\buster_drone\glTF\buster_drone.bin">
+      <Filter>res\models\buster_drone\glTF</Filter>
+    </None>
+    <None Include="res\models\buster_drone\glTF\buster_drone.gltf">
+      <Filter>res\models\buster_drone\glTF</Filter>
+    </None>
+    <None Include="res\models\buster_drone\license.txt">
+      <Filter>res\models\buster_drone</Filter>
+    </None>
+    <None Include="res\models\cone.mtl">
+      <Filter>res\models</Filter>
+    </None>
+    <None Include="res\models\cone.obj">
+      <Filter>res\models</Filter>
+    </None>
     <None Include="res\models\corridor\glTF\corridor.bin">
       <Filter>res\models\corridor\glTF</Filter>
     </None>
@@ -292,61 +364,88 @@
     <None Include="res\models\extract_gltf_bin_data.py">
       <Filter>res\models</Filter>
     </None>
-    <None Include="res\shaders\AreaLight.shader">
+    <None Include="res\models\plane.mtl">
+      <Filter>res\models</Filter>
+    </None>
+    <None Include="res\models\plane.obj">
+      <Filter>res\models</Filter>
+    </None>
+    <None Include="res\models\sphere.mtl">
+      <Filter>res\models</Filter>
+    </None>
+    <None Include="res\models\sphere.obj">
+      <Filter>res\models</Filter>
+    </None>
+    <None Include="res\shaders\cloth.glsl">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\AreaLightLTC.shader">
+    <None Include="res\shaders\cloth.json">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\Basic.shader">
+    <None Include="res\shaders\compute.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\BatchRender.shader">
+    <None Include="res\shaders\compute_test.glsl">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\Cube.shader">
+    <None Include="res\shaders\debug.json">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\LightCube.shader">
+    <None Include="res\shaders\debug_line.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\Particles.shader">
+    <None Include="res\shaders\debug_line.glsl">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\Primitive.shader">
+    <None Include="res\shaders\debug_mesh.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\RecPrism.shader">
+    <None Include="res\shaders\debug_mesh.glsl">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\Skybox.shader">
+    <None Include="res\shaders\depth.glsl">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\Sphere.shader">
+    <None Include="res\shaders\depth_pre.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\Test.shader">
+    <None Include="res\shaders\depth_pre_skinning.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\TestLighting-Texture.shader">
+    <None Include="res\shaders\depth_skinned.vert">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\TestLighting.shader">
+    <None Include="res\shaders\dof.glsl">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\TestModelLoading.shader">
+    <None Include="res\shaders\dof.json">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\Texture2D.shader">
+    <None Include="res\shaders\fullscreen.glsl">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\main.frag">
+    <None Include="res\shaders\fullscreen.json">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\gbuffer.glsl">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\gbuffer_cull.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\gbuffer_no_cull.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\gbuffer_skinning.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\main.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\main.glsl">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\main.json">
-      <Filter>res\shaders</Filter>
-    </None>
-    <None Include="res\shaders\main.vert">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\main_cull.cache">
@@ -355,10 +454,76 @@
     <None Include="res\shaders\main_no_cull.cache">
       <Filter>res\shaders</Filter>
     </None>
+    <None Include="res\shaders\other\AreaLight.shader">
+      <Filter>res\shaders\other</Filter>
+    </None>
+    <None Include="res\shaders\other\AreaLightLTC.shader">
+      <Filter>res\shaders\other</Filter>
+    </None>
+    <None Include="res\shaders\other\Basic.shader">
+      <Filter>res\shaders\other</Filter>
+    </None>
+    <None Include="res\shaders\other\BatchRender.shader">
+      <Filter>res\shaders\other</Filter>
+    </None>
+    <None Include="res\shaders\other\Cube.shader">
+      <Filter>res\shaders\other</Filter>
+    </None>
+    <None Include="res\shaders\other\LightCube.shader">
+      <Filter>res\shaders\other</Filter>
+    </None>
+    <None Include="res\shaders\other\Particles.shader">
+      <Filter>res\shaders\other</Filter>
+    </None>
+    <None Include="res\shaders\other\Primitive.shader">
+      <Filter>res\shaders\other</Filter>
+    </None>
+    <None Include="res\shaders\other\RecPrism.shader">
+      <Filter>res\shaders\other</Filter>
+    </None>
+    <None Include="res\shaders\other\Skybox.shader">
+      <Filter>res\shaders\other</Filter>
+    </None>
+    <None Include="res\shaders\other\Sphere.shader">
+      <Filter>res\shaders\other</Filter>
+    </None>
+    <None Include="res\shaders\other\Test.shader">
+      <Filter>res\shaders\other</Filter>
+    </None>
+    <None Include="res\shaders\other\TestLighting-Texture.shader">
+      <Filter>res\shaders\other</Filter>
+    </None>
+    <None Include="res\shaders\other\TestLighting.shader">
+      <Filter>res\shaders\other</Filter>
+    </None>
+    <None Include="res\shaders\other\TestModelLoading.shader">
+      <Filter>res\shaders\other</Filter>
+    </None>
+    <None Include="res\shaders\other\Texture2D.shader">
+      <Filter>res\shaders\other</Filter>
+    </None>
+    <None Include="res\shaders\pbr.glsl">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\pbr_lighting.json">
+      <Filter>res\shaders</Filter>
+    </None>
     <None Include="res\shaders\phong.frag">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\phong.vert">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\skinning.glsl">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\transparent_cull.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\transparent_no_cull.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\transparent_skinning_no_cull.cache">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\textures\DDS\ltc_amp.dds">
@@ -447,6 +612,252 @@
     <Image Include="res\models\SciFiHelmet\screenshot\screenshot.jpg">
       <Filter>res\models\SciFiHelmet\screenshot</Filter>
     </Image>
+    <Image Include="res\models\Sponza\glTF\10381718147657362067.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\10388182081421875623.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\11474523244911310074.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\11490520546946913238.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\11872827283454512094.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\11968150294050148237.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\1219024358953944284.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\12501374198249454378.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\13196865903111448057.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\13824894030729245199.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\13982482287905699490.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\14118779221266351425.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\14170708867020035030.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\14267839433702832875.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\14650633544276105767.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\15295713303328085182.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\15722799267630235092.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\16275776544635328252.png">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\16299174074766089871.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\16885566240357350108.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\17556969131407844942.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\17876391417123941155.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\2051777328469649772.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\2185409758123873465.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\2299742237651021498.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\2374361008830720677.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\2411100444841994089.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\2775690330959970771.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\2969916736137545357.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\332936164838540657.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\3371964815757888145.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\3455394979645218238.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\3628158980083700836.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\3827035219084910048.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\4477655471536070370.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\4601176305987539675.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\466164707995436622.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\4675343432951571524.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\4871783166746854860.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\4910669866631290573.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\4975155472559461469.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\5061699253647017043.png">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\5792855332885324923.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\5823059166183034438.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\6047387724914829168.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\6151467286084645207.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\6593109234861095314.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\6667038893015345571.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\6772804448157695701.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\7056944414013900257.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\715093869573992647.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\7268504077753552595.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\7441062115984513793.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\755318871556304029.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\759203620573749278.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\7645212358685992005.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\7815564343179553343.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\8006627369776289000.png">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\8051790464816141987.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\8114461559286000061.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\8481240838833932244.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\8503262930880235456.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\8747919177698443163.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\8750083169368950601.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\8773302468495022225.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\8783994986360286082.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\9288698199695299068.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\9916269861720640319.jpg">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\glTF\white.png">
+      <Filter>res\models\Sponza\glTF</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\screenshot\large.jpg">
+      <Filter>res\models\Sponza\screenshot</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\screenshot\screenshot-x150.jpg">
+      <Filter>res\models\Sponza\screenshot</Filter>
+    </Image>
+    <Image Include="res\models\Sponza\screenshot\screenshot.jpg">
+      <Filter>res\models\Sponza\screenshot</Filter>
+    </Image>
+    <Image Include="res\models\buster_drone\glTF\textures\Boden_baseColor.png">
+      <Filter>res\models\buster_drone\glTF\textures</Filter>
+    </Image>
+    <Image Include="res\models\buster_drone\glTF\textures\Boden_metallicRoughness.png">
+      <Filter>res\models\buster_drone\glTF\textures</Filter>
+    </Image>
+    <Image Include="res\models\buster_drone\glTF\textures\Boden_normal.png">
+      <Filter>res\models\buster_drone\glTF\textures</Filter>
+    </Image>
+    <Image Include="res\models\buster_drone\glTF\textures\body_baseColor.png">
+      <Filter>res\models\buster_drone\glTF\textures</Filter>
+    </Image>
+    <Image Include="res\models\buster_drone\glTF\textures\body_emissive.png">
+      <Filter>res\models\buster_drone\glTF\textures</Filter>
+    </Image>
+    <Image Include="res\models\buster_drone\glTF\textures\body_metallicRoughness.png">
+      <Filter>res\models\buster_drone\glTF\textures</Filter>
+    </Image>
+    <Image Include="res\models\buster_drone\glTF\textures\body_normal.png">
+      <Filter>res\models\buster_drone\glTF\textures</Filter>
+    </Image>
+    <Image Include="res\models\buster_drone\glTF\textures\material_baseColor.png">
+      <Filter>res\models\buster_drone\glTF\textures</Filter>
+    </Image>
+    <Image Include="res\models\buster_drone\glTF\textures\material_metallicRoughness.png">
+      <Filter>res\models\buster_drone\glTF\textures</Filter>
+    </Image>
+    <Image Include="res\models\buster_drone\glTF\textures\material_normal.png">
+      <Filter>res\models\buster_drone\glTF\textures</Filter>
+    </Image>
     <Image Include="res\models\corridor\glTF\scene_1001_AO.png">
       <Filter>res\models\corridor\glTF</Filter>
     </Image>
@@ -483,6 +894,12 @@
     <Image Include="res\textures\12221_Cat_v1_l3\Cat_rough.png">
       <Filter>res\textures\12221_Cat_v1_l3</Filter>
     </Image>
+    <Image Include="res\textures\BayerDither4x4.png">
+      <Filter>res\textures</Filter>
+    </Image>
+    <Image Include="res\textures\BayerDither8x8.png">
+      <Filter>res\textures</Filter>
+    </Image>
     <Image Include="res\textures\Bronze_shield\Bronze_shield_AO.png">
       <Filter>res\textures\Bronze_shield</Filter>
     </Image>
@@ -503,6 +920,9 @@
     </Image>
     <Image Include="res\textures\Bronze_shield\Bronze_shield_Roughness.png">
       <Filter>res\textures\Bronze_shield</Filter>
+    </Image>
+    <Image Include="res\textures\LDR_RG01_0.png">
+      <Filter>res\textures</Filter>
     </Image>
     <Image Include="res\textures\Lava_03-2K\Lava_03_ambientocclusion-2K.png">
       <Filter>res\textures\Lava_03-2K</Filter>
