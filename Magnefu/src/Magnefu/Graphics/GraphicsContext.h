@@ -131,7 +131,7 @@ namespace Magnefu
         void                            query_pipeline(PipelineHandle pipeline, PipelineDescription& out_description);
         void                            query_sampler(SamplerHandle sampler, SamplerDescription& out_description);
         void                            query_descriptor_set_layout(DescriptorSetLayoutHandle layout, DescriptorSetLayoutDescription& out_description);
-        void                            query_descriptor_set(DescriptorSetHandle set, DescriptorSetDescription& out_description);
+        void                            query_descriptor_set(DescriptorSetHandle set, DesciptorSetDescription& out_description);
         void                            query_shader_state(ShaderStateHandle shader, ShaderStateDescription& out_description);
 
         const RenderPassOutput& get_render_pass_output(RenderPassHandle render_pass) const;

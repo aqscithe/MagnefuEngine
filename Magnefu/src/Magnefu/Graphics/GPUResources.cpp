@@ -109,9 +109,20 @@ namespace Magnefu {
         return *this;
     }
 
-    TextureCreation& TextureCreation::set_flags(u8 mipmaps_, u8 flags_) {
-        mipmaps = mipmaps_;
+    TextureCreation& TextureCreation::set_flags(u8 flags_) {
         flags = flags_;
+
+        return *this;
+    }
+
+    TextureCreation& TextureCreation::set_mips(u32 mip_level_count_) {
+        mip_level_count = mip_level_count_;
+
+        return *this;
+    }
+
+    TextureCreation& TextureCreation::set_layers(u32 layer_count_) {
+        array_layer_count = layer_count_;
 
         return *this;
     }
@@ -123,7 +134,7 @@ namespace Magnefu {
         return *this;
     }
 
-    TextureCreation& TextureCreation::set_name(const char* name_) {
+    TextureCreation& TextureCreation::set_name(cstring name_) {
         name = name_;
 
         return *this;
@@ -137,6 +148,34 @@ namespace Magnefu {
 
     TextureCreation& TextureCreation::set_alias(TextureHandle alias_) {
         alias = alias_;
+
+        return *this;
+    }
+
+
+    // TextureViewCreation ////////////////////////////////////////////////////
+    TextureViewCreation& TextureViewCreation::set_parent_texture(TextureHandle parent_texture_) {
+        parent_texture = parent_texture_;
+
+        return *this;
+    }
+
+    TextureViewCreation& TextureViewCreation::set_mips(u32 base_mip_, u32 mip_level_count_) {
+        mip_base_level = base_mip_;
+        mip_level_count = mip_level_count_;
+
+        return *this;
+    }
+
+    TextureViewCreation& TextureViewCreation::set_array(u32 base_layer_, u32 layer_count_) {
+        array_base_layer = base_layer_;
+        array_layer_count = layer_count_;
+
+        return *this;
+    }
+
+    TextureViewCreation& TextureViewCreation::set_name(cstring name_) {
+        name = name_;
 
         return *this;
     }
@@ -167,6 +206,12 @@ namespace Magnefu {
         address_mode_u = u;
         address_mode_v = v;
         address_mode_w = w;
+
+        return *this;
+    }
+
+    SamplerCreation& SamplerCreation::set_reduction_mode(VkSamplerReductionMode mode) {
+        reduction_mode = mode;
 
         return *this;
     }
@@ -279,6 +324,12 @@ namespace Magnefu {
         bindings[num_resources] = binding;
         resources[num_resources] = texture.index;
         samplers[num_resources++] = sampler;
+        return *this;
+    }
+
+    DescriptorSetCreation& DescriptorSetCreation::set_set_index(u32 index) {
+        set_index = index;
+
         return *this;
     }
 
@@ -466,6 +517,10 @@ namespace Magnefu {
             return "frag";
         case VK_SHADER_STAGE_COMPUTE_BIT:
             return "comp";
+        case VK_SHADER_STAGE_MESH_BIT_NV:
+            return "mesh";
+        case VK_SHADER_STAGE_TASK_BIT_NV:
+            return "task";
         default:
             return "";
         }
@@ -480,6 +535,10 @@ namespace Magnefu {
             return "FRAGMENT";
         case VK_SHADER_STAGE_COMPUTE_BIT:
             return "COMPUTE";
+        case VK_SHADER_STAGE_MESH_BIT_NV:
+            return "MESH";
+        case VK_SHADER_STAGE_TASK_BIT_NV:
+            return "TASK";
         default:
             return "";
         }
@@ -918,6 +977,13 @@ namespace Magnefu {
         util_add_image_barrier_ext(gpu, command_buffer, texture->vk_image, texture->state, new_state, base_mip_level, mip_count, is_depth,
             source_family, destination_family, source_queue_type, destination_queue_type);
         texture->state = new_state;
+    }
+
+    void util_add_buffer_barrier(GraphicsContext* gpu, VkCommandBuffer command_buffer, VkBuffer buffer, ResourceState old_state, ResourceState new_state, u32 buffer_size) {
+
+        util_add_buffer_barrier_ext(gpu, command_buffer, buffer, old_state, new_state, buffer_size,
+            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, QueueType::Graphics, QueueType::Graphics);
+
     }
 
     void util_add_buffer_barrier_ext(GraphicsContext* gpu, VkCommandBuffer command_buffer, VkBuffer buffer, ResourceState old_state, ResourceState new_state,

@@ -1436,7 +1436,7 @@ namespace Magnefu
         Texture* texture_view = access_texture(handle);
 
         // Copy parent texture data to texture view
-        memory_copy(texture_view, parent_texture, sizeof(Texture));
+        memoryCopy(texture_view, parent_texture, sizeof(Texture));
         // Add texture view data
         texture_view->parent_texture = creation.parent_texture;
         texture_view->handle = handle;
@@ -2747,7 +2747,7 @@ namespace Magnefu
             vkDestroyImageView(vulkan_device, v_texture->vk_image_view, vulkan_allocation_callbacks);
             v_texture->vk_image_view = VK_NULL_HANDLE;
 
-            if (v_texture->vma_allocation != 0) {
+            if (v_texture->vma_allocation != 0 && v_texture->parent_texture.index == k_invalid_texture.index) {
                 vmaDestroyImage(vma_allocator, v_texture->vk_image, v_texture->vma_allocation);
             }
             else if (v_texture->vma_allocation == nullptr) {
@@ -2965,28 +2965,23 @@ namespace Magnefu
             vk_framebuffer->width = swapchain_width;
             vk_framebuffer->height = swapchain_height;
 
+            // Manual creation of texture
             Texture* color = access_texture(vk_framebuffer->color_attachments[0]);
             color->vk_image = swapchain_images[iv];
 
-            TextureCreation depth_texture_creation = { nullptr, swapchain_width, swapchain_height, 1, 1, 0, VK_FORMAT_D32_SFLOAT, TextureType::Texture2D, k_invalid_texture, "DepthImage_Texture" };
+            color->vk_format = vulkan_surface_format.format;
+            color->type = TextureType::Texture2D;
+
+            TextureViewCreation tvc;
+            tvc.set_mips(0, 1).set_array(0, 1).set_name("framebuffer");
+
+            vulkan_create_texture_view(*this, tvc, color);
+
+            TextureCreation depth_texture_creation;// = { nullptr, swapchain_width, swapchain_height, 1, 1, 0, VK_FORMAT_D32_SFLOAT, TextureType::Texture2D, k_invalid_texture, "DepthImage_Texture" };
+            depth_texture_creation.set_size(swapchain_width, swapchain_height, 1).set_format_type(VK_FORMAT_D32_SFLOAT, TextureType::Texture2D).set_name("DepthImage_Texture");
             vk_framebuffer->depth_stencil_attachment = create_texture(depth_texture_creation);
 
             Texture* depth_stencil_texture = access_texture(vk_framebuffer->depth_stencil_attachment);
-
-            // Create an image view which we can render into.
-            VkImageViewCreateInfo view_info{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-            view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            view_info.format = vulkan_surface_format.format;
-            view_info.image = swapchain_images[iv];
-            view_info.subresourceRange.levelCount = 1;
-            view_info.subresourceRange.layerCount = 1;
-            view_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            view_info.components.r = VK_COMPONENT_SWIZZLE_R;
-            view_info.components.g = VK_COMPONENT_SWIZZLE_G;
-            view_info.components.b = VK_COMPONENT_SWIZZLE_B;
-            view_info.components.a = VK_COMPONENT_SWIZZLE_A;
-
-            check(vkCreateImageView(vulkan_device, &view_info, vulkan_allocation_callbacks, &color->vk_image_view), "Issue creating image view");
 
             if (!dynamic_rendering_extension_present) {
                 vulkan_create_framebuffer(*this, vk_framebuffer);
@@ -3228,8 +3223,9 @@ namespace Magnefu
 
         // Re-create image in place.
         TextureCreation tc;
-        tc.set_flags(vk_texture->mipmaps, vk_texture->flags).set_format_type(vk_texture->vk_format, vk_texture->type)
-            .set_name(vk_texture->name).set_size(width, height, vk_texture->depth);
+        tc.set_flags(vk_texture->flags).set_format_type(vk_texture->vk_format, vk_texture->type)
+            .set_name(vk_texture->name).set_size(width, height, vk_texture->depth)
+            .set_mips(vk_texture->mip_level_count);
         vulkan_create_texture(*this, tc, vk_texture->handle, vk_texture);
 
         destroy_texture(texture_to_delete);
@@ -3366,6 +3362,12 @@ namespace Magnefu
                 //if ( texture_to_update.current_frame == current_frame )
                 {
                     Texture* texture = access_texture({ texture_to_update.handle });
+
+                    if (texture->vk_image_view == VK_NULL_HANDLE) 
+                    {
+                        continue;
+                    }
+
                     VkWriteDescriptorSet& descriptor_write = bindless_descriptor_writes[current_write_index];
                     descriptor_write = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
                     descriptor_write.descriptorCount = 1;
@@ -3402,12 +3404,15 @@ namespace Magnefu
 
                     texture_to_update.current_frame = u32_max;
 
+                    // Cache this value, as delete_swap will modify the texture_to_update reference.
+                    const bool add_texture_to_delete = texture_to_update.deleting;
+
                     texture_to_update_bindless.delete_swap(it);
 
                     ++current_write_index;
 
                     // Add texture to delete
-                    if (texture_to_update.deleting) {
+                    if (add_texture_to_delete) {
                         resource_deletion_queue.push({ ResourceUpdateType::Texture, texture->handle.index, current_frame, 1 });
                     }
 
@@ -3630,42 +3635,7 @@ namespace Magnefu
                 temporary_allocator->clear();
             }
 
-            {
-                const u32 pool_index = previous_frame;
-                GpuThreadFramePools& thread_pool = compute_frame_pools[pool_index];
-                GpuTimeQueryTree* time_query = thread_pool.time_queries;
-
-                // For each active time query pool
-                if (time_query && time_query->allocated_time_query) {
-
-                    // Query GPU for all timestamps.
-                    const u32 query_offset = (num_threads * gpu_time_queries_manager->queries_per_thread) + pool_index;
-                    const u32 query_count = time_query->allocated_time_query;
-                    u64* timestamps_data = (u64*)mfalloca(query_count * 2 * sizeof(u64), temporary_allocator);
-                    vkGetQueryPoolResults(vulkan_device, thread_pool.vulkan_timestamp_query_pool, 0, query_count * 2,
-                        sizeof(u64) * query_count * 2, timestamps_data,
-                        sizeof(u64), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
-
-                    // Calculate and cache the elapsed time
-                    for (u32 i = 0; i < query_count; i++) {
-                        u32 index = (query_offset)+i;
-
-                        GPUTimeQuery& timestamp = gpu_time_queries_manager->timestamps[index];
-
-                        double start = (double)timestamps_data[(i * 2)];
-                        double end = (double)timestamps_data[(i * 2) + 1];
-                        double range = end - start;
-                        double elapsed_time = range * gpu_timestamp_frequency;
-
-                        timestamp.elapsed_ms = elapsed_time;
-                        timestamp.frame_index = absolute_frame;
-
-                        //print_format( "%s: %2.3f d(%u) - ", timestamp.name, elapsed_time, timestamp.depth );
-                    }
-                }
-
-                temporary_allocator->clear();
-            }
+            
 
             //rprint( "%llu %f\n", gpu_time_queries_manager->frame_pipeline_statistics.statistics[ 6 ], ( gpu_time_queries_manager->frame_pipeline_statistics.statistics[ 6 ] * 1.0 ) / ( swapchain_width * swapchain_height ) );
         }
@@ -3927,8 +3897,8 @@ namespace Magnefu
 
     //
     //
-    CommandBuffer* GraphicsContext::get_command_buffer(u32 thread_index, u32 frame_index, bool begin, bool compute /*= false*/) {
-        CommandBuffer* cb = command_buffer_ring.get_command_buffer(frame_index, thread_index, begin, compute);
+    CommandBuffer* GraphicsContext::get_command_buffer(u32 thread_index, u32 frame_index, bool begin) {
+        CommandBuffer* cb = command_buffer_ring.get_command_buffer(frame_index, thread_index, begin);
         return cb;
     }
 
@@ -3962,7 +3932,7 @@ namespace Magnefu
             out_description.height = texture_data->height;
             out_description.depth = texture_data->depth;
             out_description.format = texture_data->vk_format;
-            out_description.mipmaps = texture_data->mipmaps;
+            out_description.mipmaps = texture_data->mip_level_count;
             out_description.type = texture_data->type;
             out_description.render_target = (texture_data->flags & TextureFlags::RenderTarget_mask) == TextureFlags::RenderTarget_mask;
             out_description.compute_access = (texture_data->flags & TextureFlags::Compute_mask) == TextureFlags::Compute_mask;
@@ -4004,7 +3974,7 @@ namespace Magnefu
         }
     }
 
-    void GraphicsContext::query_descriptor_set(DescriptorSetHandle descriptor_set, DescriptorSetDescription& out_description) {
+    void GraphicsContext::query_descriptor_set(DescriptorSetHandle descriptor_set, DesciptorSetDescription& out_description) {
         if (descriptor_set.index != k_invalid_index) {
             const DescriptorSet* descriptor_set_data = access_descriptor_set(descriptor_set);
 

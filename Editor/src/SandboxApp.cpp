@@ -36,7 +36,8 @@
 
 #include "stb_image/stb_image.h"
 
-
+#include "cglm/struct/vec2.h"
+#include "cglm/struct/mat2.h"
 #include "cglm/struct/mat3.h"
 #include "cglm/struct/mat4.h"
 #include "cglm/struct/quat.h"
@@ -133,6 +134,69 @@ struct AsynchronousLoadTask : enki::IPinnedTask
 }; // AsynchronousLoadTask
 
 static AsynchronousLoadTask         s_async_load_task;
+
+
+vec4s normalize_plane(vec4s plane) {
+	f32 len = glms_vec3_norm({ plane.x, plane.y, plane.z });
+	return glms_vec4_scale(plane, 1.0f / len);
+}
+
+f32 linearize_depth(f32 depth, f32 z_far, f32 z_near) {
+	return z_near * z_far / (z_far + depth * (z_near - z_far));
+}
+
+// CGLM converted method from:
+// 2D Polyhedral Bounds of a Clipped, Perspective - Projected 3D Sphere
+// By Michael Mara Morgan McGuire
+void getBoundsForAxis(const vec3s& a, // Bounding axis (camera space)
+	const vec3s& C, // Sphere center (camera space)
+	float r, // Sphere radius
+	float nearZ, // Near clipping plane (negative)
+	vec3s& L, // Tangent point (camera space)
+	vec3s& U) { // Tangent point (camera space)
+
+	const vec2s c{ glms_vec3_dot(a, C), C.z }; // C in the a-z frame
+	vec2s bounds[2]; // In the a-z reference frame
+	const float tSquared = glms_vec2_dot(c, c) - (r * r);
+	const bool cameraInsideSphere = (tSquared <= 0);
+	// (cos, sin) of angle theta between c and a tangent vector
+	vec2s v = cameraInsideSphere ? vec2s{ 0.0f, 0.0f } : vec2s{ glms_vec2_divs(vec2s{ sqrt(tSquared), r }, glms_vec2_norm(c)) };
+	// Does the near plane intersect the sphere?
+	const bool clipSphere = (c.y + r >= nearZ);
+	// Square root of the discriminant; NaN (and unused)
+	// if the camera is in the sphere
+	float k = sqrt((r * r) - ((nearZ - c.y) * (nearZ - c.y)));
+	for (int i = 0; i < 2; ++i) {
+		if (!cameraInsideSphere) {
+			mat2s transform{ v.x, -v.y,
+							  v.y, v.x };
+
+			bounds[i] = glms_mat2_mulv(transform, glms_vec2_scale(c, v.x));
+		}
+
+		const bool clipBound = cameraInsideSphere || (bounds[i].y > nearZ);
+
+		if (clipSphere && clipBound) {
+			bounds[i] = vec2s{ c.x + k, nearZ };
+		}
+
+		// Set up for the lower bound
+		v.y = -v.y; k = -k;
+	}
+	// Transform back to camera space
+	L = glms_vec3_scale(a, bounds[1].x);
+	L.z = bounds[1].y;
+	U = glms_vec3_scale(a, bounds[0].x);
+	U.z = bounds[0].y;
+}
+
+vec3s project(const mat4s& P, const vec3s& Q) {
+	vec4s v = glms_mat4_mulv(P, vec4s{ Q.x, Q.y, Q.z, 1.0f });
+	v = glms_vec4_divs(v, v.w);
+	//return v.xyz() / v.w;
+	return vec3s{ v.x, v.y, v.z };
+}
+
 
 
 // -- Render Data ----------------------------------- //
@@ -343,7 +407,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	temporary_name_buffer.clear();
 	cstring scene_path = nullptr;
 
-	//InjectDefault3DModel(scene_path);
+	InjectDefault3DModel(scene_path);
 
 	if (scene_path == nullptr) 
 	{

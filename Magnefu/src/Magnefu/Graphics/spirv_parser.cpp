@@ -6,6 +6,8 @@
 
 #include <cstdlib>
 
+#include <vulkan/vulkan.h>
+
 namespace Magnefu
 {
 
@@ -73,14 +75,14 @@ namespace Magnefu
 				case SpvExecutionModelMeshNV:
 					return VK_SHADER_STAGE_MESH_BIT_NV;
 
-				case SpvExecutionModelMeshEXT:
-					return VK_SHADER_STAGE_MESH_BIT_EXT;
+				//case SpvExecutionModelMeshEXT:
+				//	return VK_SHADER_STAGE_MESH_BIT_EXT;
 
 				case SpvExecutionModelTaskNV:
 					return VK_SHADER_STAGE_TASK_BIT_NV;
 
-				case SpvExecutionModelTaskEXT:
-					return VK_SHADER_STAGE_TASK_BIT_EXT;
+				//case SpvExecutionModelTaskEXT:
+				//	return VK_SHADER_STAGE_TASK_BIT_EXT;
 
 				case SpvExecutionModelGLCompute:
 				case SpvExecutionModelKernel:
@@ -501,7 +503,7 @@ namespace Magnefu
 							{
 								case (SpvOpTypeStruct):
 								{
-									binding.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+									binding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 									binding.name = uniform_type.name.text;
 									break;
 								}
