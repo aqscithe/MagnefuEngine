@@ -335,6 +335,19 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	StringBuffer temporary_name_buffer;
 	temporary_name_buffer.init(1024, scratch_allocator);
 
+	// Create binaries folders
+	cstring shader_binaries_folder = temporary_name_buffer.append_use_f("%s/shaders/", MAGNEFU_SHADER_FOLDER);
+	if (!directory_exists(shader_binaries_folder)) {
+		if (directory_create(shader_binaries_folder)) {
+			MF_APP_INFO("Created folder {}", shader_binaries_folder);
+		}
+		else {
+			MF_APP_ERROR("Cannot create folder {}");
+		}
+	}
+	strcpy(renderer->resource_cache.binary_data_folder, shader_binaries_folder);
+	temporary_name_buffer.clear();
+
 
 	// will eventually have an EditorLayer
 	// may even have more specific layers like Physics Collisions and AI...
