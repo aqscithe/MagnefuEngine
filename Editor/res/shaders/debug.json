@@ -37,7 +37,6 @@
 					"enable": "true"
 				}
 			],
-			"cull": "back",
 			"topology": "triangle_list",
 			"shaders" : [
 				{
