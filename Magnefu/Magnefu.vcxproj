@@ -154,6 +154,7 @@
     <ClInclude Include="src\Magnefu\Application\Events\KeyEvent.h" />
     <ClInclude Include="src\Magnefu\Application\Events\MouseEvent.h" />
     <ClInclude Include="src\Magnefu\Application\Events\OSEvent.h" />
+    <ClInclude Include="src\Magnefu\Application\GameCamera.hpp" />
     <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiDefs.h" />
     <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiService.hpp" />
     <ClInclude Include="src\Magnefu\Application\Input\GamepadCodes.h" />
@@ -1343,6 +1344,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application\Application.cpp" />
+    <ClCompile Include="src\Magnefu\Application\GameCamera.cpp" />
     <ClCompile Include="src\Magnefu\Application\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\Magnefu\Application\ImGui\ImGuiService.cpp" />
     <ClCompile Include="src\Magnefu\Application\Input\Input.cpp" />

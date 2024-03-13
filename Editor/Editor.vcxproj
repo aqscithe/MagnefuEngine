@@ -149,13 +149,11 @@
     <ClInclude Include="res\shaders\scene.h" />
     <ClInclude Include="src\AppLayers\Overlay.hpp" />
     <ClInclude Include="src\AppLayers\SandboxLayer.hpp" />
-    <ClInclude Include="src\GameCamera.hpp" />
     <ClInclude Include="src\SandboxApp.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AppLayers\Overlay.cpp" />
     <ClCompile Include="src\AppLayers\SandboxLayer.cpp" />
-    <ClCompile Include="src\GameCamera.cpp" />
     <ClCompile Include="src\SandboxApp.cpp" />
   </ItemGroup>
   <ItemGroup>

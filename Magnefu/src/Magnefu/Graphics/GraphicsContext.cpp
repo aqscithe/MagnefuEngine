@@ -20,6 +20,7 @@
     #include <windows.h>
 #endif
 
+#include <vulkan/vk_enum_string_helper.h>
 #include <vma/vk_mem_alloc.h>
 #include <set>
 
@@ -80,7 +81,7 @@ namespace Magnefu
 
 
     static void                 check_result(VkResult result);
-#define                     check( result, message ) MF_CORE_ASSERT( result == VK_SUCCESS, "Vulkan assert code {} | {}", result, message )
+#define                     check( result, message ) MF_CORE_ASSERT( result == VK_SUCCESS, "Vulkan assert code {} \n{} \n{}", result, string_VkResult( result ), message )
 
     // Device implementation //////////////////////////////////////////////////
 
@@ -91,6 +92,8 @@ namespace Magnefu
 #define VULKAN_DEBUG_REPORT
 
 //#define VULKAN_SYNCHRONIZATION_VALIDATION
+
+//#define MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
 
     static const char* s_requested_extensions[] = {
         VK_KHR_SURFACE_EXTENSION_NAME,
@@ -765,7 +768,7 @@ namespace Magnefu
         check(result, "Failed to create vma allocator");
 
         ////////  Create Descriptor Pools
-        static const u32 k_global_pool_elements = 128;
+        static const u32 k_global_pool_elements = 256;
         VkDescriptorPoolSize pool_sizes[] =
         {
             { VK_DESCRIPTOR_TYPE_SAMPLER, k_global_pool_elements },
@@ -1042,7 +1045,7 @@ namespace Magnefu
             case ResourceUpdateType::Buffer:
             {
                 destroy_buffer_instant(resource_deletion.handle);
-                break;
+                    break;
             }
 
             case ResourceUpdateType::Pipeline:
@@ -1413,6 +1416,10 @@ namespace Magnefu
             return handle;
         }
 
+#if defined (MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING)
+        MF_CORE_INFO("Creating texture {} - {}", handle.index, creation.name);
+#endif // MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
+
         Texture* texture = access_texture(handle);
 
         vulkan_create_texture(*this, creation, handle, texture);
@@ -1489,7 +1496,8 @@ namespace Magnefu
 
         // Compile from glsl to SpirV.
         // TODO: detect if input is HLSL.
-        const char* temp_filename = "temp.shader";
+        //const char* temp_filename = "temp.shader";
+        const char* temp_filename = name;
 
         // Write current shader to file.
         FILE* temp_shader_file = fopen(temp_filename, "w");
@@ -1577,7 +1585,7 @@ namespace Magnefu
         sizet current_temporary_marker = temporary_allocator->getMarker();
 
         StringBuffer name_buffer;
-        name_buffer.init(8000, temporary_allocator);
+        name_buffer.init(16000, temporary_allocator);
 
         // Parse result needs to be always in memory as its used to free descriptor sets.
         shader_state->parse_result = (spirv::ParseResult*)allocator->allocate(sizeof(spirv::ParseResult), 64);
@@ -1647,6 +1655,11 @@ namespace Magnefu
         if (handle.index == k_invalid_index) {
             return handle;
         }
+
+
+#if defined (MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING)
+        MF_CORE_INFO("Creating pipeline {} - {}", handle.index, creation.name);
+#endif // MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
 
         VkPipelineCache pipeline_cache = VK_NULL_HANDLE;
         VkPipelineCacheCreateInfo pipeline_cache_create_info{ VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO };
@@ -1957,6 +1970,10 @@ namespace Magnefu
             return handle;
         }
 
+#if defined (MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING)
+        MF_CORE_INFO("Creating buffer {} - {}", handle.index, creation.name);
+#endif // MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
+
         Buffer* buffer = access_buffer(handle);
 
         buffer->name = creation.name;
@@ -2030,6 +2047,10 @@ namespace Magnefu
             return handle;
         }
 
+#if defined (MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING)
+        MF_CORE_INFO("Creating sampler {} - {}", handle.index, creation.name);
+#endif // MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
+
         Sampler* sampler = access_sampler(handle);
 
         sampler->address_mode_u = creation.address_mode_u;
@@ -2083,6 +2104,10 @@ namespace Magnefu
         if (handle.index == k_invalid_index) {
             return handle;
         }
+
+#if defined (MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING)
+        MF_CORE_INFO("Creating descriptor set layout {} - {}", handle.index, creation.name);
+#endif // MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
 
         DescriptorSetLayout* descriptor_set_layout = access_descriptor_set_layout(handle);
 
@@ -2328,6 +2353,10 @@ namespace Magnefu
             return handle;
         }
 
+#if defined (MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING)
+        MF_CORE_INFO("Creating descriptor set {} - {}", handle.index, creation.name);
+#endif // MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
+
         DescriptorSet* descriptor_set = access_descriptor_set(handle);
         const DescriptorSetLayout* descriptor_set_layout = access_descriptor_set_layout(creation.layout);
 
@@ -2571,6 +2600,10 @@ namespace Magnefu
             return handle;
         }
 
+#if defined (MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING)
+        MF_CORE_INFO("Creating render pass {} - {}", handle.index, creation.name);
+#endif // MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
+
         RenderPass* render_pass = access_render_pass(handle);
         // Init the rest of the struct.
         render_pass->num_render_targets = (u8)creation.num_render_targets;
@@ -2601,6 +2634,10 @@ namespace Magnefu
             return handle;
         }
 
+#if defined (MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING)
+        MF_CORE_INFO("Creating framebuffer {} - {}", handle.index, creation.name);
+#endif // MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
+
         Framebuffer* framebuffer = access_framebuffer(handle);
         // Init the rest of the struct.
         framebuffer->num_color_attachments = creation.num_render_targets;
@@ -2628,6 +2665,11 @@ namespace Magnefu
 
     void GraphicsContext::destroy_buffer(BufferHandle buffer) {
         if (buffer.index < buffers.pool_size) {
+
+#if defined (MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING)
+            MF_CORE_INFO("Destroying buffer {}", buffer.index);
+#endif // MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
+
             resource_deletion_queue.push({ ResourceUpdateType::Buffer, buffer.index, current_frame + k_max_frames, 1 });
         }
         else {
@@ -2637,6 +2679,11 @@ namespace Magnefu
 
     void GraphicsContext::destroy_texture(TextureHandle texture) {
         if (texture.index < textures.pool_size) {
+
+#if defined (MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING)
+            MF_CORE_INFO("Destroying texture {}", texture.index);
+#endif // MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
+
             // Do not add textures to deletion queue, textures will be deleted after bindless descriptor is updated.
             texture_to_update_bindless.push({ ResourceUpdateType::Texture, texture.index, current_frame, 1 });
         }
@@ -2647,6 +2694,11 @@ namespace Magnefu
 
     void GraphicsContext::destroy_pipeline(PipelineHandle pipeline) {
         if (pipeline.index < pipelines.pool_size) {
+
+#if defined (MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING)
+            MF_CORE_INFO("Destroying pipeline {}", pipeline.index);
+#endif // MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
+
             resource_deletion_queue.push({ ResourceUpdateType::Pipeline, pipeline.index, current_frame, 1 });
             // Shader state creation is handled internally when creating a pipeline, thus add this to track correctly.
             Pipeline* v_pipeline = access_pipeline(pipeline);
@@ -2667,6 +2719,11 @@ namespace Magnefu
 
     void GraphicsContext::destroy_sampler(SamplerHandle sampler) {
         if (sampler.index < samplers.pool_size) {
+
+#if defined (MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING)
+            MF_CORE_INFO("Destroying sampler {}", sampler.index);
+#endif // MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
+
             resource_deletion_queue.push({ ResourceUpdateType::Sampler, sampler.index, current_frame, 1 });
         }
         else {
@@ -2676,6 +2733,11 @@ namespace Magnefu
 
     void GraphicsContext::destroy_descriptor_set_layout(DescriptorSetLayoutHandle descriptor_set_layout) {
         if (descriptor_set_layout.index < descriptor_set_layouts.pool_size) {
+
+#if defined (MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING)
+            MF_CORE_INFO("Destroying descriptor set layout {}", descriptor_set_layout.index);
+#endif // MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
+
             resource_deletion_queue.push({ ResourceUpdateType::DescriptorSetLayout, descriptor_set_layout.index, current_frame, 1 });
         }
         else {
@@ -2685,6 +2747,11 @@ namespace Magnefu
 
     void GraphicsContext::destroy_descriptor_set(DescriptorSetHandle descriptor_set) {
         if (descriptor_set.index < descriptor_sets.pool_size) {
+
+#if defined (MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING)
+            MF_CORE_INFO("Destroying descriptor set {}", descriptor_set.index);
+#endif // MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
+
             resource_deletion_queue.push({ ResourceUpdateType::DescriptorSet, descriptor_set.index, current_frame, 1 });
         }
         else {
@@ -2694,6 +2761,11 @@ namespace Magnefu
 
     void GraphicsContext::destroy_render_pass(RenderPassHandle render_pass) {
         if (render_pass.index < render_passes.pool_size) {
+
+#if defined (MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING)
+            MF_CORE_INFO("Destroying render pass {}", render_pass.index);
+#endif // MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
+
             resource_deletion_queue.push({ ResourceUpdateType::RenderPass, render_pass.index, current_frame, 1 });
         }
         else {
@@ -2703,6 +2775,11 @@ namespace Magnefu
 
     void GraphicsContext::destroy_framebuffer(FramebufferHandle framebuffer) {
         if (framebuffer.index < framebuffers.pool_size) {
+
+#if defined (MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING)
+            MF_CORE_INFO("Destroying framebuffer {}", framebuffer.index);
+#endif // MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
+
             resource_deletion_queue.push({ ResourceUpdateType::Framebuffer, framebuffer.index, current_frame, 1 });
         }
         else {
@@ -3363,8 +3440,7 @@ namespace Magnefu
                 {
                     Texture* texture = access_texture({ texture_to_update.handle });
 
-                    if (texture->vk_image_view == VK_NULL_HANDLE) 
-                    {
+                    if (texture->vk_image_view == VK_NULL_HANDLE) {
                         continue;
                     }
 
@@ -3377,7 +3453,7 @@ namespace Magnefu
                     descriptor_write.dstBinding = k_bindless_texture_binding;
 
                     // Handles should be the same.
-                    MF_CORE_ASSERT(texture->handle.index == texture_to_update.handle, "");
+                    MF_CORE_ASSERT((texture->handle.index == texture_to_update.handle), "");
 
                     Sampler* vk_default_sampler = access_sampler(default_sampler);
                     VkDescriptorImageInfo& descriptor_image_info = bindless_image_info[current_write_index];
@@ -3403,10 +3479,8 @@ namespace Magnefu
                     descriptor_write.pImageInfo = &descriptor_image_info;
 
                     texture_to_update.current_frame = u32_max;
-
                     // Cache this value, as delete_swap will modify the texture_to_update reference.
                     const bool add_texture_to_delete = texture_to_update.deleting;
-
                     texture_to_update_bindless.delete_swap(it);
 
                     ++current_write_index;
@@ -4049,7 +4123,7 @@ namespace Magnefu
             return;
         }
 
-        MF_CORE_ERROR("Vulkan error: code({})", result);
+        MF_CORE_ERROR("Vulkan error: code({}) | {}", result, string_VkResult(result));
         if (result < 0) {
             MF_CORE_ASSERT(false, "Vulkan error: aborting.");
         }

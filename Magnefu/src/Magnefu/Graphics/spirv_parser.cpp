@@ -8,617 +8,595 @@
 
 #include <vulkan/vulkan.h>
 
-namespace Magnefu
-{
 
-	namespace spirv
-	{
-		static const u32		k_bindless_set_index = 0;
-		static const u32		k_bindless_texture_binding = 10;
+namespace Magnefu {
+    namespace spirv {
+
+        static const u32        k_bindless_set_index = 0;
+        static const u32        k_bindless_texture_binding = 10;
+
+        struct Member
+        {
+            u32         id_index;
+            u32         offset;
+
+            StringView  name;
+        };
+
+        struct Id
+        {
+            SpvOp           op;
+            u32             set;
+            u32             binding;
+
+            // For integers and floats
+            u8              width;
+            u8              sign;
+
+            // For arrays, vectors and matrices
+            u32             type_index;
+            u32             count;
+
+            // For variables
+            SpvStorageClass storage_class;
+
+            // For constants
+            u32             value;
+
+            // For structs
+            StringView      name;
+            Array<Member>   members;
+
+            bool            structured_buffer;
+        };
+
+        VkShaderStageFlags parse_execution_model(SpvExecutionModel model)
+        {
+            switch (model)
+            {
+            case (SpvExecutionModelVertex):
+            {
+                return VK_SHADER_STAGE_VERTEX_BIT;
+            }
+            case (SpvExecutionModelGeometry):
+            {
+                return VK_SHADER_STAGE_GEOMETRY_BIT;
+            }
+            case (SpvExecutionModelFragment):
+            {
+                return VK_SHADER_STAGE_FRAGMENT_BIT;
+            }
+            case (SpvExecutionModelGLCompute):
+            case (SpvExecutionModelKernel):
+            {
+                return VK_SHADER_STAGE_COMPUTE_BIT;
+            }
+            case (SpvExecutionModelMeshNV):
+            {
+                return VK_SHADER_STAGE_MESH_BIT_NV;
+            }
+            case (SpvExecutionModelTaskNV):
+            {
+                return VK_SHADER_STAGE_TASK_BIT_NV;
+            }
+            }
+
+            return 0;
+        }
+
+        static void add_binding_if_unique(DescriptorSetLayoutCreation& creation, DescriptorSetLayoutCreation::Binding& binding) {
+            bool found = false;
+            for (u32 i = 0; i < creation.num_bindings; ++i) {
+                const DescriptorSetLayoutCreation::Binding& b = creation.bindings[i];
+                if (b.type == binding.type && b.index == binding.index) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                creation.add_binding(binding);
+            }
+        }
+
+        void parse_binary(const u32* data, size_t data_size, StringBuffer& name_buffer, ParseResult* parse_result) {
+            MF_CORE_ASSERT(((data_size % 4) == 0), "");
+            u32 spv_word_count = safe_cast<u32>(data_size / 4);
+
+            u32 magic_number = data[0];
+            MF_CORE_ASSERT((magic_number == 0x07230203), "");
+
+            u32 id_bound = data[3];
+
+            Allocator* allocator = &MemoryService::Instance()->systemAllocator;
+            Array<Id> ids;
+            ids.init(allocator, id_bound, id_bound);
 
-		struct Member
-		{
-			u32			id_index;
-			u32			offset;
+            memset(ids.data, 0, id_bound * sizeof(Id));
+
+            VkShaderStageFlags stage;
+
+            size_t word_index = 5;
+            while (word_index < spv_word_count) {
+                SpvOp op = (SpvOp)(data[word_index] & 0xFF);
+                u16 word_count = (u16)(data[word_index] >> 16);
+
+                switch (op) {
+
+                case (SpvOpEntryPoint):
+                {
+                    MF_CORE_ASSERT((word_count >= 4), "");
+
+                    SpvExecutionModel model = (SpvExecutionModel)data[word_index + 1];
+
+                    stage = parse_execution_model(model);
+                    MF_CORE_ASSERT((stage != 0), "");
+
+                    break;
+                }
+
+                case (SpvOpExecutionMode):
+                {
+                    MF_CORE_ASSERT((word_count >= 3), "");
+
+                    SpvExecutionMode mode = (SpvExecutionMode)data[word_index + 2];
 
-			StringView	name;
-		};
+                    switch (mode)
+                    {
+                    case SpvExecutionModeLocalSize:
+                    {
+                        parse_result->compute_local_size.x = data[word_index + 3];
+                        parse_result->compute_local_size.y = data[word_index + 4];
+                        parse_result->compute_local_size.z = data[word_index + 5];
+                        break;
+                    }
+                    }
 
-		struct Id
-		{
-			SpvOp			op;
-			u32				set;
-			u32				binding;
+                    break;
+                }
 
-			// for ints and floats
-			u8				width;
-			u8				sign;
+                case (SpvOpDecorate):
+                {
+                    MF_CORE_ASSERT((word_count >= 3), "");
 
-			// for arrays, vectors, and matrices
-			u32				type_index;
-			u32				count;
+                    u32 id_index = data[word_index + 1];
+                    MF_CORE_ASSERT((id_index < id_bound), "");
 
-			// for variables
-			SpvStorageClass storage_class;
+                    Id& id = ids[id_index];
 
-			// for constants
-			u32				value;
+                    SpvDecoration decoration = (SpvDecoration)data[word_index + 2];
+                    switch (decoration)
+                    {
+                    case (SpvDecorationBinding):
+                    {
+                        id.binding = data[word_index + 3];
+                        break;
+                    }
 
-			// for structs
-			StringView		name;
-			Array<Member>	members;
+                    case (SpvDecorationDescriptorSet):
+                    {
+                        id.set = data[word_index + 3];
+                        break;
+                    }
 
-			bool            structured_buffer;
+                    case (SpvDecorationBlock):
+                    {
+                        id.structured_buffer = false;
+                        break;
+                    }
+                    case (SpvDecorationBufferBlock):
+                    {
+                        id.structured_buffer = true;
+                        break;
+                    }
+                    }
 
-		};
+                    break;
+                }
 
-		VkShaderStageFlags	parse_execution_model(SpvExecutionModel model)
-		{
-			switch (model)
-			{
+                case (SpvOpMemberDecorate):
+                {
+                    MF_CORE_ASSERT((word_count >= 4), "");
 
-				case SpvExecutionModelVertex:
-					return VK_SHADER_STAGE_VERTEX_BIT;
+                    u32 id_index = data[word_index + 1];
+                    MF_CORE_ASSERT((id_index < id_bound), "");
 
-				case SpvExecutionModelTessellationControl:
-					return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+                    Id& id = ids[id_index];
 
-				case SpvExecutionModelTessellationEvaluation:
-					return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+                    u32 member_index = data[word_index + 2];
 
-				case SpvExecutionModelGeometry:
-					return VK_SHADER_STAGE_GEOMETRY_BIT;
+                    if (id.members.capacity == 0) {
+                        id.members.init(allocator, 64, 64);
+                    }
 
-				case SpvExecutionModelFragment:
-					return VK_SHADER_STAGE_FRAGMENT_BIT;
+                    Member& member = id.members[member_index];
 
-				case SpvExecutionModelMeshNV:
-					return VK_SHADER_STAGE_MESH_BIT_NV;
+                    SpvDecoration decoration = (SpvDecoration)data[word_index + 3];
+                    switch (decoration)
+                    {
+                    case (SpvDecorationOffset):
+                    {
+                        member.offset = data[word_index + 4];
+                        break;
+                    }
+                    }
 
-				//case SpvExecutionModelMeshEXT:
-				//	return VK_SHADER_STAGE_MESH_BIT_EXT;
+                    break;
+                }
 
-				case SpvExecutionModelTaskNV:
-					return VK_SHADER_STAGE_TASK_BIT_NV;
+                case (SpvOpName):
+                {
+                    MF_CORE_ASSERT((word_count >= 3), "");
 
-				//case SpvExecutionModelTaskEXT:
-				//	return VK_SHADER_STAGE_TASK_BIT_EXT;
+                    u32 id_index = data[word_index + 1];
+                    MF_CORE_ASSERT((id_index < id_bound), "");
 
-				case SpvExecutionModelGLCompute:
-				case SpvExecutionModelKernel:
-				{
-					return VK_SHADER_STAGE_COMPUTE_BIT;
-				}
+                    Id& id = ids[id_index];
 
-			}
+                    char* name = (char*)(data + (word_index + 2));
+                    char* name_view = name_buffer.append_use(name);
 
-			return 0;
-		}
+                    id.name.text = name_view;
+                    id.name.length = strlen(name_view);
 
-		static void add_binding_if_unique(DescriptorSetLayoutCreation& creation, DescriptorSetLayoutCreation::Binding& binding) 
-		{
-			bool found = false;
-			for (u32 i = 0; i < creation.num_bindings; ++i) 
-			{
-				const DescriptorSetLayoutCreation::Binding& b = creation.bindings[i];
-				if (b.type == binding.type && b.index == binding.index) {
-					found = true;
-					break;
-				}
-			}
-
-			if (!found)
-			{
-				creation.add_binding(binding);
-			}
-		}
-
-		void	parse_binary(const u32* data, sizet data_size, StringBuffer& name_buffer, ParseResult* parse_result)
-		{
-			MF_CORE_ASSERT((data_size % 4 == 0), "Data size not divisible by 4");
-
-			u32 spv_word_count = safe_cast<u32>(data_size / 4);
-
-			u32 magic_number = data[0];
-			MF_CORE_ASSERT((magic_number == 0x07230203), "");
-
-			u32 id_bound = data[3];
+                    break;
+                }
 
-			Allocator* allocator = &MemoryService::Instance()->systemAllocator;
-			Array<Id> ids;
-			ids.init(allocator, id_bound, id_bound);
+                case (SpvOpMemberName):
+                {
+                    MF_CORE_ASSERT((word_count >= 4), "");
 
-			memset(ids.begin(), 0, id_bound * sizeof(Id));
+                    u32 id_index = data[word_index + 1];
+                    MF_CORE_ASSERT((id_index < id_bound), "");
 
-			VkShaderStageFlags stage;
+                    Id& id = ids[id_index];
 
-			sizet word_index = 5;
-			while (word_index < spv_word_count)
-			{
-				SpvOp op = (SpvOp)(data[word_index] & 0xFF);
-				u16 word_count = (u16)(data[word_index] >> 16);
-
-				switch (op)
-				{
-					case SpvOpEntryPoint:
-					{
-						MF_CORE_ASSERT((word_count >= 4), "");
-
-						SpvExecutionModel model = (SpvExecutionModel)data[word_index + 1];
-
-						stage = parse_execution_model(model);
-						MF_CORE_ASSERT(stage != 0, "");
-
-						break;
-					}
+                    u32 member_index = data[word_index + 2];
 
-					case (SpvOpExecutionMode):
-					{
-						MF_CORE_ASSERT(word_count >= 3, "");
+                    if (id.members.capacity == 0) {
+                        id.members.init(allocator, 64, 64);
+                    }
 
-						SpvExecutionMode mode = (SpvExecutionMode)data[word_index + 2];
+                    Member& member = id.members[member_index];
 
-						switch (mode)
-						{
-							case SpvExecutionModeLocalSize:
-							{
-								parse_result->compute_local_size.x = data[word_index + 3];
-								parse_result->compute_local_size.y = data[word_index + 4];
-								parse_result->compute_local_size.z = data[word_index + 5];
-								break;
-							}
-						}
+                    char* name = (char*)(data + (word_index + 3));
+                    char* name_view = name_buffer.append_use(name);
 
-						break;
-					}
+                    member.name.text = name_view;
+                    member.name.length = strlen(name_view);
 
-					case SpvOpDecorate:
-					{
-						MF_CORE_ASSERT((word_count >= 3), "");
+                    break;
+                }
 
-						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT((id_index < id_bound), "");
+                case (SpvOpTypeInt):
+                {
+                    MF_CORE_ASSERT((word_count == 4), "");
 
-						Id& id = ids[id_index];
+                    u32 id_index = data[word_index + 1];
+                    MF_CORE_ASSERT((id_index < id_bound), "");
 
-						SpvDecoration decoration = (SpvDecoration)data[word_index + 2];
-						switch (decoration)
-						{
-							case (SpvDecorationBinding):
-							{
-								id.binding = data[word_index + 3];
-								break;
-							}
+                    Id& id = ids[id_index];
+                    id.op = op;
+                    id.width = (u8)data[word_index + 2];
+                    id.sign = (u8)data[word_index + 3];
 
-							case (SpvDecorationDescriptorSet):
-							{
-								id.set = data[word_index + 3];
-								break;
-							}
+                    break;
+                }
 
-							case (SpvDecorationBlock):
-							{
-								id.structured_buffer = false;
-								break;
-							}
+                case (SpvOpTypeFloat):
+                {
+                    MF_CORE_ASSERT((word_count == 3), "");
 
-							case (SpvDecorationBufferBlock):
-							{
-								id.structured_buffer = true;
-								break;
-							}
-						}
+                    u32 id_index = data[word_index + 1];
+                    MF_CORE_ASSERT((id_index < id_bound), "");
 
-						break;
-					}
+                    Id& id = ids[id_index];
+                    id.op = op;
+                    id.width = (u8)data[word_index + 2];
 
-					case SpvOpMemberDecorate:
-					{
-						MF_CORE_ASSERT((word_count >= 4), "");
+                    break;
+                }
 
-						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT((id_index < id_bound), "");
+                case (SpvOpTypeVector):
+                {
+                    MF_CORE_ASSERT((word_count == 4), "");
 
-						Id& id = ids[id_index];
+                    u32 id_index = data[word_index + 1];
+                    MF_CORE_ASSERT((id_index < id_bound), "");
 
-						u32 member_index = data[word_index + 2];
+                    Id& id = ids[id_index];
+                    id.op = op;
+                    id.type_index = data[word_index + 2];
+                    id.count = data[word_index + 3];
 
-						if (id.members.capacity == 0) {
-							id.members.init(allocator, 64, 64);
-						}
+                    break;
+                }
 
-						Member& member = id.members[member_index];
+                case (SpvOpTypeMatrix):
+                {
+                    MF_CORE_ASSERT((word_count == 4), "");
 
-						SpvDecoration decoration = (SpvDecoration)data[word_index + 3];
-						switch (decoration)
-						{
-							case (SpvDecorationOffset):
-							{
-								member.offset = data[word_index + 4];
-								break;
-							}
-						}
+                    u32 id_index = data[word_index + 1];
+                    MF_CORE_ASSERT((id_index < id_bound), "");
 
-						break;
-					}
+                    Id& id = ids[id_index];
+                    id.op = op;
+                    id.type_index = data[word_index + 2];
+                    id.count = data[word_index + 3];
 
-					case SpvOpName:
-					{
-						MF_CORE_ASSERT((word_count >= 3), "");
+                    break;
+                }
 
-						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT((id_index < id_bound), "");
+                case (SpvOpTypeImage):
+                {
+                    MF_CORE_ASSERT((word_count >= 9), "");
 
-						Id& id = ids[id_index];
+                    u32 id_index = data[word_index + 1];
+                    MF_CORE_ASSERT((id_index < id_bound), "");
 
-						char* name = (char*)(data + (word_index + 2));
-						char* name_view = name_buffer.append_use(name);
+                    Id& id = ids[id_index];
+                    id.op = op;
 
-						id.name.text = name_view;
-						id.name.length = strlen(name_view);
+                    break;
+                }
 
-						break;
-					}
+                case (SpvOpTypeSampler):
+                {
+                    MF_CORE_ASSERT((word_count == 2), "");
 
-					case SpvOpMemberName:
-					{
-						MF_CORE_ASSERT((word_count >= 4), "");
+                    u32 id_index = data[word_index + 1];
+                    MF_CORE_ASSERT((id_index < id_bound), "");
 
-						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT((id_index < id_bound), "");
+                    Id& id = ids[id_index];
+                    id.op = op;
 
-						Id& id = ids[id_index];
+                    break;
+                }
 
-						u32 member_index = data[word_index + 2];
+                case (SpvOpTypeSampledImage):
+                {
+                    MF_CORE_ASSERT((word_count == 3), "");
 
-						if (id.members.capacity == 0) {
-							id.members.init(allocator, 64, 64);
-						}
+                    u32 id_index = data[word_index + 1];
+                    MF_CORE_ASSERT((id_index < id_bound), "");
 
-						Member& member = id.members[member_index];
+                    Id& id = ids[id_index];
+                    id.op = op;
 
-						char* name = (char*)(data + (word_index + 3));
-						char* name_view = name_buffer.append_use(name);
-						
-						member.name.text = name_view;
-						member.name.length = strlen(name_view);
+                    break;
+                }
 
-						break;
+                case (SpvOpTypeArray):
+                {
+                    MF_CORE_ASSERT((word_count == 4), "");
 
-					}
+                    u32 id_index = data[word_index + 1];
+                    MF_CORE_ASSERT((id_index < id_bound), "");
 
-					case SpvOpTypeInt:
-					{
-						MF_CORE_ASSERT((word_count == 4), "");
+                    Id& id = ids[id_index];
+                    id.op = op;
+                    id.type_index = data[word_index + 2];
+                    id.count = data[word_index + 3];
 
-						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT((id_index < id_bound), "");
+                    break;
+                }
 
-						Id& id = ids[id_index];
-						id.op = op;
-						id.width = (u8)data[word_index + 2];
-						id.sign = (u8)data[word_index + 3];
+                case (SpvOpTypeRuntimeArray):
+                {
+                    MF_CORE_ASSERT((word_count == 3), "");
 
-						break;
-					}
+                    u32 id_index = data[word_index + 1];
+                    MF_CORE_ASSERT((id_index < id_bound), "");
 
-					case SpvOpTypeFloat:
-					{
-						MF_CORE_ASSERT((word_count == 3), "");
+                    Id& id = ids[id_index];
+                    id.op = op;
+                    id.type_index = data[word_index + 2];
 
-						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT((id_index < id_bound), "");
+                    break;
+                }
 
-						Id& id = ids[id_index];
-						id.op = op;
-						id.width = (u8)data[word_index + 2];
+                case (SpvOpTypeStruct):
+                {
+                    MF_CORE_ASSERT((word_count >= 2), "");
 
-						break;
-					}
+                    u32 id_index = data[word_index + 1];
+                    MF_CORE_ASSERT((id_index < id_bound), "");
 
-					case SpvOpTypeVector:
-					{
-						MF_CORE_ASSERT((word_count == 4), "");
+                    Id& id = ids[id_index];
+                    id.op = op;
 
-						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT((id_index < id_bound), "");
+                    if (word_count > 2) {
+                        for (u16 member_index = 0; member_index < word_count - 2; ++member_index) {
+                            id.members[member_index].id_index = data[word_index + member_index + 2];
+                        }
+                    }
 
-						Id& id = ids[id_index];
-						id.op = op;
-						id.type_index = data[word_index + 2];
-						id.count = data[word_index + 3];
+                    break;
+                }
 
-						break;
-					}
+                case (SpvOpTypePointer):
+                {
+                    MF_CORE_ASSERT((word_count == 4), "");
 
-					case SpvOpTypeMatrix:
-					{
-						MF_CORE_ASSERT((word_count == 4), "");
+                    u32 id_index = data[word_index + 1];
+                    MF_CORE_ASSERT((id_index < id_bound), "");
 
-						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT((id_index < id_bound), "");
+                    Id& id = ids[id_index];
+                    id.op = op;
+                    id.type_index = data[word_index + 3];
 
-						Id& id = ids[id_index];
-						id.op = op;
-						id.type_index = data[word_index + 2];
-						id.count = data[word_index + 3];
+                    break;
+                }
 
-						break;
-					}
+                case (SpvOpConstant):
+                {
+                    MF_CORE_ASSERT((word_count >= 4), "");
 
-					case SpvOpTypeImage:
-					{
-						// NOTE(marco): not sure we need this information just yet
-						MF_CORE_ASSERT(word_count >= 9, "");
-						// not sure 9 is the correct value...
-						break;
-					}
-					
+                    u32 id_index = data[word_index + 1];
+                    MF_CORE_ASSERT((id_index < id_bound), "");
 
-					case SpvOpTypeSampler:
-					{
-						MF_CORE_ASSERT((word_count == 2), "");
+                    Id& id = ids[id_index];
+                    id.op = op;
+                    id.type_index = data[word_index + 2];
+                    id.value = data[word_index + 3]; // NOTE(marco): we assume all constants to have maximum 32bit width
 
-						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT((id_index < id_bound), "");
+                    break;
+                }
 
-						Id& id = ids[id_index];
-						id.op = op;
+                case (SpvOpVariable):
+                {
+                    MF_CORE_ASSERT((word_count >= 4), "");
 
-						break;
-					}
+                    u32 id_index = data[word_index + 2];
+                    MF_CORE_ASSERT((id_index < id_bound), "");
 
-					case SpvOpTypeSampledImage:
-					{
-						MF_CORE_ASSERT((word_count == 3), "");
+                    Id& id = ids[id_index];
+                    id.op = op;
+                    id.type_index = data[word_index + 1];
+                    id.storage_class = (SpvStorageClass)data[word_index + 3];
 
-						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT((id_index < id_bound), "");
+                    break;
+                }
+                }
 
-						Id& id = ids[id_index];
-						id.op = op;
+                word_index += word_count;
+            }
 
-						break;
-					}
+            //
+            for (u32 id_index = 0; id_index < ids.size; ++id_index) {
+                Id& id = ids[id_index];
 
-					case SpvOpTypeArray:
-					{
-						MF_CORE_ASSERT((word_count == 4), "");
+                if (id.op == SpvOpVariable) {
+                    switch (id.storage_class) {
+                    case SpvStorageClassStorageBuffer:
+                    {
+                        // NOTE(marco): get actual type
+                        Id& uniform_type = ids[ids[id.type_index].type_index];
 
-						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT((id_index < id_bound), "");
+                        DescriptorSetLayoutCreation& setLayout = parse_result->sets[id.set];
+                        setLayout.set_set_index(id.set);
 
-						Id& id = ids[id_index];
-						id.op = op;
-						id.type_index = data[word_index + 2];
-						id.count = data[word_index + 3];
+                        DescriptorSetLayoutCreation::Binding binding{ };
+                        binding.index = id.binding;
+                        binding.count = 1;
 
-						break;
-					}
+                        switch (uniform_type.op) {
+                        case (SpvOpTypeStruct):
+                        {
+                            binding.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+                            binding.name = uniform_type.name.text;
+                            break;
+                        }
 
-					case SpvOpTypeRuntimeArray:
-					{
-						MF_CORE_ASSERT((word_count == 3), "");
+                        default:
+                        {
+                            MF_CORE_ERROR("Error reading op {} {}", uniform_type.op, uniform_type.name.text);
+                            break;
+                        }
+                        }
 
-						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT((id_index < id_bound), "");
+                        //rprint( "Adding binding %u %s, set %u. Total %u\n", binding.index, binding.name, id.set, setLayout.num_bindings );
+                        add_binding_if_unique(setLayout, binding);
 
-						Id& id = ids[id_index];
-						id.op = op;
-						id.type_index = data[word_index + 2];
+                        parse_result->set_count = max(parse_result->set_count, (id.set + 1));
 
-						break;
+                        break;
+                    }
+                    case SpvStorageClassImage:
+                    {
+                        //rprint( "Image!\n" );
+                        break;
+                    }
+                    case (SpvStorageClassUniform):
+                    case (SpvStorageClassUniformConstant):
+                    {
+                        if (id.set == k_bindless_set_index && (id.binding == k_bindless_texture_binding || id.binding == (k_bindless_texture_binding + 1))) {
+                            // NOTE(marco): these are managed by the GPU device
+                            continue;
+                        }
 
-					}
+                        // NOTE(marco): get actual type
+                        Id& uniform_type = ids[ids[id.type_index].type_index];
 
-					case SpvOpTypeStruct:
-					{
-						MF_CORE_ASSERT((word_count >= 2), "");
+                        DescriptorSetLayoutCreation& setLayout = parse_result->sets[id.set];
+                        setLayout.set_set_index(id.set);
 
-						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT((id_index < id_bound), "");
+                        DescriptorSetLayoutCreation::Binding binding{ };
+                        binding.index = id.binding;
+                        binding.count = 1;
 
-						Id& id = ids[id_index];
-						id.op = op;
+                        switch (uniform_type.op) {
+                        case (SpvOpTypeStruct):
+                        {
+                            binding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                            binding.name = uniform_type.name.text;
+                            break;
+                        }
 
-						if (word_count > 2) {
-							for (u16 member_index = 0; member_index < word_count - 2; ++member_index) {
-								id.members[member_index].id_index = data[word_index + member_index + 2];
-							}
-						}
+                        case (SpvOpTypeSampledImage):
+                        {
+                            binding.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                            binding.name = id.name.text;
+                            break;
+                        }
 
-						break;
-					}
+                        case SpvOpTypeImage:
+                        {
+                            binding.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+                            binding.name = id.name.text;
+                            break;
+                        }
 
-					case SpvOpTypePointer:
-					{
-						MF_CORE_ASSERT((word_count == 4), "");
+                        default:
+                        {
+                            MF_CORE_ERROR("Error reading op {} {}", uniform_type.op, uniform_type.name.text);
+                            break;
+                        }
+                        }
 
-						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT((id_index < id_bound), "");
+                        //rprint( "Adding binding %u %s, set %u. Total %u\n", binding.index, binding.name, id.set, setLayout.num_bindings );
+                        add_binding_if_unique(setLayout, binding);
 
-						Id& id = ids[id_index];
-						id.op = op;
-						id.type_index = data[word_index + 3];
+                        parse_result->set_count = max(parse_result->set_count, (id.set + 1));
 
-						break;
-					}
+                        break;
+                    }
+                    }
+                }
 
-					case SpvOpConstant:
-					{
-						MF_CORE_ASSERT((word_count >= 4), "");
+                id.members.shutdown();
+            }
 
-						u32 id_index = data[word_index + 1];
-						MF_CORE_ASSERT((id_index < id_bound), "");
+            ids.shutdown();
 
-						Id& id = ids[id_index];
-						id.op = op;
-						id.type_index = data[word_index + 2];
-						id.value = data[word_index + 3]; // NOTE(marco): we assume all constants to have maximum 32bit width
+            // Sort layout based on binding point
+            for (size_t i = 0; i < parse_result->set_count; i++) {
+                DescriptorSetLayoutCreation& layout_creation = parse_result->sets[i];
+                // Sort only for 2 or more elements
+                if (layout_creation.num_bindings <= 1) {
+                    continue;
+                }
 
-						break;
-					}
+                auto sorting_func = [](const void* a, const void* b) -> i32 {
+                    const DescriptorSetLayoutCreation::Binding* b0 = (const DescriptorSetLayoutCreation::Binding*)a;
+                    const DescriptorSetLayoutCreation::Binding* b1 = (const DescriptorSetLayoutCreation::Binding*)b;
 
-					case SpvOpVariable:
-					{
-						MF_CORE_ASSERT((word_count >= 4), "");
+                    if (b0->index > b1->index) {
+                        return 1;
+                    }
 
-						u32 id_index = data[word_index + 2];
-						MF_CORE_ASSERT((id_index < id_bound), "");
+                    if (b0->index < b1->index) {
+                        return -1;
+                    }
 
-						Id& id = ids[id_index];
-						id.op = op;
-						id.type_index = data[word_index + 1];
-						id.storage_class = (SpvStorageClass)data[word_index + 3];
+                    return 0;
+                };
 
-						break;
-					}
-
-				}
+                qsort(layout_creation.bindings, layout_creation.num_bindings, sizeof(DescriptorSetLayoutCreation::Binding), sorting_func);
+            }
+        }
 
-				word_index += word_count;
-			}
-
-			for (u32 id_index = 0; id_index < ids.size; id_index++)
-			{
-				Id& id = ids[id_index];
-
-				if (id.op == SpvOpVariable)
-				{
-					switch (id.storage_class)
-					{
-						case SpvStorageClassStorageBuffer:
-						{
-							// NOTE(marco): get actual type
-							Id& uniform_type = ids[ids[id.type_index].type_index];
-
-							DescriptorSetLayoutCreation& setLayout = parse_result->sets[id.set];
-							setLayout.set_set_index(id.set);
-
-							DescriptorSetLayoutCreation::Binding binding{ };
-							binding.index = id.binding;
-							binding.count = 1;
-
-							switch (uniform_type.op)
-							{
-								case (SpvOpTypeStruct):
-								{
-									binding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-									binding.name = uniform_type.name.text;
-									break;
-								}
-
-								default:
-								{
-									MF_CORE_ERROR("Error reading op {} {}", uniform_type.op, uniform_type.name.text);
-									break;
-								}
-							}
-
-							//rprint( "Adding binding %u %s, set %u. Total %u\n", binding.index, binding.name, id.set, setLayout.num_bindings );
-							add_binding_if_unique(setLayout, binding);
-
-							parse_result->set_count = max(parse_result->set_count, (id.set + 1));
-
-							break;
-						}
-						case SpvStorageClassImage:
-						{
-							//MF_CORE_INFO( "Image!\n" );
-							break;
-						}
-						case SpvStorageClassUniform:
-						case SpvStorageClassUniformConstant:
-						{
-							if (id.set == k_bindless_set_index && (id.binding == k_bindless_texture_binding || id.binding == (k_bindless_texture_binding + 1)))
-							{
-								// NOTE(marco): these are managed by the GPU device
-								continue;
-							}
-
-							// NOTE(marco): get actual type
-							Id& uniform_type = ids[ids[id.type_index].type_index];
-
-							DescriptorSetLayoutCreation& setLayout = parse_result->sets[id.set];
-							setLayout.set_set_index(id.set);
-
-							DescriptorSetLayoutCreation::Binding binding{ };
-							binding.index = id.binding;
-							binding.count = 1;
-
-							switch (uniform_type.op)
-							{
-								case SpvOpTypeStruct:
-								{
-									binding.type = uniform_type.structured_buffer ? VK_DESCRIPTOR_TYPE_STORAGE_BUFFER : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-									binding.name = uniform_type.name.text;
-									break;
-								}
-
-								case SpvOpTypeSampledImage:
-								{
-									binding.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-									binding.name = id.name.text;
-									break;
-								}
-
-								case SpvOpTypeImage:
-								{
-									binding.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-									binding.name = id.name.text;
-									break;
-								}
-
-								default:
-								{
-									MF_CORE_ERROR("Error reading op {} {}", uniform_type.op, uniform_type.name.text);
-								}
-							}
-
-							//setLayout.add_binding_at_index(binding, id.binding);
-							add_binding_if_unique(setLayout, binding);
-
-							parse_result->set_count = max(parse_result->set_count, (id.set + 1));
-
-							break;
-						}
-					
-					}
-				}
-
-				id.members.shutdown();
-			}
-
-			ids.shutdown();
-
-			// Sort layout based on binding point
-			for (size_t i = 0; i < parse_result->set_count; i++) {
-				DescriptorSetLayoutCreation& layout_creation = parse_result->sets[i];
-				// Sort only for 2 or more elements
-				if (layout_creation.num_bindings <= 1) {
-					continue;
-				}
-
-				auto sorting_func = [](const void* a, const void* b) -> i32 {
-					const DescriptorSetLayoutCreation::Binding* b0 = (const DescriptorSetLayoutCreation::Binding*)a;
-					const DescriptorSetLayoutCreation::Binding* b1 = (const DescriptorSetLayoutCreation::Binding*)b;
-
-					if (b0->index > b1->index) {
-						return 1;
-					}
-
-					if (b0->index < b1->index) {
-						return -1;
-					}
-
-					return 0;
-				};
-
-				qsort(layout_creation.bindings, layout_creation.num_bindings, sizeof(DescriptorSetLayoutCreation::Binding), sorting_func);
-			}
-
-		}
-	}
-}
+    } // namespace spirv
+} // namespace Magnefu
 
 

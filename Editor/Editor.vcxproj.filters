@@ -201,9 +201,6 @@
     <ClInclude Include="src\AppLayers\SandboxLayer.hpp">
       <Filter>src\AppLayers</Filter>
     </ClInclude>
-    <ClInclude Include="src\GameCamera.hpp">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\SandboxApp.hpp">
       <Filter>src</Filter>
     </ClInclude>
@@ -214,9 +211,6 @@
     </ClCompile>
     <ClCompile Include="src\AppLayers\SandboxLayer.cpp">
       <Filter>src\AppLayers</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GameCamera.cpp">
-      <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\SandboxApp.cpp">
       <Filter>src</Filter>

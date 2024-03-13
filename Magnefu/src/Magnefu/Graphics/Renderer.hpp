@@ -63,7 +63,7 @@ namespace Magnefu
     //
     struct GpuTechniqueCreation {
 
-        PipelineCreation                creations[8];
+        PipelineCreation                creations [16];
         u32                             num_creations = 0;
 
         cstring                         name = nullptr;

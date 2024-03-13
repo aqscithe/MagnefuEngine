@@ -195,6 +195,8 @@ namespace Magnefu {
         // Create technique and cache it.
         GpuTechnique* technique = renderer->create_technique(technique_creation);
 
+        vertex_input_creations.shutdown();
+
         temp_allocator->freeToMarker(allocated_marker);
 
         MF_CORE_INFO("Created technique {} in {} seconds", technique_creation.name, time_from_seconds(begin_time));

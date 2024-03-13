@@ -31,6 +31,8 @@ namespace Magnefu
     }
 
     GpuTechniqueCreation& GpuTechniqueCreation::add_pipeline(const PipelineCreation& pipeline) {
+        MF_CORE_ASSERT((num_creations < 16), "");
+
         creations[num_creations++] = pipeline;
         return *this;
     }
@@ -229,6 +231,7 @@ namespace Magnefu
         if (technique) {
             technique->passes.init(resident_allocator, creation.num_creations, creation.num_creations);
             technique->name_hash_to_index.init(resident_allocator, creation.num_creations);
+            technique->name_hash_to_index.set_default_value(u16_max);
             technique->name = creation.name;
 
             temporary_allocator.clear();

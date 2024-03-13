@@ -7,6 +7,8 @@
 #include "Magnefu/Application/ImGui/ImGuiService.hpp"
 #include "SceneGraph.hpp"
 
+#include "Magnefu/Core/Numerics.hpp"
+
 #include "stb_image/stb_image.h"
 
 #include "assimp/cimport.h"
@@ -218,51 +220,49 @@ namespace Magnefu
         for (u32 material_index = 0; material_index < assimp_scene->mNumMaterials; ++material_index) {
             aiMaterial* material = assimp_scene->mMaterials[material_index];
 
-            PBRMaterial raptor_material{ };
+            // Important to init with default values.
+            PBRMaterial magnefu_material{ };
 
             aiString texture_file;
 
             if (aiGetMaterialString(material, AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), &texture_file) == AI_SUCCESS) {
-                raptor_material.diffuse_texture_index = load_texture(texture_file.C_Str(), path, temp_allocator);
+                magnefu_material.diffuse_texture_index = load_texture(texture_file.C_Str(), path, temp_allocator);
             }
             else {
-                raptor_material.diffuse_texture_index = k_invalid_scene_texture_index;
+                magnefu_material.diffuse_texture_index = k_invalid_scene_texture_index;
             }
 
             if (aiGetMaterialString(material, AI_MATKEY_TEXTURE(aiTextureType_NORMALS, 0), &texture_file) == AI_SUCCESS)
             {
-                raptor_material.normal_texture_index = load_texture(texture_file.C_Str(), path, temp_allocator);
+                magnefu_material.normal_texture_index = load_texture(texture_file.C_Str(), path, temp_allocator);
             }
             else {
-                raptor_material.normal_texture_index = k_invalid_scene_texture_index;
+                magnefu_material.normal_texture_index = k_invalid_scene_texture_index;
             }
 
-            raptor_material.roughness_texture_index = k_invalid_scene_texture_index;
-            raptor_material.occlusion_texture_index = k_invalid_scene_texture_index;
+            magnefu_material.roughness_texture_index = k_invalid_scene_texture_index;
+            magnefu_material.occlusion_texture_index = k_invalid_scene_texture_index;
 
             aiColor4D color;
             if (aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, &color) == AI_SUCCESS) {
-                raptor_material.diffuse_colour = { color.r, color.g, color.b, 1.0f };
+                magnefu_material.base_color_factor = { color.r, color.g, color.b, 1.0f };
             }
-
-            if (aiGetMaterialColor(material, AI_MATKEY_COLOR_AMBIENT, &color) == AI_SUCCESS) {
-                raptor_material.ambient_colour = { color.r, color.g, color.b };
-            }
-
-            if (aiGetMaterialColor(material, AI_MATKEY_COLOR_SPECULAR, &color) == AI_SUCCESS) {
-                raptor_material.specular_colour = { color.r, color.g, color.b };
+            else {
+                magnefu_material.base_color_factor = { 1.0f, 1.0f, 1.0f, 1.0f };
             }
 
             float f_value;
             if (aiGetMaterialFloat(material, AI_MATKEY_SHININESS, &f_value) == AI_SUCCESS) {
-                raptor_material.specular_exp = f_value;
+                const f32 specular_exp = f_value;
+
+                magnefu_material.occlusion = Magnefu::max(powf((1.f - specular_exp), 2.f), 0.0001f);
             }
 
             if (aiGetMaterialFloat(material, AI_MATKEY_OPACITY, &f_value) == AI_SUCCESS) {
-                raptor_material.diffuse_colour.w = f_value;
+                magnefu_material.base_color_factor.w = f_value;
             }
 
-            materials.push(raptor_material);
+            materials.push(magnefu_material);
         }
 
         i64 end_loading_textures_files = time_now();
@@ -735,7 +735,7 @@ namespace Magnefu
             mesh.pbr_material.material = pbr_material;
 
             mesh.pbr_material.flags |= DrawFlags_Phong;
-            if (mesh.pbr_material.diffuse_colour.w < 1.0f) {
+            if (mesh.pbr_material.base_color_factor.w < 1.0f) {
                 mesh.pbr_material.flags |= DrawFlags_Transparent;
             }
 

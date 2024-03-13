@@ -42,6 +42,9 @@ namespace Magnefu {
         void                            draw(TopologyType::Enum topology, u32 first_vertex, u32 vertex_count, u32 first_instance, u32 instance_count);
         void                            draw_indexed(TopologyType::Enum topology, u32 index_count, u32 instance_count, u32 first_index, i32 vertex_offset, u32 first_instance);
         void                            draw_indirect(BufferHandle handle, u32 draw_count, u32 offset, u32 stride);
+
+        void                            global_debug_barrier(); // Use only to debug barrier-related problems
+        void                            buffer_barrier(BufferHandle buffer, ResourceState old_state, ResourceState new_state, QueueType::Enum source_queue_type, QueueType::Enum destination_queue_type);
         void                            draw_indirect_count(BufferHandle argument_buffer, u32 argument_offset, BufferHandle count_buffer, u32 count_offset, u32 max_draws, u32 stride);
         void                            draw_indexed_indirect(BufferHandle handle, u32 draw_count, u32 offset, u32 stride);
 

@@ -740,9 +740,9 @@ namespace Magnefu
                     }
                 }
 
-                node->graph_render_pass->pre_render(current_frame_index, gpu_commands, this);
-                node->graph_render_pass->render(gpu_commands, render_scene);
-                node->graph_render_pass->post_render(current_frame_index, gpu_commands, this);
+                node->graph_render_pass->pre_render(current_frame_index, gpu_commands, this, render_scene);
+                node->graph_render_pass->render(current_frame_index, gpu_commands, render_scene);
+                node->graph_render_pass->post_render(current_frame_index, gpu_commands, this, render_scene);
 
                 gpu_commands->pop_marker();
             }
@@ -816,15 +816,15 @@ namespace Magnefu
 
                 gpu_commands->set_viewport(&viewport);
 
-                node->graph_render_pass->pre_render(current_frame_index, gpu_commands, this);
+                node->graph_render_pass->pre_render(current_frame_index, gpu_commands, this, render_scene);
 
                 gpu_commands->bind_pass(node->render_pass, node->framebuffer, false);
 
-                node->graph_render_pass->render(gpu_commands, render_scene);
+                node->graph_render_pass->render(current_frame_index, gpu_commands, render_scene);
 
                 gpu_commands->end_current_render_pass();
 
-                node->graph_render_pass->post_render(current_frame_index, gpu_commands, this);
+                node->graph_render_pass->post_render(current_frame_index, gpu_commands, this, render_scene);
 
                 gpu_commands->pop_marker();
             }
