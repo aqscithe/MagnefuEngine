@@ -30,7 +30,7 @@
 #include <assimp/postprocess.h>
 
 #define DEBUG_DRAW_MESHLET_SPHERES 0
-#define DEBUG_DRAW_MESHLET_CONES 1
+#define DEBUG_DRAW_MESHLET_CONES 0
 
 #define DEBUG_DRAW_POINT_LIGHT_SPHERES 0
 

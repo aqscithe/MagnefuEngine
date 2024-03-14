@@ -198,7 +198,7 @@ void place_lights(Magnefu::Array<Magnefu::Light>& lights, bool grid) {
 			Light& light = lights[i];
 
 			const f32 x = (i % 4);
-			const f32 y = 0.f;
+			const f32 y = 10.f;
 			const f32 z = (i / 4);
 
 			light.world_position = { x, y, z };
@@ -237,14 +237,7 @@ void place_lights(Magnefu::Array<Magnefu::Light>& lights, bool grid) {
 
 struct RenderData
 {
-	vec3s eye = vec3s{ 0.0f, 2.5f, 2.0f };
-	vec3s look = vec3s{ 0.0f, 0.0, -1.0f };
-	vec3s right = vec3s{ 1.0f, 0.0, 0.0f };
-
-	f32 yaw = 0.0f;
-	f32 pitch = 0.0f;
-
-	vec3s light_position{ 0.f, 4.0f, 0.f };
+	vec3s light_position{ 0.f, 10.0f, 0.f };
 
 	float model_scale = 1.0f;
 	float light_radius = 20.0f;

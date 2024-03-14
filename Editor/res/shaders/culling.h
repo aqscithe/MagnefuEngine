@@ -10,15 +10,18 @@ bool coneCull(vec3 center, float radius, vec3 cone_axis, float cone_cutoff, vec3
 
 // 2D Polyhedral Bounds of a Clipped, Perspective-Projected 3D Sphere. Michael Mara, Morgan McGuire. 2013
 bool project_sphere(vec3 C, float r, float znear, float P00, float P11, out vec4 aabb) {
-	if (C.z - r < znear)
+	//if (C.z - r < znear)
+	if (-C.z - r < znear)
 		return false;
 
-	vec2 cx = vec2(C.x, C.z);
+	//vec2 cx = vec2(C.x, C.z);
+	vec2 cx = vec2(C.x, -C.z);
 	vec2 vx = vec2(sqrt(dot(cx, cx) - r * r), r);
 	vec2 minx = mat2(vx.x, vx.y, -vx.y, vx.x) * cx;
 	vec2 maxx = mat2(vx.x, -vx.y, vx.y, vx.x) * cx;
 
-	vec2 cy = vec2(-C.y, C.z);
+	//vec2 cy = vec2(-C.y, C.z);
+	vec2 cy = -C.yz;
 	vec2 vy = vec2(sqrt(dot(cy, cy) - r * r), r);
 	vec2 miny = mat2(vy.x, vy.y, -vy.y, vy.x) * cy;
 	vec2 maxy = mat2(vy.x, -vy.y, vy.y, vy.x) * cy;
