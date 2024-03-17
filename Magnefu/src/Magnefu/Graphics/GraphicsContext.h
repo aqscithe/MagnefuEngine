@@ -62,9 +62,46 @@ namespace Magnefu
 
     }; // struct GpuThreadFramePools
 
+    struct GpuDescriptorPoolCreation {
+
+        u16                             samplers = 256;
+        u16                             combined_image_samplers = 256;
+        u16                             sampled_image = 256;
+        u16                             storage_image = 256;
+        u16                             uniform_texel_buffers = 256;
+        u16                             storage_texel_buffers = 256;
+        u16                             uniform_buffer = 256;
+        u16                             storage_buffer = 256;
+        u16                             uniform_buffer_dynamic = 256;
+        u16                             storage_buffer_dynamic = 256;
+        u16                             input_attachments = 256;
+
+    }; // struct GpuDescriptorPoolCreation
+
+    //
+    //
+    struct GpuResourcePoolCreation {
+
+        u16                             buffers = 256;
+        u16                             textures = 256;
+        u16                             pipelines = 256;
+        u16                             samplers = 256;
+        u16                             descriptor_set_layouts = 256;
+        u16                             descriptor_sets = 256;
+        u16                             render_passes = 256;
+        u16                             framebuffers = 256;
+        u16                             command_buffers = 256;
+        u16                             shaders = 256;
+        u16                             page_pools = 64;
+    };
+
+
     //
     //
     struct GraphicsContextCreation {
+
+        GpuDescriptorPoolCreation       descriptor_pool_creation;
+        GpuResourcePoolCreation         resource_pool_creation;
 
         Allocator* allocator = nullptr;
         StackAllocator* temporary_allocator = nullptr;
@@ -139,6 +176,12 @@ namespace Magnefu
         // Update/Reload resources ///////////////////////////////////////////
         void                            resize_output_textures(FramebufferHandle render_pass, u32 width, u32 height);
         void                            resize_texture(TextureHandle texture, u32 width, u32 height);
+
+        PagePoolHandle                  allocate_texture_pool(TextureHandle texture_handle, u32 pool_size);
+        void                            destroy_page_pool(PagePoolHandle pool_handle);
+
+        void                            reset_pool(PagePoolHandle pool_handle);
+        void                            bind_texture_pages(PagePoolHandle pool_handle, TextureHandle handle, u32 x, u32 y, u32 width, u32 height, u32 layer);
 
         void                            update_descriptor_set(DescriptorSetHandle set);
 
@@ -215,6 +258,7 @@ namespace Magnefu
         void                            destroy_render_pass_instant(ResourceHandle render_pass);
         void                            destroy_framebuffer_instant(ResourceHandle framebuffer);
         void                            destroy_shader_state_instant(ResourceHandle shader);
+        void                            destroy_page_pool_instant(ResourceHandle handle);
 
         void                            update_descriptor_set_instant(const DescriptorSetUpdate& update);
 
@@ -230,8 +274,9 @@ namespace Magnefu
         ResourcePool                    descriptor_sets;
         ResourcePool                    render_passes;
         ResourcePool                    framebuffers;
-        ResourcePool                    command_buffers;
+
         ResourcePool                    shaders;
+        ResourcePool                    page_pools;
 
         // Primitive resources
         BufferHandle                    fullscreen_vertex_buffer;
@@ -347,6 +392,9 @@ namespace Magnefu
         // [TAG: BINDLESS]
         Array<ResourceUpdate>           texture_to_update_bindless;
 
+        Array<SparseMemoryBindInfo>     pending_sparse_memory_info;
+        Array<VkSparseImageMemoryBind>  pending_sparse_queue_binds;
+
         u32                             num_threads = 1;
         f32                             gpu_timestamp_frequency;
         bool                            debug_utils_extension_present = false;
@@ -354,9 +402,13 @@ namespace Magnefu
         bool                            timeline_semaphore_extension_present = false;
         bool                            synchronization2_extension_present = false;
         bool                            mesh_shaders_extension_present = false;
+        bool                            multiview_extension_present = false;
 
         sizet                           ubo_alignment = 256;
         sizet                           ssbo_alignemnt = 256;
+
+        u32                             subgroup_size = 32;
+        u32                             max_framebuffer_layers = 1;
 
         char                            vulkan_binaries_path[512];
 
@@ -390,6 +442,9 @@ namespace Magnefu
 
         Framebuffer* access_framebuffer(FramebufferHandle framebuffer);
         const Framebuffer* access_framebuffer(FramebufferHandle framebuffer) const;
+
+        PagePool* access_page_pool(PagePoolHandle page_pool);
+        const PagePool* access_page_pool(PagePoolHandle page_pool) const;
 
     }; // struct GraphicsContext
 
