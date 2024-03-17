@@ -77,7 +77,7 @@
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\entt\include;vendor\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\entt\include;vendor\assimp\include;vendor\meshoptimizer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -99,7 +99,7 @@
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\entt\include;vendor\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\entt\include;vendor\assimp\include;vendor\meshoptimizer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -125,7 +125,7 @@
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\entt\include;vendor\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\entt\include;vendor\assimp\include;vendor\meshoptimizer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -154,6 +154,7 @@
     <ClInclude Include="src\Magnefu\Application\Events\KeyEvent.h" />
     <ClInclude Include="src\Magnefu\Application\Events\MouseEvent.h" />
     <ClInclude Include="src\Magnefu\Application\Events\OSEvent.h" />
+    <ClInclude Include="src\Magnefu\Application\GameCamera.hpp" />
     <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiDefs.h" />
     <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiService.hpp" />
     <ClInclude Include="src\Magnefu\Application\Input\GamepadCodes.h" />
@@ -203,11 +204,11 @@
     <ClInclude Include="src\Magnefu\Core\Span.h" />
     <ClInclude Include="src\Magnefu\Core\String.hpp" />
     <ClInclude Include="src\Magnefu\Core\Time.hpp" />
+    <ClInclude Include="src\Magnefu\Core\WindowsDeclarations.h" />
     <ClInclude Include="src\Magnefu\Core\glTF.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\AsynchronousLoader.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\CommandBuffer.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\FrameGraph.hpp" />
-    <ClInclude Include="src\Magnefu\Graphics\glTFScene.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\GPUEnum.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\GPUProfiler.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\GPUResources.hpp" />
@@ -216,14 +217,15 @@
     <ClInclude Include="src\Magnefu\Graphics\Mesh.h" />
     <ClInclude Include="src\Magnefu\Graphics\ObjScene.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\RenderConstants.h" />
-    <ClInclude Include="src\Magnefu\Graphics\Renderer.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\RenderResourcesLoader.hpp" />
+    <ClInclude Include="src\Magnefu\Graphics\RenderScene.hpp" />
+    <ClInclude Include="src\Magnefu\Graphics\Renderer.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\ResourceManagement\Handle.h" />
     <ClInclude Include="src\Magnefu\Graphics\ResourceManagement\ResourcePaths.h" />
     <ClInclude Include="src\Magnefu\Graphics\SceneGraph.hpp" />
+    <ClInclude Include="src\Magnefu\Graphics\glTFScene.hpp" />
     <ClInclude Include="src\Magnefu\Graphics\spirv_parser.hpp" />
     <ClInclude Include="src\Magnefu\Magnefu.h" />
-    <ClInclude Include="src\Magnefu\Graphics\RenderScene.hpp" />
     <ClInclude Include="src\mfpch.h" />
     <ClInclude Include="vendor\GLAD\include\KHR\khrplatform.h" />
     <ClInclude Include="vendor\GLAD\include\glad\glad.h" />
@@ -778,6 +780,7 @@
     <ClInclude Include="vendor\imgui\imstb_textedit.h" />
     <ClInclude Include="vendor\imgui\imstb_truetype.h" />
     <ClInclude Include="vendor\json\json.hpp" />
+    <ClInclude Include="vendor\meshoptimizer\meshoptimizer.h" />
     <ClInclude Include="vendor\spdlog\async.h" />
     <ClInclude Include="vendor\spdlog\async_logger-inl.h" />
     <ClInclude Include="vendor\spdlog\async_logger.h" />
@@ -1341,6 +1344,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application\Application.cpp" />
+    <ClCompile Include="src\Magnefu\Application\GameCamera.cpp" />
     <ClCompile Include="src\Magnefu\Application\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\Magnefu\Application\ImGui\ImGuiService.cpp" />
     <ClCompile Include="src\Magnefu\Application\Input\Input.cpp" />
@@ -1379,15 +1383,15 @@
     <ClCompile Include="src\Magnefu\Graphics\AsynchronousLoader.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\CommandBuffer.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\FrameGraph.cpp" />
-    <ClCompile Include="src\Magnefu\Graphics\glTFScene.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\GPUProfiler.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\GPUResources.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\GraphicsContext.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\ObjScene.cpp" />
-    <ClCompile Include="src\Magnefu\Graphics\Renderer.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\RenderResourcesLoader.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\RenderScene.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\Renderer.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\SceneGraph.cpp" />
+    <ClCompile Include="src\Magnefu\Graphics\glTFScene.cpp" />
     <ClCompile Include="src\Magnefu\Graphics\spirv_parser.cpp" />
     <ClCompile Include="src\mfpch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
@@ -1414,6 +1418,51 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="vendor\imgui\imgui_widgets.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\allocator.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\clusterizer.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\indexcodec.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\indexgenerator.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\overdrawanalyzer.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\overdrawoptimizer.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\simplifier.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\spatialorder.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\stripifier.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\vcacheanalyzer.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\vcacheoptimizer.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\vertexcodec.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\vertexfilter.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\vfetchanalyzer.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\meshoptimizer\vfetchoptimizer.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="vendor\stb_image\stb_image.cpp">

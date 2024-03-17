@@ -92,6 +92,7 @@ Editor/res/*
 Editor/res/shaders/*.cache
 
 .spv
+Editor/res/shaders/*.spv
 
 # Vendor
 !vendor/bin/premake/premake5.exe

@@ -15,7 +15,7 @@ namespace Magnefu
         void                init(Renderer* renderer, StackAllocator* temp_allocator, FrameGraph* frame_graph);
         void                shutdown();
 
-        GpuTechnique*       load_gpu_technique(cstring json_path);
+        GpuTechnique*       load_gpu_technique(cstring json_path, bool use_shader_cache);
         TextureResource*    load_texture(cstring path, bool generate_mipmaps = true);
 
 

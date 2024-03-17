@@ -10,7 +10,6 @@
 #include "Magnefu/Core/ResourceManager.hpp"
 
 
-#include <mutex>
 
 namespace Magnefu
 {
@@ -64,7 +63,7 @@ namespace Magnefu
     //
     struct GpuTechniqueCreation {
 
-        PipelineCreation                creations[8];
+        PipelineCreation                creations [16];
         u32                             num_creations = 0;
 
         cstring                         name = nullptr;
@@ -92,6 +91,8 @@ namespace Magnefu
 
         u32                             pool_index;
 
+        u32                             get_pass_index(cstring name);
+
         static constexpr cstring        k_type = "Magnefu_gpu_technique_type";
         static u64                      k_type_hash;
 
@@ -108,7 +109,7 @@ namespace Magnefu
 
         GpuTechnique* technique = nullptr;
         cstring                         name = nullptr;
-        u32                             render_index = ~0u;
+        u32                             render_index = u32_max;
 
     }; // struct MaterialCreation
 
@@ -141,6 +142,8 @@ namespace Magnefu
         FlatHashMap<u64, SamplerResource*> samplers;
         FlatHashMap<u64, Material*>        materials;
         FlatHashMap<u64, GpuTechnique*>    techniques;
+
+        char                            binary_data_folder[512];
 
     }; // struct ResourceCache
 
@@ -207,7 +210,6 @@ namespace Magnefu
         void                        add_texture_to_update(Magnefu::TextureHandle texture);
         void                        add_texture_update_commands(u32 thread_id);
 
-        std::mutex                  texture_update_mutex;
 
         ResourcePoolTyped<TextureResource>  textures;
         ResourcePoolTyped<BufferResource>   buffers;

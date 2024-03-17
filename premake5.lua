@@ -17,6 +17,7 @@ IncludeDir["Vulkan"] = "Magnefu/vendor/vulkan/include"
 IncludeDir["SOIL2"] = "Magnefu/vendor/SOIL2/include"
 IncludeDir["entt"] = "Magnefu/vendor/entt/include"
 IncludeDir["assimp"] = "Magnefu/vendor/assimp/include"
+IncludeDir["meshoptimizer"] = "Magnefu/vendor/meshoptimizer"
 
 LibDir = {}
 LibDir["GLFW"] = "Magnefu/vendor/GLAD/lib"
@@ -86,6 +87,7 @@ project "Magnefu"
         "%{IncludeDir.SOIL2}",
         "%{IncludeDir.entt}",
         "%{IncludeDir.assimp}",
+        "%{IncludeDir.meshoptimizer}",
         
     }
 
@@ -178,6 +180,7 @@ project "Editor"
         "%{IncludeDir.GLAD}",
         "%{IncludeDir.entt}",
         "%{IncludeDir.assimp}",
+        "%{IncludeDir.meshoptimizer}",
     }
 
     libdirs {

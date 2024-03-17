@@ -3,7 +3,7 @@
 // -- App ---------------- //
 #include "AppLayers/SandboxLayer.hpp"
 #include "AppLayers/Overlay.hpp"
-#include "GameCamera.hpp"
+#include "Magnefu/Application/GameCamera.hpp"
 #include "Magnefu/Application/Windows/Window.h"
 #include "Magnefu/Application/Input/Input.h"
 #include "Magnefu/Application/Input/KeyCodes.h"
@@ -36,12 +36,14 @@
 
 #include "stb_image/stb_image.h"
 
-
+#include "cglm/struct/vec2.h"
+#include "cglm/struct/mat2.h"
 #include "cglm/struct/mat3.h"
 #include "cglm/struct/mat4.h"
 #include "cglm/struct/quat.h"
 #include "cglm/struct/cam.h"
 #include "cglm/struct/affine.h"
+
 
 
 
@@ -74,7 +76,7 @@ static enki::TaskScheduler	        s_task_scheduler;
 
 static const u16 INVALID_TEXTURE_INDEX = ~0u;
 static Magnefu::RenderScene* scene = nullptr;
-static GameCamera s_game_camera;
+static Magnefu::GameCamera s_game_camera;
 
 
 static Magnefu::AsynchronousLoader           s_async_loader;
@@ -135,31 +137,136 @@ struct AsynchronousLoadTask : enki::IPinnedTask
 static AsynchronousLoadTask         s_async_load_task;
 
 
+vec4s normalize_plane(vec4s plane) {
+	f32 len = glms_vec3_norm({ plane.x, plane.y, plane.z });
+	return glms_vec4_scale(plane, 1.0f / len);
+}
+
+f32 linearize_depth(f32 depth, f32 z_far, f32 z_near) {
+	return z_near * z_far / (z_far + depth * (z_near - z_far));
+}
+
+
+static void test_sphere_aabb(Magnefu::GameCamera& game_camera) {
+	vec4s pos{ -14.5f, 1.28f, 0.f, 1.f };
+	f32 radius = 0.5f;
+	vec4s view_space_pos = glms_mat4_mulv(game_camera.camera.view, pos);
+	bool camera_visible = view_space_pos.z < radius + game_camera.camera.near_plane;
+
+	// X is positive, then it returns the same values as the longer method.
+	vec2s cx{ view_space_pos.x, -view_space_pos.z };
+	vec2s vx{ sqrtf(glms_vec2_dot(cx, cx) - (radius * radius)), radius };
+	mat2s xtransf_min{ vx.x, vx.y, -vx.y, vx.x };
+	vec2s minx = glms_mat2_mulv(xtransf_min, cx);
+	mat2s xtransf_max{ vx.x, -vx.y, vx.y, vx.x };
+	vec2s maxx = glms_mat2_mulv(xtransf_max, cx);
+
+	vec2s cy{ -view_space_pos.y, -view_space_pos.z };
+	vec2s vy{ sqrtf(glms_vec2_dot(cy, cy) - (radius * radius)), radius };
+	mat2s ytransf_min{ vy.x, vy.y, -vy.y, vy.x };
+	vec2s miny = glms_mat2_mulv(ytransf_min, cy);
+	mat2s ytransf_max{ vy.x, -vy.y, vy.y, vy.x };
+	vec2s maxy = glms_mat2_mulv(ytransf_max, cy);
+
+	vec4s aabb{ minx.x / minx.y * game_camera.camera.projection.m00, miny.x / miny.y * game_camera.camera.projection.m11,
+			   maxx.x / maxx.y * game_camera.camera.projection.m00, maxy.x / maxy.y * game_camera.camera.projection.m11 };
+	vec4s aabb2{ aabb.x * 0.5f + 0.5f, aabb.w * -0.5f + 0.5f, aabb.z * 0.5f + 0.5f, aabb.y * -0.5f + 0.5f };
+
+	vec3s left, right, top, bottom;
+	Magnefu::get_bounds_for_axis(vec3s{ 1,0,0 }, { view_space_pos.x, view_space_pos.y, view_space_pos.z }, radius, game_camera.camera.near_plane, left, right);
+	Magnefu::get_bounds_for_axis(vec3s{ 0,1,0 }, { view_space_pos.x, view_space_pos.y, view_space_pos.z }, radius, game_camera.camera.near_plane, top, bottom);
+
+	left = Magnefu::project(game_camera.camera.projection, left);
+	right = Magnefu::project(game_camera.camera.projection, right);
+	top = Magnefu::project(game_camera.camera.projection, top);
+	bottom = Magnefu::project(game_camera.camera.projection, bottom);
+
+	vec4s clip_space_pos = glms_mat4_mulv(game_camera.camera.projection, view_space_pos);
+
+	// left,right,bottom and top are in clip space (-1,1). Convert to 0..1 for UV, as used from the optimized version to read the depth pyramid.
+	MF_APP_INFO("Camera visible {}, x {}, {}, widh {} --- {},{} width {}", camera_visible ? 1 : 0, aabb2.x, aabb2.z, aabb2.z - aabb2.x, left.x * 0.5 + 0.5, right.x * 0.5 + 0.5, (left.x - right.x) * 0.5);
+	MF_APP_INFO("y {}, {}, height {} --- {},{} height {}", aabb2.y, aabb2.w, aabb2.w - aabb2.y, top.y * 0.5 + 0.5, bottom.y * 0.5 + 0.5, (top.y - bottom.y) * 0.5);
+}
+
+// Light placement function ///////////////////////////////////////////////
+void place_lights(Magnefu::Array<Magnefu::Light>& lights, bool grid) {
+
+	using namespace Magnefu;
+
+	if (grid) {
+		for (u32 i = 0; i < k_num_lights; ++i) {
+			Light& light = lights[i];
+
+			const f32 x = (i % 4);
+			const f32 y = 10.f;
+			const f32 z = (i / 4);
+
+			light.world_position = { x, y, z };
+			light.intensity = 10.f;
+			light.radius = 0.25f;
+			light.color = { 1, 1, 1 };
+		}
+	}
+
+	//// TODO(marco): we should take this into account when generating the lights positions
+	//const float scale = 0.008f;
+
+	//for ( u32 i = 0; i < k_num_lights; ++i ) {
+	//    float x = get_random_value( mesh_aabb[ 0 ].x * scale, mesh_aabb[ 1 ].x * scale );
+	//    float y = get_random_value( mesh_aabb[ 0 ].y * scale, mesh_aabb[ 1 ].y * scale );
+	//    float z = get_random_value( mesh_aabb[ 0 ].z * scale, mesh_aabb[ 1 ].z * scale );
+
+	//    float r = get_random_value( 0.0f, 1.0f );
+	//    float g = get_random_value( 0.0f, 1.0f );
+	//    float b = get_random_value( 0.0f, 1.0f );
+
+	//    Light new_light{ };
+	//    new_light.world_position = vec3s{ x, y, z };
+	//    new_light.radius = 1.2f; // TODO(marco): random as well?
+
+	//    new_light.color = vec3s{ r, g, b };
+	//    new_light.intensity = 30.0f;
+
+	//    lights.push( new_light );
+	//}
+}
+
+
+
 // -- Render Data ----------------------------------- //
 
 struct RenderData
 {
-	vec3s eye = vec3s{ 0.0f, 2.5f, 2.0f };
-	vec3s look = vec3s{ 0.0f, 0.0, -1.0f };
-	vec3s right = vec3s{ 1.0f, 0.0, 0.0f };
-
-	f32 yaw = 0.0f;
-	f32 pitch = 0.0f;
-
-	vec3s light_position{ 0.f, 4.0f, 0.f };
+	vec3s light_position{ 0.f, 10.0f, 0.f };
 
 	float model_scale = 1.0f;
-	float light_range = 20.0f;
+	float light_radius = 20.0f;
 	float light_intensity = 80.0f;
 
 	// Cloth physics
 	f32 spring_stiffness = 10000.0f;
 	f32 spring_damping = 5000.0f;
-	f32 air_density = 10.0f;
+	f32 air_density = 2.0f;
 	bool reset_simulation = false;
-	vec3s wind_direction{ -5.0f, 0.0f, 0.0f };
+	vec3s wind_direction{ -2.0f, 0.0f, 0.0f };
 
+	f32 animation_speed_multiplier = 0.05f;
 
+	bool light_placement = true;
+
+	bool enable_frustum_cull_meshes = true;
+	bool enable_frustum_cull_meshlets = true;
+	bool enable_occlusion_cull_meshes = true;
+	bool enable_occlusion_cull_meshlets = true;
+	bool freeze_occlusion_camera = false;
+
+	bool enable_camera_inside = false;
+	bool use_mcguire_method = false;
+	bool skip_invisible_lights = true;
+	bool use_view_aabb = true;
+	bool force_fullscreen_light_aabb = false;
+
+	mat4s projection_transpose{ };
 };
 
 // ----------------------------------------------------------------------------------------------------------- //
@@ -271,6 +378,19 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	StringBuffer temporary_name_buffer;
 	temporary_name_buffer.init(1024, scratch_allocator);
 
+	// Create binaries folders
+	cstring shader_binaries_folder = temporary_name_buffer.append_use_f("%s", MAGNEFU_SHADER_FOLDER);
+	if (!directory_exists(shader_binaries_folder)) {
+		if (directory_create(shader_binaries_folder)) {
+			MF_APP_INFO("Created folder {}", shader_binaries_folder);
+		}
+		else {
+			MF_APP_ERROR("Cannot create folder {}");
+		}
+	}
+	strcpy(renderer->resource_cache.binary_data_folder, shader_binaries_folder);
+	temporary_name_buffer.clear();
+
 
 	// will eventually have an EditorLayer
 	// may even have more specific layers like Physics Collisions and AI...
@@ -299,31 +419,25 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 		cstring dither_texture_path = temporary_name_buffer.append_use_f("%s/BayerDither4x4.png", MAGNEFU_TEXTURE_FOLDER);
 		dither_texture = s_render_resources_loader.load_texture(dither_texture_path, false);
 
+		
+
 		// Parse techniques
 		GpuTechniqueCreation gtc;
-		temporary_name_buffer.clear();
-		cstring full_screen_pipeline_path = temporary_name_buffer.append_use_f("%s/%s", MAGNEFU_SHADER_FOLDER, "fullscreen.json");
-		s_render_resources_loader.load_gpu_technique(full_screen_pipeline_path);
+		const bool use_shader_cache = true;
+		auto parse_technique = [&](cstring technique_name) {
+			temporary_name_buffer.clear();
+			cstring path = temporary_name_buffer.append_use_f("%s/%s", MAGNEFU_SHADER_FOLDER, technique_name);
+			s_render_resources_loader.load_gpu_technique(path, use_shader_cache);
+		};
 
-		temporary_name_buffer.clear();
-		cstring main_pipeline_path = temporary_name_buffer.append_use_f("%s/%s", MAGNEFU_SHADER_FOLDER, "main.json");
-		s_render_resources_loader.load_gpu_technique(main_pipeline_path);
+		cstring techniques[] = { "meshlet.json", "fullscreen.json", "main.json",
+								 "pbr_lighting.json", "dof.json", "cloth.json", "debug.json",
+								 "culling.json" };
 
-		temporary_name_buffer.clear();
-		cstring pbr_pipeline_path = temporary_name_buffer.append_use_f("%s/%s", MAGNEFU_SHADER_FOLDER, "pbr_lighting.json");
-		s_render_resources_loader.load_gpu_technique(pbr_pipeline_path);
-
-		temporary_name_buffer.clear();
-		cstring dof_pipeline_path = temporary_name_buffer.append_use_f("%s/%s", MAGNEFU_SHADER_FOLDER, "dof.json");
-		s_render_resources_loader.load_gpu_technique(dof_pipeline_path);
-
-		temporary_name_buffer.clear();
-		cstring cloth_pipeline_path = temporary_name_buffer.append_use_f("%s/%s", MAGNEFU_SHADER_FOLDER, "cloth.json");
-		s_render_resources_loader.load_gpu_technique(cloth_pipeline_path);
-
-		temporary_name_buffer.clear();
-		cstring debug_pipeline_path = temporary_name_buffer.append_use_f("%s/%s", MAGNEFU_SHADER_FOLDER, "debug.json");
-		s_render_resources_loader.load_gpu_technique(debug_pipeline_path);
+		const sizet num_techniques = ArraySize(techniques);
+		for (sizet t = 0; t < num_techniques; ++t) {
+			parse_technique(techniques[t]);
+		}
 
 	}
 	
@@ -343,12 +457,8 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	temporary_name_buffer.clear();
 	cstring scene_path = nullptr;
 
-	//InjectDefault3DModel(scene_path);
+	InjectDefault3DModel(scene_path);
 
-	if (scene_path == nullptr) 
-	{
-		scene_path = temporary_name_buffer.append_use_f("%s/%s", MAGNEFU_MODEL_FOLDER, "plane.obj");
-	}
 
     char file_base_path[512]{ };
 
@@ -361,8 +471,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
     memcpy(file_name, scene_path, strlen(scene_path));
     file_name_from_path(file_name);
 
-	scratch_allocator->freeToMarker(scratch_marker);
-
+	
 
     char* file_extension = file_extension_from_path(file_name);
 
@@ -375,6 +484,8 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
         scene = new ObjScene;
     }
 
+	scene->use_meshlets = gpu->mesh_shaders_extension_present;
+	scene->use_meshlets_emulation = !scene->use_meshlets;
     scene->init(file_name, file_base_path, allocator, scratch_allocator, &s_async_loader);
 
     // NOTE(marco): restore working directory
@@ -457,7 +568,6 @@ bool Sandbox::MainLoop()
 
 	RenderData render_data;
 
-
 	accumulator = 0.0;
 	i64 start_time = Magnefu::time_now();
     i64 absolute_time = start_time;
@@ -509,6 +619,8 @@ bool Sandbox::MainLoop()
 
 		while (accumulator >= step)
 		{
+			// TODO: Move physics and physics-driven animations updates to FixedUpdate
+			// Physics eventually to be done on gpu with physx
 			FixedUpdate(delta_time);
 
 			accumulator -= step;
@@ -518,6 +630,21 @@ bool Sandbox::MainLoop()
 
 
 		static f32 animation_speed_multiplier = 0.05f;
+
+		static bool enable_frustum_cull_meshes = true;
+		static bool enable_frustum_cull_meshlets = true;
+		static bool enable_occlusion_cull_meshes = true;
+		static bool enable_occlusion_cull_meshlets = true;
+		static bool freeze_occlusion_camera = false;
+
+		static bool enable_camera_inside = false;
+		static bool use_mcguire_method = false;
+		static bool skip_invisible_lights = true;
+		static bool use_view_aabb = true;
+		static bool force_fullscreen_light_aabb = false;
+
+		static mat4s projection_transpose{ };
+
 
 		// -- ImGui New Frame -------------- //
 		imgui->BeginFrame();
@@ -534,21 +661,40 @@ bool Sandbox::MainLoop()
 
                 ImGui::SeparatorText("LIGHTS");
 				ImGui::SliderFloat3("Light position", render_data.light_position.raw, -30.f, 30.f);
-				ImGui::InputFloat("Light range", &render_data.light_range);
+				ImGui::InputFloat("Light radius", &render_data.light_radius);
 				ImGui::InputFloat("Light intensity", &render_data.light_intensity);
                 
                 ImGui::SeparatorText("CAMERA");
 				ImGui::InputFloat3("Camera position", s_game_camera.camera.position.raw);
 				ImGui::InputFloat3("Camera target movement", s_game_camera.target_movement.raw);
 
-				ImGui::SeparatorText("CLOTH PHYSICS");
+				ImGui::SeparatorText("PHYSICS");
 				ImGui::InputFloat3("Wind direction", render_data.wind_direction.raw);
 				ImGui::InputFloat("Air density", &render_data.air_density);
 				ImGui::InputFloat("Spring stiffness", &render_data.spring_stiffness);
 				ImGui::InputFloat("Spring damping", &render_data.spring_damping);
 				ImGui::Checkbox("Reset simulation", &render_data.reset_simulation);
 
-                ImGui::SeparatorText("OPTIONS");
+				ImGui::SeparatorText("OPTIONS");
+
+				static bool enable_meshlets = false;
+				enable_meshlets = scene->use_meshlets && gpu->mesh_shaders_extension_present;
+				ImGui::Checkbox("Use meshlets", &enable_meshlets);
+				scene->use_meshlets = enable_meshlets;
+				ImGui::Checkbox("Use meshlets emulation", &scene->use_meshlets_emulation);
+				ImGui::Checkbox("Use frustum cull for meshes", &enable_frustum_cull_meshes);
+				ImGui::Checkbox("Use frustum cull for meshlets", &enable_frustum_cull_meshlets);
+				ImGui::Checkbox("Use occlusion cull for meshes", &enable_occlusion_cull_meshes);
+				ImGui::Checkbox("Use occlusion cull for meshlets", &enable_occlusion_cull_meshlets);
+				ImGui::Checkbox("Freeze occlusion camera", &freeze_occlusion_camera);
+				ImGui::Checkbox("Show Debug GPU Draws", &scene->show_debug_gpu_draws);
+
+				ImGui::Checkbox("Enable Camera Inside approximation", &enable_camera_inside);
+				ImGui::Checkbox("Use McGuire method for AABB sphere", &use_mcguire_method);
+				ImGui::Checkbox("Skip invisible lights", &skip_invisible_lights);
+				ImGui::Checkbox("use view aabb", &use_view_aabb);
+				ImGui::Checkbox("force fullscreen light aabb", &force_fullscreen_light_aabb);
+
                 ImGui::Checkbox("Dynamically recreate descriptor sets", &recreate_per_thread_descriptors);
                 ImGui::Checkbox("Use secondary command buffers", &use_secondary_command_buffers);
 
@@ -604,7 +750,19 @@ bool Sandbox::MainLoop()
 			{
                 renderer->imgui_draw();
                 ImGui::Separator();
+				ImGui::Text("Cpu Time %fms", delta_time * 1000.f);
 				gpu_profiler->imgui_draw();
+			}
+			ImGui::End();
+
+			if (ImGui::Begin("Textures Debug")) 
+			{
+				const ImVec2 window_size = ImGui::GetWindowSize();
+
+				FrameGraphResource* resource = s_frame_graph.get_resource("depth");
+
+				ImGui::Image((ImTextureID)&resource->resource_info.texture.handle, window_size);
+
 			}
 			ImGui::End();
 
@@ -626,6 +784,15 @@ bool Sandbox::MainLoop()
 			MF_PROFILE_SCOPE("Scene Joint Updates");
 			scene->update_joints();
 		}
+
+		// Copy static render info
+		render_data.animation_speed_multiplier = animation_speed_multiplier;
+		render_data.enable_frustum_cull_meshes = enable_frustum_cull_meshes;
+		render_data.enable_frustum_cull_meshlets = enable_frustum_cull_meshlets;
+		render_data.enable_occlusion_cull_meshes = enable_occlusion_cull_meshes;
+		render_data.enable_occlusion_cull_meshlets = enable_occlusion_cull_meshlets;
+		render_data.freeze_occlusion_camera = freeze_occlusion_camera;
+		render_data.projection_transpose = projection_transpose;
 
 		const f32 interpolation_factor = Maths::clamp(0.0f, 1.0f, (f32)(accumulator / step));
 		Render(delta_time, interpolation_factor, &render_data);
@@ -653,6 +820,47 @@ void Sandbox::Render(f32 delta_time, f32 interpolation_factor, void* data)
         RenderData* render_data = (RenderData*)data;
 
         {
+			GpuSceneData& scene_data = scene->scene_data;
+			scene_data.previous_view_projection = scene_data.view_projection;   // Cache previous view projection
+			scene_data.view_projection = s_game_camera.camera.view_projection;
+			scene_data.inverse_view_projection = glms_mat4_inv(s_game_camera.camera.view_projection);
+			scene_data.world_to_camera = s_game_camera.camera.view;
+			scene_data.camera_position = vec4s{ s_game_camera.camera.position.x, s_game_camera.camera.position.y, s_game_camera.camera.position.z, 1.0f };
+			scene_data.dither_texture_index = dither_texture ? dither_texture->handle.index : 0;
+
+			scene_data.z_near = s_game_camera.camera.near_plane;
+			scene_data.z_far = s_game_camera.camera.far_plane;
+			scene_data.projection_00 = s_game_camera.camera.projection.m00;
+			scene_data.projection_11 = s_game_camera.camera.projection.m11;
+			scene_data.frustum_cull_meshes = render_data->enable_frustum_cull_meshes ? 1 : 0;
+			scene_data.frustum_cull_meshlets = render_data->enable_frustum_cull_meshlets ? 1 : 0;
+			scene_data.occlusion_cull_meshes = render_data->enable_occlusion_cull_meshes ? 1 : 0;
+			scene_data.occlusion_cull_meshlets = render_data->enable_occlusion_cull_meshlets ? 1 : 0;
+			scene_data.freeze_occlusion_camera = render_data->freeze_occlusion_camera ? 1 : 0;
+
+			scene_data.resolution_x = gpu->swapchain_width * 1.f;
+			scene_data.resolution_y = gpu->swapchain_height * 1.f;
+			scene_data.aspect_ratio = gpu->swapchain_width * 1.f / gpu->swapchain_height;
+
+			// TEST packed light data
+			scene_data.light0_data0 = vec4s{ render_data->light_position.x, render_data->light_position.y, render_data->light_position.z, render_data->light_radius };
+			scene_data.light0_data1 = vec4s{ 1.f, 1.f, 1.f, render_data->light_intensity };
+
+			// Frustum computations
+			if (!render_data->freeze_occlusion_camera) {
+				scene_data.world_to_camera_debug = scene_data.world_to_camera;
+				scene_data.view_projection_debug = scene_data.view_projection;
+				render_data->projection_transpose = glms_mat4_transpose(s_game_camera.camera.projection);
+			}
+
+			scene_data.frustum_planes[0] = normalize_plane(glms_vec4_add(render_data->projection_transpose.col[3], render_data->projection_transpose.col[0])); // x + w  < 0;
+			scene_data.frustum_planes[1] = normalize_plane(glms_vec4_sub(render_data->projection_transpose.col[3], render_data->projection_transpose.col[0])); // x - w  < 0;
+			scene_data.frustum_planes[2] = normalize_plane(glms_vec4_add(render_data->projection_transpose.col[3], render_data->projection_transpose.col[1])); // y + w  < 0;
+			scene_data.frustum_planes[3] = normalize_plane(glms_vec4_sub(render_data->projection_transpose.col[3], render_data->projection_transpose.col[1])); // y - w  < 0;
+			scene_data.frustum_planes[4] = normalize_plane(glms_vec4_add(render_data->projection_transpose.col[3], render_data->projection_transpose.col[2])); // z + w  < 0;
+			scene_data.frustum_planes[5] = normalize_plane(glms_vec4_sub(render_data->projection_transpose.col[3], render_data->projection_transpose.col[2])); // z - w  < 0;
+
+
             // Update common constant buffer
             MF_PROFILE_SCOPE("Uniform Buffer Update");
 
@@ -660,18 +868,51 @@ void Sandbox::Render(f32 delta_time, f32 interpolation_factor, void* data)
 			GpuSceneData* gpu_scene_data = (GpuSceneData*)gpu->map_buffer(scene_cb_map);
             if (gpu_scene_data)
             {
-                gpu_scene_data->view_projection = s_game_camera.camera.view_projection;
-				gpu_scene_data->inverse_view_projection = glms_mat4_inv(s_game_camera.camera.view_projection);
-                gpu_scene_data->eye = vec4s{ s_game_camera.camera.position.x, s_game_camera.camera.position.y, s_game_camera.camera.position.z, 1.0f };
-                gpu_scene_data->light_position = vec4s{ render_data->light_position.x, render_data->light_position.y, render_data->light_position.z, 1.0f };
-                gpu_scene_data->light_range = render_data->light_range;
-                gpu_scene_data->light_intensity = render_data->light_intensity;
-				gpu_scene_data->dither_texture_index = dither_texture ? dither_texture->handle.index : 0;
+				memcpy(gpu_scene_data, &scene->scene_data, sizeof(GpuSceneData));
 
                 gpu->unmap_buffer(scene_cb_map);
             }
 
-			s_frame_renderer.upload_gpu_data();
+			// TODO: move light placement here.
+			if (render_data->light_placement) 
+			{
+				render_data->light_placement = false;
+
+				//place_lights( scene->lights, true );
+			}
+
+			u32 tile_x_count = scene_data.resolution_x / k_tile_size;
+			u32 tile_y_count = scene_data.resolution_y / k_tile_size;
+			u32 tiles_entry_count = tile_x_count * tile_y_count * k_num_words;
+			u32 buffer_size = tiles_entry_count * sizeof(u32);
+
+			Buffer* lights_tiles_buffer = nullptr;
+			// Check just the first tile, as we destroy/create them together
+			if (scene->lights_tiles_sb[0].index != k_invalid_buffer.index) {
+				lights_tiles_buffer = renderer->gpu->access_buffer(scene->lights_tiles_sb[gpu->current_frame]);
+			}
+
+			if (lights_tiles_buffer == nullptr || lights_tiles_buffer->size != buffer_size) {
+				for (u32 i = 0; i < k_max_frames; ++i) {
+					renderer->gpu->destroy_buffer(scene->lights_tiles_sb[i]);
+				}
+
+				BufferCreation buffer_creation{ };
+				buffer_creation.reset().set(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, ResourceUsageType::Dynamic, buffer_size).set_name("light_tiles");
+
+				for (u32 i = 0; i < k_max_frames; ++i) {
+					scene->lights_tiles_sb[i] = renderer->gpu->create_buffer(buffer_creation);
+				}
+			}
+
+
+			UploadGpuDataContext upload_context{ s_game_camera, &MemoryService::Instance()->tempStackAllocator };
+			upload_context.enable_camera_inside = render_data->enable_camera_inside;
+			upload_context.force_fullscreen_light_aabb = render_data->force_fullscreen_light_aabb;
+			upload_context.skip_invisible_lights = render_data->skip_invisible_lights;
+			upload_context.use_mcguire_method = render_data->use_mcguire_method;
+			upload_context.use_view_aabb = render_data->use_view_aabb;
+			s_frame_renderer.upload_gpu_data(upload_context);
         }
 
 		DrawTask draw_task;

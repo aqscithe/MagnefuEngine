@@ -323,6 +323,7 @@ namespace Magnefu
 
 		allocatedSize = 0;
 		totalSize = size;
+        //MF_CORE_DEBUG("STACKALLOCATOR - init() - allocatedSize: {} | totalSize: {}", allocatedSize, totalSize);
 	}
 
 	void StackAllocator::shutdown()
@@ -345,6 +346,7 @@ namespace Magnefu
 		}
 
 		allocatedSize = newAllocatedSize;
+        //MF_CORE_DEBUG("STACKALLOCATOR - allocate() - allocatedSize: {}", allocatedSize);
 		return memory + newStart;
 	}
 
@@ -364,11 +366,12 @@ namespace Magnefu
 		const sizet sizeAtPointer = (u8*)pointer - memory;
 
 		allocatedSize = sizeAtPointer;
-
+        //MF_CORE_DEBUG("STACKALLOCATOR - deallocate() -allocatedSize: {}", allocatedSize);
 	}
 
 	sizet StackAllocator::getMarker()
 	{
+        //MF_CORE_DEBUG("STACKALLOCATOR - getMarker() - allocatedSize: {}", allocatedSize);
 		return allocatedSize;
 	}
 
@@ -379,11 +382,14 @@ namespace Magnefu
 		{
 			allocatedSize = marker;
 		}
+
+        //MF_CORE_DEBUG("STACKALLOCATOR - freeToMarker() - marker: {} | allocatedSize: {}", marker, allocatedSize);
 	}
 
 	void StackAllocator::clear()
 	{
 		allocatedSize = 0;
+        //MF_CORE_DEBUG("STACKALLOCATOR - clear() - allocatedSize: {}", allocatedSize);
 	}
 
 

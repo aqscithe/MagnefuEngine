@@ -70,7 +70,7 @@ namespace Magnefu
     //
     struct GPUTimeQueriesManager {
 
-        void                            init(GpuThreadFramePools* thread_frame_pools, GpuThreadFramePools* compute_frame_pools, Allocator* allocator, u16 queries_per_thread, u16 num_threads, u16 max_frames);
+        void                            init(GpuThreadFramePools* thread_frame_pools, Allocator* allocator, u16 queries_per_thread, u16 num_threads, u16 max_frames);
         void                            shutdown();
 
         void                            reset();
@@ -80,7 +80,6 @@ namespace Magnefu
 
         Allocator* allocator = nullptr;
         GpuThreadFramePools* thread_frame_pools = nullptr;
-        GpuThreadFramePools* compute_frame_pools = nullptr;
         GPUTimeQuery* timestamps = nullptr;
 
         GpuPipelineStatistics           frame_pipeline_statistics;  // Per frame statistics as sum of per-frame ones.

@@ -7,6 +7,8 @@
 #include "Magnefu/Application/ImGui/ImGuiService.hpp"
 #include "SceneGraph.hpp"
 
+#include "Magnefu/Core/Numerics.hpp"
+
 #include "stb_image/stb_image.h"
 
 #include "assimp/cimport.h"
@@ -17,6 +19,9 @@
 #include "cglm/struct/mat4.h"
 #include "cglm/struct/vec3.h"
 
+
+
+static const bool k_enable_physics = false;
 
 
 namespace Magnefu
@@ -46,6 +51,135 @@ namespace Magnefu
 
         // NOTE(marco): this only works if we work with a plane with equal size subdivision
         return (distance <= max_distance);
+    }
+
+    static void compute_joints(aiMesh* mesh, PhysicsMesh* physics_mesh) {
+        // NOTE(marco): compute cloth joints
+        for (u32 face_index = 0; face_index < mesh->mNumFaces; ++face_index) {
+            u32 index_a = mesh->mFaces[face_index].mIndices[0];
+            u32 index_b = mesh->mFaces[face_index].mIndices[1];
+            u32 index_c = mesh->mFaces[face_index].mIndices[2];
+
+            PhysicsVertex& vertex_a = physics_mesh->vertices[index_a];
+            vertex_a.add_joint(index_b);
+            vertex_a.add_joint(index_c);
+
+            PhysicsVertex& vertex_b = physics_mesh->vertices[index_b];
+            vertex_b.add_joint(index_a);
+            vertex_b.add_joint(index_c);
+
+            PhysicsVertex& vertex_c = physics_mesh->vertices[index_c];
+            vertex_c.add_joint(index_a);
+            vertex_c.add_joint(index_b);
+
+            // NOTE(marco): check for adjacent triangles to get diagonal joints
+            for (u32 other_face_index = 0; other_face_index < mesh->mNumFaces; ++other_face_index) {
+                if (other_face_index == face_index) {
+                    continue;
+                }
+
+                u32 other_index_a = mesh->mFaces[other_face_index].mIndices[0];
+                u32 other_index_b = mesh->mFaces[other_face_index].mIndices[1];
+                u32 other_index_c = mesh->mFaces[other_face_index].mIndices[2];
+
+                // check for vertex_a
+                if (other_index_a == index_b && other_index_b == index_c) {
+                    if (is_shared_vertex(physics_mesh->vertices.data, vertex_a, other_index_c)) {
+                        vertex_a.add_joint(other_index_c);
+                    }
+                }
+                if (other_index_a == index_c && other_index_b == index_b) {
+                    if (is_shared_vertex(physics_mesh->vertices.data, vertex_a, other_index_c)) {
+                        vertex_a.add_joint(other_index_c);
+                    }
+                }
+                if (other_index_a == index_b && other_index_c == index_c) {
+                    if (is_shared_vertex(physics_mesh->vertices.data, vertex_a, other_index_b)) {
+                        vertex_a.add_joint(other_index_b);
+                    }
+                }
+                if (other_index_a == index_c && other_index_c == index_b) {
+                    if (is_shared_vertex(physics_mesh->vertices.data, vertex_a, other_index_b)) {
+                        vertex_a.add_joint(other_index_b);
+                    }
+                }
+                if (other_index_c == index_b && other_index_b == index_c) {
+                    if (is_shared_vertex(physics_mesh->vertices.data, vertex_a, other_index_a)) {
+                        vertex_a.add_joint(other_index_a);
+                    }
+                }
+                if (other_index_c == index_c && other_index_b == index_b) {
+                    if (is_shared_vertex(physics_mesh->vertices.data, vertex_a, other_index_a)) {
+                        vertex_a.add_joint(other_index_a);
+                    }
+                }
+
+                // check for vertex_b
+                if (other_index_a == index_a && other_index_b == index_c) {
+                    if (is_shared_vertex(physics_mesh->vertices.data, vertex_b, other_index_c)) {
+                        vertex_b.add_joint(other_index_c);
+                    }
+                }
+                if (other_index_a == index_c && other_index_b == index_a) {
+                    if (is_shared_vertex(physics_mesh->vertices.data, vertex_b, other_index_c)) {
+                        vertex_b.add_joint(other_index_c);
+                    }
+                }
+                if (other_index_a == index_a && other_index_c == index_c) {
+                    if (is_shared_vertex(physics_mesh->vertices.data, vertex_b, other_index_b)) {
+                        vertex_b.add_joint(other_index_b);
+                    }
+                }
+                if (other_index_a == index_c && other_index_c == index_a) {
+                    if (is_shared_vertex(physics_mesh->vertices.data, vertex_b, other_index_b)) {
+                        vertex_b.add_joint(other_index_b);
+                    }
+                }
+                if (other_index_c == index_a && other_index_b == index_c) {
+                    if (is_shared_vertex(physics_mesh->vertices.data, vertex_b, other_index_a)) {
+                        vertex_b.add_joint(other_index_a);
+                    }
+                }
+                if (other_index_c == index_c && other_index_b == index_a) {
+                    if (is_shared_vertex(physics_mesh->vertices.data, vertex_b, other_index_a)) {
+                        vertex_b.add_joint(other_index_a);
+                    }
+                }
+
+                // check for vertex_c
+                if (other_index_a == index_a && other_index_b == index_b) {
+                    if (is_shared_vertex(physics_mesh->vertices.data, vertex_c, other_index_c)) {
+                        vertex_c.add_joint(other_index_c);
+                    }
+                }
+                if (other_index_a == index_b && other_index_b == index_a) {
+                    if (is_shared_vertex(physics_mesh->vertices.data, vertex_c, other_index_c)) {
+                        vertex_c.add_joint(other_index_c);
+                    }
+                }
+                if (other_index_a == index_a && other_index_c == index_b) {
+                    if (is_shared_vertex(physics_mesh->vertices.data, vertex_c, other_index_b)) {
+                        vertex_c.add_joint(other_index_b);
+                    }
+                }
+                if (other_index_a == index_b && other_index_c == index_a) {
+                    if (is_shared_vertex(physics_mesh->vertices.data, vertex_c, other_index_b)) {
+                        vertex_c.add_joint(other_index_b);
+                    }
+                }
+
+                if (other_index_c == index_a && other_index_b == index_b) {
+                    if (is_shared_vertex(physics_mesh->vertices.data, vertex_c, other_index_a)) {
+                        vertex_c.add_joint(other_index_a);
+                    }
+                }
+                if (other_index_c == index_b && other_index_b == index_a) {
+                    if (is_shared_vertex(physics_mesh->vertices.data, vertex_c, other_index_a)) {
+                        vertex_c.add_joint(other_index_a);
+                    }
+                }
+            }
+        }
     }
 
     void ObjScene::init(cstring filename, cstring path, Allocator* resident_allocator_, StackAllocator* temp_allocator, AsynchronousLoader* async_loader_)
@@ -86,51 +220,49 @@ namespace Magnefu
         for (u32 material_index = 0; material_index < assimp_scene->mNumMaterials; ++material_index) {
             aiMaterial* material = assimp_scene->mMaterials[material_index];
 
-            PBRMaterial raptor_material{ };
+            // Important to init with default values.
+            PBRMaterial magnefu_material{ };
 
             aiString texture_file;
 
             if (aiGetMaterialString(material, AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), &texture_file) == AI_SUCCESS) {
-                raptor_material.diffuse_texture_index = load_texture(texture_file.C_Str(), path, temp_allocator);
+                magnefu_material.diffuse_texture_index = load_texture(texture_file.C_Str(), path, temp_allocator);
             }
             else {
-                raptor_material.diffuse_texture_index = k_invalid_scene_texture_index;
+                magnefu_material.diffuse_texture_index = k_invalid_scene_texture_index;
             }
 
             if (aiGetMaterialString(material, AI_MATKEY_TEXTURE(aiTextureType_NORMALS, 0), &texture_file) == AI_SUCCESS)
             {
-                raptor_material.normal_texture_index = load_texture(texture_file.C_Str(), path, temp_allocator);
+                magnefu_material.normal_texture_index = load_texture(texture_file.C_Str(), path, temp_allocator);
             }
             else {
-                raptor_material.normal_texture_index = k_invalid_scene_texture_index;
+                magnefu_material.normal_texture_index = k_invalid_scene_texture_index;
             }
 
-            raptor_material.roughness_texture_index = k_invalid_scene_texture_index;
-            raptor_material.occlusion_texture_index = k_invalid_scene_texture_index;
+            magnefu_material.roughness_texture_index = k_invalid_scene_texture_index;
+            magnefu_material.occlusion_texture_index = k_invalid_scene_texture_index;
 
             aiColor4D color;
             if (aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, &color) == AI_SUCCESS) {
-                raptor_material.diffuse_colour = { color.r, color.g, color.b, 1.0f };
+                magnefu_material.base_color_factor = { color.r, color.g, color.b, 1.0f };
             }
-
-            if (aiGetMaterialColor(material, AI_MATKEY_COLOR_AMBIENT, &color) == AI_SUCCESS) {
-                raptor_material.ambient_colour = { color.r, color.g, color.b };
-            }
-
-            if (aiGetMaterialColor(material, AI_MATKEY_COLOR_SPECULAR, &color) == AI_SUCCESS) {
-                raptor_material.specular_colour = { color.r, color.g, color.b };
+            else {
+                magnefu_material.base_color_factor = { 1.0f, 1.0f, 1.0f, 1.0f };
             }
 
             float f_value;
             if (aiGetMaterialFloat(material, AI_MATKEY_SHININESS, &f_value) == AI_SUCCESS) {
-                raptor_material.specular_exp = f_value;
+                const f32 specular_exp = f_value;
+
+                magnefu_material.occlusion = Magnefu::max(powf((1.f - specular_exp), 2.f), 0.0001f);
             }
 
             if (aiGetMaterialFloat(material, AI_MATKEY_OPACITY, &f_value) == AI_SUCCESS) {
-                raptor_material.diffuse_colour.w = f_value;
+                magnefu_material.base_color_factor.w = f_value;
             }
 
-            materials.push(raptor_material);
+            materials.push(magnefu_material);
         }
 
         i64 end_loading_textures_files = time_now();
@@ -168,9 +300,14 @@ namespace Magnefu
             aiMesh* mesh = assimp_scene->mMeshes[mesh_index];
 
             Mesh render_mesh{ };
-            PhysicsMesh* physics_mesh = (PhysicsMesh*)resident_allocator->allocate(sizeof(PhysicsMesh), 64);
+            PhysicsMesh* physics_mesh = nullptr;
 
-            physics_mesh->vertices.init(resident_allocator, mesh->mNumVertices);
+            if (k_enable_physics) {
+                physics_mesh = (PhysicsMesh*)resident_allocator->allocate(sizeof(PhysicsMesh), 64);
+
+                physics_mesh->vertices.init(resident_allocator, mesh->mNumVertices);
+            }
+
 
             MF_CORE_ASSERT((mesh->mPrimitiveTypes & aiPrimitiveType_TRIANGLE) != 0, "");
 
@@ -211,7 +348,9 @@ namespace Magnefu
                     mesh->mTextureCoords[0][vertex_index].y,
                     });
 
-                physics_mesh->vertices.push(physics_vertex);
+                if (k_enable_physics) {
+                    physics_mesh->vertices.push(physics_vertex);
+                }
             }
 
             for (u32 face_index = 0; face_index < mesh->mNumFaces; ++face_index) {
@@ -225,139 +364,12 @@ namespace Magnefu
                 indices.push(index_b);
                 indices.push(index_c);
 
-                // NOTE(marco): compute cloth joints
-
-                PhysicsVertex& vertex_a = physics_mesh->vertices[index_a];
-                vertex_a.add_joint(index_b);
-                vertex_a.add_joint(index_c);
-
-                PhysicsVertex& vertex_b = physics_mesh->vertices[index_b];
-                vertex_b.add_joint(index_a);
-                vertex_b.add_joint(index_c);
-
-                PhysicsVertex& vertex_c = physics_mesh->vertices[index_c];
-                vertex_c.add_joint(index_a);
-                vertex_c.add_joint(index_b);
             }
 
-            for (u32 face_index = 0; face_index < mesh->mNumFaces; ++face_index) {
-                u32 index_a = mesh->mFaces[face_index].mIndices[0];
-                u32 index_b = mesh->mFaces[face_index].mIndices[1];
-                u32 index_c = mesh->mFaces[face_index].mIndices[2];
-
-                PhysicsVertex& vertex_a = physics_mesh->vertices[index_a];
-
-                PhysicsVertex& vertex_b = physics_mesh->vertices[index_b];
-
-                PhysicsVertex& vertex_c = physics_mesh->vertices[index_c];
-
-                // NOTE(marco): check for adjacent triangles to get diagonal joints
-                for (u32 other_face_index = 0; other_face_index < mesh->mNumFaces; ++other_face_index) {
-                    if (other_face_index == face_index) {
-                        continue;
-                    }
-
-                    u32 other_index_a = mesh->mFaces[other_face_index].mIndices[0];
-                    u32 other_index_b = mesh->mFaces[other_face_index].mIndices[1];
-                    u32 other_index_c = mesh->mFaces[other_face_index].mIndices[2];
-
-                    // check for vertex_a
-                    if (other_index_a == index_b && other_index_b == index_c) {
-                        if (is_shared_vertex(physics_mesh->vertices.data, vertex_a, other_index_c)) {
-                            vertex_a.add_joint(other_index_c);
-                        }
-                    }
-                    if (other_index_a == index_c && other_index_b == index_b) {
-                        if (is_shared_vertex(physics_mesh->vertices.data, vertex_a, other_index_c)) {
-                            vertex_a.add_joint(other_index_c);
-                        }
-                    }
-                    if (other_index_a == index_b && other_index_c == index_c) {
-                        if (is_shared_vertex(physics_mesh->vertices.data, vertex_a, other_index_b)) {
-                            vertex_a.add_joint(other_index_b);
-                        }
-                    }
-                    if (other_index_a == index_c && other_index_c == index_b) {
-                        if (is_shared_vertex(physics_mesh->vertices.data, vertex_a, other_index_b)) {
-                            vertex_a.add_joint(other_index_b);
-                        }
-                    }
-                    if (other_index_c == index_b && other_index_b == index_c) {
-                        if (is_shared_vertex(physics_mesh->vertices.data, vertex_a, other_index_a)) {
-                            vertex_a.add_joint(other_index_a);
-                        }
-                    }
-                    if (other_index_c == index_c && other_index_b == index_b) {
-                        if (is_shared_vertex(physics_mesh->vertices.data, vertex_a, other_index_a)) {
-                            vertex_a.add_joint(other_index_a);
-                        }
-                    }
-
-                    // check for vertex_b
-                    if (other_index_a == index_a && other_index_b == index_c) {
-                        if (is_shared_vertex(physics_mesh->vertices.data, vertex_b, other_index_c)) {
-                            vertex_b.add_joint(other_index_c);
-                        }
-                    }
-                    if (other_index_a == index_c && other_index_b == index_a) {
-                        if (is_shared_vertex(physics_mesh->vertices.data, vertex_b, other_index_c)) {
-                            vertex_b.add_joint(other_index_c);
-                        }
-                    }
-                    if (other_index_a == index_a && other_index_c == index_c) {
-                        if (is_shared_vertex(physics_mesh->vertices.data, vertex_b, other_index_b)) {
-                            vertex_b.add_joint(other_index_b);
-                        }
-                    }
-                    if (other_index_a == index_c && other_index_c == index_a) {
-                        if (is_shared_vertex(physics_mesh->vertices.data, vertex_b, other_index_b)) {
-                            vertex_b.add_joint(other_index_b);
-                        }
-                    }
-                    if (other_index_c == index_a && other_index_b == index_c) {
-                        if (is_shared_vertex(physics_mesh->vertices.data, vertex_b, other_index_a)) {
-                            vertex_b.add_joint(other_index_a);
-                        }
-                    }
-                    if (other_index_c == index_c && other_index_b == index_a) {
-                        if (is_shared_vertex(physics_mesh->vertices.data, vertex_b, other_index_a)) {
-                            vertex_b.add_joint(other_index_a);
-                        }
-                    }
-
-                    // check for vertex_c
-                    if (other_index_a == index_a && other_index_b == index_b) {
-                        if (is_shared_vertex(physics_mesh->vertices.data, vertex_c, other_index_c)) {
-                            vertex_c.add_joint(other_index_c);
-                        }
-                    }
-                    if (other_index_a == index_b && other_index_b == index_a) {
-                        if (is_shared_vertex(physics_mesh->vertices.data, vertex_c, other_index_c)) {
-                            vertex_c.add_joint(other_index_c);
-                        }
-                    }
-                    if (other_index_a == index_a && other_index_c == index_b) {
-                        if (is_shared_vertex(physics_mesh->vertices.data, vertex_c, other_index_b)) {
-                            vertex_c.add_joint(other_index_b);
-                        }
-                    }
-                    if (other_index_a == index_b && other_index_c == index_a) {
-                        if (is_shared_vertex(physics_mesh->vertices.data, vertex_c, other_index_b)) {
-                            vertex_c.add_joint(other_index_b);
-                        }
-                    }
-
-                    if (other_index_c == index_a && other_index_b == index_b) {
-                        if (is_shared_vertex(physics_mesh->vertices.data, vertex_c, other_index_a)) {
-                            vertex_c.add_joint(other_index_a);
-                        }
-                    }
-                    if (other_index_c == index_b && other_index_b == index_a) {
-                        if (is_shared_vertex(physics_mesh->vertices.data, vertex_c, other_index_a)) {
-                            vertex_c.add_joint(other_index_a);
-                        }
-                    }
-                }
+            
+            if (k_enable_physics) 
+            {
+                compute_joints(mesh, physics_mesh);
             }
 
             render_mesh.position_offset = positions_offset;
@@ -387,12 +399,13 @@ namespace Magnefu
 
             {
                 BufferCreation creation{ };
-                creation.set(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Dynamic, sizeof(GpuMeshData)).set_name("mesh_data");
+                creation.set(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Dynamic, sizeof(GpuMaterialData)).set_name("mesh_data");
 
                 render_mesh.pbr_material.material_buffer = renderer->gpu->create_buffer(creation);
             }
 
             // Physics data
+            if (k_enable_physics)
             {
                 BufferCreation creation{ };
                 sizet buffer_size = positions.size * sizeof(PhysicsVertexGpuData) + sizeof(PhysicsMeshGpuData);
@@ -469,7 +482,6 @@ namespace Magnefu
             meshes.push(render_mesh);
         }
 
-        materials.shutdown();
 
         VkBufferUsageFlags flags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 
@@ -597,7 +609,7 @@ namespace Magnefu
         }
 
         TextureCreation tc;
-        tc.set_data(nullptr).set_format_type(VK_FORMAT_R8G8B8A8_UNORM, TextureType::Texture2D).set_flags(mip_levels, 0).set_size((u16)width, (u16)height, 1).set_name(nullptr);
+        tc.set_data(nullptr).set_format_type(VK_FORMAT_R8G8B8A8_UNORM, TextureType::Texture2D).set_mips(mip_levels).set_size((u16)width, (u16)height, 1).set_name(nullptr);
         TextureResource* tr = renderer->create_texture(tc);
         MF_CORE_ASSERT((tr != nullptr), "");
 
@@ -706,7 +718,10 @@ namespace Magnefu
         scene_graph->set_debug_data(0, "Dummy");
 
         // TODO(marco): not all meshes will create physics buffers
-        u32 buffer_index_offset = meshes.size * 2;
+        u32 buffer_index_offset = 0;
+        if (k_enable_physics) {
+            buffer_index_offset = meshes.size * 2;
+        }
         for (u32 mesh_index = 0; mesh_index < meshes.size; ++mesh_index) {
             Mesh& mesh = meshes[mesh_index];
 
@@ -716,11 +731,11 @@ namespace Magnefu
             mesh.texcoord_buffer = gpu_buffers[buffer_index_offset + 3].handle;
             mesh.index_buffer = gpu_buffers[buffer_index_offset + 4].handle;
 
-            mesh.scene_graph_node_index = 0;
+            //mesh.scene_graph_node_index = 0;
             mesh.pbr_material.material = pbr_material;
 
             mesh.pbr_material.flags |= DrawFlags_Phong;
-            if (mesh.pbr_material.diffuse_colour.w < 1.0f) {
+            if (mesh.pbr_material.base_color_factor.w < 1.0f) {
                 mesh.pbr_material.flags |= DrawFlags_Transparent;
             }
 

@@ -8,6 +8,12 @@
 #include "GraphicsContext.h"
 #include "GPUProfiler.hpp"
 
+
+#if defined(_MSC_VER)
+    #define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
 namespace Magnefu {
 
     void CommandBuffer::reset() {
@@ -79,51 +85,7 @@ namespace Magnefu {
     }
 
     DescriptorSetHandle CommandBuffer::create_descriptor_set(const DescriptorSetCreation& creation) {
-
-        DescriptorSetHandle handle = { descriptor_sets.obtain_resource() };
-        if (handle.index == k_invalid_index) {
-            return handle;
-        }
-
-        DescriptorSet* descriptor_set = (DescriptorSet*)descriptor_sets.access_resource(handle.index);
-        const DescriptorSetLayout* descriptor_set_layout = device->access_descriptor_set_layout(creation.layout);
-
-        // Allocate descriptor set
-        VkDescriptorSetAllocateInfo alloc_info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
-        alloc_info.descriptorPool = vk_descriptor_pool;
-        alloc_info.descriptorSetCount = 1;
-        alloc_info.pSetLayouts = &descriptor_set_layout->vk_descriptor_set_layout;
-
-        VkResult result = vkAllocateDescriptorSets(device->vulkan_device, &alloc_info, &descriptor_set->vk_descriptor_set);
-        MF_CORE_ASSERT(result == VK_SUCCESS, "");
-
-        // Cache data
-        u8* memory = mfallocam((sizeof(ResourceHandle) + sizeof(SamplerHandle) + sizeof(u16)) * creation.num_resources, device->allocator);
-        descriptor_set->resources = (ResourceHandle*)memory;
-        descriptor_set->samplers = (SamplerHandle*)(memory + sizeof(ResourceHandle) * creation.num_resources);
-        descriptor_set->bindings = (u16*)(memory + (sizeof(ResourceHandle) + sizeof(SamplerHandle)) * creation.num_resources);
-        descriptor_set->num_resources = creation.num_resources;
-        descriptor_set->layout = descriptor_set_layout;
-
-        // Update descriptor set
-        VkWriteDescriptorSet descriptor_write[8];
-        VkDescriptorBufferInfo buffer_info[8];
-        VkDescriptorImageInfo image_info[8];
-
-        Sampler* vk_default_sampler = device->access_sampler(device->default_sampler);
-
-        u32 num_resources = creation.num_resources;
-        GraphicsContext::fill_write_descriptor_sets(*device, descriptor_set_layout, descriptor_set->vk_descriptor_set, descriptor_write, buffer_info, image_info, vk_default_sampler->vk_sampler,
-            num_resources, creation.resources, creation.samplers, creation.bindings);
-
-        // Cache resources
-        for (u32 r = 0; r < creation.num_resources; r++) {
-            descriptor_set->resources[r] = creation.resources[r];
-            descriptor_set->samplers[r] = creation.samplers[r];
-            descriptor_set->bindings[r] = creation.bindings[r];
-        }
-
-        vkUpdateDescriptorSets(device->vulkan_device, num_resources, descriptor_write, 0, nullptr);
+        DescriptorSetHandle handle = device->create_descriptor_set(creation);
 
         return handle;
     }
@@ -205,6 +167,8 @@ namespace Magnefu {
                     for (u32 a = 0; a < framebuffer->num_color_attachments; ++a) {
                         Texture* texture = device->access_texture(framebuffer->color_attachments[a]);
 
+                        texture->state = RESOURCE_STATE_RENDER_TARGET;
+
                         VkAttachmentLoadOp color_op;
                         switch (render_pass->output.color_operations[a]) {
                         case RenderPassOperation::Load:
@@ -221,7 +185,7 @@ namespace Magnefu {
                         VkRenderingAttachmentInfoKHR& color_attachment_info = color_attachments_info[a];
                         color_attachment_info.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
                         color_attachment_info.imageView = texture->vk_image_view;
-                        color_attachment_info.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                        color_attachment_info.imageLayout = device->synchronization2_extension_present ? VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
                         color_attachment_info.resolveMode = VK_RESOLVE_MODE_NONE;
                         color_attachment_info.loadOp = color_op;
                         color_attachment_info.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -248,8 +212,10 @@ namespace Magnefu {
                             break;
                         }
 
+                        texture->state = RESOURCE_STATE_DEPTH_WRITE;
+
                         depth_attachment_info.imageView = texture->vk_image_view;
-                        depth_attachment_info.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                        depth_attachment_info.imageLayout = device->synchronization2_extension_present ? VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR : VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
                         depth_attachment_info.resolveMode = VK_RESOLVE_MODE_NONE;
                         depth_attachment_info.loadOp = depth_op;
                         depth_attachment_info.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -517,16 +483,35 @@ namespace Magnefu {
         VkBuffer vk_buffer = buffer->vk_buffer;
         VkDeviceSize vk_offset = offset;
 
-        vkCmdDrawIndirect(vk_command_buffer, vk_buffer, vk_offset, draw_count, sizeof(VkDrawIndirectCommand));
+        vkCmdDrawIndirect(vk_command_buffer, vk_buffer, vk_offset, draw_count, stride);
     }
 
-    void CommandBuffer::draw_indexed_indirect(BufferHandle buffer_handle, u32 offset, u32 stride) {
+    void CommandBuffer::draw_indirect_count(BufferHandle argument_buffer, u32 argument_offset, BufferHandle count_buffer, u32 count_offset, u32 max_draws, u32 stride) {
+        Buffer* argument_buffer_ = device->access_buffer(argument_buffer);
+        Buffer* count_buffer_ = device->access_buffer(count_buffer);
+
+        vkCmdDrawIndirectCount(vk_command_buffer, argument_buffer_->vk_buffer, argument_offset, count_buffer_->vk_buffer, count_offset, max_draws, stride);
+    }
+
+    void CommandBuffer::draw_indexed_indirect(BufferHandle buffer_handle, u32 draw_count, u32 offset, u32 stride) {
         Buffer* buffer = device->access_buffer(buffer_handle);
 
         VkBuffer vk_buffer = buffer->vk_buffer;
         VkDeviceSize vk_offset = offset;
 
-        vkCmdDrawIndexedIndirect(vk_command_buffer, vk_buffer, vk_offset, 1, sizeof(VkDrawIndirectCommand));
+        vkCmdDrawIndexedIndirect(vk_command_buffer, vk_buffer, vk_offset, draw_count, stride);
+    }
+
+    void CommandBuffer::draw_mesh_task(u32 task_count, u32 first_task) {
+
+        device->cmd_draw_mesh_tasks(vk_command_buffer, task_count, first_task);
+    }
+
+    void CommandBuffer::draw_mesh_task_indirect(BufferHandle argument_buffer, u32 argument_offset, BufferHandle count_buffer, u32 count_offset, u32 max_draws, u32 stride) {
+        Buffer* argument_buffer_ = device->access_buffer(argument_buffer);
+        Buffer* count_buffer_ = device->access_buffer(count_buffer);
+
+        device->cmd_draw_mesh_tasks_indirect_count(vk_command_buffer, argument_buffer_->vk_buffer, argument_offset, count_buffer_->vk_buffer, count_offset, max_draws, stride);
     }
 
     void CommandBuffer::dispatch_indirect(BufferHandle buffer_handle, u32 offset) {
@@ -544,6 +529,29 @@ namespace Magnefu {
         return s_states[stage];
     }
 
+    void CommandBuffer::global_debug_barrier() {
+
+        VkMemoryBarrier2KHR barrier{ VK_STRUCTURE_TYPE_MEMORY_BARRIER_2_KHR };
+
+        barrier.srcStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT_KHR;
+        barrier.srcAccessMask = VK_ACCESS_2_MEMORY_READ_BIT_KHR | VK_ACCESS_2_MEMORY_WRITE_BIT_KHR;
+        barrier.dstStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT_KHR;
+        barrier.dstAccessMask = VK_ACCESS_2_MEMORY_READ_BIT_KHR | VK_ACCESS_2_MEMORY_WRITE_BIT_KHR;
+
+        VkDependencyInfoKHR dependency_info{ VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR };
+        dependency_info.memoryBarrierCount = 1;
+        dependency_info.pMemoryBarriers = &barrier;
+
+        device->cmd_pipeline_barrier2(vk_command_buffer, &dependency_info);
+    }
+
+    void CommandBuffer::buffer_barrier(BufferHandle buffer_handle, ResourceState old_state, ResourceState new_state, QueueType::Enum source_queue_type, QueueType::Enum destination_queue_type) {
+
+        Buffer* buffer = device->access_buffer(buffer_handle);
+        util_add_buffer_barrier_ext(device, vk_command_buffer, buffer->vk_buffer, RESOURCE_STATE_UNORDERED_ACCESS, RESOURCE_STATE_UNORDERED_ACCESS, buffer->size,
+            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, source_queue_type, destination_queue_type);
+    }
+
     void CommandBuffer::barrier(const ExecutionBarrier& barrier) {
 
         if (current_render_pass) {
@@ -553,220 +561,63 @@ namespace Magnefu {
             current_framebuffer = nullptr;
         }
 
-        static VkImageMemoryBarrier image_barriers[8];
-        // TODO: subpass
-        if (barrier.new_barrier_experimental != u32_max) {
+        if (device->synchronization2_extension_present) 
+        {
 
-            VkPipelineStageFlags source_stage_mask = 0;
-            VkPipelineStageFlags destination_stage_mask = 0;
-            VkAccessFlags source_access_flags = VK_ACCESS_NONE_KHR, destination_access_flags = VK_ACCESS_NONE_KHR;
+            VkImageMemoryBarrier2KHR image_barriers[8];
 
             for (u32 i = 0; i < barrier.num_image_barriers; ++i) {
+                const ImageBarrier& source_barrier = barrier.image_barriers[i];
+                Texture* texture = device->access_texture(source_barrier.texture);
 
-                Texture* texture_vulkan = device->access_texture(barrier.image_barriers[i].texture);
-
-                VkImageMemoryBarrier& vk_barrier = image_barriers[i];
-                const bool is_color = !TextureFormat::has_depth_or_stencil(texture_vulkan->vk_format);
-
-                {
-                    VkImageMemoryBarrier* pImageBarrier = &vk_barrier;
-                    pImageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-                    pImageBarrier->pNext = NULL;
-
-                    ResourceState current_state = barrier.source_pipeline_stage == PipelineStage::RenderTarget ? RESOURCE_STATE_RENDER_TARGET : RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-                    ResourceState next_state = barrier.destination_pipeline_stage == PipelineStage::RenderTarget ? RESOURCE_STATE_RENDER_TARGET : RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-                    if (!is_color) {
-                        current_state = barrier.source_pipeline_stage == PipelineStage::RenderTarget ? RESOURCE_STATE_DEPTH_WRITE : RESOURCE_STATE_DEPTH_READ;
-                        next_state = barrier.destination_pipeline_stage == PipelineStage::RenderTarget ? RESOURCE_STATE_DEPTH_WRITE : RESOURCE_STATE_DEPTH_READ;
-                    }
-
-                    pImageBarrier->srcAccessMask = util_to_vk_access_flags(current_state);
-                    pImageBarrier->dstAccessMask = util_to_vk_access_flags(next_state);
-                    pImageBarrier->oldLayout = util_to_vk_image_layout(current_state);
-                    pImageBarrier->newLayout = util_to_vk_image_layout(next_state);
-
-                    pImageBarrier->image = texture_vulkan->vk_image;
-                    pImageBarrier->subresourceRange.aspectMask = is_color ? VK_IMAGE_ASPECT_COLOR_BIT : VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-                    pImageBarrier->subresourceRange.baseMipLevel = 0;
-                    pImageBarrier->subresourceRange.levelCount = 1;
-                    pImageBarrier->subresourceRange.baseArrayLayer = 0;
-                    pImageBarrier->subresourceRange.layerCount = 1;
-
-                    {
-                        pImageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-                        pImageBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-                    }
-
-                    source_access_flags |= pImageBarrier->srcAccessMask;
-                    destination_access_flags |= pImageBarrier->dstAccessMask;
-
-                    texture_vulkan->state = next_state;
-                }
+                VkImageMemoryBarrier2KHR& barrier = image_barriers[i];
+                barrier = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2_KHR };
+                barrier.srcAccessMask = util_to_vk_access_flags2(texture->state);
+                barrier.srcStageMask = util_determine_pipeline_stage_flags2(barrier.srcAccessMask, QueueType::Graphics);
+                barrier.dstAccessMask = util_to_vk_access_flags2(source_barrier.destination_state);
+                barrier.dstStageMask = util_determine_pipeline_stage_flags2(barrier.dstAccessMask, QueueType::Graphics);
+                barrier.oldLayout = util_to_vk_image_layout2(texture->state);
+                barrier.newLayout = util_to_vk_image_layout2(source_barrier.destination_state);
+                barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                barrier.image = texture->vk_image;
+                barrier.subresourceRange.aspectMask = TextureFormat::has_depth_or_stencil(texture->vk_format) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+                barrier.subresourceRange.baseArrayLayer = source_barrier.array_base_layer;
+                barrier.subresourceRange.layerCount = source_barrier.array_layer_count;
+                barrier.subresourceRange.baseMipLevel = source_barrier.mip_base_level;
+                barrier.subresourceRange.levelCount = source_barrier.mip_level_count;
             }
 
-            static VkBufferMemoryBarrier buffer_memory_barriers[8];
-            for (u32 i = 0; i < barrier.num_memory_barriers; ++i) {
-                VkBufferMemoryBarrier& vk_barrier = buffer_memory_barriers[i];
-                vk_barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+            VkBufferMemoryBarrier2KHR buffer_barriers[8];
 
-                Buffer* buffer = device->access_buffer(barrier.memory_barriers[i].buffer);
+            for (u32 i = 0; i < barrier.num_buffer_barriers; ++i) {
+                const BufferBarrier& source_barrier = barrier.buffer_barriers[i];
+                Buffer* buffer = device->access_buffer(source_barrier.buffer);
 
-                vk_barrier.buffer = buffer->vk_buffer;
-                vk_barrier.offset = 0;
-                vk_barrier.size = buffer->size;
-
-                ResourceState current_state = to_resource_state(barrier.source_pipeline_stage);
-                ResourceState next_state = to_resource_state(barrier.destination_pipeline_stage);
-                vk_barrier.srcAccessMask = util_to_vk_access_flags(current_state);
-                vk_barrier.dstAccessMask = util_to_vk_access_flags(next_state);
-
-                source_access_flags |= vk_barrier.srcAccessMask;
-                destination_access_flags |= vk_barrier.dstAccessMask;
-
-                vk_barrier.srcQueueFamilyIndex = 0;
-                vk_barrier.dstQueueFamilyIndex = 0;
+                VkBufferMemoryBarrier2KHR& barrier = buffer_barriers[i];
+                barrier = { VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2_KHR };
+                barrier.srcAccessMask = util_to_vk_access_flags2(source_barrier.source_state);
+                barrier.srcStageMask = util_determine_pipeline_stage_flags2(barrier.srcAccessMask, QueueType::Graphics);
+                barrier.dstAccessMask = util_to_vk_access_flags2(source_barrier.destination_state);
+                barrier.dstStageMask = util_determine_pipeline_stage_flags2(barrier.dstAccessMask, QueueType::Graphics);
+                barrier.buffer = buffer->vk_buffer;
+                barrier.offset = source_barrier.offset;
+                barrier.size = source_barrier.offset > 0 ? source_barrier.offset : buffer->size;
             }
 
-            source_stage_mask = util_determine_pipeline_stage_flags(source_access_flags, barrier.source_pipeline_stage == PipelineStage::ComputeShader ? QueueType::Compute : QueueType::Graphics);
-            destination_stage_mask = util_determine_pipeline_stage_flags(destination_access_flags, barrier.destination_pipeline_stage == PipelineStage::ComputeShader ? QueueType::Compute : QueueType::Graphics);
+            VkDependencyInfoKHR dependency_info{ VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR };
+            dependency_info.imageMemoryBarrierCount = barrier.num_image_barriers;
+            dependency_info.pImageMemoryBarriers = image_barriers;
+            dependency_info.pBufferMemoryBarriers = buffer_barriers;
+            dependency_info.bufferMemoryBarrierCount = barrier.num_buffer_barriers;
 
-            vkCmdPipelineBarrier(vk_command_buffer, source_stage_mask, destination_stage_mask, 0, 0, nullptr, barrier.num_memory_barriers, buffer_memory_barriers, barrier.num_image_barriers, image_barriers);
-            return;
+            device->cmd_pipeline_barrier2(vk_command_buffer, &dependency_info);
         }
-
-        VkImageLayout new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        VkImageLayout new_depth_layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-        VkAccessFlags source_access_mask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
-        VkAccessFlags source_buffer_access_mask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
-        VkAccessFlags source_depth_access_mask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-        VkAccessFlags destination_access_mask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
-        VkAccessFlags destination_buffer_access_mask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
-        VkAccessFlags destination_depth_access_mask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-        switch (barrier.destination_pipeline_stage) {
-
-        case PipelineStage::FragmentShader:
+        else 
         {
-            //new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-            break;
+            // TODO: implement
+            MF_CORE_ASSERT(false, "");
         }
-
-        case PipelineStage::ComputeShader:
-        {
-            new_layout = VK_IMAGE_LAYOUT_GENERAL;
-
-
-            break;
-        }
-
-        case PipelineStage::RenderTarget:
-        {
-            new_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-            new_depth_layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-            destination_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
-            destination_depth_access_mask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-
-            break;
-        }
-
-        case PipelineStage::DrawIndirect:
-        {
-            destination_buffer_access_mask = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
-            break;
-        }
-        }
-
-        switch (barrier.source_pipeline_stage) {
-
-        case PipelineStage::FragmentShader:
-        {
-            //source_access_mask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
-            break;
-        }
-
-        case PipelineStage::ComputeShader:
-        {
-
-            break;
-        }
-
-        case PipelineStage::RenderTarget:
-        {
-            source_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-            source_depth_access_mask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-            break;
-        }
-
-        case PipelineStage::DrawIndirect:
-        {
-            source_buffer_access_mask = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
-            break;
-        }
-        }
-
-        bool has_depth = false;
-
-        for (u32 i = 0; i < barrier.num_image_barriers; ++i) {
-
-            Texture* texture_vulkan = device->access_texture(barrier.image_barriers[i].texture);
-
-            VkImageMemoryBarrier& vk_barrier = image_barriers[i];
-            vk_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-
-            vk_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            vk_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-
-            const bool is_color = !TextureFormat::has_depth_or_stencil(texture_vulkan->vk_format);
-            has_depth = has_depth || !is_color;
-
-            vk_barrier.image = texture_vulkan->vk_image;
-            vk_barrier.subresourceRange.aspectMask = is_color ? VK_IMAGE_ASPECT_COLOR_BIT : VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-            vk_barrier.subresourceRange.baseMipLevel = 0;
-            vk_barrier.subresourceRange.levelCount = 1;
-            vk_barrier.subresourceRange.baseArrayLayer = 0;
-            vk_barrier.subresourceRange.layerCount = 1;
-
-            vk_barrier.oldLayout = util_to_vk_image_layout(texture_vulkan->state);
-
-            // Transition to...
-            vk_barrier.newLayout = is_color ? new_layout : new_depth_layout;
-
-            vk_barrier.srcAccessMask = is_color ? source_access_mask : source_depth_access_mask;
-            vk_barrier.dstAccessMask = is_color ? destination_access_mask : destination_depth_access_mask;
-
-            MF_CORE_ASSERT(false, "Reimplent or delete this!");
-            texture_vulkan->state = RESOURCE_STATE_GENERIC_READ;
-        }
-
-        VkPipelineStageFlags source_stage_mask = to_vk_pipeline_stage((PipelineStage::Enum)barrier.source_pipeline_stage);
-        VkPipelineStageFlags destination_stage_mask = to_vk_pipeline_stage((PipelineStage::Enum)barrier.destination_pipeline_stage);
-
-        if (has_depth) {
-
-            source_stage_mask |= VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-            destination_stage_mask |= VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-        }
-
-        static VkBufferMemoryBarrier buffer_memory_barriers[8];
-        for (u32 i = 0; i < barrier.num_memory_barriers; ++i) {
-            VkBufferMemoryBarrier& vk_barrier = buffer_memory_barriers[i];
-            vk_barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-
-            Buffer* buffer = device->access_buffer(barrier.memory_barriers[i].buffer);
-
-            vk_barrier.buffer = buffer->vk_buffer;
-            vk_barrier.offset = 0;
-            vk_barrier.size = buffer->size;
-            vk_barrier.srcAccessMask = source_buffer_access_mask;
-            vk_barrier.dstAccessMask = destination_buffer_access_mask;
-
-            vk_barrier.srcQueueFamilyIndex = 0;
-            vk_barrier.dstQueueFamilyIndex = 0;
-        }
-
-        vkCmdPipelineBarrier(vk_command_buffer, source_stage_mask, destination_stage_mask, 0, 0, nullptr, barrier.num_memory_barriers, buffer_memory_barriers, barrier.num_image_barriers, image_barriers);
     }
 
     void CommandBuffer::fill_buffer(BufferHandle buffer, u32 offset, u32 size, u32 data) {
@@ -858,14 +709,14 @@ namespace Magnefu {
         vkCmdCopyImage(vk_command_buffer, src->vk_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst->vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
         // Prepare first mip to create lower mipmaps
-        if (dst->mipmaps > 1) {
+        if (dst->mip_level_count > 1) {
             util_add_image_barrier(device, vk_command_buffer, dst, RESOURCE_STATE_COPY_SOURCE, 0, 1, false);
         }
 
         i32 w = dst->width;
         i32 h = dst->height;
 
-        for (int mip_index = 1; mip_index < dst->mipmaps; ++mip_index) {
+        for (int mip_index = 1; mip_index < dst->mip_level_count; ++mip_index) {
             util_add_image_barrier(device, vk_command_buffer, dst->vk_image, old_state, RESOURCE_STATE_COPY_DEST, mip_index, 1, false);
 
             VkImageBlit blit_region{ };
@@ -895,7 +746,7 @@ namespace Magnefu {
         }
 
         // Transition
-        util_add_image_barrier(device, vk_command_buffer, dst, dst_state, 0, dst->mipmaps, false);
+        util_add_image_barrier(device, vk_command_buffer, dst, dst_state, 0, dst->mip_level_count, false);
     }
 
     void CommandBuffer::upload_buffer_data(BufferHandle buffer_handle, void* buffer_data, BufferHandle staging_buffer_handle, sizet staging_buffer_offset) {
@@ -959,9 +810,6 @@ namespace Magnefu {
         const u32 total_secondary_buffers = total_pools * k_secondary_command_buffers_count;
         secondary_command_buffers.init(gpu->allocator, total_secondary_buffers);
 
-        const u32 total_compute_buffers = k_max_frames;
-        compute_command_buffers.init(gpu->allocator, k_max_frames, k_max_frames);
-
         for (u32 i = 0; i < total_buffers; i++) {
             VkCommandBufferAllocateInfo cmd = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO, nullptr };
 
@@ -1007,21 +855,6 @@ namespace Magnefu {
             }
         }
 
-        for (u32 i = 0; i < total_compute_buffers; i++) {
-            VkCommandBufferAllocateInfo cmd = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO, nullptr };
-
-            cmd.commandPool = gpu->compute_frame_pools[i].vulkan_command_pool;
-            cmd.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-            cmd.commandBufferCount = 1;
-
-            CommandBuffer& current_command_buffer = compute_command_buffers[i];
-            vkAllocateCommandBuffers(gpu->vulkan_device, &cmd, &current_command_buffer.vk_command_buffer);
-
-            current_command_buffer.handle = i;
-            current_command_buffer.thread_frame_pool = &gpu->compute_frame_pools[i];
-            current_command_buffer.init(gpu);
-        }
-
         //rprint( "Done\n" );
     }
 
@@ -1035,13 +868,8 @@ namespace Magnefu {
             secondary_command_buffers[i].shutdown();
         }
 
-        for (u32 i = 0; i < compute_command_buffers.size; ++i) {
-            compute_command_buffers[i].shutdown();
-        }
-
         command_buffers.shutdown();
         secondary_command_buffers.shutdown();
-        compute_command_buffers.shutdown();
         used_buffers.shutdown();
         used_secondary_command_buffers.shutdown();
     }
@@ -1057,25 +885,16 @@ namespace Magnefu {
         }
     }
 
-    CommandBuffer* CommandBufferManager::get_command_buffer(u32 frame, u32 thread_index, bool begin, bool compute) {
-        CommandBuffer* cb = nullptr;
-
-        if (compute) {
-            MF_CORE_ASSERT(thread_index == 0, "");
-            cb = &compute_command_buffers[frame];
-        }
-        else {
-            const u32 pool_index = pool_from_indices(frame, thread_index);
-            u32 current_used_buffer = used_buffers[pool_index];
-            // TODO: how to handle fire-and-forget command buffers ?
-            MF_CORE_ASSERT((current_used_buffer < num_command_buffers_per_thread), "");
-            if (begin) {
-                used_buffers[pool_index] = current_used_buffer + 1;
-            }
-
-            cb = &command_buffers[(pool_index * num_command_buffers_per_thread) + current_used_buffer];
+    CommandBuffer* CommandBufferManager::get_command_buffer(u32 frame, u32 thread_index, bool begin) {
+        const u32 pool_index = pool_from_indices(frame, thread_index);
+        u32 current_used_buffer = used_buffers[pool_index];
+        // TODO: how to handle fire-and-forget command buffers ?
+        MF_CORE_ASSERT(current_used_buffer < num_command_buffers_per_thread, "");
+        if (begin) {
+            used_buffers[pool_index] = current_used_buffer + 1;
         }
 
+        CommandBuffer* cb = &command_buffers[(pool_index * num_command_buffers_per_thread) + current_used_buffer];
         if (begin) {
             cb->reset();
             cb->begin();
@@ -1085,14 +904,11 @@ namespace Magnefu {
             thread_pools->time_queries->reset();
             vkCmdResetQueryPool(cb->vk_command_buffer, thread_pools->vulkan_timestamp_query_pool, 0, thread_pools->time_queries->time_queries.size);
 
-            if (!compute) {
-                // Pipeline statistics
-                vkCmdResetQueryPool(cb->vk_command_buffer, thread_pools->vulkan_pipeline_stats_query_pool, 0, GpuPipelineStatistics::Count);
+            // Pipeline statistics
+            vkCmdResetQueryPool(cb->vk_command_buffer, thread_pools->vulkan_pipeline_stats_query_pool, 0, GpuPipelineStatistics::Count);
 
-                vkCmdBeginQuery(cb->vk_command_buffer, thread_pools->vulkan_pipeline_stats_query_pool, 0, 0);
-            }
+            vkCmdBeginQuery(cb->vk_command_buffer, thread_pools->vulkan_pipeline_stats_query_pool, 0, 0);
         }
-
         return cb;
     }
 
