@@ -28,6 +28,7 @@
 // -- Core -------------------------- //
 #include "Magnefu/Core/File.hpp"
 #include "Magnefu/Core/glTF.hpp"
+#include "Magnefu/Core/Numerics.hpp"
 
 
 // -- Vendor ----------------------- //
@@ -43,9 +44,7 @@
 #include "cglm/struct/quat.h"
 #include "cglm/struct/cam.h"
 #include "cglm/struct/affine.h"
-
-
-
+#include "cglm/struct/box.h"
 
 
 // Static variables
@@ -189,17 +188,18 @@ static void test_sphere_aabb(Magnefu::GameCamera& game_camera) {
 }
 
 // Light placement function ///////////////////////////////////////////////
-void place_lights(Magnefu::Array<Magnefu::Light>& lights, bool grid) {
+void place_lights(Magnefu::Array<Magnefu::Light>& lights, u32 active_lights, bool grid) {
 
 	using namespace Magnefu;
 
 	if (grid) {
-		for (u32 i = 0; i < k_num_lights; ++i) {
+		const u32 lights_per_side = ceilu32(sqrtf(active_lights * 1.f));
+		for (u32 i = 0; i < active_lights; ++i) {
 			Light& light = lights[i];
 
-			const f32 x = (i % 4);
-			const f32 y = 10.f;
-			const f32 z = (i / 4);
+			const f32 x = (i % lights_per_side) - lights_per_side * .5f;
+			const f32 y = 0.05f;
+			const f32 z = (i / lights_per_side) - lights_per_side * .5f;
 
 			light.world_position = { x, y, z };
 			light.intensity = 10.f;
@@ -231,17 +231,42 @@ void place_lights(Magnefu::Array<Magnefu::Light>& lights, bool grid) {
 	//}
 }
 
+u32 get_cube_face_mask(vec3s cube_map_pos, vec3s aabb[2]) {
+
+	vec3s plane_normals[] = { {-1, 1, 0}, {1, 1, 0}, {1, 0, 1}, {1, 0, -1}, {0, 1, 1}, {0, -1, 1} };
+	vec3s abs_plane_normals[] = { {1, 1, 0}, {1, 1, 0}, {1, 0, 1}, {1, 0, 1}, {0, 1, 1}, {0, 1, 1} };
+
+	vec3s center = glms_vec3_sub(glms_aabb_center(aabb), cube_map_pos);
+	vec3s extents = glms_vec3_divs(glms_vec3_sub(aabb[1], aabb[0]), 2.0f);
+
+	bool rp[6];
+	bool rn[6];
+
+	for (u32 i = 0; i < 6; ++i) {
+		f32 dist = glms_vec3_dot(center, plane_normals[i]);
+		f32 radius = glms_vec3_dot(extents, abs_plane_normals[i]);
+
+		rp[i] = dist > -radius;
+		rn[i] = dist < radius;
+	}
+
+	u32 fpx = rn[0] && rp[1] && rp[2] && rp[3] && aabb[1].x > cube_map_pos.x;
+	u32 fnx = rp[0] && rn[1] && rn[2] && rn[3] && aabb[0].x < cube_map_pos.x;
+	u32 fpy = rp[0] && rp[1] && rp[4] && rn[5] && aabb[1].y > cube_map_pos.y;
+	u32 fny = rn[0] && rn[1] && rn[4] && rp[5] && aabb[0].y < cube_map_pos.y;
+	u32 fpz = rp[2] && rn[3] && rp[4] && rp[5] && aabb[1].z > cube_map_pos.z;
+	u32 fnz = rn[2] && rp[3] && rn[4] && rn[5] && aabb[0].z < cube_map_pos.z;
+
+	return fpx | (fnx << 1) | (fpy << 2) | (fny << 3) | (fpz << 4) | (fnz << 5);
+}
+
 
 
 // -- Render Data ----------------------------------- //
 
 struct RenderData
 {
-	vec3s light_position{ 0.f, 10.0f, 0.f };
-
 	float model_scale = 1.0f;
-	float light_radius = 20.0f;
-	float light_intensity = 80.0f;
 
 	// Cloth physics
 	f32 spring_stiffness = 10000.0f;
@@ -267,6 +292,21 @@ struct RenderData
 	bool force_fullscreen_light_aabb = false;
 
 	mat4s projection_transpose{ };
+
+	vec3s aabb_test_position{ 0,0,0 };
+	bool enable_aabb_cubemap_test = false;
+	bool enable_light_cluster_debug = false;
+	bool enable_light_tile_debug = false;
+	bool debug_show_light_tiles = false;
+	bool debug_show_tiles = false;
+	bool debug_show_bins = false;
+	bool disable_shadows = false;
+	bool shadow_meshlets_cone_cull = true;
+	bool shadow_meshlets_sphere_cull = true;
+	bool shadow_meshes_sphere_cull = true;
+	bool shadow_meshlets_cubemap_face_cull = true;
+	u32 lighting_debug_modes = 0;
+	u32 light_to_debug = 0;
 };
 
 // ----------------------------------------------------------------------------------------------------------- //
@@ -336,6 +376,19 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
         set_linear_allocator(scratch_allocator).
         set_num_threads(s_task_scheduler.GetNumTaskThreads());
 
+	// Allocate specific resource pool sizes
+	dc.resource_pool_creation.buffers = 512;
+	dc.resource_pool_creation.descriptor_set_layouts = 256;
+	dc.resource_pool_creation.descriptor_sets = 900;
+	dc.resource_pool_creation.pipelines = 256;
+	dc.resource_pool_creation.render_passes = 256;
+	dc.resource_pool_creation.shaders = 256;
+	dc.resource_pool_creation.samplers = 128;
+	dc.resource_pool_creation.textures = 128;
+	dc.descriptor_pool_creation.combined_image_samplers = 700;
+	dc.descriptor_pool_creation.storage_texel_buffers = 1;
+	dc.descriptor_pool_creation.uniform_texel_buffers = 1;
+
 	GraphicsContext* gpu = service_manager->get<GraphicsContext>();
 	gpu->init(dc);
 
@@ -363,7 +416,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 
 
 	// Game Camera:
-	s_game_camera.camera.init_perpective(0.1f, 1000.f, 60.f, wconf.width * 1.f / wconf.height);
+	s_game_camera.camera.init_perpective(0.1f, 100.f, 60.f, wconf.width * 1.f / wconf.height);
 	s_game_camera.init(true, 20.f, 6.f, 0.1f);
 
 
@@ -410,6 +463,18 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 
 		s_frame_graph.parse(frame_graph_path, scratch_allocator);
 		s_frame_graph.compile();
+		
+
+		// TODO: improve
+		// Manually add point shadows texture format.
+		FrameGraphNode* point_shadows_pass_node = s_frame_graph.get_node("point_shadows_pass");
+		if (point_shadows_pass_node) {
+			RenderPass* render_pass = gpu->access_render_pass(point_shadows_pass_node->render_pass);  // the issue is that this returns nullptr, but it shouldn't
+			if (render_pass) {
+				render_pass->output.reset().depth(VK_FORMAT_D16_UNORM, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+			}
+		}
+
 
 		s_render_resources_loader.init(renderer, scratch_allocator, &s_frame_graph);
 
@@ -568,6 +633,10 @@ bool Sandbox::MainLoop()
 
 	RenderData render_data;
 
+	for (u32 i = 0; i < 6; ++i) {
+		scene->cubeface_flip[i] = false;
+	}
+
 	accumulator = 0.0;
 	i64 start_time = Magnefu::time_now();
     i64 absolute_time = start_time;
@@ -582,10 +651,9 @@ bool Sandbox::MainLoop()
 		{
 			gpu->new_frame();
 
-            static bool checksz = true;
-            if (s_async_loader.file_load_requests.size == 0 && checksz)
-            {
-                checksz = false;
+			static bool one_time_check = true;
+			if (s_async_loader.file_load_requests.size == 0 && one_time_check) {
+				one_time_check = false;
                 MF_APP_DEBUG("Uploaded textures in {} seconds", time_from_seconds(absolute_time));
             }
 		}
@@ -645,6 +713,21 @@ bool Sandbox::MainLoop()
 
 		static mat4s projection_transpose{ };
 
+		static vec3s aabb_test_position{ 0,0,0 };
+		static bool enable_aabb_cubemap_test = false;
+		static bool enable_light_cluster_debug = false;
+		static bool enable_light_tile_debug = false;
+		static bool debug_show_light_tiles = false;
+		static bool debug_show_tiles = false;
+		static bool debug_show_bins = false;
+		static bool disable_shadows = false;
+		static bool shadow_meshlets_cone_cull = true;
+		static bool shadow_meshlets_sphere_cull = true;
+		static bool shadow_meshes_sphere_cull = true;
+		static bool shadow_meshlets_cubemap_face_cull = true;
+		static u32 lighting_debug_modes = 0;
+		static u32 light_to_debug = 0;
+
 
 		// -- ImGui New Frame -------------- //
 		imgui->BeginFrame();
@@ -659,11 +742,6 @@ bool Sandbox::MainLoop()
                 ImGui::SeparatorText("MODELS");
 				ImGui::InputFloat("Scene Global Scale scale", &scene->global_scale, 0.001f);
 
-                ImGui::SeparatorText("LIGHTS");
-				ImGui::SliderFloat3("Light position", render_data.light_position.raw, -30.f, 30.f);
-				ImGui::InputFloat("Light radius", &render_data.light_radius);
-				ImGui::InputFloat("Light intensity", &render_data.light_intensity);
-                
                 ImGui::SeparatorText("CAMERA");
 				ImGui::InputFloat3("Camera position", s_game_camera.camera.position.raw);
 				ImGui::InputFloat3("Camera target movement", s_game_camera.target_movement.raw);
@@ -673,9 +751,26 @@ bool Sandbox::MainLoop()
 				ImGui::InputFloat("Air density", &render_data.air_density);
 				ImGui::InputFloat("Spring stiffness", &render_data.spring_stiffness);
 				ImGui::InputFloat("Spring damping", &render_data.spring_damping);
-				ImGui::Checkbox("Reset simulation", &render_data.reset_simulation);
 
-				ImGui::SeparatorText("OPTIONS");
+				ImGui::SeparatorText("LIGHTS");
+				ImGui::Checkbox("Enable AABB cubemap test", &enable_aabb_cubemap_test);
+				ImGui::Checkbox("Enable light cluster debug", &enable_light_cluster_debug);
+				ImGui::Checkbox("Enable light tile debug", &enable_light_tile_debug);
+				ImGui::SliderFloat3("AABB test position", aabb_test_position.raw, -1.5f, 1.5f, "%1.2f");
+				ImGui::Checkbox("Reset simulation", &render_data.reset_simulation);
+				ImGui::SliderUint("Active Lights", &scene->active_lights, 1, k_num_lights - 1);
+				ImGui::SliderUint("Light Index", &light_to_debug, 0, scene->active_lights - 1);
+				ImGui::SliderFloat3("Light position", scene->lights[light_to_debug].world_position.raw, -4.f, 4.f, "%1.3f");
+				ImGui::SliderFloat("Light radius", &scene->lights[light_to_debug].radius, 0.01f, 10.f, "%2.3f");
+				ImGui::SliderFloat("Light intensity", &scene->lights[light_to_debug].intensity, 0.01f, 10.f, "%2.3f");
+				ImGui::Checkbox("Cubeface switch Pos X", &scene->cubeface_flip[0]);
+				ImGui::Checkbox("Cubeface switch Neg X", &scene->cubeface_flip[1]);
+				ImGui::Checkbox("Cubeface switch Pos Y", &scene->cubeface_flip[2]);
+				ImGui::Checkbox("Cubeface switch Neg Y", &scene->cubeface_flip[3]);
+				ImGui::Checkbox("Cubeface switch Pos Z", &scene->cubeface_flip[4]);
+				ImGui::Checkbox("Cubeface switch Neg Z", &scene->cubeface_flip[5]);
+
+				ImGui::SeparatorText("MESHES AND MESHLETS");
 
 				static bool enable_meshlets = false;
 				enable_meshlets = scene->use_meshlets && gpu->mesh_shaders_extension_present;
@@ -686,14 +781,33 @@ bool Sandbox::MainLoop()
 				ImGui::Checkbox("Use frustum cull for meshlets", &enable_frustum_cull_meshlets);
 				ImGui::Checkbox("Use occlusion cull for meshes", &enable_occlusion_cull_meshes);
 				ImGui::Checkbox("Use occlusion cull for meshlets", &enable_occlusion_cull_meshlets);
+
+				ImGui::Checkbox("Use meshes sphere cull for shadows", &shadow_meshes_sphere_cull);
+				ImGui::Checkbox("Use meshlets cone cull for shadows", &shadow_meshlets_cone_cull);
+				ImGui::Checkbox("Use meshlets sphere cull for shadows", &shadow_meshlets_sphere_cull);
+				ImGui::Checkbox("Use meshlets cubemap face cull for shadows", &shadow_meshlets_cubemap_face_cull);
+
 				ImGui::Checkbox("Freeze occlusion camera", &freeze_occlusion_camera);
 				ImGui::Checkbox("Show Debug GPU Draws", &scene->show_debug_gpu_draws);
+
+				ImGui::SeparatorText("OPTIONS");
 
 				ImGui::Checkbox("Enable Camera Inside approximation", &enable_camera_inside);
 				ImGui::Checkbox("Use McGuire method for AABB sphere", &use_mcguire_method);
 				ImGui::Checkbox("Skip invisible lights", &skip_invisible_lights);
 				ImGui::Checkbox("use view aabb", &use_view_aabb);
 				ImGui::Checkbox("force fullscreen light aabb", &force_fullscreen_light_aabb);
+				ImGui::Checkbox("debug show light tiles", &debug_show_light_tiles);
+				ImGui::Checkbox("debug show tiles", &debug_show_tiles);
+				ImGui::Checkbox("debug show bins", &debug_show_bins);
+				ImGui::Separator();
+				ImGui::Checkbox("Pointlight rendering", &scene->pointlight_rendering);
+				ImGui::Checkbox("Pointlight rendering use meshlets", &scene->pointlight_use_meshlets);
+				ImGui::Checkbox("Disable shadows", &disable_shadows);
+				ImGui::Checkbox("Use tetrahedron shadows", &scene->use_tetrahedron_shadows);
+				ImGui::Separator();
+				ImGui::SliderUint("Lighting debug modes", &lighting_debug_modes, 0, 10);
+
 
                 ImGui::Checkbox("Dynamically recreate descriptor sets", &recreate_per_thread_descriptors);
                 ImGui::Checkbox("Use secondary command buffers", &use_secondary_command_buffers);
@@ -749,19 +863,39 @@ bool Sandbox::MainLoop()
 			if (ImGui::Begin("GPU"))
 			{
                 renderer->imgui_draw();
-                ImGui::Separator();
+			}
+			ImGui::End();
+
+			if (ImGui::Begin("GPU Profiler")) {
 				ImGui::Text("Cpu Time %fms", delta_time * 1000.f);
 				gpu_profiler->imgui_draw();
+
 			}
 			ImGui::End();
 
 			if (ImGui::Begin("Textures Debug")) 
 			{
-				const ImVec2 window_size = ImGui::GetWindowSize();
+				static u32 texture_to_debug = 40;
+				ImVec2 window_size = ImGui::GetWindowSize();
+				window_size.y += 50;
+				ImGui::InputScalar("Texture ID", ImGuiDataType_U32, &texture_to_debug);
+				static i32 face_to = 0;
+				ImGui::SliderInt("Face", &face_to, 0, 5);
+				scene->cubemap_debug_face_index = (u32)face_to;
+				ImGui::Checkbox("Cubemap face enabled", &scene->cubemap_face_debug_enabled);
 
-				FrameGraphResource* resource = s_frame_graph.get_resource("depth");
+				ImGui::Image((ImTextureID)&texture_to_debug, window_size);
+			}
+			ImGui::End();
 
-				ImGui::Image((ImTextureID)&resource->resource_info.texture.handle, window_size);
+			if (ImGui::Begin("Lights Debug")) {
+				const u32 lights_count = scene->lights.size;
+
+				for (u32 l = 0; l < lights_count; ++l) {
+					Light& light = scene->lights[l];
+
+					ImGui::Text("%d: %d, %d R: %0.2f a: %0.6f", l, light.tile_x, light.tile_y, light.shadow_map_resolution, light.solid_angle);
+				}
 
 			}
 			ImGui::End();
@@ -785,6 +919,8 @@ bool Sandbox::MainLoop()
 			scene->update_joints();
 		}
 
+		
+
 		// Copy static render info
 		render_data.animation_speed_multiplier = animation_speed_multiplier;
 		render_data.enable_frustum_cull_meshes = enable_frustum_cull_meshes;
@@ -793,6 +929,20 @@ bool Sandbox::MainLoop()
 		render_data.enable_occlusion_cull_meshlets = enable_occlusion_cull_meshlets;
 		render_data.freeze_occlusion_camera = freeze_occlusion_camera;
 		render_data.projection_transpose = projection_transpose;
+		render_data.aabb_test_position = aabb_test_position;
+		render_data.enable_aabb_cubemap_test = enable_aabb_cubemap_test;
+		render_data.enable_light_cluster_debug = enable_light_cluster_debug;
+		render_data.enable_light_tile_debug = enable_light_tile_debug;
+		render_data.debug_show_light_tiles = debug_show_light_tiles;
+		render_data.debug_show_tiles = debug_show_tiles;
+		render_data.debug_show_bins = debug_show_bins;
+		render_data.disable_shadows = disable_shadows;
+		render_data.shadow_meshlets_cone_cull = shadow_meshlets_cone_cull;
+		render_data.shadow_meshlets_sphere_cull = shadow_meshlets_sphere_cull;
+		render_data.shadow_meshes_sphere_cull = shadow_meshes_sphere_cull;
+		render_data.shadow_meshlets_cubemap_face_cull = shadow_meshlets_cubemap_face_cull;
+		render_data.lighting_debug_modes = lighting_debug_modes;
+		render_data.light_to_debug = light_to_debug;
 
 		const f32 interpolation_factor = Maths::clamp(0.0f, 1.0f, (f32)(accumulator / step));
 		Render(delta_time, interpolation_factor, &render_data);
@@ -824,27 +974,34 @@ void Sandbox::Render(f32 delta_time, f32 interpolation_factor, void* data)
 			scene_data.previous_view_projection = scene_data.view_projection;   // Cache previous view projection
 			scene_data.view_projection = s_game_camera.camera.view_projection;
 			scene_data.inverse_view_projection = glms_mat4_inv(s_game_camera.camera.view_projection);
+			scene_data.inverse_projection = glms_mat4_inv(s_game_camera.camera.projection);
+			scene_data.inverse_view = glms_mat4_inv(s_game_camera.camera.view);
 			scene_data.world_to_camera = s_game_camera.camera.view;
 			scene_data.camera_position = vec4s{ s_game_camera.camera.position.x, s_game_camera.camera.position.y, s_game_camera.camera.position.z, 1.0f };
 			scene_data.dither_texture_index = dither_texture ? dither_texture->handle.index : 0;
+
+			scene_data.use_tetrahedron_shadows = scene->use_tetrahedron_shadows;
+			scene_data.active_lights = scene->active_lights;
 
 			scene_data.z_near = s_game_camera.camera.near_plane;
 			scene_data.z_far = s_game_camera.camera.far_plane;
 			scene_data.projection_00 = s_game_camera.camera.projection.m00;
 			scene_data.projection_11 = s_game_camera.camera.projection.m11;
-			scene_data.frustum_cull_meshes = render_data->enable_frustum_cull_meshes ? 1 : 0;
-			scene_data.frustum_cull_meshlets = render_data->enable_frustum_cull_meshlets ? 1 : 0;
-			scene_data.occlusion_cull_meshes = render_data->enable_occlusion_cull_meshes ? 1 : 0;
-			scene_data.occlusion_cull_meshlets = render_data->enable_occlusion_cull_meshlets ? 1 : 0;
-			scene_data.freeze_occlusion_camera = render_data->freeze_occlusion_camera ? 1 : 0;
+			scene_data.culling_options = 0;
+			scene_data.set_frustum_cull_meshes(render_data->enable_frustum_cull_meshes);
+			scene_data.set_frustum_cull_meshlets(render_data->enable_frustum_cull_meshlets);
+			scene_data.set_occlusion_cull_meshes(render_data->enable_occlusion_cull_meshes);
+			scene_data.set_occlusion_cull_meshlets(render_data->enable_occlusion_cull_meshlets);
+			scene_data.set_freeze_occlusion_camera(render_data->freeze_occlusion_camera);
+			scene_data.set_shadow_meshlets_cone_cull(render_data->shadow_meshlets_cone_cull);
+			scene_data.set_shadow_meshlets_sphere_cull(render_data->shadow_meshlets_sphere_cull);
+			scene_data.set_shadow_meshlets_cubemap_face_cull(render_data->shadow_meshlets_cubemap_face_cull);
 
 			scene_data.resolution_x = gpu->swapchain_width * 1.f;
 			scene_data.resolution_y = gpu->swapchain_height * 1.f;
 			scene_data.aspect_ratio = gpu->swapchain_width * 1.f / gpu->swapchain_height;
+			scene_data.num_mesh_instances = scene->mesh_instances.size;
 
-			// TEST packed light data
-			scene_data.light0_data0 = vec4s{ render_data->light_position.x, render_data->light_position.y, render_data->light_position.z, render_data->light_radius };
-			scene_data.light0_data1 = vec4s{ 1.f, 1.f, 1.f, render_data->light_intensity };
 
 			// Frustum computations
 			if (!render_data->freeze_occlusion_camera) {
@@ -864,14 +1021,29 @@ void Sandbox::Render(f32 delta_time, f32 interpolation_factor, void* data)
             // Update common constant buffer
             MF_PROFILE_SCOPE("Uniform Buffer Update");
 
-            MapBufferParameters scene_cb_map = { scene->scene_cb, 0, 0 };
-			GpuSceneData* gpu_scene_data = (GpuSceneData*)gpu->map_buffer(scene_cb_map);
+            MapBufferParameters cb_map = { scene->scene_cb, 0, 0 };
+			GpuSceneData* gpu_scene_data = (GpuSceneData*)gpu->map_buffer(cb_map);
             if (gpu_scene_data)
             {
 				memcpy(gpu_scene_data, &scene->scene_data, sizeof(GpuSceneData));
 
-                gpu->unmap_buffer(scene_cb_map);
+                gpu->unmap_buffer(cb_map);
             }
+
+			cb_map.buffer = scene->lighting_constants_cb[gpu->current_frame];
+			GpuLightingData* gpu_lighting_data = (GpuLightingData*)gpu->map_buffer(cb_map);
+			if (gpu_lighting_data) {
+
+				gpu_lighting_data->cubemap_shadows_index = scene->cubemap_shadows_index;
+				gpu_lighting_data->debug_show_light_tiles = render_data->debug_show_light_tiles ? 1 : 0;
+				gpu_lighting_data->debug_show_tiles = render_data->debug_show_tiles ? 1 : 0;
+				gpu_lighting_data->debug_show_bins = render_data->debug_show_bins ? 1 : 0;
+				gpu_lighting_data->disable_shadows = render_data->disable_shadows ? 1 : 0;
+				gpu_lighting_data->debug_modes = (u32)render_data->lighting_debug_modes;
+				gpu_lighting_data->debug_texture_index = scene->lighting_debug_texture_index;
+
+				gpu->unmap_buffer(cb_map);
+			}
 
 			// TODO: move light placement here.
 			if (render_data->light_placement) 
@@ -881,10 +1053,10 @@ void Sandbox::Render(f32 delta_time, f32 interpolation_factor, void* data)
 				//place_lights( scene->lights, true );
 			}
 
-			u32 tile_x_count = scene_data.resolution_x / k_tile_size;
-			u32 tile_y_count = scene_data.resolution_y / k_tile_size;
-			u32 tiles_entry_count = tile_x_count * tile_y_count * k_num_words;
-			u32 buffer_size = tiles_entry_count * sizeof(u32);
+			const u32 tile_x_count = ceilu32(scene_data.resolution_x / k_tile_size);
+			const u32 tile_y_count = ceilu32(scene_data.resolution_y / k_tile_size);
+			const u32 tiles_entry_count = tile_x_count * tile_y_count * k_num_words;
+			const u32 buffer_size = tiles_entry_count * sizeof(u32);
 
 			Buffer* lights_tiles_buffer = nullptr;
 			// Check just the first tile, as we destroy/create them together
@@ -913,6 +1085,350 @@ void Sandbox::Render(f32 delta_time, f32 interpolation_factor, void* data)
 			upload_context.use_mcguire_method = render_data->use_mcguire_method;
 			upload_context.use_view_aabb = render_data->use_view_aabb;
 			s_frame_renderer.upload_gpu_data(upload_context);
+
+
+
+			// Place light AABB with a smaller aabb to indicate the center.
+			const Light& light = scene->lights[render_data->light_to_debug];
+			f32 half_radius = light.radius;
+			scene->debug_renderer.aabb(glms_vec3_sub(light.world_position, { half_radius, half_radius ,half_radius }), glms_vec3_add(light.world_position, { half_radius, half_radius , half_radius }), { Color::white });
+			scene->debug_renderer.aabb(glms_vec3_sub(light.world_position, { .1, .1, .1 }), glms_vec3_add(light.world_position, { .1, .1, .1 }), { Color::green });
+
+			//f32 distance = glms_vec3_distance( { 0,0,0 }, light.world_position );
+			//f32 distance_normalized = distance / (half_radius * 2.f);
+			//f32 f = half_radius * 2;
+			//f32 n = 0.01f;
+			//float NormZComp = ( f + n ) / ( f - n ) - ( 2 * f * n ) / ( f - n ) / distance;
+			//float NormZComp2 = ( f ) / ( n - f ) - ( f * n ) / ( n - f ) / distance;
+
+			//// return z_near * z_far / (z_far + depth * (z_near - z_far));
+			//f32 linear_d = n * f / ( f + 0.983 * ( n - f ) );
+			//f32 linear_d2 = n * f / ( f + 1 * ( n - f ) );
+			//f32 linear_d3 = n * f / ( f + 0.01 * ( n - f ) );
+
+			//// ( f + z * ( n - f ) ) * lin_z = n * f;
+			//// f * lin_z + (z * lin_z * (n - f ) = n * f
+			//// ((n * f) - f * lin_z ) / (n - f) = z * lin_z
+
+			//NormZComp = ( f + n ) / ( f - n ) - ( 2 * f * n ) / ( f - n ) / n;
+			//NormZComp = ( f + n ) / ( f - n ) - ( 2 * f * n ) / ( f - n ) / f;
+			//NormZComp2 = -( f ) / ( n - f ) - ( f * n ) / ( n - f ) / n;
+			//NormZComp2 = -( f ) / ( n - f ) - ( f * n ) / ( n - f ) / f;
+
+			//mat4s view = glms_look( light.world_position, { 0,0,-1 }, { 0,-1,0 } );
+			//// TODO: this should be radius of the light.
+			//mat4s projection = glms_perspective( glm_rad( 90.f ), 1.f, 0.01f, light.radius );
+			//mat4s view_projection = glms_mat4_mul( projection, view );
+
+			//vec3s pos_cs = project( view_projection, { 0,0,0 } );
+
+			//rprint( "DDDD %f %f %f %f\n", NormZComp, -NormZComp2, linear_d, pos_cs.z );
+			//{
+			//    float fn = 1.0f / ( 0.01f - light.radius );
+			//    float a = ( 0.01f + light.radius ) * fn;
+			//    float b = 2.0f * 0.01f * light.radius * fn;
+			//    float projectedDistance = light.world_position.z;
+			//    float z = projectedDistance * a + b;
+			//    float dbDistance = z / projectedDistance;
+
+			//    float bc = dbDistance - NormZComp;
+			//    float bd = dbDistance - NormZComp2;
+			//}
+			// Test AABB cubemap intersection method
+			if (render_data->enable_aabb_cubemap_test) {
+				// Draw enclosing cubemap aabb
+				vec3s cubemap_position = { 0.f, 0.f, 0.f };
+				vec3s cubemap_half_size = { 1, 1, 1 };
+				scene->debug_renderer.aabb(glms_vec3_sub(cubemap_position, cubemap_half_size), glms_vec3_add(cubemap_position, cubemap_half_size), { Color::blue });
+
+				vec3s aabb[] = { glms_vec3_subs(render_data->aabb_test_position, 0.2f), glms_vec3_adds(render_data->aabb_test_position, 0.2f) };
+				u32 res = get_cube_face_mask(cubemap_position, aabb);
+				// Positive X
+				if ((res & 1)) {
+					scene->debug_renderer.aabb(glms_vec3_add(cubemap_position, { 1,0,0 }), glms_vec3_add(cubemap_position, { 1.2, .2, .2 }), { Color::get_distinct_color(0) });
+				}
+				// Negative X
+				if ((res & 2)) {
+					scene->debug_renderer.aabb(glms_vec3_add(cubemap_position, { -1,0,0 }), glms_vec3_add(cubemap_position, { -1.2, -.2, -.2 }), { Color::get_distinct_color(1) });
+				}
+				// Positive Y
+				if ((res & 4)) {
+					scene->debug_renderer.aabb(glms_vec3_add(cubemap_position, { 0,1,0 }), glms_vec3_add(cubemap_position, { .2, 1.2, .2 }), { Color::get_distinct_color(2) });
+				}
+				// Negative Y
+				if ((res & 8)) {
+					scene->debug_renderer.aabb(glms_vec3_add(cubemap_position, { 0,-1,0 }), glms_vec3_add(cubemap_position, { .2, -1.2, .2 }), { Color::get_distinct_color(3) });
+				}
+				// Positive Z
+				if ((res & 16)) {
+					scene->debug_renderer.aabb(glms_vec3_add(cubemap_position, { 0,0,1 }), glms_vec3_add(cubemap_position, { .2, .2, 1.2 }), { Color::get_distinct_color(4) });
+				}
+				// Negative Z
+				if ((res & 32)) {
+					scene->debug_renderer.aabb(glms_vec3_add(cubemap_position, { 0,0,-1 }), glms_vec3_add(cubemap_position, { .2, .2, -1.2 }), { Color::get_distinct_color(5) });
+				}
+				// Draw aabb to test inside cubemap
+				scene->debug_renderer.aabb(aabb[0], aabb[1], { Color::white });
+				//scene->debug_renderer.line( { -1,-1,-1 }, { 1,1,1 }, { Color::white } );
+				//scene->debug_renderer.line( { -1,-1,1 }, { 1,1,-1 }, { Color::white } );
+
+				/*scene->debug_renderer.line({0.5,0,-0.5}, {-1 + .5,1,0 - .5}, {Color::blue});
+				scene->debug_renderer.line( { -0.5,0,-0.5 }, { 1 - .5,1,0 - .5 }, { Color::green } );
+				scene->debug_renderer.line( { 0,0,0 }, { 1,0,1 }, { Color::red } );
+				scene->debug_renderer.line( { 0,0,0 }, { 1,0,-1 }, { Color::yellow } );
+				scene->debug_renderer.line( { 0,0,0 }, { 0,1,1 }, { Color::white } );
+				scene->debug_renderer.line( { 0,0,0 }, { 0,-1,1 }, { 0xffffff00 } ); */
+
+				// AABB -> cubemap face rectangle test
+				f32 s_min, s_max, t_min, t_max;
+				project_aabb_cubemap_positive_x(aabb, s_min, s_max, t_min, t_max);
+				//rprint( "POS X s %f,%f | t %f,%f\n", s_min, s_max, t_min, t_max );
+				project_aabb_cubemap_negative_x(aabb, s_min, s_max, t_min, t_max);
+				//rprint( "NEG X s %f,%f | t %f,%f\n", s_min, s_max, t_min, t_max );
+				project_aabb_cubemap_positive_y(aabb, s_min, s_max, t_min, t_max);
+				//rprint( "POS Y s %f,%f | t %f,%f\n", s_min, s_max, t_min, t_max );
+				project_aabb_cubemap_negative_y(aabb, s_min, s_max, t_min, t_max);
+				//rprint( "NEG Y s %f,%f | t %f,%f\n", s_min, s_max, t_min, t_max );
+				project_aabb_cubemap_positive_z(aabb, s_min, s_max, t_min, t_max);
+				//rprint( "POS Z s %f,%f | t %f,%f\n", s_min, s_max, t_min, t_max );
+				project_aabb_cubemap_negative_z(aabb, s_min, s_max, t_min, t_max);
+				//rprint( "NEG Z s %f,%f | t %f,%f\n", s_min, s_max, t_min, t_max );
+			}
+
+			if (false) {
+				// NOTE(marco): adpated from http://www.aortiz.me/2018/12/21/CG.html#clustered-shading
+				const u32 z_count = 32;
+				const f32 tile_size = 64.0f;
+				const f32 tile_pixels = tile_size * tile_size;
+				const u32 tile_x_count = scene_data.resolution_x / f32(tile_size);
+				const u32 tile_y_count = scene_data.resolution_y / f32(tile_size);
+
+				const f32 tile_radius_sq = ((tile_size * 0.5f) * (tile_size * 0.5f)) * 2;
+
+				const vec3s eye_pos = vec3s{ 0, 0, 0 };
+
+				static Camera last_camera{ };
+
+				if (!render_data->freeze_occlusion_camera) {
+					last_camera = s_game_camera.camera;
+				}
+
+				mat4s inverse_projection = glms_mat4_inv(last_camera.projection);
+				mat4s inverse_view = glms_mat4_inv(last_camera.view);
+
+				auto screen_to_view = [&](const vec4s& screen_pos) -> vec3s {
+					//Convert to NDC
+					vec2s text_coord{ screen_pos.x / scene_data.resolution_x, screen_pos.y / scene_data.resolution_y };
+
+					//Convert to clipSpace
+					vec4s clip = vec4s{ text_coord.x * 2.0f - 1.0f,
+										(1.0f - text_coord.y) * 2.0f - 1.0f,
+										screen_pos.z,
+										screen_pos.w };
+
+					//View space transform
+					vec4s view = glms_mat4_mulv(inverse_projection, clip);
+
+					//Perspective projection
+					// view = glms_vec4_scale( view, 1.0f / view.w );
+
+					return vec3s{ view.x, view.y, view.z };
+				};
+
+				auto line_intersection_to_z_plane = [&](const vec3s& a, const vec3s& b, f32 z) -> vec3s {
+					//all clusters planes are aligned in the same z direction
+					vec3s normal = vec3s{ 0.0, 0.0, 1.0 };
+
+					//getting the line from the eye to the tile
+					vec3s ab = glms_vec3_sub(b, a);
+
+					//Computing the intersection length for the line and the plane
+					f32 t = (z - glms_dot(normal, a)) / glms_dot(normal, ab);
+
+					//Computing the actual xyz position of the point along the line
+					vec3s result = glms_vec3_add(a, glms_vec3_scale(ab, t));
+
+					return result;
+				};
+
+				const f32 z_near = scene_data.z_near;
+				const f32 z_far = scene_data.z_far;
+				const f32 z_ratio = z_far / z_near;
+				const f32 z_bin_range = 1.0f / f32(z_count);
+
+				u32 light_count = scene->active_lights;
+
+				Array<vec3s> lights_aabb_view;
+				lights_aabb_view.init(&MemoryService::Instance()->systemAllocator, light_count * 2, light_count * 2);
+
+				for (u32 l = 0; l < light_count; ++l) {
+					Light& light = scene->lights[l];
+					light.shadow_map_resolution = 0.0f;
+					light.tile_x = 0;
+					light.tile_y = 0;
+					light.solid_angle = 0.0f;
+
+					vec4s aabb_min_view = glms_mat4_mulv(last_camera.view, light.aabb_min);
+					vec4s aabb_max_view = glms_mat4_mulv(last_camera.view, light.aabb_max);
+
+					lights_aabb_view[l * 2] = vec3s{ aabb_min_view.x, aabb_min_view.y, aabb_min_view.z };
+					lights_aabb_view[l * 2 + 1] = vec3s{ aabb_max_view.x, aabb_max_view.y, aabb_max_view.z };
+				}
+
+				for (u32 z = 0; z < z_count; ++z) {
+					for (u32 y = 0; y < tile_y_count; ++y) {
+						for (u32 x = 0; x < tile_x_count; ++x) {
+							// Calculating the min and max point in screen space
+							vec4s max_point_screen = vec4s{ f32((x + 1) * tile_size),
+															f32((y + 1) * tile_size),
+															0.0f, 1.0f }; // Top Right
+
+							vec4s min_point_screen = vec4s{ f32(x * tile_size),
+															f32(y * tile_size),
+															0.0f, 1.0f }; // Top Right
+
+							vec4s tile_center_screen = glms_vec4_scale(glms_vec4_add(min_point_screen, max_point_screen), 0.5f);
+							vec2s tile_center{ tile_center_screen.x, tile_center_screen.y };
+
+							// Pass min and max to view space
+							vec3s max_point_view = screen_to_view(max_point_screen);
+							vec3s min_point_view = screen_to_view(min_point_screen);
+
+							// Near and far values of the cluster in view space
+							// We use equation (2) directly to obtain the tile values
+							f32 tile_near = z_near * pow(z_ratio, f32(z) * z_bin_range);
+							f32 tile_far = z_near * pow(z_ratio, f32(z + 1) * z_bin_range);
+
+							// Finding the 4 intersection points made from each point to the cluster near/far plane
+							vec3s min_point_near = line_intersection_to_z_plane(eye_pos, min_point_view, tile_near);
+							vec3s min_point_far = line_intersection_to_z_plane(eye_pos, min_point_view, tile_far);
+							vec3s max_point_near = line_intersection_to_z_plane(eye_pos, max_point_view, tile_near);
+							vec3s max_point_far = line_intersection_to_z_plane(eye_pos, max_point_view, tile_far);
+
+							vec3s min_point_aabb_view = glms_vec3_minv(glms_vec3_minv(min_point_near, min_point_far), glms_vec3_minv(max_point_near, max_point_far));
+							vec3s max_point_aabb_view = glms_vec3_maxv(glms_vec3_maxv(min_point_near, min_point_far), glms_vec3_maxv(max_point_near, max_point_far));
+
+							vec4s min_point_aabb_world{ min_point_aabb_view.x, min_point_aabb_view.y, min_point_aabb_view.z, 1.0f };
+							vec4s max_point_aabb_world{ max_point_aabb_view.x, max_point_aabb_view.y, max_point_aabb_view.z, 1.0f };
+
+							min_point_aabb_world = glms_mat4_mulv(inverse_view, min_point_aabb_world);
+							max_point_aabb_world = glms_mat4_mulv(inverse_view, max_point_aabb_world);
+
+							bool intersects_light = false;
+							for (u32 l = 0; l < scene->active_lights; ++l) {
+								Light& light = scene->lights[l];
+
+								vec3s& light_aabb_min = lights_aabb_view[l * 2];
+								vec3s& light_aabb_max = lights_aabb_view[l * 2 + 1];
+
+								f32 minx = min(min(light_aabb_min.x, light_aabb_max.x), min(min_point_aabb_view.x, max_point_aabb_view.x));
+								f32 miny = min(min(light_aabb_min.y, light_aabb_max.y), min(min_point_aabb_view.y, max_point_aabb_view.y));
+								f32 minz = min(min(light_aabb_min.z, light_aabb_max.z), min(min_point_aabb_view.z, max_point_aabb_view.z));
+
+								f32 maxx = max(max(light_aabb_min.x, light_aabb_max.x), max(min_point_aabb_view.x, max_point_aabb_view.x));
+								f32 maxy = max(max(light_aabb_min.y, light_aabb_max.y), max(min_point_aabb_view.y, max_point_aabb_view.y));
+								f32 maxz = max(max(light_aabb_min.z, light_aabb_max.z), max(min_point_aabb_view.z, max_point_aabb_view.z));
+
+								f32 dx = abs(maxx - minx);
+								f32 dy = abs(maxy - miny);
+								f32 dz = abs(maxz - minz);
+
+								f32 allx = abs(light_aabb_max.x - light_aabb_min.x) + abs(max_point_aabb_view.x - min_point_aabb_view.x);
+								f32 ally = abs(light_aabb_max.y - light_aabb_min.y) + abs(max_point_aabb_view.y - min_point_aabb_view.y);
+								f32 allz = abs(light_aabb_max.z - light_aabb_min.z) + abs(max_point_aabb_view.z - min_point_aabb_view.z);
+
+								bool intersects = (dx <= allx) && (dy < ally) && (dz <= allz);
+
+								if (intersects) {
+									intersects_light = true;
+
+									vec4s sphere_world{ light.world_position.x, light.world_position.y, light.world_position.z, 1.0f };
+									vec4s sphere_ndc = glms_mat4_mulv(last_camera.view_projection, sphere_world);
+
+									sphere_ndc.x /= sphere_ndc.w;
+									sphere_ndc.y /= sphere_ndc.w;
+
+									vec2s sphere_screen{ ((sphere_ndc.x + 1.0f) * 0.5f) * scene_data.resolution_x, ((sphere_ndc.y + 1.0f) * 0.5f) * scene_data.resolution_y, };
+
+									f32 d = glms_vec2_distance(sphere_screen, tile_center);
+
+									f32 diff = d * d - tile_radius_sq;
+
+									if (diff < 1.0e-4) {
+										continue;
+									}
+
+									// NOTE(marco): as defined in https://math.stackexchange.com/questions/73238/calculating-solid-angle-for-a-sphere-in-space
+									f32 solid_angle = (2.0f * rpi) * (1.0f - (sqrtf(diff) / d));
+
+									// NOTE(marco): following https://efficientshading.com/wp-content/uploads/s2015_shadows.pdf
+									f32 resolution = sqrtf((4.0f * rpi * tile_pixels) / (6 * solid_angle));
+
+									if (resolution > light.shadow_map_resolution) {
+										light.shadow_map_resolution = resolution;
+										light.tile_x = x;
+										light.tile_y = y;
+										light.solid_angle = solid_angle;
+									}
+								}
+							}
+
+							if (render_data->enable_light_cluster_debug && intersects_light) {
+								scene->debug_renderer.aabb(vec3s{ min_point_aabb_world.x, min_point_aabb_world.y, min_point_aabb_world.z },
+									vec3s{ max_point_aabb_world.x, max_point_aabb_world.y, max_point_aabb_world.z },
+									{ Color::get_distinct_color(z) });
+							}
+						}
+					}
+				}
+
+				lights_aabb_view.shutdown();
+
+				if (render_data->enable_light_tile_debug) {
+					f32 light_pos_len = 0.01;
+					for (u32 l = 0; l < light_count; ++l) {
+						Light& light = scene->lights[l];
+
+						//rprint( "Light resolution %f\n", light.shadow_map_resolution );
+
+						if (light.shadow_map_resolution != 0.0f) {
+							{
+								vec4s sphere_world{ light.world_position.x, light.world_position.y, light.world_position.z, 1.0f };
+								vec4s sphere_ndc = glms_mat4_mulv(last_camera.view_projection, sphere_world);
+
+								sphere_ndc.x /= sphere_ndc.w;
+								sphere_ndc.y /= sphere_ndc.w;
+
+								vec2s top_left{ sphere_ndc.x - light_pos_len, sphere_ndc.y - light_pos_len };
+								vec2s bottom_right{ sphere_ndc.x + light_pos_len, sphere_ndc.y + light_pos_len };
+								vec2s top_right{ sphere_ndc.x + light_pos_len, sphere_ndc.y - light_pos_len };
+								vec2s bottom_left{ sphere_ndc.x - light_pos_len, sphere_ndc.y + light_pos_len };
+
+								scene->debug_renderer.line_2d(top_left, bottom_right, { Color::get_distinct_color(l + 1) });
+								scene->debug_renderer.line_2d(top_right, bottom_left, { Color::get_distinct_color(l + 1) });
+							}
+
+							{
+								vec2s screen_scale{ 1.0f / f32(scene_data.resolution_x), 1.0f / (scene_data.resolution_y) };
+
+								vec2s bottom_right{ f32((light.tile_x + 1) * tile_size), f32(scene_data.resolution_y - (light.tile_y + 1) * tile_size) };
+								bottom_right = glms_vec2_subs(glms_vec2_scale(glms_vec2_mul(bottom_right, screen_scale), 2.0f), 1.0f);
+
+								vec2s top_left{ f32((light.tile_x) * tile_size), f32(scene_data.resolution_y - (light.tile_y) * tile_size) };
+								top_left = glms_vec2_subs(glms_vec2_scale(glms_vec2_mul(top_left, screen_scale), 2.0f), 1.0f);
+
+								vec2s top_right{ bottom_right.x, top_left.y };
+								vec2s bottom_left{ top_left.x, bottom_right.y };
+
+								scene->debug_renderer.line_2d(top_left, top_right, { Color::get_distinct_color(l + 1) });
+								scene->debug_renderer.line_2d(top_right, bottom_right, { Color::get_distinct_color(l + 1) });
+								scene->debug_renderer.line_2d(bottom_left, bottom_right, { Color::get_distinct_color(l + 1) });
+								scene->debug_renderer.line_2d(bottom_left, top_left, { Color::get_distinct_color(l + 1) });
+							}
+						}
+					}
+				}
+			}
         }
 
 		DrawTask draw_task;

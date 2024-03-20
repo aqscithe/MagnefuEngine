@@ -4,6 +4,9 @@
 
 #include "Magnefu/Core/Numerics.hpp"
 
+
+#include "cglm/struct/affine.h"
+
 namespace Magnefu
 {
 
