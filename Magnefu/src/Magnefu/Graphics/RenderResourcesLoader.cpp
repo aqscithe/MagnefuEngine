@@ -328,6 +328,15 @@ namespace Magnefu {
         return VK_BLEND_OP_ADD;
     }
 
+    VkPipelineCreateFlags get_pipeline_flags(const std::string& flags) {
+        if (flags == "shading_rate_image") {
+            return VK_PIPELINE_RASTERIZATION_STATE_CREATE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;
+        }
+
+        MF_CORE_ASSERT(false, "");
+        return 0;
+    }
+
     u64 shader_concatenate(cstring filename, Magnefu::StringBuffer& path_buffer, Magnefu::StringBuffer& shader_buffer, Magnefu::Allocator* temp_allocator) {
         using namespace Magnefu;
 
@@ -611,6 +620,14 @@ namespace Magnefu {
             else {
                 MF_CORE_ASSERT(false, "");
             }
+        }
+
+        json flags = pipeline["flags"];
+        if (flags.is_string()) {
+            std::string flags_value;
+            flags.get_to(flags_value);
+
+            pc.flags = get_pipeline_flags(flags_value);
         }
 
         json render_pass = pipeline["render_pass"];

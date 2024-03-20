@@ -138,7 +138,7 @@ namespace Magnefu {
     void CommandBuffer::end_current_render_pass() {
         if (is_recording && current_render_pass != nullptr) {
             if (gpu_device->dynamic_rendering_extension_present) {
-                gpu_device->cmd_end_rendering(vk_command_buffer);
+                gpu_device->vkCmdEndRenderingKHR(vk_command_buffer);
             }
             else {
                 vkCmdEndRenderPass(vk_command_buffer);
@@ -239,7 +239,18 @@ namespace Magnefu {
                     rendering_info.pDepthAttachment = has_depth_attachment ? &depth_attachment_info : nullptr;
                     rendering_info.pStencilAttachment = nullptr;
 
-                    gpu_device->cmd_begin_rendering(vk_command_buffer, &rendering_info);
+                    VkRenderingFragmentShadingRateAttachmentInfoKHR shading_rate_info{ VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR };
+                    if (framebuffer->shader_rate_attachment.index != k_invalid_index) {
+                        Texture* texture = gpu_device->access_texture(framebuffer->shader_rate_attachment);
+
+                        shading_rate_info.imageView = texture->vk_image_view;
+                        shading_rate_info.imageLayout = VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR;
+                        shading_rate_info.shadingRateAttachmentTexelSize = gpu_device->min_fragment_shading_rate_texel_size;
+
+                        rendering_info.pNext = (void*)&shading_rate_info;
+                    }
+
+                    gpu_device->vkCmdBeginRenderingKHR(vk_command_buffer, &rendering_info);
 
                     gpu_device->temporary_allocator->freeToMarker(marker);
                 }
@@ -516,20 +527,20 @@ namespace Magnefu {
 
     void CommandBuffer::draw_mesh_task(u32 task_count, u32 first_task) {
 
-        gpu_device->cmd_draw_mesh_tasks(vk_command_buffer, task_count, first_task);
+        gpu_device->vkCmdDrawMeshTasksNV(vk_command_buffer, task_count, first_task);
     }
 
     void CommandBuffer::draw_mesh_task_indirect(BufferHandle argument_buffer, u32 argument_offset, u32 command_count, u32 stride) {
         Buffer* argument_buffer_ = gpu_device->access_buffer(argument_buffer);
 
-        gpu_device->cmd_draw_mesh_tasks_indirect(vk_command_buffer, argument_buffer_->vk_buffer, argument_offset, command_count, stride);
+        gpu_device->vkCmdDrawMeshTasksIndirectNV(vk_command_buffer, argument_buffer_->vk_buffer, argument_offset, command_count, stride);
     }
 
     void CommandBuffer::draw_mesh_task_indirect_count(BufferHandle argument_buffer, u32 argument_offset, BufferHandle count_buffer, u32 count_offset, u32 max_draws, u32 stride) {
         Buffer* argument_buffer_ = gpu_device->access_buffer(argument_buffer);
         Buffer* count_buffer_ = gpu_device->access_buffer(count_buffer);
 
-        gpu_device->cmd_draw_mesh_tasks_indirect_count(vk_command_buffer, argument_buffer_->vk_buffer, argument_offset, count_buffer_->vk_buffer, count_offset, max_draws, stride);
+        gpu_device->vkCmdDrawMeshTasksIndirectCountNV(vk_command_buffer, argument_buffer_->vk_buffer, argument_offset, count_buffer_->vk_buffer, count_offset, max_draws, stride);
     }
 
     void CommandBuffer::dispatch_indirect(BufferHandle buffer_handle, u32 offset) {
@@ -560,7 +571,7 @@ namespace Magnefu {
         dependency_info.memoryBarrierCount = 1;
         dependency_info.pMemoryBarriers = &barrier;
 
-        gpu_device->cmd_pipeline_barrier2(vk_command_buffer, &dependency_info);
+        gpu_device->vkCmdPipelineBarrier2KHR(vk_command_buffer, &dependency_info);
     }
 
     void CommandBuffer::buffer_barrier(BufferHandle buffer_handle, ResourceState old_state, ResourceState new_state, QueueType::Enum source_queue_type, QueueType::Enum destination_queue_type) {
@@ -628,7 +639,7 @@ namespace Magnefu {
             dependency_info.pBufferMemoryBarriers = buffer_barriers;
             dependency_info.bufferMemoryBarrierCount = barrier.num_buffer_barriers;
 
-            gpu_device->cmd_pipeline_barrier2(vk_command_buffer, &dependency_info);
+            gpu_device->vkCmdPipelineBarrier2KHR(vk_command_buffer, &dependency_info);
         }
         else {
             // TODO: implement

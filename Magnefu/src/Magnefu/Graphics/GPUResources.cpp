@@ -452,6 +452,12 @@ namespace Magnefu {
         return *this;
     }
 
+    RenderPassCreation& RenderPassCreation::add_shading_rate_image() {
+        shading_rate_image_index = num_render_targets++;
+
+        return *this;
+    }
+
     RenderPassCreation& RenderPassCreation::set_depth_stencil_texture(VkFormat format, VkImageLayout layout) {
         depth_stencil_format = format;
         depth_stencil_final_layout = layout;
@@ -503,6 +509,12 @@ namespace Magnefu {
 
     FramebufferCreation& FramebufferCreation::set_depth_stencil_texture(TextureHandle texture) {
         depth_stencil_texture = texture;
+
+        return *this;
+    }
+
+    FramebufferCreation& FramebufferCreation::add_shading_rate_attachment(TextureHandle texture) {
+        shading_rate_attachment = texture;
 
         return *this;
     }
@@ -697,6 +709,9 @@ namespace Magnefu {
         if (state & RESOURCE_STATE_PRESENT) {
             ret |= VK_ACCESS_2_MEMORY_READ_BIT_KHR;
         }
+        if (state & RESOURCE_STATE_SHADING_RATE_SOURCE) {
+            ret |= VK_ACCESS_2_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR;
+        }
 #ifdef ENABLE_RAYTRACING
         if (state & RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE) {
             ret |= VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_NV | VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_NV;
@@ -734,6 +749,9 @@ namespace Magnefu {
         if (usage == RESOURCE_STATE_COMMON)
             return VK_IMAGE_LAYOUT_GENERAL;
 
+        if (usage == RESOURCE_STATE_SHADING_RATE_SOURCE)
+            return VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR;
+
         return VK_IMAGE_LAYOUT_UNDEFINED;
     }
 
@@ -765,6 +783,9 @@ namespace Magnefu {
         if (usage == RESOURCE_STATE_COMMON)
             return VK_IMAGE_LAYOUT_GENERAL;
 
+        if (usage == RESOURCE_STATE_SHADING_RATE_SOURCE)
+            return VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR;
+
         return VK_IMAGE_LAYOUT_UNDEFINED;
     }
 
@@ -793,6 +814,9 @@ namespace Magnefu {
 
             if ((access_flags & (VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT)) != 0)
                 flags |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+            if ((access_flags & VK_ACCESS_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR) != 0)
+                flags = VK_PIPELINE_STAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;
 
             if ((access_flags & (VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)) != 0)
                 flags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
@@ -859,6 +883,9 @@ namespace Magnefu {
             if ((access_flags & (VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT)) != 0)
                 flags |= VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR;
 
+            if ((access_flags & VK_ACCESS_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR) != 0)
+                flags = VK_PIPELINE_STAGE_2_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;
+
             if ((access_flags & (VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)) != 0)
                 flags |= VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT_KHR | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT_KHR;
 
@@ -919,7 +946,7 @@ namespace Magnefu {
             dependency_info.imageMemoryBarrierCount = 1;
             dependency_info.pImageMemoryBarriers = &barrier;
 
-            gpu->cmd_pipeline_barrier2(command_buffer, &dependency_info);
+            gpu->vkCmdPipelineBarrier2KHR(command_buffer, &dependency_info);
         }
         else {
             VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
@@ -976,7 +1003,7 @@ namespace Magnefu {
             dependency_info.imageMemoryBarrierCount = 1;
             dependency_info.pImageMemoryBarriers = &barrier;
 
-            gpu->cmd_pipeline_barrier2(command_buffer, &dependency_info);
+            gpu->vkCmdPipelineBarrier2KHR(command_buffer, &dependency_info);
         }
         else {
             VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
@@ -1035,7 +1062,7 @@ namespace Magnefu {
             dependency_info.bufferMemoryBarrierCount = 1;
             dependency_info.pBufferMemoryBarriers = &barrier;
 
-            gpu->cmd_pipeline_barrier2(command_buffer, &dependency_info);
+            gpu->vkCmdPipelineBarrier2KHR(command_buffer, &dependency_info);
         }
         else {
             VkBufferMemoryBarrier barrier{ VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER };

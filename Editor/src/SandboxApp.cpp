@@ -420,12 +420,6 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	s_game_camera.init(true, 20.f, 6.f, 0.1f);
 
 
-	s_frame_graph_builder.init(gpu);
-	s_frame_graph.init(&s_frame_graph_builder);
-
-
-	
-
 	sizet scratch_marker = scratch_allocator->getMarker();
 
 	StringBuffer temporary_name_buffer;
@@ -443,6 +437,77 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	}
 	strcpy(renderer->resource_cache.binary_data_folder, shader_binaries_folder);
 	temporary_name_buffer.clear();
+
+
+
+
+	s_scene_graph.init(allocator, 4);
+
+	// [TAG: Multithreading]
+	s_async_loader.init(renderer, &s_task_scheduler, allocator);
+
+	Directory cwd{ };
+	directory_current(&cwd);
+
+	temporary_name_buffer.clear();
+	cstring scene_path = nullptr;
+
+	InjectDefault3DModel(scene_path);
+
+
+	char file_base_path[512]{ };
+
+	memcpy(file_base_path, scene_path, strlen(scene_path));
+	file_directory_from_path(file_base_path);
+
+	directory_change(file_base_path);
+
+	char file_name[512]{ };
+	memcpy(file_name, scene_path, strlen(scene_path));
+	file_name_from_path(file_name);
+
+
+	char* file_extension = file_extension_from_path(file_name);
+
+	if (strcmp(file_extension, "gltf") == 0)
+	{
+		scene = new glTFScene;
+	}
+	else if (strcmp(file_extension, "obj") == 0)
+	{
+		scene = new ObjScene;
+	}
+
+	scene->use_meshlets = gpu->mesh_shaders_extension_present;
+	scene->use_meshlets_emulation = !scene->use_meshlets;
+	scene->init(file_name, file_base_path, allocator, scratch_allocator, &s_async_loader);
+
+	// NOTE(marco): restore working directory
+	directory_change(cwd.path);
+
+	s_frame_graph_builder.init(gpu);
+	s_frame_graph.init(&s_frame_graph_builder);
+
+	if (gpu->fragment_shading_rate_present)
+	{
+		TextureCreation texture_creation{ };
+		u32 adjusted_width = (window->GetWidth() + gpu->min_fragment_shading_rate_texel_size.width - 1) / gpu->min_fragment_shading_rate_texel_size.width;
+		u32 adjusted_height = (window->GetHeight() + gpu->min_fragment_shading_rate_texel_size.height - 1) / gpu->min_fragment_shading_rate_texel_size.height;
+		texture_creation.set_size(adjusted_width, adjusted_height, 1).set_format_type(VK_FORMAT_R8_UINT, TextureType::Texture2D).set_mips(1).set_layers(1).set_flags(TextureFlags::Compute_mask | TextureFlags::ShadingRate_mask).set_name("fragment_shading_rate");
+
+		scene->fragment_shading_rate_image = gpu->create_texture(texture_creation);
+
+		FrameGraphResourceInfo resource_info{ };
+
+		resource_info.external = true;
+
+		resource_info.texture.format = VK_FORMAT_R8_UINT;
+		resource_info.texture.width = adjusted_width;
+		resource_info.texture.height = adjusted_height;
+		resource_info.texture.handle = scene->fragment_shading_rate_image;
+
+		s_frame_graph.add_resource("shading_rate_image", FrameGraphResourceType_ShadingRate, resource_info);
+	}
 
 
 	// will eventually have an EditorLayer
@@ -506,55 +571,6 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 
 	}
 	
-	s_scene_graph.init(allocator, 4);
-
-	// -- Grab Scene Data ------------------------------------------------ //
-
-	
-
-
-    // [TAG: Multithreading]
-    s_async_loader.init(renderer, &s_task_scheduler, allocator);
-
-    Directory cwd{ };
-    directory_current(&cwd);
-
-	temporary_name_buffer.clear();
-	cstring scene_path = nullptr;
-
-	InjectDefault3DModel(scene_path);
-
-
-    char file_base_path[512]{ };
-
-    memcpy(file_base_path, scene_path, strlen(scene_path));
-    file_directory_from_path(file_base_path);
-
-    directory_change(file_base_path);
-
-    char file_name[512]{ };
-    memcpy(file_name, scene_path, strlen(scene_path));
-    file_name_from_path(file_name);
-
-	
-
-    char* file_extension = file_extension_from_path(file_name);
-
-    if (strcmp(file_extension, "gltf") == 0) 
-    {
-        scene = new glTFScene;
-    }
-    else if (strcmp(file_extension, "obj") == 0)
-    {
-        scene = new ObjScene;
-    }
-
-	scene->use_meshlets = gpu->mesh_shaders_extension_present;
-	scene->use_meshlets_emulation = !scene->use_meshlets;
-    scene->init(file_name, file_base_path, allocator, scratch_allocator, &s_async_loader);
-
-    // NOTE(marco): restore working directory
-    directory_change(cwd.path);
 
 	s_frame_renderer.init(allocator, renderer, &s_frame_graph, &s_scene_graph, scene);
 	s_frame_renderer.prepare_draws(scratch_allocator);

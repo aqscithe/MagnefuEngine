@@ -38,7 +38,8 @@ namespace Magnefu
 		FrameGraphResourceType_Buffer = 0,
 		FrameGraphResourceType_Texture = 1,
 		FrameGraphResourceType_Attachment = 2,
-		FrameGraphResourceType_Reference = 3
+		FrameGraphResourceType_Reference = 3,
+		FrameGraphResourceType_ShadingRate = 4
 	};
 
 
@@ -215,6 +216,7 @@ namespace Magnefu
 
 		FrameGraphResource* get_resource(cstring name);
 		FrameGraphResource* access_resource(FrameGraphResourceHandle handle);
+		void                            add_resource(cstring name, FrameGraphResourceType type, FrameGraphResourceInfo resource_info);
 
 		FrameGraphResourceCache         resource_cache;
 		FrameGraphNodeCache             node_cache;
@@ -257,8 +259,9 @@ namespace Magnefu
 		FrameGraphResource* get_resource(cstring name);
 		FrameGraphResource* access_resource(FrameGraphResourceHandle handle);
 
-		// TODO(marco): in case we want to add a pass in code
-		void                            add_node(FrameGraphNodeCreation& node);
+		void                            add_node(FrameGraphNodeCreation& creation);
+		void                            add_resource(cstring name, FrameGraphResourceType type, FrameGraphResourceInfo resource_info);
+
 
 		// NOTE(marco): nodes sorted in topological order
 		Array<FrameGraphNodeHandle>     nodes;
