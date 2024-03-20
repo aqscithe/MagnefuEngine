@@ -79,7 +79,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\vulkan\include;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Magnefu\vendor\GLAD\include;..\Magnefu\vendor\entt\include;..\Magnefu\vendor\assimp\include;..\Magnefu\vendor\meshoptimizer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\vulkan\include;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Magnefu\vendor\GLAD\include;..\Magnefu\vendor\entt\include;..\Magnefu\vendor\assimp\include;..\Magnefu\vendor\meshoptimizer;..\Magnefu\vendor\vma;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -99,7 +99,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\vulkan\include;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Magnefu\vendor\GLAD\include;..\Magnefu\vendor\entt\include;..\Magnefu\vendor\assimp\include;..\Magnefu\vendor\meshoptimizer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\vulkan\include;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Magnefu\vendor\GLAD\include;..\Magnefu\vendor\entt\include;..\Magnefu\vendor\assimp\include;..\Magnefu\vendor\meshoptimizer;..\Magnefu\vendor\vma;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -123,7 +123,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\vulkan\include;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Magnefu\vendor\GLAD\include;..\Magnefu\vendor\entt\include;..\Magnefu\vendor\assimp\include;..\Magnefu\vendor\meshoptimizer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Magnefu\src;..\Magnefu\vendor;..\Magnefu\vendor\vulkan\include;..\Magnefu\vendor\spdlog\include;..\Magnefu\src\Maths;src;..\Magnefu\vendor\GLAD\include;..\Magnefu\vendor\entt\include;..\Magnefu\vendor\assimp\include;..\Magnefu\vendor\meshoptimizer;..\Magnefu\vendor\vma;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -143,8 +143,11 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="res\shaders\culling.h" />
+    <ClInclude Include="res\shaders\debug_rendering.h" />
     <ClInclude Include="res\shaders\lighting.h" />
     <ClInclude Include="res\shaders\mesh.h" />
+    <ClInclude Include="res\shaders\meshlet.h" />
     <ClInclude Include="res\shaders\platform.h" />
     <ClInclude Include="res\shaders\scene.h" />
     <ClInclude Include="src\AppLayers\Overlay.hpp" />
@@ -158,6 +161,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="res\frame_graphs\graph.json" />
+    <None Include="res\frame_graphs\graph_meshlet.json" />
     <None Include="res\materials\12221_Cat_v1_l3.mtl" />
     <None Include="res\materials\Bronze_shield.mtl" />
     <None Include="res\materials\T-rex.mtl" />
@@ -185,6 +189,14 @@
     <None Include="res\models\FlightHelmet\glTF\FlightHelmet.bin" />
     <None Include="res\models\FlightHelmet\glTF\FlightHelmet.gltf" />
     <None Include="res\models\FlightHelmet\metadata.json" />
+    <None Include="res\models\MetalRoughSpheres\LICENSE.md" />
+    <None Include="res\models\MetalRoughSpheres\README.body.md" />
+    <None Include="res\models\MetalRoughSpheres\README.md" />
+    <None Include="res\models\MetalRoughSpheres\glTF-Binary\MetalRoughSpheres.glb" />
+    <None Include="res\models\MetalRoughSpheres\glTF-Embedded\MetalRoughSpheres.gltf" />
+    <None Include="res\models\MetalRoughSpheres\glTF\MetalRoughSpheres.gltf" />
+    <None Include="res\models\MetalRoughSpheres\glTF\MetalRoughSpheres0.bin" />
+    <None Include="res\models\MetalRoughSpheres\metadata.json" />
     <None Include="res\models\SciFiHelmet\LICENSE.md" />
     <None Include="res\models\SciFiHelmet\README.md" />
     <None Include="res\models\SciFiHelmet\glTF\SciFiHelmet.bin" />
@@ -210,30 +222,132 @@
     <None Include="res\models\sphere.obj" />
     <None Include="res\shaders\cloth.glsl" />
     <None Include="res\shaders\cloth.json" />
+    <None Include="res\shaders\cloth_compute_comp.hash.cache" />
+    <None Include="res\shaders\cloth_compute_comp.spv" />
+    <None Include="res\shaders\commands_finalize.cache" />
     <None Include="res\shaders\compute.cache" />
     <None Include="res\shaders\compute_test.glsl" />
+    <None Include="res\shaders\culling.glsl" />
+    <None Include="res\shaders\culling.json" />
+    <None Include="res\shaders\culling_depth_pyramid_comp.hash.cache" />
+    <None Include="res\shaders\culling_depth_pyramid_comp.spv" />
+    <None Include="res\shaders\culling_gpu_mesh_culling_comp.hash.cache" />
+    <None Include="res\shaders\culling_gpu_mesh_culling_comp.spv" />
     <None Include="res\shaders\debug.json" />
+    <None Include="res\shaders\debug_commands_finalize_comp.hash.cache" />
+    <None Include="res\shaders\debug_commands_finalize_comp.spv" />
+    <None Include="res\shaders\debug_debug_line_2d_gpu_frag.hash.cache" />
+    <None Include="res\shaders\debug_debug_line_2d_gpu_frag.spv" />
+    <None Include="res\shaders\debug_debug_line_2d_gpu_vert.hash.cache" />
+    <None Include="res\shaders\debug_debug_line_2d_gpu_vert.spv" />
+    <None Include="res\shaders\debug_debug_line_frag.hash.cache" />
+    <None Include="res\shaders\debug_debug_line_frag.spv" />
+    <None Include="res\shaders\debug_debug_line_gpu_frag.hash.cache" />
+    <None Include="res\shaders\debug_debug_line_gpu_frag.spv" />
+    <None Include="res\shaders\debug_debug_line_gpu_vert.hash.cache" />
+    <None Include="res\shaders\debug_debug_line_gpu_vert.spv" />
+    <None Include="res\shaders\debug_debug_line_vert.hash.cache" />
+    <None Include="res\shaders\debug_debug_line_vert.spv" />
+    <None Include="res\shaders\debug_debug_mesh_frag.hash.cache" />
+    <None Include="res\shaders\debug_debug_mesh_frag.spv" />
+    <None Include="res\shaders\debug_debug_mesh_vert.hash.cache" />
+    <None Include="res\shaders\debug_debug_mesh_vert.spv" />
     <None Include="res\shaders\debug_line.cache" />
     <None Include="res\shaders\debug_line.glsl" />
+    <None Include="res\shaders\debug_line_2d_gpu.cache" />
+    <None Include="res\shaders\debug_line_gpu.cache" />
     <None Include="res\shaders\debug_mesh.cache" />
     <None Include="res\shaders\debug_mesh.glsl" />
+    <None Include="res\shaders\del-cache" />
     <None Include="res\shaders\depth.glsl" />
+    <None Include="res\shaders\depth_of_field_main_frag.hash.cache" />
+    <None Include="res\shaders\depth_of_field_main_frag.spv" />
+    <None Include="res\shaders\depth_of_field_main_vert.hash.cache" />
+    <None Include="res\shaders\depth_of_field_main_vert.spv" />
     <None Include="res\shaders\depth_pre.cache" />
     <None Include="res\shaders\depth_pre_skinning.cache" />
+    <None Include="res\shaders\depth_pyramid.cache" />
+    <None Include="res\shaders\depth_pyramid.glsl" />
     <None Include="res\shaders\depth_skinned.vert" />
     <None Include="res\shaders\dof.glsl" />
     <None Include="res\shaders\dof.json" />
+    <None Include="res\shaders\emulation_gbuffer_culling.cache" />
     <None Include="res\shaders\fullscreen.glsl" />
     <None Include="res\shaders\fullscreen.json" />
+    <None Include="res\shaders\fullscreen_main_frag.hash.cache" />
+    <None Include="res\shaders\fullscreen_main_frag.spv" />
+    <None Include="res\shaders\fullscreen_main_vert.hash.cache" />
+    <None Include="res\shaders\fullscreen_main_vert.spv" />
     <None Include="res\shaders\gbuffer.glsl" />
     <None Include="res\shaders\gbuffer_cull.cache" />
+    <None Include="res\shaders\gbuffer_culling.cache" />
     <None Include="res\shaders\gbuffer_no_cull.cache" />
     <None Include="res\shaders\gbuffer_skinning.cache" />
+    <None Include="res\shaders\generate_meshlet_index_buffer.cache" />
+    <None Include="res\shaders\generate_meshlet_instances.cache" />
+    <None Include="res\shaders\gpu_mesh_culling.cache" />
     <None Include="res\shaders\main.cache" />
     <None Include="res\shaders\main.glsl" />
     <None Include="res\shaders\main.json" />
-    <None Include="res\shaders\main_cull.cache" />
-    <None Include="res\shaders\main_no_cull.cache" />
+    <None Include="res\shaders\main_depth_pre_skinning_frag.hash.cache" />
+    <None Include="res\shaders\main_depth_pre_skinning_frag.spv" />
+    <None Include="res\shaders\main_depth_pre_skinning_vert.hash.cache" />
+    <None Include="res\shaders\main_depth_pre_skinning_vert.spv" />
+    <None Include="res\shaders\main_depth_pre_vert.hash.cache" />
+    <None Include="res\shaders\main_depth_pre_vert.spv" />
+    <None Include="res\shaders\main_gbuffer_no_cull_frag.hash.cache" />
+    <None Include="res\shaders\main_gbuffer_no_cull_frag.spv" />
+    <None Include="res\shaders\main_gbuffer_no_cull_vert.hash.cache" />
+    <None Include="res\shaders\main_gbuffer_no_cull_vert.spv" />
+    <None Include="res\shaders\main_gbuffer_skinning_frag.hash.cache" />
+    <None Include="res\shaders\main_gbuffer_skinning_frag.spv" />
+    <None Include="res\shaders\main_gbuffer_skinning_vert.hash.cache" />
+    <None Include="res\shaders\main_gbuffer_skinning_vert.spv" />
+    <None Include="res\shaders\main_transparent_no_cull_frag.hash.cache" />
+    <None Include="res\shaders\main_transparent_no_cull_frag.spv" />
+    <None Include="res\shaders\main_transparent_no_cull_vert.hash.cache" />
+    <None Include="res\shaders\main_transparent_no_cull_vert.spv" />
+    <None Include="res\shaders\main_transparent_skinning_no_cull_frag.hash.cache" />
+    <None Include="res\shaders\main_transparent_skinning_no_cull_frag.spv" />
+    <None Include="res\shaders\main_transparent_skinning_no_cull_vert.hash.cache" />
+    <None Include="res\shaders\main_transparent_skinning_no_cull_vert.spv" />
+    <None Include="res\shaders\mesh.cache" />
+    <None Include="res\shaders\meshlet.glsl" />
+    <None Include="res\shaders\meshlet.json" />
+    <None Include="res\shaders\meshlet_depth_pre_mesh.hash.cache" />
+    <None Include="res\shaders\meshlet_depth_pre_mesh.spv" />
+    <None Include="res\shaders\meshlet_depth_pre_task.hash.cache" />
+    <None Include="res\shaders\meshlet_depth_pre_task.spv" />
+    <None Include="res\shaders\meshlet_emulation_gbuffer_culling_frag.hash.cache" />
+    <None Include="res\shaders\meshlet_emulation_gbuffer_culling_frag.spv" />
+    <None Include="res\shaders\meshlet_emulation_gbuffer_culling_vert.hash.cache" />
+    <None Include="res\shaders\meshlet_emulation_gbuffer_culling_vert.spv" />
+    <None Include="res\shaders\meshlet_gbuffer_culling_frag.hash.cache" />
+    <None Include="res\shaders\meshlet_gbuffer_culling_frag.spv" />
+    <None Include="res\shaders\meshlet_gbuffer_culling_mesh.hash.cache" />
+    <None Include="res\shaders\meshlet_gbuffer_culling_mesh.spv" />
+    <None Include="res\shaders\meshlet_gbuffer_culling_task.hash.cache" />
+    <None Include="res\shaders\meshlet_gbuffer_culling_task.spv" />
+    <None Include="res\shaders\meshlet_generate_meshlet_index_buffer_comp.hash.cache" />
+    <None Include="res\shaders\meshlet_generate_meshlet_index_buffer_comp.spv" />
+    <None Include="res\shaders\meshlet_generate_meshlet_instances_comp.hash.cache" />
+    <None Include="res\shaders\meshlet_generate_meshlet_instances_comp.spv" />
+    <None Include="res\shaders\meshlet_instance_culling.cache" />
+    <None Include="res\shaders\meshlet_mesh_frag.hash.cache" />
+    <None Include="res\shaders\meshlet_mesh_frag.spv" />
+    <None Include="res\shaders\meshlet_mesh_mesh.hash.cache" />
+    <None Include="res\shaders\meshlet_mesh_mesh.spv" />
+    <None Include="res\shaders\meshlet_meshlet_instance_culling_comp.hash.cache" />
+    <None Include="res\shaders\meshlet_meshlet_instance_culling_comp.spv" />
+    <None Include="res\shaders\meshlet_meshlet_write_counts_comp.hash.cache" />
+    <None Include="res\shaders\meshlet_meshlet_write_counts_comp.spv" />
+    <None Include="res\shaders\meshlet_transparent_no_cull_frag.hash.cache" />
+    <None Include="res\shaders\meshlet_transparent_no_cull_frag.spv" />
+    <None Include="res\shaders\meshlet_transparent_no_cull_mesh.hash.cache" />
+    <None Include="res\shaders\meshlet_transparent_no_cull_mesh.spv" />
+    <None Include="res\shaders\meshlet_transparent_no_cull_task.hash.cache" />
+    <None Include="res\shaders\meshlet_transparent_no_cull_task.spv" />
+    <None Include="res\shaders\meshlet_write_counts.cache" />
     <None Include="res\shaders\other\AreaLight.shader" />
     <None Include="res\shaders\other\AreaLightLTC.shader" />
     <None Include="res\shaders\other\Basic.shader" />
@@ -252,9 +366,15 @@
     <None Include="res\shaders\other\Texture2D.shader" />
     <None Include="res\shaders\pbr.glsl" />
     <None Include="res\shaders\pbr_lighting.json" />
-    <None Include="res\shaders\phong.frag" />
+    <None Include="res\shaders\pbr_lighting_compute_comp.hash.cache" />
+    <None Include="res\shaders\pbr_lighting_compute_comp.spv" />
+    <None Include="res\shaders\pbr_lighting_main_frag.hash.cache" />
+    <None Include="res\shaders\pbr_lighting_main_frag.spv" />
+    <None Include="res\shaders\pbr_lighting_main_vert.hash.cache" />
+    <None Include="res\shaders\pbr_lighting_main_vert.spv" />
     <None Include="res\shaders\phong.vert" />
     <None Include="res\shaders\skinning.glsl" />
+    <None Include="res\shaders\transparent.glsl" />
     <None Include="res\shaders\transparent_cull.cache" />
     <None Include="res\shaders\transparent_no_cull.cache" />
     <None Include="res\shaders\transparent_skinning_no_cull.cache" />
@@ -282,6 +402,10 @@
     <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_RubberWoodMat_OcclusionRoughMetal.png" />
     <Image Include="res\models\FlightHelmet\screenshot\screenshot-x150.jpg" />
     <Image Include="res\models\FlightHelmet\screenshot\screenshot.jpg" />
+    <Image Include="res\models\MetalRoughSpheres\glTF\Spheres_BaseColor.png" />
+    <Image Include="res\models\MetalRoughSpheres\glTF\Spheres_MetalRough.png" />
+    <Image Include="res\models\MetalRoughSpheres\screenshot\screenshot-x150.png" />
+    <Image Include="res\models\MetalRoughSpheres\screenshot\screenshot.png" />
     <Image Include="res\models\SciFiHelmet\glTF\SciFiHelmet_AmbientOcclusion.png" />
     <Image Include="res\models\SciFiHelmet\glTF\SciFiHelmet_BaseColor.png" />
     <Image Include="res\models\SciFiHelmet\glTF\SciFiHelmet_MetallicRoughness.png" />

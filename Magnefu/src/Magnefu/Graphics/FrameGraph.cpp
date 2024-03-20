@@ -108,6 +108,10 @@ namespace Magnefu
 
         json passes = graph_data["passes"];
         for (sizet i = 0; i < passes.size(); ++i) {
+            if (i == 10)
+            {
+                int x = 1;
+            }
             json pass = passes[i];
 
             json pass_inputs = pass["inputs"];
@@ -671,9 +675,9 @@ namespace Magnefu
             FrameGraphNode* node = builder->access_node(nodes[i]);
             MF_CORE_ASSERT(node->enabled, "");
 
-            if (node->compute) {
+            /*if (node->compute) {
                 continue;
-            }
+            }*/
 
             if (node->render_pass.index == k_invalid_index) {
                 create_render_pass(this, node);

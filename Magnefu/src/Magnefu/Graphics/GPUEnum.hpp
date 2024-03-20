@@ -240,11 +240,11 @@ namespace Magnefu
 
     namespace ResourceUsageType {
         enum Enum {
-            Immutable, Dynamic, Stream, Staging, Count
+            Immutable, Dynamic, Stream, Staging, Readback, Count
         };
 
         enum Mask {
-            Immutable_mask = 1 << 0, Dynamic_mask = 1 << 1, Stream_mask = 1 << 2, Staging_mask = 1 << 3, Count_mask = 1 << 4
+            Immutable_mask = 1 << 0, Dynamic_mask = 1 << 1, Stream_mask = 1 << 2, Staging_mask = 1 << 3, Readback_mask = 1 << 4, Count_mask = 1 << 5
         };
 
         static const char* s_value_names[] = {
@@ -276,15 +276,15 @@ namespace Magnefu
 
     namespace TextureType {
         enum Enum {
-            Texture1D, Texture2D, Texture3D, Texture_1D_Array, Texture_2D_Array, Texture_Cube_Array, Count
+            Texture1D, Texture2D, Texture3D, /* Cubemap */TextureCube, Texture_1D_Array, Texture_2D_Array, Texture_Cube_Array, Count
         };
 
         enum Mask {
-            Texture1D_mask = 1 << 0, Texture2D_mask = 1 << 1, Texture3D_mask = 1 << 2, Texture_1D_Array_mask = 1 << 3, Texture_2D_Array_mask = 1 << 4, Texture_Cube_Array_mask = 1 << 5, Count_mask = 1 << 6
+            Texture1D_mask = 1 << 0, Texture2D_mask = 1 << 1, Texture3D_mask = 1 << 2, TextureCube_mask = 1 << 3, Texture_1D_Array_mask = 1 << 4, Texture_2D_Array_mask = 1 << 5, Texture_Cube_Array_mask = 1 << 6, Count_mask = 1 << 7
         };
 
         static const char* s_value_names[] = {
-            "Texture1D", "Texture2D", "Texture3D", "Texture_1D_Array", "Texture_2D_Array", "Texture_Cube_Array", "Count"
+            "Texture1D", "Texture2D", "Texture3D", "TextureCube", "Texture_1D_Array", "Texture_2D_Array", "Texture_Cube_Array", "Count"
         };
 
         static const char* ToString(Enum e) {
@@ -458,7 +458,7 @@ namespace Magnefu
         };
 
         enum Mask {
-            Default_mask = 1 << 0, RenderTarget_mask = 1 << 1, Compute_mask = 1 << 2
+            Default_mask = 1 << 0, RenderTarget_mask = 1 << 1, Compute_mask = 1 << 2, Sparse_mask = 1 << 3
         };
 
         static const char* s_value_names[] = {
@@ -487,8 +487,16 @@ namespace Magnefu
     namespace ResourceUpdateType {
 
         enum Enum {
-            Buffer, Texture, Pipeline, Sampler, DescriptorSetLayout, DescriptorSet, RenderPass, Framebuffer, ShaderState, Count
+            Buffer, Texture, Pipeline, Sampler, DescriptorSetLayout, DescriptorSet, RenderPass, Framebuffer, ShaderState, TextureView, PagePool, Count
         };
+
+        static const char* s_value_names[] = {
+            "Buffer", "Texture", "Pipeline", "Sampler", "DescriptorSetLayout", "DescriptorSet", "RenderPass", "Framebuffer", "ShaderState", "TextureView", "PagePool"
+        };
+
+        static const char* ToString(Enum e) {
+            return ((u32)e < Enum::Count ? s_value_names[(int)e] : "unsupported");
+        }
     } // namespace ResourceUpdateType
 
     namespace PresentMode {

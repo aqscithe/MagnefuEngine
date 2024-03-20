@@ -21,6 +21,7 @@ namespace Magnefu
 		struct ParseResult
 		{
 			u32								set_count;
+			u32                         push_constants_stride = 0;
 
 			DescriptorSetLayoutCreation		sets[k_max_count];
 

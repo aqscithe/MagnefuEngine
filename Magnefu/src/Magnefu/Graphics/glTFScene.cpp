@@ -1192,12 +1192,12 @@ namespace Magnefu {
             }
         }
 
-        scratch_allocator->free_marker(cached_scratch_size);
+        scratch_allocator->freeToMarker(cached_scratch_size);
 
         lights.init(resident_allocator, k_num_lights);
 
         // Add a first light in a fixed position and then random lights.
-        const u32 lights_per_side = raptor::ceilu32(sqrtf(active_lights * 1.f));
+        const u32 lights_per_side = Magnefu::ceilu32(sqrtf(active_lights * 1.f));
         {
             const f32 x = 0;
             const f32 y = .5f;

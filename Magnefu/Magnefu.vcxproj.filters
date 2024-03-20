@@ -306,6 +306,9 @@
     <ClInclude Include="src\Magnefu\Application\Events\OSEvent.h">
       <Filter>src\Magnefu\Application\Events</Filter>
     </ClInclude>
+    <ClInclude Include="src\Magnefu\Application\GameCamera.hpp">
+      <Filter>src\Magnefu\Application</Filter>
+    </ClInclude>
     <ClInclude Include="src\Magnefu\Application\ImGui\ImGuiDefs.h">
       <Filter>src\Magnefu\Application\ImGui</Filter>
     </ClInclude>
@@ -3864,10 +3867,12 @@
     <ClInclude Include="vendor\wyhash\wyhash.h">
       <Filter>vendor\wyhash</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\GameCamera.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Magnefu\Application\Application.cpp">
+      <Filter>src\Magnefu\Application</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Magnefu\Application\GameCamera.cpp">
       <Filter>src\Magnefu\Application</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Application\ImGui\ImGuiBuild.cpp">
@@ -4095,7 +4100,6 @@
     <ClCompile Include="vendor\vulkan\include\glm\detail\glm.cpp">
       <Filter>vendor\vulkan\include\glm\detail</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\GameCamera.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\vulkan\include\spirv-headers\spirv.hpp11">

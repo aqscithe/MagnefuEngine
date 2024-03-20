@@ -2748,7 +2748,7 @@ namespace Magnefu {
             AnimationSampler& sampler = animation.samplers[channel.sampler];
 
             if (sampler.interpolation_type != AnimationSampler::Linear) {
-                rprint("Interpolation %s still not supported.\n", sampler.interpolation_type);
+                MF_CORE_INFO("Interpolation {} still not supported.", sampler.interpolation_type);
                 continue;
             }
 

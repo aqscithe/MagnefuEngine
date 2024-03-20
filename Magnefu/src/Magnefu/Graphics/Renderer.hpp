@@ -80,7 +80,26 @@ namespace Magnefu
 
         PipelineHandle                  pipeline;
 
+        FlatHashMap<u64, u16>           name_hash_to_descriptor_index;
+
+        u32                             get_binding_index(cstring name);
+
     }; // struct GpuTechniquePass
+
+    struct GpuTechniqueDescriptorCreation {
+
+        DescriptorSetCreation           descriptor_set_creation;
+        GpuTechniquePass* pass = nullptr;
+        u32                             descriptor_set_index = 0;
+
+        GpuTechniqueDescriptorCreation& reset();
+        GpuTechniqueDescriptorCreation& set_pass(GpuTechniquePass* pass);
+        GpuTechniqueDescriptorCreation& set_index(u32 index);
+        GpuTechniqueDescriptorCreation& buffer(BufferHandle buffer, cstring name);
+        GpuTechniqueDescriptorCreation& texture(TextureHandle texture, cstring name);
+
+        DescriptorSetCreation& finalize();
+    };
 
     //
     //
@@ -149,11 +168,23 @@ namespace Magnefu
 
     // Renderer ///////////////////////////////////////////////////////////////
 
+    struct RendererResourcePoolCreation {
+
+        u16                         textures = 256;
+        u16                         buffers = 256;
+        u16                         samplers = 64;
+        u16                         materials = 256;
+        u16                         techniques = 128;
+
+    }; // struct RendererResourcePoolCreation
+
 
     struct RendererCreation {
 
         Magnefu::GraphicsContext* gpu;
         Allocator* allocator;
+
+        RendererResourcePoolCreation resource_pool_creation;
 
     }; // struct RendererCreation
 

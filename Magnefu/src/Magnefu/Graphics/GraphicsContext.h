@@ -356,6 +356,8 @@ namespace Magnefu
         VkSemaphore                     vulkan_graphics_semaphore;
         VkFence                         vulkan_command_buffer_executed_fence[k_max_frames];
 
+        VkSemaphore                     vulkan_bind_semaphore;
+
         VkSemaphore                     vulkan_compute_semaphore;
         VkFence                         vulkan_compute_fence;
         u64                             last_compute_semaphore_value = 0;

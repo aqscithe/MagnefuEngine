@@ -21,7 +21,7 @@
 #endif
 
 #include <vulkan/vk_enum_string_helper.h>
-#include <vma/vk_mem_alloc.h>
+
 #include <set>
 
 
@@ -1012,7 +1012,9 @@ namespace Magnefu
         // Allocate queued command buffers array
         queued_command_buffers = (CommandBuffer**)(gpu_time_queries_manager + 1);
         CommandBuffer** correctly_allocated_buffer = (CommandBuffer**)(memory + sizeof(GPUTimeQueriesManager));
-        MF_CORE_ASSERT((queued_command_buffers == correctly_allocated_buffer), "Wrong calculations for queued command buffers arrays. Should be {}, but it is {}.", correctly_allocated_buffer, queued_command_buffers);
+
+        assert(queued_command_buffers == correctly_allocated_buffer);
+        /*MF_CORE_ASSERT((queued_command_buffers == correctly_allocated_buffer), "Wrong calculations for queued command buffers arrays. Should be {}, but it is {}.", correctly_allocated_buffer, queued_command_buffers);*/
 
         vulkan_image_index = 0;
         current_frame = 0;
@@ -1028,13 +1030,13 @@ namespace Magnefu
         render_pass_cache.init(allocator, 16);
 
         // Init resource tracker
-#if defined (Magnefu_GPU_DEVICE_RESOURCE_TRACKING)
+#if defined (MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING)
         resource_tracker.init(allocator);
         resource_tracker.tracked_resource_type = ResourceUpdateType::Texture;
         resource_tracker.tracked_resource_index = 45;
         resource_tracker.track_resource = false;
         resource_tracker.track_all_indices_per_type = false;
-#endif // Magnefu_GPU_DEVICE_RESOURCE_TRACKING
+#endif // MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
 
         //////// Create swapchain
         create_swapchain();
@@ -1245,9 +1247,9 @@ namespace Magnefu
         descriptor_set_updates.shutdown();
 
         // Resource tracker shutdown, checking leaks
-#if defined (Magnefu_GPU_DEVICE_RESOURCE_TRACKING)
+#if defined (MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING)
         resource_tracker.shutdown();
-#endif // Magnefu_GPU_DEVICE_RESOURCE_TRACKING
+#endif // MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
 
         pipelines.shutdown();
         buffers.shutdown();
@@ -2084,7 +2086,7 @@ namespace Magnefu
                 pipeline_rendering_create_info.viewMask = 0;
                 pipeline_rendering_create_info.colorAttachmentCount = creation.render_pass.num_color_formats;
                 pipeline_rendering_create_info.pColorAttachmentFormats = creation.render_pass.num_color_formats > 0 ? creation.render_pass.color_formats : nullptr;
-                pipeline_rendering_create_info.depthAttachmentFormat = creation.render_pass.depth_stencil_format;
+                pipeline_rendering_create_info.depthAttachmentFormat =  creation.render_pass.depth_stencil_format;
                 pipeline_rendering_create_info.stencilAttachmentFormat = VK_FORMAT_UNDEFINED;
 
                 pipeline_info.pNext = &pipeline_rendering_create_info;
@@ -2278,14 +2280,14 @@ namespace Magnefu
         u16 max_binding = 0;
         for (u32 r = 0; r < creation.num_bindings; ++r) {
             const DescriptorSetLayoutCreation::Binding& input_binding = creation.bindings[r];
-            max_binding = Magnefu_max(max_binding, input_binding.index);
+            max_binding = magnefu_max(max_binding, input_binding.index);
         }
         max_binding += 1;
 
         // TODO: add support for multiple sets.
         // Create flattened binding list
         descriptor_set_layout->num_bindings = (u16)creation.num_bindings;
-        u8* memory = rallocam(((sizeof(VkDescriptorSetLayoutBinding) + sizeof(DescriptorBinding)) * creation.num_bindings) + (sizeof(u8) * max_binding), allocator);
+        u8* memory = mfallocam(((sizeof(VkDescriptorSetLayoutBinding) + sizeof(DescriptorBinding)) * creation.num_bindings) + (sizeof(u8) * max_binding), allocator);
         descriptor_set_layout->bindings = (DescriptorBinding*)memory;
         descriptor_set_layout->vk_binding = (VkDescriptorSetLayoutBinding*)(memory + sizeof(DescriptorBinding) * creation.num_bindings);
         descriptor_set_layout->index_to_binding = (u8*)(descriptor_set_layout->vk_binding + creation.num_bindings);
@@ -2506,7 +2508,7 @@ namespace Magnefu
 
             default:
             {
-                MF_CORE_ASSERTM(false, "Resource type %d not supported in descriptor set creation!\n", binding.type);
+                MF_CORE_ASSERT(false, "Resource type %d not supported in descriptor set creation!\n", binding.type);
                 break;
             }
             }
@@ -3140,7 +3142,7 @@ namespace Magnefu
 
     template<class T>
     constexpr const T& clamp(const T& v, const T& lo, const T& hi) {
-        MF_CORE_ASSERT(!(hi < lo));
+        MF_CORE_ASSERT((!(hi < lo)), "");
         return (v < lo) ? lo : (hi < v) ? hi : v;
     }
 
@@ -3151,7 +3153,7 @@ namespace Magnefu
         VkBool32 surface_supported;
         vkGetPhysicalDeviceSurfaceSupportKHR(vulkan_physical_device, vulkan_main_queue_family, vulkan_window_surface, &surface_supported);
         if (surface_supported != VK_TRUE) {
-            MF_CORE_INFO("Error no WSI support on physical device 0\n");
+            MF_CORE_INFO("Error no WSI support on physical device 0");
         }
 
         VkSurfaceCapabilitiesKHR surface_capabilities;
@@ -3163,7 +3165,7 @@ namespace Magnefu
             swapchain_extent.height = clamp(swapchain_extent.height, surface_capabilities.minImageExtent.height, surface_capabilities.maxImageExtent.height);
         }
 
-        MF_CORE_INFO("Create swapchain %u %u - saved %u %u, min image %u\n", swapchain_extent.width, swapchain_extent.height, swapchain_width, swapchain_height, surface_capabilities.minImageCount);
+        MF_CORE_INFO("Create swapchain {} {} - saved {} {}, min image {}", swapchain_extent.width, swapchain_extent.height, swapchain_width, swapchain_height, surface_capabilities.minImageCount);
 
         swapchain_width = (u16)swapchain_extent.width;
         swapchain_height = (u16)swapchain_extent.height;
@@ -3351,9 +3353,10 @@ namespace Magnefu
         vkDestroySurfaceKHR(vulkan_instance, vulkan_window_surface, vulkan_allocation_callbacks);
 
         // Recreate window surface
-        if (SDL_Vulkan_CreateSurface(sdl_window, vulkan_instance, &vulkan_window_surface) == SDL_FALSE) {
-            MF_CORE_INFO("Failed to create Vulkan surface.\n");
-        }
+        check(
+            glfwCreateWindowSurface(vulkan_instance, glfw_window, vulkan_allocation_callbacks, &vulkan_window_surface),
+            "Failed to create a window surface!"
+        );
 
         // Create swapchain
         create_swapchain();
@@ -3506,7 +3509,7 @@ namespace Magnefu
 
         Texture* texture = access_texture(texture_handle);
         if (texture == nullptr) {
-            MF_CORE_ASSERT(false);
+            MF_CORE_ASSERT(false, "");
             return pool_handle;
         }
 
@@ -3518,7 +3521,7 @@ namespace Magnefu
 
         PagePool* page_pool = access_page_pool(pool_handle);
 
-        MF_CORE_ASSERT(texture->sparse);
+        MF_CORE_ASSERT(texture->sparse, "");
 
         // TODO(marco):
         // VkSparseMemoryBind
@@ -3536,7 +3539,7 @@ namespace Magnefu
 
         vkGetPhysicalDeviceSparseImageFormatProperties2(vulkan_physical_device, &format_info, &property_count, nullptr);
 
-        MF_CORE_ASSERT(property_count > 0);
+        MF_CORE_ASSERT((property_count > 0), "");
 
         Array<VkSparseImageFormatProperties2> properties;
         properties.init(allocator, property_count, property_count);
@@ -4162,7 +4165,7 @@ namespace Magnefu
                     }
 
                     // Query and sum pipeline statistics
-                    u64* pipeline_statistics_data = (u64*)ralloca(GpuPipelineStatistics::Count * sizeof(u64), temporary_allocator);
+                    u64* pipeline_statistics_data = (u64*)mfalloca(GpuPipelineStatistics::Count * sizeof(u64), temporary_allocator);
                     vkGetQueryPoolResults(vulkan_device, thread_pool.vulkan_pipeline_stats_query_pool, 0, 1,
                         GpuPipelineStatistics::Count * sizeof(u64), pipeline_statistics_data, sizeof(u64), VK_QUERY_RESULT_64_BIT);
 

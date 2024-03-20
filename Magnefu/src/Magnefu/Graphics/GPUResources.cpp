@@ -6,7 +6,6 @@
 #include "GraphicsContext.h"
 
 
-
 namespace Magnefu {
 
 
@@ -101,6 +100,19 @@ namespace Magnefu {
     }
 
     // TextureCreation ////////////////////////////////////////////////////////
+    TextureCreation& TextureCreation::reset() {
+        mip_level_count = 1;
+        array_layer_count = 1;
+        initial_data = nullptr;
+        alias = k_invalid_texture;
+
+        width = height = depth = 1;
+        format = VK_FORMAT_UNDEFINED;
+        flags = 0;
+
+        return *this;
+    }
+
     TextureCreation& TextureCreation::set_size(u16 width_, u16 height_, u16 depth_) {
         width = width_;
         height = height_;
@@ -152,8 +164,16 @@ namespace Magnefu {
         return *this;
     }
 
-
     // TextureViewCreation ////////////////////////////////////////////////////
+    TextureViewCreation& TextureViewCreation::reset() {
+        parent_texture = k_invalid_texture;
+        sub_resource = { 0, 1, 0, 1 };
+        name = nullptr;
+        view_type = VK_IMAGE_VIEW_TYPE_MAX_ENUM;
+
+        return *this;
+    }
+
     TextureViewCreation& TextureViewCreation::set_parent_texture(TextureHandle parent_texture_) {
         parent_texture = parent_texture_;
 
@@ -161,15 +181,15 @@ namespace Magnefu {
     }
 
     TextureViewCreation& TextureViewCreation::set_mips(u32 base_mip_, u32 mip_level_count_) {
-        mip_base_level = base_mip_;
-        mip_level_count = mip_level_count_;
+        sub_resource.mip_base_level = base_mip_;
+        sub_resource.mip_level_count = mip_level_count_;
 
         return *this;
     }
 
     TextureViewCreation& TextureViewCreation::set_array(u32 base_layer_, u32 layer_count_) {
-        array_base_layer = base_layer_;
-        array_layer_count = layer_count_;
+        sub_resource.array_base_layer = base_layer_;
+        sub_resource.array_layer_count = layer_count_;
 
         return *this;
     }
@@ -179,6 +199,13 @@ namespace Magnefu {
 
         return *this;
     }
+
+    TextureViewCreation& TextureViewCreation::set_view_type(VkImageViewType view_type_) {
+        view_type = view_type_;
+
+        return *this;
+    }
+
 
     // SamplerCreation ////////////////////////////////////////////////////////
     SamplerCreation& SamplerCreation::set_min_mag_mip(VkFilter min, VkFilter mag, VkSamplerMipmapMode mip) {
@@ -357,6 +384,8 @@ namespace Magnefu {
     // RenderPassOutput ///////////////////////////////////////////////////////
     RenderPassOutput& RenderPassOutput::reset() {
         num_color_formats = 0;
+        multiview_mask = 0;
+
         for (u32 i = 0; i < k_max_image_outputs; ++i) {
             color_formats[i] = VK_FORMAT_UNDEFINED;
             color_final_layouts[i] = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -383,6 +412,12 @@ namespace Magnefu {
     RenderPassOutput& RenderPassOutput::set_depth_stencil_operations(RenderPassOperation::Enum depth_, RenderPassOperation::Enum stencil_) {
         depth_operation = depth_;
         stencil_operation = stencil_;
+
+        return *this;
+    }
+
+    RenderPassOutput& RenderPassOutput::set_multiview_mask(u32 mask) {
+        multiview_mask = mask;
 
         return *this;
     }
@@ -437,9 +472,14 @@ namespace Magnefu {
         return *this;
     }
 
+    RenderPassCreation& RenderPassCreation::set_multiview_mask(u32 mask) {
+        multiview_mask = mask;
+
+        return *this;
+    }
+
     // FramebufferCreation ////////////////////////////////////////////////////
-    FramebufferCreation& FramebufferCreation::reset()
-    {
+    FramebufferCreation& FramebufferCreation::reset() {
         num_render_targets = 0;
         name = nullptr;
         depth_stencil_texture.index = k_invalid_index;
@@ -448,18 +488,20 @@ namespace Magnefu {
         scale_x = 1.f;
         scale_y = 1.f;
 
+        width = 1;
+        height = 1;
+        layers = 1;
+
         return *this;
     }
 
-    FramebufferCreation& FramebufferCreation::add_render_texture(TextureHandle texture)
-    {
+    FramebufferCreation& FramebufferCreation::add_render_texture(TextureHandle texture) {
         output_textures[num_render_targets++] = texture;
 
         return *this;
     }
 
-    FramebufferCreation& FramebufferCreation::set_depth_stencil_texture(TextureHandle texture)
-    {
+    FramebufferCreation& FramebufferCreation::set_depth_stencil_texture(TextureHandle texture) {
         depth_stencil_texture = texture;
 
         return *this;
@@ -473,8 +515,21 @@ namespace Magnefu {
         return *this;
     }
 
-    FramebufferCreation& FramebufferCreation::set_name(const char* name_)
-    {
+    FramebufferCreation& FramebufferCreation::set_width_height(u32 width_, u32 height_) {
+        width = width_;
+        height = height_;
+
+        return *this;
+    }
+
+    FramebufferCreation& FramebufferCreation::set_layers(u32 layers_) {
+
+        layers = (u16)layers_;
+
+        return *this;
+    }
+
+    FramebufferCreation& FramebufferCreation::set_name(const char* name_) {
         name = name_;
 
         return *this;
@@ -494,7 +549,6 @@ namespace Magnefu {
 
     ExecutionBarrier& ExecutionBarrier::add_buffer_barrier(const BufferBarrier& barrier) {
         buffer_barriers[num_buffer_barriers++] = barrier;
-
 
         return *this;
     }
@@ -537,16 +591,16 @@ namespace Magnefu {
     }
 
     //
-    //
+    // Texture1D, Texture2D, Texture3D, TextureCube, Texture_1D_Array, Texture_2D_Array, Texture_Cube_Array, Count
     VkImageType to_vk_image_type(TextureType::Enum type) {
-        static VkImageType s_vk_target[TextureType::Count] = { VK_IMAGE_TYPE_1D, VK_IMAGE_TYPE_2D, VK_IMAGE_TYPE_3D, VK_IMAGE_TYPE_1D, VK_IMAGE_TYPE_2D, VK_IMAGE_TYPE_3D };
+        static VkImageType s_vk_target[TextureType::Count] = { VK_IMAGE_TYPE_1D, VK_IMAGE_TYPE_2D, VK_IMAGE_TYPE_3D, VK_IMAGE_TYPE_2D, VK_IMAGE_TYPE_1D, VK_IMAGE_TYPE_2D, VK_IMAGE_TYPE_2D };
         return s_vk_target[type];
     }
 
     //
     //
     VkImageViewType to_vk_image_view_type(TextureType::Enum type) {
-        static VkImageViewType s_vk_data[] = { VK_IMAGE_VIEW_TYPE_1D, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_VIEW_TYPE_3D, VK_IMAGE_VIEW_TYPE_1D_ARRAY, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_VIEW_TYPE_CUBE_ARRAY };
+        static VkImageViewType s_vk_data[] = { VK_IMAGE_VIEW_TYPE_1D, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_VIEW_TYPE_3D, VK_IMAGE_VIEW_TYPE_CUBE, VK_IMAGE_VIEW_TYPE_1D_ARRAY, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_VIEW_TYPE_CUBE_ARRAY };
         return s_vk_data[type];
     }
 
@@ -726,7 +780,6 @@ namespace Magnefu {
             if ((access_flags & (VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT)) != 0) {
                 flags |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
                 flags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-
                 flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 #ifdef ENABLE_RAYTRACING
                 if (pRenderer->mVulkan.mRaytracingExtension) {
@@ -792,7 +845,6 @@ namespace Magnefu {
             if ((access_flags & (VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT)) != 0) {
                 flags |= VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT_KHR;
                 flags |= VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT_KHR;
-
                 flags |= VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT_KHR;
 #ifdef ENABLE_RAYTRACING
                 if (pRenderer->mVulkan.mRaytracingExtension) {
@@ -901,7 +953,7 @@ namespace Magnefu {
     }
 
     void util_add_image_barrier_ext(GraphicsContext* gpu, VkCommandBuffer command_buffer, VkImage image, ResourceState old_state, ResourceState new_state,
-        u32 base_mip_level, u32 mip_count, bool is_depth, u32 source_family, u32 destination_family,
+        u32 base_mip_level, u32 mip_count, u32 base_array_layer, u32 array_layer_count, bool is_depth, u32 source_family, u32 destination_family,
         QueueType::Enum source_queue_type, QueueType::Enum destination_queue_type) {
         if (gpu->synchronization2_extension_present) {
             VkImageMemoryBarrier2KHR barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2_KHR };
@@ -915,8 +967,8 @@ namespace Magnefu {
             barrier.dstQueueFamilyIndex = destination_family;
             barrier.image = image;
             barrier.subresourceRange.aspectMask = is_depth ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
-            barrier.subresourceRange.baseArrayLayer = 0;
-            barrier.subresourceRange.layerCount = 1;
+            barrier.subresourceRange.baseArrayLayer = base_array_layer;
+            barrier.subresourceRange.layerCount = array_layer_count;
             barrier.subresourceRange.baseMipLevel = base_mip_level;
             barrier.subresourceRange.levelCount = mip_count;
 
@@ -932,8 +984,8 @@ namespace Magnefu {
             barrier.srcQueueFamilyIndex = source_family;
             barrier.dstQueueFamilyIndex = destination_family;
             barrier.subresourceRange.aspectMask = is_depth ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
-            barrier.subresourceRange.baseArrayLayer = 0;
-            barrier.subresourceRange.layerCount = 1;
+            barrier.subresourceRange.baseArrayLayer = base_array_layer;
+            barrier.subresourceRange.layerCount = array_layer_count;
             barrier.subresourceRange.levelCount = mip_count;
 
             barrier.subresourceRange.baseMipLevel = base_mip_level;
@@ -951,11 +1003,11 @@ namespace Magnefu {
     }
 
     void util_add_image_barrier_ext(GraphicsContext* gpu, VkCommandBuffer command_buffer, Texture* texture, ResourceState new_state,
-        u32 base_mip_level, u32 mip_count, bool is_depth, u32 source_family, u32 destination_family,
+        u32 base_mip_level, u32 mip_count, u32 base_array_layer, u32 array_layer_count, bool is_depth, u32 source_family, u32 destination_family,
         QueueType::Enum source_queue_type, QueueType::Enum destination_queue_type) {
 
-        util_add_image_barrier_ext(gpu, command_buffer, texture->vk_image, texture->state, new_state, base_mip_level, mip_count, is_depth,
-            source_family, destination_family, source_queue_type, destination_queue_type);
+        util_add_image_barrier_ext(gpu, command_buffer, texture->vk_image, texture->state, new_state, base_mip_level, mip_count, base_array_layer, array_layer_count,
+            is_depth, source_family, destination_family, source_queue_type, destination_queue_type);
         texture->state = new_state;
     }
 
@@ -963,7 +1015,6 @@ namespace Magnefu {
 
         util_add_buffer_barrier_ext(gpu, command_buffer, buffer, old_state, new_state, buffer_size,
             VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, QueueType::Graphics, QueueType::Graphics);
-
     }
 
     void util_add_buffer_barrier_ext(GraphicsContext* gpu, VkCommandBuffer command_buffer, VkBuffer buffer, ResourceState old_state, ResourceState new_state,

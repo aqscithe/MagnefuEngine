@@ -5,7 +5,7 @@
 
 // -- Vendor Includes --------------------- //
 #include <vulkan/vulkan_core.h>
-
+#include "Magnefu/Core/Array.h"
 
 
 VK_DEFINE_HANDLE(VmaAllocation)
@@ -22,14 +22,7 @@ namespace Magnefu {
 
     static const u32                    k_invalid_index = 0xffffffff;
 
-    static const u32 k_buffers_pool_size = 16384;
-    static const u32 k_textures_pool_size = 512;
-    static const u32 k_render_passes_pool_size = 256;
-    static const u32 k_descriptor_set_layouts_pool_size = 128;
-    static const u32 k_pipelines_pool_size = 128;
-    static const u32 k_shaders_pool_size = 128;
-    static const u32 k_descriptor_sets_pool_size = 4096;
-    static const u32 k_samplers_pool_size = 32;
+
 
     typedef u32                         ResourceHandle;
 
@@ -69,6 +62,10 @@ namespace Magnefu {
         ResourceHandle                  index;
     }; // struct FramebufferHandle
 
+    struct PagePoolHandle {
+        ResourceHandle                  index;
+    }; // struct FramebufferHandle
+
     // Invalid handles
     static BufferHandle                 k_invalid_buffer{ k_invalid_index };
     static TextureHandle                k_invalid_texture{ k_invalid_index };
@@ -79,6 +76,7 @@ namespace Magnefu {
     static PipelineHandle               k_invalid_pipeline{ k_invalid_index };
     static RenderPassHandle             k_invalid_pass{ k_invalid_index };
     static FramebufferHandle            k_invalid_framebuffer{ k_invalid_index };
+    static PagePoolHandle               k_invalid_page_pool{ k_invalid_index };
 
 
     // Consts ///////////////////////////////////////////////////////////////////////
@@ -252,6 +250,7 @@ namespace Magnefu {
 
         cstring                         name = nullptr;
 
+        TextureCreation& reset();
         TextureCreation& set_size(u16 width, u16 height, u16 depth);
         TextureCreation& set_flags(u8 flags);
         TextureCreation& set_mips(u32 mip_level_count);
@@ -265,21 +264,32 @@ namespace Magnefu {
 
     //
     //
+    struct TextureSubResource {
+
+        u16                             mip_base_level = 0;
+        u16                             mip_level_count = 1;
+        u16                             array_base_layer = 0;
+        u16                             array_layer_count = 1;
+
+    }; // struct TextureSubResource
+
+    //
+    //
     struct TextureViewCreation {
 
         TextureHandle                   parent_texture = k_invalid_texture;
 
-        u32                             mip_base_level = 0;
-        u32                             mip_level_count = 1;
-        u32                             array_base_layer = 0;
-        u32                             array_layer_count = 1;
+        VkImageViewType                 view_type = VK_IMAGE_VIEW_TYPE_1D;
+        TextureSubResource              sub_resource;
 
         cstring                         name = nullptr;
 
+        TextureViewCreation& reset();
         TextureViewCreation& set_parent_texture(TextureHandle parent_texture);
         TextureViewCreation& set_mips(u32 base_mip, u32 mip_level_count);
         TextureViewCreation& set_array(u32 base_layer, u32 layer_count);
         TextureViewCreation& set_name(cstring name);
+        TextureViewCreation& set_view_type(VkImageViewType view_type);
 
     }; // struct TextureViewCreation
 
@@ -451,15 +461,18 @@ namespace Magnefu {
         VkFormat                        depth_stencil_format;
         VkImageLayout                   depth_stencil_final_layout;
 
-        u32                             num_color_formats;
 
         RenderPassOperation::Enum       depth_operation = RenderPassOperation::DontCare;
         RenderPassOperation::Enum       stencil_operation = RenderPassOperation::DontCare;
+
+        u32                             num_color_formats       = 0;
+        u32                             multiview_mask          = 0;
 
         RenderPassOutput& reset();
         RenderPassOutput& color(VkFormat format, VkImageLayout layout, RenderPassOperation::Enum load_op);
         RenderPassOutput& depth(VkFormat format, VkImageLayout layout);
         RenderPassOutput& set_depth_stencil_operations(RenderPassOperation::Enum depth, RenderPassOperation::Enum stencil);
+        RenderPassOutput& set_multiview_mask(u32 mask);
 
     }; // struct RenderPassOutput
 
@@ -479,6 +492,8 @@ namespace Magnefu {
         RenderPassOperation::Enum       depth_operation = RenderPassOperation::DontCare;
         RenderPassOperation::Enum       stencil_operation = RenderPassOperation::DontCare;
 
+        u32                             multiview_mask = 0;
+
         cstring                         name = nullptr;
 
         RenderPassCreation& reset();
@@ -486,6 +501,7 @@ namespace Magnefu {
         RenderPassCreation& set_depth_stencil_texture(VkFormat format, VkImageLayout layout);
         RenderPassCreation& set_name(const char* name);
         RenderPassCreation& set_depth_stencil_operations(RenderPassOperation::Enum depth, RenderPassOperation::Enum stencil);
+        RenderPassCreation& set_multiview_mask(u32 mask);
 
     }; // struct RenderPassCreation
 
@@ -505,6 +521,8 @@ namespace Magnefu {
 
         f32                             scale_x = 1.f;
         f32                             scale_y = 1.f;
+
+        u16                             layers = 1;
         u8                              resize = 1;
 
         cstring                         name = nullptr;
@@ -513,6 +531,8 @@ namespace Magnefu {
         FramebufferCreation& add_render_texture(TextureHandle texture);
         FramebufferCreation& set_depth_stencil_texture(TextureHandle texture);
         FramebufferCreation& set_scaling(f32 scale_x, f32 scale_y, u8 resize);
+        FramebufferCreation& set_width_height(u32 width, u32 height);
+        FramebufferCreation& set_layers(u32 layers);
         FramebufferCreation& set_name(const char* name);
 
     }; // struct RenderPassCreation
@@ -550,17 +570,17 @@ namespace Magnefu {
     namespace TextureFormat {
 
         inline bool                     is_depth_stencil(VkFormat value) {
-            return value == VK_FORMAT_D16_UNORM_S8_UINT || value == VK_FORMAT_D24_UNORM_S8_UINT || value == VK_FORMAT_D32_SFLOAT_S8_UINT;
+            return value >= VK_FORMAT_D16_UNORM_S8_UINT && value < VK_FORMAT_BC1_RGB_UNORM_BLOCK;
         }
         inline bool                     is_depth_only(VkFormat value) {
-            return value >= VK_FORMAT_D16_UNORM && value < VK_FORMAT_D32_SFLOAT;
+            return value >= VK_FORMAT_D16_UNORM && value < VK_FORMAT_S8_UINT;
         }
         inline bool                     is_stencil_only(VkFormat value) {
             return value == VK_FORMAT_S8_UINT;
         }
 
         inline bool                     has_depth(VkFormat value) {
-            return (value >= VK_FORMAT_D16_UNORM && value < VK_FORMAT_S8_UINT) || (value >= VK_FORMAT_D16_UNORM_S8_UINT && value <= VK_FORMAT_D32_SFLOAT_S8_UINT);
+            return is_depth_only(value) || is_depth_stencil(value);
         }
         inline bool                     has_stencil(VkFormat value) {
             return value >= VK_FORMAT_S8_UINT && value <= VK_FORMAT_D32_SFLOAT_S8_UINT;
@@ -803,6 +823,7 @@ namespace Magnefu {
         VkImage                         vk_image;
         VkImageView                     vk_image_view;
         VkFormat                        vk_format;
+        VkImageUsageFlags               vk_usage;
         VmaAllocation                   vma_allocation;
         ResourceState                   state = RESOURCE_STATE_UNDEFINED;
 
@@ -814,6 +835,7 @@ namespace Magnefu {
         u8                              flags = 0;
         u16                             mip_base_level = 0;    // Not 0 when texture is a view.
         u16                             array_base_layer = 0;   // Not 0 when texture is a view.
+        bool                            sparse = false;
 
         TextureHandle                   handle;
         TextureHandle                   parent_texture;     // Used when a texture view.
@@ -911,6 +933,8 @@ namespace Magnefu {
 
         u8                              num_render_targets = 0;
 
+        u32                             multiview_mask = 0;
+
         cstring                         name = nullptr;
     }; // struct RenderPass
 
@@ -934,10 +958,45 @@ namespace Magnefu {
         TextureHandle                   depth_stencil_attachment;
         u32                             num_color_attachments;
 
+        u16                             layers = 1;
         u8                              resize = 0;
 
         cstring                         name = nullptr;
     }; // struct Framebuffer
+
+
+    //
+    //
+    struct PagePoolAllocation {
+        VmaAllocation* allocation;
+        PagePoolAllocation* next;
+    }; // struct PagePoolAllocation
+
+
+    //
+    //
+    struct SparseMemoryBindInfo {
+        VkImage                         image;
+        u32                             count;
+        u32                             binding_array_offset;
+    }; // struct SparseMemoryBindInfo
+
+
+    //
+    //
+    struct PagePool {
+        Array<PagePoolAllocation>       allocations;
+        Array<VmaAllocation>            vma_allocations;
+
+        u32                             block_width;
+        u32                             block_height;
+        u32                             block_size;
+
+        u32                             size;
+        u32                             used_pages;
+
+        PagePoolAllocation* free_list;
+    }; // struct PagePool
 
 
     //
@@ -980,12 +1039,13 @@ namespace Magnefu {
         u32 base_mip_level, u32 mip_count, bool is_depth);
 
     void util_add_image_barrier_ext(GraphicsContext* gpu, VkCommandBuffer command_buffer, VkImage image, ResourceState old_state, ResourceState new_state,
-        u32 base_mip_level, u32 mip_count, bool is_depth, u32 source_family, u32 destination_family,
+        u32 base_mip_level, u32 mip_count, u32 base_array_layer, u32 array_layer_count, bool is_depth, u32 source_family, u32 destination_family,
         QueueType::Enum source_queue_type, QueueType::Enum destination_queue_type);
 
     void util_add_image_barrier_ext(GraphicsContext* gpu, VkCommandBuffer command_buffer, Texture* texture, ResourceState new_state,
-        u32 base_mip_level, u32 mip_count, bool is_depth, u32 source_family, u32 destination_family,
-        QueueType::Enum source_queue_type, QueueType::Enum destination_queue_type);
+        u32 base_mip_level, u32 mip_count, u32 base_array_layer, u32 array_layer_count, bool is_depth,
+        u32 source_family = VK_QUEUE_FAMILY_IGNORED, u32 destination_family = VK_QUEUE_FAMILY_IGNORED,
+        QueueType::Enum source_queue_type = QueueType::Graphics, QueueType::Enum destination_queue_type = QueueType::Graphics);
 
     void util_add_buffer_barrier(GraphicsContext* gpu, VkCommandBuffer command_buffer, VkBuffer buffer, ResourceState old_state, ResourceState new_state,
         u32 buffer_size);
