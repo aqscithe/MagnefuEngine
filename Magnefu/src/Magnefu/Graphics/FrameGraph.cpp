@@ -38,6 +38,10 @@ namespace Magnefu
             return FrameGraphResourceType_Reference;
         }
 
+        if (strcmp(input_type, "shading_rate") == 0) {
+            return FrameGraphResourceType_ShadingRate;
+        }
+
         MF_CORE_ASSERT(false, "");
         return FrameGraphResourceType_Invalid;
     }
@@ -347,7 +351,7 @@ namespace Magnefu
         for (u32 r = 0; r < node->inputs.size; ++r) {
             FrameGraphResource* input_resource = frame_graph->access_resource(node->inputs[r]);
 
-            if (input_resource->type != FrameGraphResourceType_Attachment) {
+            if (input_resource->type != FrameGraphResourceType_Attachment && input_resource->type != FrameGraphResourceType_ShadingRate) {
                 continue;
             }
 
@@ -365,7 +369,7 @@ namespace Magnefu
                 width = info.texture.width;
                 scale_width = info.texture.scale_width > 0.f ? info.texture.scale_width : 1.f;
             }
-            else {
+            else if (input_resource->type != FrameGraphResourceType_ShadingRate) {
                 MF_CORE_ASSERT(width == info.texture.width, "");
             }
 
@@ -373,11 +377,17 @@ namespace Magnefu
                 height = info.texture.height;
                 scale_height = info.texture.scale_height > 0.f ? info.texture.scale_height : 1.f;
             }
-            else {
+            else if (input_resource->type != FrameGraphResourceType_ShadingRate) {
                 MF_CORE_ASSERT(height == info.texture.height, "");
             }
 
             if (input_resource->type == FrameGraphResourceType_Texture) {
+                continue;
+            }
+
+            if (resource->type == FrameGraphResourceType_ShadingRate) {
+                framebuffer_creation.add_shading_rate_attachment(info.texture.handle);
+
                 continue;
             }
 
@@ -433,6 +443,12 @@ namespace Magnefu
                 }
                 else {
                     render_pass_creation.add_attachment(info.texture.format, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, RenderPassOperation::Load);
+                }
+            }
+
+            if (input_resource->type == FrameGraphResourceType_ShadingRate) {
+                if (!frame_graph->builder->gpu->dynamic_rendering_extension_present) {
+                    render_pass_creation.add_shading_rate_image();
                 }
             }
         }
@@ -847,12 +863,21 @@ namespace Magnefu
         }
     }
 
+    void FrameGraph::add_node(FrameGraphNodeCreation& creation) {
+        FrameGraphNodeHandle handle = builder->create_node(creation);
+        all_nodes.push(handle);
+    }
+
     FrameGraphNode* FrameGraph::get_node(cstring name) {
         return builder->get_node(name);
     }
 
     FrameGraphNode* FrameGraph::access_node(FrameGraphNodeHandle handle) {
         return builder->access_node(handle);
+    }
+
+    void FrameGraph::add_resource(cstring name, FrameGraphResourceType type, FrameGraphResourceInfo resource_info) {
+        builder->add_resource(name, type, resource_info);
     }
 
     FrameGraphResource* FrameGraph::get_resource(cstring name) {
@@ -1059,6 +1084,27 @@ namespace Magnefu
         FrameGraphNode* node = (FrameGraphNode*)node_cache.nodes.access_resource(handle.index);
 
         return node;
+    }
+
+    void FrameGraphBuilder::add_resource(cstring name, FrameGraphResourceType type, FrameGraphResourceInfo resource_info) {
+        FlatHashMapIterator it = resource_cache.resource_map.find(hash_calculate(name));
+        assert(it.is_invalid());
+
+        FrameGraphResourceHandle resource_handle{ k_invalid_index };
+        resource_handle.index = resource_cache.resources.obtain_resource();
+
+        if (resource_handle.index == k_invalid_index) {
+            return;
+        }
+
+        FrameGraphResource* resource = resource_cache.resources.get(resource_handle.index);
+        resource->name = name;
+        resource->type = type;
+
+        resource->resource_info = resource_info;
+        resource->ref_count = 0;
+
+        resource_cache.resource_map.insert(hash_bytes((void*)name, strlen(name)), resource_handle.index);
     }
 
     FrameGraphResource* FrameGraphBuilder::get_resource(cstring name) {

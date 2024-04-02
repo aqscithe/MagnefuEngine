@@ -489,6 +489,8 @@ namespace Magnefu {
         VkFormat                        depth_stencil_format = VK_FORMAT_UNDEFINED;
         VkImageLayout                   depth_stencil_final_layout;
 
+        u32                             shading_rate_image_index = k_invalid_index;
+
         RenderPassOperation::Enum       depth_operation = RenderPassOperation::DontCare;
         RenderPassOperation::Enum       stencil_operation = RenderPassOperation::DontCare;
 
@@ -498,6 +500,7 @@ namespace Magnefu {
 
         RenderPassCreation& reset();
         RenderPassCreation& add_attachment(VkFormat format, VkImageLayout layout, RenderPassOperation::Enum load_op);
+        RenderPassCreation& add_shading_rate_image();
         RenderPassCreation& set_depth_stencil_texture(VkFormat format, VkImageLayout layout);
         RenderPassCreation& set_name(const char* name);
         RenderPassCreation& set_depth_stencil_operations(RenderPassOperation::Enum depth, RenderPassOperation::Enum stencil);
@@ -515,6 +518,7 @@ namespace Magnefu {
 
         TextureHandle                   output_textures[k_max_image_outputs];
         TextureHandle                   depth_stencil_texture = { k_invalid_index };
+        TextureHandle                   shading_rate_attachment = { k_invalid_index };
 
         u16                             width = 0;
         u16                             height = 0;
@@ -530,6 +534,7 @@ namespace Magnefu {
         FramebufferCreation& reset();
         FramebufferCreation& add_render_texture(TextureHandle texture);
         FramebufferCreation& set_depth_stencil_texture(TextureHandle texture);
+        FramebufferCreation& add_shading_rate_attachment(TextureHandle texture);
         FramebufferCreation& set_scaling(f32 scale_x, f32 scale_y, u8 resize);
         FramebufferCreation& set_width_height(u32 width, u32 height);
         FramebufferCreation& set_layers(u32 layers);
@@ -546,6 +551,8 @@ namespace Magnefu {
         BlendStateCreation              blend_state;
         VertexInputCreation             vertex_input;
         ShaderStateCreation             shaders;
+
+        VkPipelineCreateFlags           flags;
 
         VkPrimitiveTopology             topology;
 
@@ -956,6 +963,7 @@ namespace Magnefu {
 
         TextureHandle                   color_attachments[k_max_image_outputs];
         TextureHandle                   depth_stencil_attachment;
+        TextureHandle                   shader_rate_attachment;
         u32                             num_color_attachments;
 
         u16                             layers = 1;

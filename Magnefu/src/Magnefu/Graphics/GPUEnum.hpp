@@ -454,11 +454,11 @@ namespace Magnefu
 
     namespace TextureFlags {
         enum Enum {
-            Default, RenderTarget, Compute, Count
+            Default, RenderTarget, Compute, Sparse, ShadingRate, Count
         };
 
         enum Mask {
-            Default_mask = 1 << 0, RenderTarget_mask = 1 << 1, Compute_mask = 1 << 2, Sparse_mask = 1 << 3
+            Default_mask = 1 << 0, RenderTarget_mask = 1 << 1, Compute_mask = 1 << 2, Sparse_mask = 1 << 3, ShadingRate_mask = 1 << 4
         };
 
         static const char* s_value_names[] = {
