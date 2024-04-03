@@ -74,6 +74,8 @@ namespace Magnefu {
 
         vec4s                   camera_position;
         vec4s                   camera_position_debug;
+        vec3s                   camera_direction;
+        f32                     pad0_;
 
         u32                     active_lights;
         u32                     use_tetrahedron_shadows;
@@ -89,6 +91,11 @@ namespace Magnefu {
         f32                     resolution_y;
         f32                     aspect_ratio;
         u32                     num_mesh_instances;
+
+        f32                     halton_x;
+        f32                     halton_y;
+        u32                     volumetric_fog_opacity_anti_aliasing;
+        f32                     pad2_;
 
         vec4s                   frustum_planes[6];
 
@@ -127,6 +134,16 @@ namespace Magnefu {
         u32                     debug_modes;
         u32                     debug_texture_index;
         u32                     padding0;
+
+        u32                     volumetric_fog_texture_index;
+        u32                     volumetric_fog_num_slices;
+        f32                     volumetric_fog_near;
+        f32                     volumetric_fog_far;
+
+        f32                     volumetric_fog_distribution_scale;
+        f32                     volumetric_fog_distribution_bias;
+        f32                     padding_lc_000;
+        f32                     padding_lc_001;
     }; // GpuLightingData
 
     struct glTFScene;
@@ -540,6 +557,54 @@ namespace Magnefu {
 
     }; // struct UploadGpuDataContext
 
+    // Volumetric Fog /////////////////////////////////////////////////////
+    struct alignas(16) GpuVolumetricFogConstants {
+
+        mat4s                   froxel_inverse_view_projection;
+
+        f32                     froxel_near;
+        f32                     froxel_far;
+        f32                     scattering_factor;
+        f32                     density_modifier;
+
+        u32                     light_scattering_texture_index;
+        u32                     integrated_light_scattering_texture_index;
+        u32                     froxel_data_texture_index;
+        u32                     previous_light_scattering_texture_index;
+
+        u32                     use_temporal_reprojection;
+        f32                     time_random_01;
+        f32                     temporal_reprojection_percentage;
+        f32                     phase_anisotropy_01;
+
+        u32                     froxel_dimension_x;
+        u32                     froxel_dimension_y;
+        u32                     froxel_dimension_z;
+        u32                     phase_function_type;
+
+        f32                     height_fog_density;
+        f32                     height_fog_falloff;
+        i32                     current_frame;
+        f32                     noise_scale;
+
+        f32                     integration_noise_scale;
+        u32                     noise_type;
+        u32                     blue_noise_128_rg_texture_index;
+        u32                     use_spatial_filtering;
+
+        u32                     volumetric_noise_texture_index;
+        f32                     volumetric_noise_position_multiplier;
+        f32                     volumetric_noise_speed_multiplier;
+        f32                     temporal_reprojection_jitter_scale;
+
+        vec3s                   box_position;
+        f32                     box_fog_density;
+
+        vec3s                   box_half_size;
+        u32                     box_color;
+
+    }; // struct GpuVolumetricFogConstants
+
     // Render Passes //////////////////////////////////////////////////////
 
     //
@@ -547,8 +612,8 @@ namespace Magnefu {
     struct DepthPrePass : public FrameGraphRenderPass {
         void                    render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) override;
 
-        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator);
-        void                    free_gpu_resources();
+        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) override;
+        void                    free_gpu_resources(GraphicsContext& gpu) override;
 
         Array<MeshInstanceDraw> mesh_instance_draws;
         Renderer* renderer;
@@ -562,8 +627,8 @@ namespace Magnefu {
         void                    on_resize(GraphicsContext& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) override;
         void                    post_render(u32 current_frame_index, CommandBuffer* gpu_commands, FrameGraph* frame_graph, RenderScene* render_scene) override;
 
-        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator);
-        void                    free_gpu_resources();
+        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) override;
+        void                    free_gpu_resources(GraphicsContext& gpu) override;
 
         void                    create_depth_pyramid_resource(Texture* depth_texture);
 
@@ -586,8 +651,8 @@ namespace Magnefu {
         void                    pre_render(u32 current_frame_index, CommandBuffer* gpu_commands, FrameGraph* frame_graph, RenderScene* render_scene) override;
         void                    render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) override;
 
-        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator);
-        void                    free_gpu_resources();
+        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) override;
+        void                    free_gpu_resources(GraphicsContext& gpu) override;
 
         Array<MeshInstanceDraw> mesh_instance_draws;
         Renderer* renderer;
@@ -612,8 +677,8 @@ namespace Magnefu {
     struct LateGBufferPass : public FrameGraphRenderPass {
         void                    render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) override;
 
-        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator);
-        void                    free_gpu_resources();
+        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) override;
+        void                    free_gpu_resources(GraphicsContext& gpu) override;
 
         Array<MeshInstanceDraw> mesh_instance_draws;
         Renderer* renderer;
@@ -627,18 +692,18 @@ namespace Magnefu {
         void                    on_resize(GraphicsContext& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) override;
         void                    post_render(u32 current_frame_index, CommandBuffer* gpu_commands, FrameGraph* frame_graph, RenderScene* render_scene) override;
 
-        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator);
-        void                    upload_gpu_data(RenderScene& scene);
-        void                    free_gpu_resources();
+        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) override;
+        void                    upload_gpu_data(RenderScene& scene) override;
+        void                    free_gpu_resources(GraphicsContext& gpu) override;
+        void                    update_dependent_resources(GraphicsContext& gpu, FrameGraph* frame_graph, RenderScene* render_scene) override;
 
         Mesh                    mesh;
         Renderer* renderer;
         bool                    use_compute;
 
-        BufferHandle            last_lights_buffer = k_invalid_buffer;
-
         DescriptorSetHandle     lighting_descriptor_set[k_max_frames];
         TextureHandle           lighting_debug_texture;
+
         DescriptorSetHandle     fragment_rate_descriptor_set[k_max_frames];
         BufferHandle            fragment_rate_texture_index[k_max_frames];
 
@@ -656,8 +721,8 @@ namespace Magnefu {
     struct TransparentPass : public FrameGraphRenderPass {
         void                    render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) override;
 
-        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator);
-        void                    free_gpu_resources();
+        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) override;
+        void                    free_gpu_resources(GraphicsContext& gpu) override;
 
         Array<MeshInstanceDraw> mesh_instance_draws;
         Renderer* renderer;
@@ -671,10 +736,11 @@ namespace Magnefu {
         void                    render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) override;
 
         void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator);
-        void                    upload_gpu_data(RenderScene& scene);
-        void                    free_gpu_resources();
+        void                    upload_gpu_data(RenderScene& scene) override;
+        void                    free_gpu_resources(GraphicsContext& gpu) override;
 
-        void                    recreate_dependent_resources(RenderScene& scene);
+        void                    recreate_lightcount_dependent_resources(RenderScene& scene);
+        void                    update_dependent_resources(GraphicsContext& gpu, FrameGraph* frame_graph, RenderScene* render_scene) override;
 
         Array<MeshInstanceDraw> mesh_instance_draws;
         Renderer* renderer;
@@ -707,8 +773,6 @@ namespace Magnefu {
         BufferHandle            meshlet_shadow_indirect_cb[k_max_frames];
 
         // Shadow resolution pass
-        BufferHandle            last_lights_buffer = k_invalid_buffer;
-
         PipelineHandle          shadow_resolution_pipeline;
         DescriptorSetHandle     shadow_resolution_descriptor_set[k_max_frames];
         BufferHandle            light_aabbs;
@@ -719,7 +783,54 @@ namespace Magnefu {
 
         TextureHandle           cubemap_debug_face_texture;
 
-    }; // struct CubemapShadowsPass
+    }; // struct PointlightShadowPass
+
+
+    //
+    //
+    struct VolumetricFogPass : public FrameGraphRenderPass {
+        void                    pre_render(u32 current_frame_index, CommandBuffer* gpu_commands, FrameGraph* frame_graph, RenderScene* render_scene) override;
+        void                    render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) override;
+
+        void                    on_resize(GraphicsContext& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) override;
+
+        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) override;
+        void                    upload_gpu_data(RenderScene& scene) override;
+        void                    free_gpu_resources(GraphicsContext& gpu) override;
+
+        void                    update_dependent_resources(GraphicsContext& gpu, FrameGraph* frame_graph, RenderScene* render_scene) override;
+
+        // Inject Data
+        PipelineHandle          inject_data_pipeline;
+        TextureHandle           froxel_data_texture_0;
+
+        // Light Scattering
+        PipelineHandle          light_scattering_pipeline;
+        TextureHandle           light_scattering_texture[2]; // Temporal reprojection between 2 textures
+        DescriptorSetHandle     light_scattering_descriptor_set[k_max_frames];
+        u32                     current_light_scattering_texture_index = 1;
+        u32                     previous_light_scattering_texture_index = 0;
+
+        // Light Integration
+        PipelineHandle          light_integration_pipeline;
+        TextureHandle           integrated_light_scattering_texture;
+
+        // Spatial Filtering
+        PipelineHandle          spatial_filtering_pipeline;
+        // Temporal Filtering
+        PipelineHandle          temporal_filtering_pipeline;
+        // Volumetric Noise baking
+        PipelineHandle          volumetric_noise_baking;
+        TextureHandle           volumetric_noise_texture;
+        SamplerHandle           volumetric_tiling_sampler;
+        bool                    has_baked_noise = false;
+
+        DescriptorSetHandle     fog_descriptor_set;
+        BufferHandle            fog_constants;
+
+        Renderer* renderer;
+
+    }; // struct VolumetricFogPass
 
     //
     //
@@ -727,8 +838,8 @@ namespace Magnefu {
         void                    render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) override;
         void                    pre_render(u32 current_frame_index, CommandBuffer* gpu_commands, FrameGraph* frame_graph, RenderScene* render_scene) override;
 
-        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator);
-        void                    free_gpu_resources();
+        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) override;
+        void                    free_gpu_resources(GraphicsContext& gpu) override;
 
         BufferResource* sphere_mesh_buffer;
         BufferResource* sphere_mesh_indices;
@@ -783,9 +894,9 @@ namespace Magnefu {
         void                    render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) override;
         void                    on_resize(GraphicsContext& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) override;
 
-        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator);
-        void                    upload_gpu_data();
-        void                    free_gpu_resources();
+        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) override;
+        void                    upload_gpu_data(RenderScene& scene) override;
+        void                    free_gpu_resources(GraphicsContext& gpu) override;
 
         Mesh                    mesh;
         Renderer* renderer;
@@ -805,8 +916,8 @@ namespace Magnefu {
     struct CullingEarlyPass : public FrameGraphRenderPass {
         void                    render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) override;
 
-        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator);
-        void                    free_gpu_resources();
+        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) override;
+        void                    free_gpu_resources(GraphicsContext& gpu) override;
 
         Renderer* renderer;
 
@@ -822,8 +933,8 @@ namespace Magnefu {
     struct CullingLatePass : public FrameGraphRenderPass {
         void                    render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) override;
 
-        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator);
-        void                    free_gpu_resources();
+        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) override;
+        void                    free_gpu_resources(GraphicsContext& gpu) override;
 
         Renderer* renderer;
 
@@ -833,6 +944,32 @@ namespace Magnefu {
         u32                     depth_pyramid_texture_index;
 
     }; // struct CullingLatePass
+
+    //
+    //
+    struct RayTracingTestPass : public FrameGraphRenderPass {
+        struct GpuData {
+            u32 sbt_offset; // shader binding table offset
+            u32 sbt_stride; // shader binding table stride
+            u32 miss_index;
+            u32 out_image_index;
+        };
+
+        void                    render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) override;
+        void                    on_resize(GraphicsContext& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) override;
+
+        void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) override;
+        void                    upload_gpu_data(RenderScene& scene) override;
+        void                    free_gpu_resources(GraphicsContext& gpu) override;
+
+        Renderer* renderer;
+
+        PipelineHandle          pipeline;
+        DescriptorSetHandle     descriptor_set[k_max_frames];
+        TextureHandle           render_target;
+        BufferHandle            uniform_buffer[k_max_frames];
+
+    }; // struct RayTracingTestPass
 
     //
     //
@@ -873,6 +1010,8 @@ namespace Magnefu {
 
         virtual void            init(cstring filename, cstring path, Allocator* resident_allocator, StackAllocator* temp_allocator, AsynchronousLoader* async_loader) { };
         virtual void            shutdown(Renderer* renderer) { };
+
+        void                    on_resize(GraphicsContext& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height);
 
         virtual void            prepare_draws(Renderer* renderer, StackAllocator* scratch_allocator, SceneGraph* scene_graph) { };
 
@@ -957,7 +1096,17 @@ namespace Magnefu {
         BufferHandle            mesh_task_indirect_late_commands_sb[k_max_frames];
 
         BufferHandle            meshlet_instances_indirect_count_sb[k_max_frames];
+
         TextureHandle           fragment_shading_rate_image;
+
+        Array<VkAccelerationStructureGeometryKHR> geometries;
+        Array<VkAccelerationStructureBuildRangeInfoKHR> build_range_infos;
+
+        VkAccelerationStructureKHR blas;
+        BufferHandle            blas_buffer;
+
+        VkAccelerationStructureKHR tlas;
+        BufferHandle            tlas_buffer;
 
         GpuMeshDrawCounts       mesh_draw_counts;
 
@@ -975,6 +1124,34 @@ namespace Magnefu {
         u32                     cubemap_debug_array_index = 0;
         u32                     cubemap_debug_face_index = 5;
         bool                    cubemap_face_debug_enabled = false;
+        u32                     blue_noise_128_rg_texture_index = 0;
+
+        // Volumetric Fog controls
+        u32                     volumetric_fog_texture_index = 0;
+        u32                     volumetric_fog_tile_size = 16;
+        u32                     volumetric_fog_tile_count_x = 128;
+        u32                     volumetric_fog_tile_count_y = 128;
+        u32                     volumetric_fog_slices = 128;
+        f32                     volumetric_fog_density = 0.0f;
+        f32                     volumetric_fog_scattering_factor = 0.1f;
+        f32                     volumetric_fog_temporal_reprojection_percentage = 0.2f;
+        f32                     volumetric_fog_phase_anisotropy_01 = 0.2f;
+        bool                    volumetric_fog_use_temporal_reprojection = true;
+        bool                    volumetric_fog_use_spatial_filtering = true;
+        u32                     volumetric_fog_phase_function_type = 0;
+        f32                     volumetric_fog_height_fog_density = 0.0f;
+        f32                     volumetric_fog_height_fog_falloff = 1.0f;
+        f32                     volumetric_fog_noise_scale = 0.5f;
+        f32                     volumetric_fog_integration_noise_scale = 0.25f;
+        u32                     volumetric_fog_noise_type = 0;
+        f32                     volumetric_fog_noise_position_scale = 1.0f;
+        f32                     volumetric_fog_noise_speed_scale = 0.2f;
+        vec3s                   volumetric_fog_box_position = vec3s{ 0, 0, 0 };
+        vec3s                   volumetric_fog_box_size = vec3s{ 1.f, 2.f, 0.5f };
+        f32                     volumetric_fog_box_density = 3.0f;
+        u32                     volumetric_fog_box_color = Magnefu::Color::green;
+        f32                     volumetric_fog_temporal_reprojection_jittering_scale = 1.6f;
+        bool                    volumetric_fog_application_apply_opacity_anti_aliasing = true;
 
         bool                    use_meshlets = true;
         bool                    use_meshlets_emulation = false;
@@ -982,6 +1159,7 @@ namespace Magnefu {
         bool                    pointlight_rendering = true;
         bool                    pointlight_use_meshlets = true;
         bool                    use_tetrahedron_shadows = false;
+        bool                    show_light_edit_debug_draws = false;
 
         bool                    cubeface_flip[6];
 
@@ -1001,6 +1179,7 @@ namespace Magnefu {
         void                    render(CommandBuffer* gpu_commands, RenderScene* render_scene);
 
         void                    prepare_draws(StackAllocator* scratch_allocator);
+        void                    update_dependent_resources();
 
         Allocator* resident_allocator;
         SceneGraph* scene_graph;
@@ -1010,11 +1189,13 @@ namespace Magnefu {
 
         RenderScene* scene;
 
+        Array<FrameGraphRenderPass*> render_passes;
+
         // Render passes
         DepthPrePass            depth_pre_pass;
         GBufferPass             gbuffer_pass_early;
         LateGBufferPass         gbuffer_pass_late;
-        LightPass                light_pass;
+        LightPass               light_pass;
         TransparentPass         transparent_pass;
         DoFPass                 dof_pass;
         DebugPass               debug_pass;
@@ -1022,6 +1203,8 @@ namespace Magnefu {
         CullingLatePass         mesh_occlusion_late_pass;
         DepthPyramidPass        depth_pyramid_pass;
         PointlightShadowPass    pointlight_shadow_pass;
+        VolumetricFogPass       volumetric_fog_pass;
+        RayTracingTestPass      ray_tracing_test_pass;
 
         // Fullscreen data
         GpuTechnique* fullscreen_tech = nullptr;
@@ -1067,5 +1250,7 @@ namespace Magnefu {
     void                        project_aabb_cubemap_negative_y(const vec3s aabb[2], f32& s_min, f32& s_max, f32& t_min, f32& t_max);
     void                        project_aabb_cubemap_positive_z(const vec3s aabb[2], f32& s_min, f32& s_max, f32& t_min, f32& t_max);
     void                        project_aabb_cubemap_negative_z(const vec3s aabb[2], f32& s_min, f32& s_max, f32& t_min, f32& t_max);
+
+    f32                         halton(i32 i, i32 b);
 
 } // namespace Magnefu

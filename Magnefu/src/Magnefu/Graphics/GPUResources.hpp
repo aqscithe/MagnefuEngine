@@ -388,6 +388,7 @@ namespace Magnefu {
         SamplerHandle                   samplers[k_max_descriptors_per_set];
         u16                             bindings[k_max_descriptors_per_set];
 
+        VkAccelerationStructureKHR      as;
         DescriptorSetLayoutHandle       layout;
         u32                             num_resources = 0;
 
@@ -403,6 +404,7 @@ namespace Magnefu {
         DescriptorSetCreation& texture_sampler(TextureHandle texture, SamplerHandle sampler, u16 binding);   // TODO: separate samplers from textures
         DescriptorSetCreation& set_name(cstring name);
         DescriptorSetCreation& set_set_index(u32 index);
+        DescriptorSetCreation& set_as(VkAccelerationStructureKHR as, u16 binding);
 
     }; // struct DescriptorSetCreation
 
@@ -858,11 +860,13 @@ namespace Magnefu {
     struct ShaderState {
 
         VkPipelineShaderStageCreateInfo shader_stage_info[k_max_shader_stages];
+        VkRayTracingShaderGroupCreateInfoKHR  shader_group_info[k_max_shader_stages];
 
         cstring                         name = nullptr;
 
         u32                             active_shaders = 0;
         bool                            graphics_pipeline = false;
+        bool                            ray_tracing_pipeline = false;
 
         spirv::ParseResult* parse_result;
     }; // struct ShaderState
@@ -896,6 +900,7 @@ namespace Magnefu {
         u16* bindings = nullptr;
 
         const DescriptorSetLayout* layout = nullptr;
+        VkAccelerationStructureKHR      as = VK_NULL_HANDLE;
         u32                             num_resources = 0;
     }; // struct DesciptorSet
 
@@ -919,8 +924,9 @@ namespace Magnefu {
         BlendStateCreation              blend_state;
         RasterizationCreation           rasterization;
 
-        PipelineHandle                  handle;
-        bool                            graphics_pipeline = true;
+        BufferHandle                    shader_binding_table_raygen;
+        BufferHandle                    shader_binding_table_hit;
+        BufferHandle                    shader_binding_table_miss;
 
     }; // struct Pipeline
 

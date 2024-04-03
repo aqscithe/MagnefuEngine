@@ -1203,5 +1203,6 @@ namespace Magnefu
 
 
         return *this;
+    }
 
 } // namespace Magnefu

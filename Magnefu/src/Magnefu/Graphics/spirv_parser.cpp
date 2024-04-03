@@ -55,31 +55,47 @@ namespace Magnefu {
         {
             switch (model)
             {
-            case (SpvExecutionModelVertex):
-            {
-                return VK_SHADER_STAGE_VERTEX_BIT;
-            }
-            case (SpvExecutionModelGeometry):
-            {
-                return VK_SHADER_STAGE_GEOMETRY_BIT;
-            }
-            case (SpvExecutionModelFragment):
-            {
-                return VK_SHADER_STAGE_FRAGMENT_BIT;
-            }
-            case (SpvExecutionModelGLCompute):
-            case (SpvExecutionModelKernel):
-            {
-                return VK_SHADER_STAGE_COMPUTE_BIT;
-            }
-            case (SpvExecutionModelMeshNV):
-            {
-                return VK_SHADER_STAGE_MESH_BIT_NV;
-            }
-            case (SpvExecutionModelTaskNV):
-            {
-                return VK_SHADER_STAGE_TASK_BIT_NV;
-            }
+                case (SpvExecutionModelVertex):
+                {
+                    return VK_SHADER_STAGE_VERTEX_BIT;
+                }
+                case (SpvExecutionModelGeometry):
+                {
+                    return VK_SHADER_STAGE_GEOMETRY_BIT;
+                }
+                case (SpvExecutionModelFragment):
+                {
+                    return VK_SHADER_STAGE_FRAGMENT_BIT;
+                }
+                case (SpvExecutionModelGLCompute):
+                case (SpvExecutionModelKernel):
+                {
+                    return VK_SHADER_STAGE_COMPUTE_BIT;
+                }
+                case (SpvExecutionModelMeshNV):
+                {
+                    return VK_SHADER_STAGE_MESH_BIT_NV;
+                }
+                case (SpvExecutionModelTaskNV):
+                {
+                    return VK_SHADER_STAGE_TASK_BIT_NV;
+                }
+                case (SpvExecutionModelRayGenerationKHR):
+                {
+                    return VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+                }
+                case (SpvExecutionModelClosestHitKHR):
+                {
+                    return VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
+                }
+                case (SpvExecutionModelAnyHitKHR):
+                {
+                    return VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
+                }
+                case (SpvExecutionModelMissKHR):
+                {
+                    return VK_SHADER_STAGE_MISS_BIT_KHR;
+                }
             }
 
             return 0;
@@ -119,7 +135,7 @@ namespace Magnefu {
 
             size_t word_index = 5;
             while (word_index < spv_word_count) {
-                SpvOp op = (SpvOp)(data[word_index] & 0xFF);
+                SpvOp op = (SpvOp)(data[word_index] & 0xFFFF);
                 u16 word_count = (u16)(data[word_index] >> 16);
 
                 switch (op) {
@@ -349,6 +365,21 @@ namespace Magnefu {
 
                     break;
                 }
+
+                case (SpvOpTypeAccelerationStructureKHR):
+                {
+                    MF_CORE_ASSERT((word_count == 2), "");
+
+                    u32 id_index = data[word_index + 1];
+
+                    MF_CORE_ASSERT((id_index < id_bound), "");
+
+                    Id& id = ids[id_index];
+                    id.op = op;
+
+                    break;
+
+                };
 
                 case (SpvOpTypeSampler):
                 {
@@ -640,6 +671,14 @@ namespace Magnefu {
                             binding.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
                             binding.name = id.name.text;
                             break;
+                        }
+
+                        case SpvOpTypeAccelerationStructureKHR:
+                        {
+                            binding.type = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+                            binding.name = id.name.text;
+                            break;
+
                         }
 
                         default:

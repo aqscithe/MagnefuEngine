@@ -35,6 +35,8 @@
 #define DEBUG_DRAW_POINT_LIGHT_SPHERES 0
 
 
+
+
 namespace Magnefu {
 
 
@@ -196,7 +198,7 @@ namespace Magnefu {
         }
     }
 
-    void DepthPrePass::free_gpu_resources() {
+    void DepthPrePass::free_gpu_resources(GraphicsContext& gpu) {
         if (!enabled)
             return;
 
@@ -299,11 +301,9 @@ namespace Magnefu {
         gpu.link_texture_sampler(depth_pyramid, depth_pyramid_sampler);
     }
 
-    void DepthPyramidPass::free_gpu_resources() {
+    void DepthPyramidPass::free_gpu_resources(GraphicsContext& gpu) {
         if (!enabled)
             return;
-
-        GraphicsContext& gpu = *renderer->gpu;
 
         gpu.destroy_sampler(depth_pyramid_sampler);
         gpu.destroy_texture(depth_pyramid);
@@ -554,11 +554,9 @@ namespace Magnefu {
         }
     }
 
-    void GBufferPass::free_gpu_resources() {
+    void GBufferPass::free_gpu_resources(GraphicsContext& gpu) {
         if (!enabled)
             return;
-
-        GraphicsContext& gpu = *renderer->gpu;
 
         mesh_instance_draws.shutdown();
 
@@ -615,11 +613,9 @@ namespace Magnefu {
         }
     }
 
-    void LateGBufferPass::free_gpu_resources() {
+    void LateGBufferPass::free_gpu_resources(GraphicsContext& gpu) {
         if (!enabled)
             return;
-
-        GraphicsContext& gpu = *renderer->gpu;
 
         mesh_instance_draws.shutdown();
     }
@@ -682,7 +678,6 @@ namespace Magnefu {
             gpu_commands->draw(TopologyType::Triangle, 0, 3, 0, 1);
         }
     }
-
     void LightPass::on_resize(GraphicsContext& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) {
         if (!enabled)
             return;
@@ -691,7 +686,7 @@ namespace Magnefu {
         if (resource) {
             u32 adjusted_width = (new_width + gpu.min_fragment_shading_rate_texel_size.width - 1) / gpu.min_fragment_shading_rate_texel_size.width;
             u32 adjusted_height = (new_height + gpu.min_fragment_shading_rate_texel_size.height - 1) / gpu.min_fragment_shading_rate_texel_size.height;
-            gpu.resize_texture(resource->resource_info.texture.handle, adjusted_width, new_height);
+            gpu.resize_texture(resource->resource_info.texture.handle, adjusted_width, adjusted_height);
 
             resource->resource_info.texture.width = adjusted_width;
             resource->resource_info.texture.height = adjusted_height;
@@ -806,6 +801,28 @@ namespace Magnefu {
                 fragment_rate_descriptor_set[f] = renderer->gpu->create_descriptor_set(ds_creation);
             }
         }
+
+        {
+            scene.renderer->gpu->destroy_descriptor_set(mesh.pbr_material.descriptor_set_transparent);
+
+            const u32 pass_index = use_compute ? 1 : 0;
+            DescriptorSetCreation ds_creation{};
+            GpuTechniquePass& pass = main_technique->passes[pass_index];
+            DescriptorSetLayoutHandle layout = renderer->gpu->get_descriptor_set_layout(pass.pipeline, k_material_descriptor_set_index);
+
+            for (u32 i = 0; i < k_max_frames; ++i) {
+                scene.renderer->gpu->destroy_descriptor_set(lighting_descriptor_set[i]);
+
+                // Legacy non-compute descriptor set.
+                ds_creation.reset().set_layout(layout);
+
+                scene.add_lighting_descriptors(ds_creation, pass, i);
+                ds_creation.buffer(mesh.pbr_material.material_buffer, 1);
+                scene.add_scene_descriptors(ds_creation, pass);
+
+                lighting_descriptor_set[i] = renderer->gpu->create_descriptor_set(ds_creation);
+            }
+        }
     }
 
     void LightPass::upload_gpu_data(RenderScene& scene) {
@@ -829,55 +846,6 @@ namespace Magnefu {
             renderer->gpu->unmap_buffer(cb_map);
         }
 
-        const u64 hashed_name = hash_calculate("pbr_lighting");
-        GpuTechnique* main_technique = renderer->resource_cache.techniques.get(hashed_name);
-
-        if (last_lights_buffer.index != scene.lights_tiles_sb[0].index) {
-            scene.renderer->gpu->destroy_descriptor_set(mesh.pbr_material.descriptor_set_transparent);
-
-            const u32 pass_index = use_compute ? 1 : 0;
-            DescriptorSetCreation ds_creation{};
-            GpuTechniquePass& pass = main_technique->passes[pass_index];
-            DescriptorSetLayoutHandle layout = renderer->gpu->get_descriptor_set_layout(pass.pipeline, k_material_descriptor_set_index);
-
-            for (u32 i = 0; i < k_max_frames; ++i) {
-
-                scene.renderer->gpu->destroy_descriptor_set(lighting_descriptor_set[i]);
-
-                // Legacy non-compute descriptor set.
-                ds_creation.reset().set_layout(layout);
-
-                scene.add_lighting_descriptors(ds_creation, pass, i);
-                ds_creation.buffer(mesh.pbr_material.material_buffer, 1);
-                scene.add_scene_descriptors(ds_creation, pass);
-
-                lighting_descriptor_set[i] = renderer->gpu->create_descriptor_set(ds_creation);
-
-                // TODO(marco): this shouldn't be created here
-                if (scene.use_meshlets) {
-                    scene.renderer->gpu->destroy_descriptor_set(scene.mesh_shader_transparent_descriptor_set[i]);
-
-                    GpuTechnique* transparent_technique = renderer->resource_cache.techniques.get(hash_calculate("meshlet"));
-                    u32 meshlet_technique_index = transparent_technique->get_pass_index("transparent_no_cull");
-                    GpuTechniquePass& transparent_pass = transparent_technique->passes[meshlet_technique_index];
-
-                    DescriptorSetLayoutHandle transparent_layout = renderer->gpu->get_descriptor_set_layout(transparent_pass.pipeline, k_material_descriptor_set_index);
-
-                    ds_creation.reset().buffer(scene.mesh_task_indirect_early_commands_sb[i], 6).buffer(scene.mesh_task_indirect_count_early_sb[i], 7).set_layout(transparent_layout);
-                    ds_creation.buffer(scene.lights_lut_sb[i], 20).buffer(scene.lights_list_sb, 21).buffer(scene.lights_tiles_sb[i], 22).buffer(scene.lighting_constants_cb[i], 23).buffer(scene.lights_indices_sb[i], 25);
-
-                    scene.add_mesh_descriptors(ds_creation, transparent_pass);
-                    scene.add_scene_descriptors(ds_creation, pass);
-                    scene.add_meshlet_descriptors(ds_creation, transparent_pass);
-                    //scene.add_lighting_descriptors( ds_creation, transparent_pass, i );
-
-                    scene.mesh_shader_transparent_descriptor_set[i] = renderer->gpu->create_descriptor_set(ds_creation);
-                }
-            }
-
-            last_lights_buffer.index = scene.lights_tiles_sb[0].index;
-        }
-
         if (renderer->gpu->fragment_shading_rate_present) {
 
             for (u32 f = 0; f < k_max_frames; ++f) {
@@ -895,11 +863,9 @@ namespace Magnefu {
         }
     }
 
-    void LightPass::free_gpu_resources() {
+    void LightPass::free_gpu_resources(GraphicsContext& gpu) {
         if (!enabled)
             return;
-
-        GraphicsContext& gpu = *renderer->gpu;
 
         gpu.destroy_buffer(mesh.pbr_material.material_buffer);
         gpu.destroy_descriptor_set(mesh.pbr_material.descriptor_set_transparent);
@@ -912,6 +878,34 @@ namespace Magnefu {
         }
 
         // TODO(marco): destroy scene.fragment_shading_rate_image
+    }
+
+    void LightPass::update_dependent_resources(GraphicsContext& gpu, FrameGraph* frame_graph, RenderScene* render_scene) {
+
+        const u64 hashed_name = hash_calculate("pbr_lighting");
+        GpuTechnique* main_technique = renderer->resource_cache.techniques.get(hashed_name);
+
+        {
+            render_scene->renderer->gpu->destroy_descriptor_set(mesh.pbr_material.descriptor_set_transparent);
+
+            const u32 pass_index = use_compute ? 1 : 0;
+            DescriptorSetCreation ds_creation{};
+            GpuTechniquePass& pass = main_technique->passes[pass_index];
+            DescriptorSetLayoutHandle layout = renderer->gpu->get_descriptor_set_layout(pass.pipeline, k_material_descriptor_set_index);
+
+            for (u32 i = 0; i < k_max_frames; ++i) {
+                render_scene->renderer->gpu->destroy_descriptor_set(lighting_descriptor_set[i]);
+
+                // Legacy non-compute descriptor set.
+                ds_creation.reset().set_layout(layout);
+
+                render_scene->add_lighting_descriptors(ds_creation, pass, i);
+                ds_creation.buffer(mesh.pbr_material.material_buffer, 1);
+                render_scene->add_scene_descriptors(ds_creation, pass);
+
+                lighting_descriptor_set[i] = renderer->gpu->create_descriptor_set(ds_creation);
+            }
+        }
     }
 
     //
@@ -1004,7 +998,7 @@ namespace Magnefu {
         }
     }
 
-    void TransparentPass::free_gpu_resources() {
+    void TransparentPass::free_gpu_resources(GraphicsContext& gpu) {
         if (!enabled)
             return;
 
@@ -1409,7 +1403,7 @@ namespace Magnefu {
         }
     }
 
-    void DebugPass::free_gpu_resources() {
+    void DebugPass::free_gpu_resources(GraphicsContext& gpu) {
         if (!enabled)
             return;
 
@@ -1557,7 +1551,7 @@ namespace Magnefu {
         aperture = 8.0f;
     }
 
-    void DoFPass::upload_gpu_data() {
+    void DoFPass::upload_gpu_data(RenderScene& scene) {
         if (!enabled)
             return;
 
@@ -1579,17 +1573,13 @@ namespace Magnefu {
         }
     }
 
-    void DoFPass::free_gpu_resources() {
+    void DoFPass::free_gpu_resources(GraphicsContext& gpu) {
         if (!enabled)
             return;
 
-        GraphicsContext& gpu = *renderer->gpu;
+        renderer->destroy_texture(scene_mips);
 
-        {
-            renderer->destroy_texture(scene_mips);
-        }
         gpu.destroy_buffer(mesh.pbr_material.material_buffer);
-
         gpu.destroy_descriptor_set(mesh.pbr_material.descriptor_set_transparent);
     }
 
@@ -1697,8 +1687,7 @@ namespace Magnefu {
         }
     }
 
-    void CullingEarlyPass::free_gpu_resources() {
-        GraphicsContext& gpu = *renderer->gpu;
+    void CullingEarlyPass::free_gpu_resources(GraphicsContext& gpu) {
 
         for (u32 i = 0; i < k_max_frames; ++i) {
             gpu.destroy_descriptor_set(frustum_cull_descriptor_set[i]);
@@ -1785,16 +1774,120 @@ namespace Magnefu {
         }
     }
 
-    void CullingLatePass::free_gpu_resources() {
-        GraphicsContext& gpu = *renderer->gpu;
+    void CullingLatePass::free_gpu_resources(GraphicsContext& gpu) {
 
         for (u32 i = 0; i < k_max_frames; ++i) {
             gpu.destroy_descriptor_set(frustum_cull_descriptor_set[i]);
         }
     }
 
-    // PointlightShadowPass ///////////////////////////////////////////////////
+    // RayTracingTestPass ///////////////////////////////////////////////////
+    void RayTracingTestPass::render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) {
+        if (!enabled) {
+            return;
+        }
 
+        Texture* texture = gpu_commands->gpu_device->access_texture(render_target);
+
+        util_add_image_barrier(gpu_commands->gpu_device, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_UNORDERED_ACCESS, 0, 1, false);
+
+        gpu_commands->bind_pipeline(pipeline);
+
+        gpu_commands->bind_descriptor_set(descriptor_set + current_frame_index, 1, nullptr, 0);
+
+        gpu_commands->trace_rays(pipeline, renderer->width, renderer->height, 1);
+
+        util_add_image_barrier(gpu_commands->gpu_device, gpu_commands->vk_command_buffer, texture, RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0, 1, false);
+    }
+
+    void RayTracingTestPass::on_resize(GraphicsContext& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) {
+        if (!enabled) {
+            return;
+        }
+
+        gpu.resize_texture(render_target, new_width, new_height);
+    }
+
+    void RayTracingTestPass::prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) {
+        FrameGraphNode* node = frame_graph->get_node("ray_tracing_test");
+        if (node == nullptr) {
+            enabled = false;
+
+            return;
+        }
+
+        enabled = node->enabled;
+
+        renderer = scene.renderer;
+
+        GpuTechnique* ray_tracing_technique = renderer->resource_cache.techniques.get(hash_calculate("ray_tracing"));
+        pipeline = ray_tracing_technique->passes[0].pipeline;
+
+        GraphicsContext& gpu = *renderer->gpu;
+
+        cstring rt_render_target = "final";
+
+        TextureCreation texture_creation{ };
+        texture_creation.set_flags(TextureFlags::Compute_mask).set_name(rt_render_target).set_format_type(VK_FORMAT_R8G8B8A8_UNORM, TextureType::Texture2D).set_size(gpu.swapchain_width, gpu.swapchain_height, 1).set_mips(1).set_layers(1);
+
+        render_target = gpu.create_texture(texture_creation);
+
+        FrameGraphResource* texture = frame_graph->get_resource(rt_render_target);
+        MF_CORE_ASSERT((texture != nullptr), "");
+
+        texture->resource_info.set_external_texture_2d(gpu.swapchain_width, gpu.swapchain_height, VK_FORMAT_R8_UINT, 0, render_target);
+
+        DescriptorSetLayoutHandle layout = gpu.get_descriptor_set_layout(pipeline, k_material_descriptor_set_index);
+
+        BufferCreation uniform_buffer_creation{ };
+        uniform_buffer_creation.set(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Dynamic, sizeof(GpuData)).set_name("ray_tracing_uniform_buffer");
+
+
+        for (u32 i = 0; i < k_max_frames; ++i) {
+            uniform_buffer[i] = gpu.create_buffer(uniform_buffer_creation);
+
+            DescriptorSetCreation ds_creation{};
+            ds_creation.buffer(scene.scene_cb, 0).set_as(scene.tlas, 1).buffer(uniform_buffer[i], 2).set_layout(layout);
+
+            descriptor_set[i] = gpu.create_descriptor_set(ds_creation);
+        }
+    }
+
+    void RayTracingTestPass::upload_gpu_data(RenderScene& scene) {
+        if (!enabled) {
+            return;
+        }
+
+        for (u32 i = 0; i < k_max_frames; ++i) {
+            MapBufferParameters mb{ uniform_buffer[i], 0, 0 };
+
+            GpuData* gpu_data = (GpuData*)renderer->gpu->map_buffer(mb);
+
+            if (gpu_data) {
+                gpu_data->sbt_offset = 0; // shader binding table offset
+                gpu_data->sbt_stride = 0; // shader binding table stride
+                gpu_data->miss_index = 0;
+                gpu_data->out_image_index = render_target.index;
+
+                renderer->gpu->unmap_buffer(mb);
+            }
+        }
+    }
+
+    void RayTracingTestPass::free_gpu_resources(GraphicsContext& gpu) {
+        if (!enabled) {
+            return;
+        }
+
+        gpu.destroy_texture(render_target);
+
+        for (u32 i = 0; i < k_max_frames; ++i) {
+            gpu.destroy_descriptor_set(descriptor_set[i]);
+            gpu.destroy_buffer(uniform_buffer[i]);
+        }
+    }
+
+    // PointlightShadowPass ///////////////////////////////////////////////////
     void PointlightShadowPass::pre_render(u32 current_frame_index, CommandBuffer* gpu_commands, FrameGraph* frame_graph, RenderScene* render_scene) {
 
         if (!render_scene->pointlight_rendering) {
@@ -1840,18 +1933,10 @@ namespace Magnefu {
 
         gpu_commands->push_constants(shadow_resolution_pipeline, 0, 16, &render_scene->mesh_draw_counts.depth_pyramid_texture_index);
 
-        // 8 is the group size on both x and y for this shader.
-
-        /*const u32 z_count = 32;
-        const f32 tile_size = 8.0f;
-        const f32 tile_pixels = tile_size * tile_size;
-        const u32 tile_x_count = ( render_scene->scene_data.resolution_x / f32( tile_size ) + 7 ) / 8;
-        const u32 tile_y_count = ( render_scene->scene_data.resolution_y / f32( tile_size ) + 7 ) / 8;*/
-
         gpu_commands->buffer_barrier(shadow_resolutions[current_frame_index], ResourceState::RESOURCE_STATE_COPY_SOURCE, ResourceState::RESOURCE_STATE_UNORDERED_ACCESS, QueueType::Graphics, QueueType::Graphics);
 
         gpu_commands->fill_buffer(shadow_resolutions[current_frame_index], 0, sizeof(u32) * render_scene->active_lights, 0);
-
+        // 8 is the group size on both x and y for this shader.
         const f32 tile_size = 64.0f * 8.0f;
         const u32 tile_x_count = Magnefu::ceilu32(render_scene->scene_data.resolution_x / tile_size);
         const u32 tile_y_count = Magnefu::ceilu32(render_scene->scene_data.resolution_y / tile_size);
@@ -1929,7 +2014,7 @@ namespace Magnefu {
         }
         default:
         {
-            MF_CORE_ASSERT(false, "Error face index %u is invalid", face_index);
+            MF_CORE_ASSERT(false, "Error face index {} is invalid", face_index);
             break;
         }
         }
@@ -2147,7 +2232,7 @@ namespace Magnefu {
             // Cubemap shadows
 
             // Recreate texture and framebuffer
-            recreate_dependent_resources(*render_scene);
+            recreate_lightcount_dependent_resources(*render_scene);
 
             Texture* depth_texture_array = gpu->access_texture(cubemap_shadow_array_texture);
             const u32 layer_count = 6 * render_scene->active_lights;
@@ -2329,7 +2414,7 @@ namespace Magnefu {
 
         GraphicsContext& gpu = *renderer->gpu;
 
-        recreate_dependent_resources(scene);
+        recreate_lightcount_dependent_resources(scene);
 
         // Create render pass
         RenderPassCreation render_pass_creation;
@@ -2354,10 +2439,6 @@ namespace Magnefu {
         const u64 hashed_name = hash_calculate("main");
         GpuTechnique* main_technique = renderer->resource_cache.techniques.get(hashed_name);
 
-        MaterialCreation material_creation;
-
-        material_creation.set_name("material_depth_pre_pass").set_technique(main_technique).set_render_index(0);
-        Material* material_depth_pre_pass = renderer->create_material(material_creation);
         const u32 depth_cubemap_pass_index = main_technique->get_pass_index("depth_cubemap");
 
         mesh_instance_draws.init(resident_allocator, 16);
@@ -2466,44 +2547,26 @@ namespace Magnefu {
 
                 shadow_resolutions[i] = renderer->gpu->create_buffer(buffer_creation.set(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, ResourceUsageType::Immutable, sizeof(u32) * k_num_lights).set_name("shadow_resolutions"));
                 shadow_resolutions_readback[i] = renderer->gpu->create_buffer(buffer_creation.set(VK_BUFFER_USAGE_TRANSFER_DST_BIT, ResourceUsageType::Readback, sizeof(u32) * k_num_lights).set_name("shadow_resolutions_readback"));
+
+                DescriptorSetCreation ds_creation{ };
+                ds_creation.reset();
+
+                scene.add_scene_descriptors(ds_creation, pass);
+                ds_creation.buffer(light_aabbs, 35);
+                ds_creation.buffer(shadow_resolutions[i], 36);
+                ds_creation.buffer(scene.lights_list_sb, 37);
+
+                ds_creation.set_layout(renderer->gpu->get_descriptor_set_layout(shadow_resolution_pipeline, k_material_descriptor_set_index));
+
+                shadow_resolution_descriptor_set[i] = renderer->gpu->create_descriptor_set(ds_creation);
             }
         }
     }
 
-    void PointlightShadowPass::upload_gpu_data(RenderScene& scene)
-    {
-        if (scene.lights_tiles_sb[0].index == last_lights_buffer.index)
-        {
-            return;
-        }
-
-        GpuTechnique* meshlet_technique = renderer->resource_cache.techniques.get(hash_calculate("meshlet"));
-        u32 pass_index = meshlet_technique->get_pass_index("pointshadows_resolution_calculation");
-        GpuTechniquePass& pass = meshlet_technique->passes[pass_index];
-
-        DescriptorSetCreation ds_creation{ };
-
-        for (u32 i = 0; i < k_max_frames; ++i) {
-            renderer->gpu->destroy_descriptor_set(shadow_resolution_descriptor_set[i]);
-
-            ds_creation.reset();
-
-            scene.add_scene_descriptors(ds_creation, pass);
-            ds_creation.buffer(light_aabbs, 35);
-            ds_creation.buffer(shadow_resolutions[i], 36);
-            ds_creation.buffer(scene.lights_list_sb, 37);
-
-            ds_creation.set_layout(renderer->gpu->get_descriptor_set_layout(shadow_resolution_pipeline, k_material_descriptor_set_index));
-
-            shadow_resolution_descriptor_set[i] = renderer->gpu->create_descriptor_set(ds_creation);
-        }
-
-        last_lights_buffer.index = scene.lights_tiles_sb[0].index;
+    void PointlightShadowPass::upload_gpu_data(RenderScene& scene) {
     }
 
-    void PointlightShadowPass::free_gpu_resources() {
-
-        GraphicsContext& gpu = *renderer->gpu;
+    void PointlightShadowPass::free_gpu_resources(GraphicsContext& gpu) {
 
         mesh_instance_draws.shutdown();
 
@@ -2535,7 +2598,7 @@ namespace Magnefu {
         gpu.destroy_page_pool(shadow_maps_pool);
     }
 
-    void PointlightShadowPass::recreate_dependent_resources(RenderScene& scene) {
+    void PointlightShadowPass::recreate_lightcount_dependent_resources(RenderScene& scene) {
 
         GraphicsContext& gpu = *renderer->gpu;
 
@@ -2610,6 +2673,327 @@ namespace Magnefu {
 
         frame_buffer_creation.reset().set_depth_stencil_texture(tetrahedron_shadow_texture).set_name("depth_tetrahedron_fb").set_width_height(layer_width, layer_height);
         tetrahedron_framebuffer = gpu.create_framebuffer(frame_buffer_creation);
+    }
+
+    void PointlightShadowPass::update_dependent_resources(GraphicsContext& gpu, FrameGraph* frame_graph, RenderScene* render_scene) {
+    }
+
+    // VolumetricFogPass //////////////////////////////////////////////////////
+    void VolumetricFogPass::pre_render(u32 current_frame_index, CommandBuffer* gpu_commands, FrameGraph* frame_graph, RenderScene* render_scene) {
+        if (!enabled)
+            return;
+
+        Renderer* renderer = render_scene->renderer;
+
+        static i32 times = 5;
+        //if ( !has_baked_noise )
+        if (times >= 0) {
+            --times;
+            has_baked_noise = true;
+
+            Texture* volumetric_noise_texture_ = renderer->gpu->access_texture(volumetric_noise_texture);
+            util_add_image_barrier(renderer->gpu, gpu_commands->vk_command_buffer, volumetric_noise_texture_, RESOURCE_STATE_UNORDERED_ACCESS, 0, 1, false);
+
+            gpu_commands->bind_pipeline(volumetric_noise_baking);
+            gpu_commands->bind_descriptor_set(&fog_descriptor_set, 1, nullptr, 0);
+            gpu_commands->push_constants(volumetric_noise_baking, 0, 4, &volumetric_noise_texture.index);
+            gpu_commands->dispatch(64 / 8, 64 / 8, 64);
+
+            util_add_image_barrier(renderer->gpu, gpu_commands->vk_command_buffer, volumetric_noise_texture_, RESOURCE_STATE_SHADER_RESOURCE, 0, 1, false);
+        }
+
+        previous_light_scattering_texture_index = current_light_scattering_texture_index;
+        current_light_scattering_texture_index = (current_light_scattering_texture_index + 1) % 2;
+
+        Texture* integrated_light_scattering_texture_ = renderer->gpu->access_texture(integrated_light_scattering_texture);
+        Texture* froxel_data_texture_ = renderer->gpu->access_texture(froxel_data_texture_0);
+        Texture* light_scattering_texture_ = renderer->gpu->access_texture(light_scattering_texture[current_light_scattering_texture_index]);
+        Texture* previous_light_scattering_texture_ = renderer->gpu->access_texture(light_scattering_texture[previous_light_scattering_texture_index]);
+
+        // Inject data
+        util_add_image_barrier(renderer->gpu, gpu_commands->vk_command_buffer, froxel_data_texture_, RESOURCE_STATE_UNORDERED_ACCESS, 0, 1, false);
+
+        gpu_commands->bind_pipeline(inject_data_pipeline);
+        gpu_commands->bind_descriptor_set(&fog_descriptor_set, 1, nullptr, 0);
+
+        const u32 dispatch_group_x = ceilu32(render_scene->volumetric_fog_tile_count_x / 8.0f);
+        const u32 dispatch_group_y = ceilu32(render_scene->volumetric_fog_tile_count_y / 8.0f);
+        gpu_commands->dispatch(dispatch_group_x, dispatch_group_y, render_scene->volumetric_fog_slices);
+
+        util_add_image_barrier(renderer->gpu, gpu_commands->vk_command_buffer, froxel_data_texture_, RESOURCE_STATE_SHADER_RESOURCE, 0, 1, false);
+
+        gpu_commands->global_debug_barrier();
+
+        // Light scattering
+        util_add_image_barrier(renderer->gpu, gpu_commands->vk_command_buffer, previous_light_scattering_texture_, RESOURCE_STATE_SHADER_RESOURCE, 0, 1, false);
+        util_add_image_barrier(renderer->gpu, gpu_commands->vk_command_buffer, light_scattering_texture_, RESOURCE_STATE_UNORDERED_ACCESS, 0, 1, false);
+        util_add_image_barrier(renderer->gpu, gpu_commands->vk_command_buffer, integrated_light_scattering_texture_, RESOURCE_STATE_UNORDERED_ACCESS, 0, 1, false);
+
+        gpu_commands->bind_pipeline(light_scattering_pipeline);
+        gpu_commands->bind_descriptor_set(&light_scattering_descriptor_set[current_frame_index], 1, nullptr, 0);
+        gpu_commands->dispatch(dispatch_group_x, dispatch_group_y, render_scene->volumetric_fog_slices);
+
+        util_add_image_barrier(renderer->gpu, gpu_commands->vk_command_buffer, light_scattering_texture_, RESOURCE_STATE_SHADER_RESOURCE, 0, 1, false);
+
+        gpu_commands->global_debug_barrier();
+
+        // Spatial filtering
+        util_add_image_barrier(renderer->gpu, gpu_commands->vk_command_buffer, froxel_data_texture_, RESOURCE_STATE_UNORDERED_ACCESS, 0, 1, false);
+
+        // Reads light scattering texture and writes froxel_data_0
+        gpu_commands->bind_pipeline(spatial_filtering_pipeline);
+        gpu_commands->bind_descriptor_set(&fog_descriptor_set, 1, nullptr, 0);
+        gpu_commands->dispatch(dispatch_group_x, dispatch_group_y, render_scene->volumetric_fog_slices);
+
+        util_add_image_barrier(renderer->gpu, gpu_commands->vk_command_buffer, light_scattering_texture_, RESOURCE_STATE_UNORDERED_ACCESS, 0, 1, false);
+        util_add_image_barrier(renderer->gpu, gpu_commands->vk_command_buffer, froxel_data_texture_, RESOURCE_STATE_SHADER_RESOURCE, 0, 1, false);
+
+        // Temporal filtering
+        // Reads froxel_data_0 and writes light scattering texture
+        gpu_commands->bind_pipeline(temporal_filtering_pipeline);
+        gpu_commands->dispatch(dispatch_group_x, dispatch_group_y, render_scene->volumetric_fog_slices);
+
+        util_add_image_barrier(renderer->gpu, gpu_commands->vk_command_buffer, light_scattering_texture_, RESOURCE_STATE_SHADER_RESOURCE, 0, 1, false);
+
+        // Light integration
+        gpu_commands->bind_pipeline(light_integration_pipeline);
+        gpu_commands->bind_descriptor_set(&fog_descriptor_set, 1, nullptr, 0);
+
+        // NOTE: Z = 1 as we integrate inside the shader.
+        gpu_commands->dispatch(dispatch_group_x, dispatch_group_y, 1);
+
+        gpu_commands->global_debug_barrier();
+
+        util_add_image_barrier(renderer->gpu, gpu_commands->vk_command_buffer, integrated_light_scattering_texture_, RESOURCE_STATE_SHADER_RESOURCE, 0, 1, false);
+    }
+
+    void VolumetricFogPass::render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) {
+        if (!enabled)
+            return;
+
+        Renderer* renderer = render_scene->renderer;
+    }
+
+    void VolumetricFogPass::on_resize(GraphicsContext& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) {
+        if (!enabled)
+            return;
+
+        // TODO: resizable volumetric fog texture
+    }
+
+    void VolumetricFogPass::prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) {
+
+        renderer = scene.renderer;
+
+        FrameGraphNode* node = frame_graph->get_node("volumetric_fog_pass");
+        if (node == nullptr) {
+            enabled = false;
+
+            return;
+        }
+
+        enabled = node->enabled;
+
+        GraphicsContext& gpu = *renderer->gpu;
+
+        Magnefu::TextureCreation texture_creation;
+        texture_creation.reset().set_size(scene.volumetric_fog_tile_count_x, scene.volumetric_fog_tile_count_y, scene.volumetric_fog_slices)
+            .set_format_type(VK_FORMAT_R16G16B16A16_SFLOAT, TextureType::Texture3D).set_flags(Magnefu::TextureFlags::Compute_mask).set_name("froxel_data_texture_0");
+
+        froxel_data_texture_0 = gpu.create_texture(texture_creation);
+
+        // Temporal reprojection uses those two textures.
+        texture_creation.set_name("light_scattering_texture_0");
+        light_scattering_texture[0] = gpu.create_texture(texture_creation);
+        texture_creation.set_name("light_scattering_texture_1");
+        light_scattering_texture[1] = gpu.create_texture(texture_creation);
+
+        texture_creation.set_name("integrated_light_scattering_texture");
+        integrated_light_scattering_texture = gpu.create_texture(texture_creation);
+
+        // Create volumetric noise texture
+        texture_creation.reset().set_size(64, 64, 64).set_format_type(VK_FORMAT_R8_UNORM, TextureType::Texture3D)
+            .set_flags(Magnefu::TextureFlags::Compute_mask).set_name("volumetric_noise");
+        volumetric_noise_texture = gpu.create_texture(texture_creation);
+
+        // Create tiling sampler for volumetric noise texture
+        SamplerCreation sampler_creation;
+        sampler_creation.set_address_mode_uvw(VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_ADDRESS_MODE_REPEAT)
+            .set_min_mag_mip(VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR).set_name("volumetric_tiling_sampler");
+        volumetric_tiling_sampler = gpu.create_sampler(sampler_creation);
+        gpu.link_texture_sampler(volumetric_noise_texture, volumetric_tiling_sampler);
+
+        // Cache texture index
+        scene.volumetric_fog_texture_index = integrated_light_scattering_texture.index;
+
+        Magnefu::BufferCreation buffer_creation;
+        buffer_creation.set(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Dynamic, sizeof(GpuVolumetricFogConstants)).set_name("volumetric_fog_constants");
+        fog_constants = gpu.create_buffer(buffer_creation);
+
+        // Cache frustum cull shader
+        GpuTechnique* technique = renderer->resource_cache.techniques.get(hash_calculate("volumetric_fog"));
+        if (technique) {
+            // Inject Data
+            u32 pass_index = technique->get_pass_index("inject_data");
+            GpuTechniquePass& inject_data_pass = technique->passes[pass_index];
+
+            inject_data_pipeline = inject_data_pass.pipeline;
+
+            // Layout for simpler shaders. For now just light scattering needs lighting bindings.
+            DescriptorSetLayoutHandle common_layout = gpu.get_descriptor_set_layout(inject_data_pipeline, k_material_descriptor_set_index);
+
+            DescriptorSetCreation ds_creation{};
+            ds_creation.reset().set_layout(common_layout);
+            ds_creation.buffer(fog_constants, 40);
+            scene.add_scene_descriptors(ds_creation, inject_data_pass);
+            fog_descriptor_set = gpu.create_descriptor_set(ds_creation);
+
+            // Light integration
+            pass_index = technique->get_pass_index("light_integration");
+            GpuTechniquePass& light_integration_pass = technique->passes[pass_index];
+
+            light_integration_pipeline = light_integration_pass.pipeline;
+
+            pass_index = technique->get_pass_index("spatial_filtering");
+            GpuTechniquePass& spatial_filtering_pass = technique->passes[pass_index];
+
+            spatial_filtering_pipeline = spatial_filtering_pass.pipeline;
+
+            pass_index = technique->get_pass_index("temporal_filtering");
+            GpuTechniquePass& temporal_filtering_pass = technique->passes[pass_index];
+
+            temporal_filtering_pipeline = temporal_filtering_pass.pipeline;
+
+            pass_index = technique->get_pass_index("volumetric_noise_baking");
+            GpuTechniquePass& noise_baking_pass = technique->passes[pass_index];
+
+            volumetric_noise_baking = noise_baking_pass.pipeline;
+
+            // Light scattering
+            pass_index = technique->get_pass_index("light_scattering");
+            GpuTechniquePass& light_scattering_pass = technique->passes[pass_index];
+
+            light_scattering_pipeline = light_scattering_pass.pipeline;
+
+            DescriptorSetLayoutHandle light_scattering_layout = gpu.get_descriptor_set_layout(light_scattering_pipeline, k_material_descriptor_set_index);
+
+            for (u32 i = 0; i < k_max_frames; ++i) {
+                ds_creation.reset().set_layout(light_scattering_layout);
+                ds_creation.buffer(fog_constants, 40);
+                scene.add_scene_descriptors(ds_creation, light_scattering_pass);
+                scene.add_lighting_descriptors(ds_creation, light_scattering_pass, i);
+                light_scattering_descriptor_set[i] = gpu.create_descriptor_set(ds_creation);
+            }
+        }
+    }
+
+    void VolumetricFogPass::upload_gpu_data(RenderScene& scene) {
+        if (!enabled)
+            return;
+
+        GraphicsContext& gpu = *renderer->gpu;
+
+        // Update per mesh material buffer
+        // TODO: update only changed stuff, this is now dynamic so it can't be done.
+        MapBufferParameters cb_map = { fog_constants, 0, 0 };
+        GpuVolumetricFogConstants* gpu_constants = (GpuVolumetricFogConstants*)gpu.map_buffer(cb_map);
+        if (gpu_constants) {
+
+            const mat4s& view = scene.scene_data.world_to_camera;
+            // TODO: custom near and far for froxels
+            //mat4s froxel_ortho = glms_perspective( glm_rad( field_of_view_y ), aspect_ratio, near_plane, far_plane );
+            //gpu_constants->froxel_inverse_view_projection = glms_mat4_inv( glms_mat4_mul( projection, view ) );
+            // TODO: customize near/far and recalculate projection.
+            gpu_constants->froxel_inverse_view_projection = scene.scene_data.inverse_view_projection;
+            gpu_constants->light_scattering_texture_index = light_scattering_texture[current_light_scattering_texture_index].index;
+            gpu_constants->previous_light_scattering_texture_index = light_scattering_texture[previous_light_scattering_texture_index].index;
+            gpu_constants->froxel_data_texture_index = froxel_data_texture_0.index;
+            gpu_constants->integrated_light_scattering_texture_index = integrated_light_scattering_texture.index;
+
+            gpu_constants->froxel_near = scene.scene_data.z_near;
+            gpu_constants->froxel_far = scene.scene_data.z_far;
+
+            // TODO: add tweakability for this
+            gpu_constants->density_modifier = scene.volumetric_fog_density;
+            gpu_constants->scattering_factor = scene.volumetric_fog_scattering_factor;
+            gpu_constants->temporal_reprojection_percentage = scene.volumetric_fog_temporal_reprojection_percentage;
+            gpu_constants->use_temporal_reprojection = scene.volumetric_fog_use_temporal_reprojection ? 1 : 0;
+            gpu_constants->time_random_01 = get_random_value(0.0f, 1.0f);
+            gpu_constants->phase_anisotropy_01 = scene.volumetric_fog_phase_anisotropy_01;
+
+            gpu_constants->froxel_dimension_x = scene.volumetric_fog_tile_count_x;
+            gpu_constants->froxel_dimension_y = scene.volumetric_fog_tile_count_y;
+            gpu_constants->froxel_dimension_z = scene.volumetric_fog_slices;
+            gpu_constants->phase_function_type = scene.volumetric_fog_phase_function_type;
+
+            gpu_constants->height_fog_density = scene.volumetric_fog_height_fog_density;
+            gpu_constants->height_fog_falloff = scene.volumetric_fog_height_fog_falloff;
+            gpu_constants->current_frame = (u32)gpu.absolute_frame;
+            gpu_constants->noise_scale = scene.volumetric_fog_noise_scale;
+            gpu_constants->integration_noise_scale = scene.volumetric_fog_integration_noise_scale;
+            gpu_constants->noise_type = scene.volumetric_fog_noise_type;
+            gpu_constants->blue_noise_128_rg_texture_index = scene.blue_noise_128_rg_texture_index;
+            gpu_constants->use_spatial_filtering = scene.volumetric_fog_use_spatial_filtering;
+            gpu_constants->temporal_reprojection_jitter_scale = scene.volumetric_fog_temporal_reprojection_jittering_scale;
+
+            gpu_constants->volumetric_noise_texture_index = volumetric_noise_texture.index;
+            gpu_constants->volumetric_noise_position_multiplier = scene.volumetric_fog_noise_position_scale;
+            gpu_constants->volumetric_noise_speed_multiplier = scene.volumetric_fog_noise_speed_scale * 0.001f;
+
+            gpu_constants->box_color = scene.volumetric_fog_box_color;
+            gpu_constants->box_fog_density = scene.volumetric_fog_box_density;
+            gpu_constants->box_position = scene.volumetric_fog_box_position;
+            gpu_constants->box_half_size = glms_vec3_scale(scene.volumetric_fog_box_size, 0.5f);
+
+            gpu.unmap_buffer(cb_map);
+        }
+
+    }
+
+    void VolumetricFogPass::free_gpu_resources(GraphicsContext& gpu) {
+
+        gpu.destroy_texture(froxel_data_texture_0);
+        gpu.destroy_texture(light_scattering_texture[0]);
+        gpu.destroy_texture(light_scattering_texture[1]);
+        gpu.destroy_texture(integrated_light_scattering_texture);
+
+        for (u32 i = 0; i < k_max_frames; ++i) {
+            gpu.destroy_descriptor_set(light_scattering_descriptor_set[i]);
+        }
+
+        gpu.destroy_texture(volumetric_noise_texture);
+        gpu.destroy_sampler(volumetric_tiling_sampler);
+
+        gpu.destroy_descriptor_set(fog_descriptor_set);
+        gpu.destroy_buffer(fog_constants);
+    }
+
+    void VolumetricFogPass::update_dependent_resources(GraphicsContext& gpu, FrameGraph* frame_graph, RenderScene* render_scene) {
+        if (!enabled)
+            return;
+
+        GpuTechnique* technique = renderer->resource_cache.techniques.get(hash_calculate("volumetric_fog"));
+        if (technique) {
+            // Light scattering
+            u32 pass_index = technique->get_pass_index("light_scattering");
+            GpuTechniquePass& pass = technique->passes[pass_index];
+
+            DescriptorSetLayoutHandle light_scattering_layout = gpu.get_descriptor_set_layout(light_scattering_pipeline, k_material_descriptor_set_index);
+
+            DescriptorSetCreation ds_creation{};
+
+            for (u32 i = 0; i < k_max_frames; ++i) {
+
+                gpu.destroy_descriptor_set(light_scattering_descriptor_set[i]);
+
+                ds_creation.reset().set_layout(light_scattering_layout);
+                ds_creation.buffer(fog_constants, 40);
+                render_scene->add_scene_descriptors(ds_creation, pass);
+                render_scene->add_lighting_descriptors(ds_creation, pass, i);
+                light_scattering_descriptor_set[i] = gpu.create_descriptor_set(ds_creation);
+            }
+        }
+
     }
 
     // RenderScene ////////////////////////////////////////////////////////////
@@ -2846,7 +3230,7 @@ namespace Magnefu {
             AnimationSampler& sampler = animation.samplers[channel.sampler];
 
             if (sampler.interpolation_type != AnimationSampler::Linear) {
-                MF_CORE_INFO("Interpolation {} still not supported.", sampler.interpolation_type);
+                MF_CORE_WARN("Interpolation {} still not supported.", sampler.interpolation_type);
                 continue;
             }
 
@@ -3414,6 +3798,50 @@ namespace Magnefu {
         context.scratch_allocator->freeToMarker(current_marker);
     }
 
+    void RenderScene::on_resize(GraphicsContext& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) {
+
+        for (u32 i = 0; i < k_max_frames; ++i) {
+
+            gpu.destroy_buffer(lights_tiles_sb[i]);
+
+            const u32 tile_x_count = ceilu32(renderer->width * 1.0f / k_tile_size);
+            const u32 tile_y_count = ceilu32(renderer->height * 1.0f / k_tile_size);
+            const u32 tiles_entry_count = tile_x_count * tile_y_count * k_num_words;
+            const u32 buffer_size = tiles_entry_count * sizeof(u32);
+
+            BufferCreation buffer_creation;
+            buffer_creation.reset().set(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, ResourceUsageType::Dynamic, buffer_size).set_name("light_tiles");
+
+            lights_tiles_sb[i] = renderer->gpu->create_buffer(buffer_creation);
+        }
+
+
+        // TODO(marco): this shouldn't be created here
+        if (use_meshlets) {
+            GpuTechnique* transparent_technique = renderer->resource_cache.techniques.get(hash_calculate("meshlet"));
+            u32 meshlet_technique_index = transparent_technique->get_pass_index("transparent_no_cull");
+            GpuTechniquePass& transparent_pass = transparent_technique->passes[meshlet_technique_index];
+
+            DescriptorSetLayoutHandle transparent_layout = renderer->gpu->get_descriptor_set_layout(transparent_pass.pipeline, k_material_descriptor_set_index);
+            DescriptorSetCreation ds_creation;
+
+            for (u32 i = 0; i < k_max_frames; ++i) {
+
+                renderer->gpu->destroy_descriptor_set(mesh_shader_transparent_descriptor_set[i]);
+
+                ds_creation.reset().buffer(mesh_task_indirect_early_commands_sb[i], 6).buffer(mesh_task_indirect_count_early_sb[i], 7).set_layout(transparent_layout);
+                ds_creation.buffer(lights_lut_sb[i], 20).buffer(lights_list_sb, 21).buffer(lights_tiles_sb[i], 22).buffer(lighting_constants_cb[i], 23).buffer(lights_indices_sb[i], 25);
+
+                add_mesh_descriptors(ds_creation, transparent_pass);
+                add_scene_descriptors(ds_creation, transparent_pass);
+                add_meshlet_descriptors(ds_creation, transparent_pass);
+                //scene.add_lighting_descriptors( ds_creation, transparent_pass, i );
+
+                mesh_shader_transparent_descriptor_set[i] = renderer->gpu->create_descriptor_set(ds_creation);
+            }
+        }
+    }
+
     void RenderScene::draw_mesh_instance(CommandBuffer* gpu_commands, MeshInstance& mesh_instance, bool transparent) {
 
         Mesh& mesh = *mesh_instance.mesh;
@@ -3538,7 +3966,6 @@ namespace Magnefu {
     }
 
     void DrawTask::ExecuteRange(enki::TaskSetPartition range_, uint32_t threadnum_) {
-
         using namespace Magnefu;
 
         thread_id = threadnum_;
@@ -3585,40 +4012,44 @@ namespace Magnefu {
         frame_graph = frame_graph_;
         scene_graph = scene_graph_;
         scene = scene_;
+        render_passes.init(resident_allocator, 16);
 
-        frame_graph->builder->register_render_pass("depth_pre_pass", &depth_pre_pass);
-        frame_graph->builder->register_render_pass("gbuffer_pass_early", &gbuffer_pass_early);
-        frame_graph->builder->register_render_pass("gbuffer_pass_late", &gbuffer_pass_late);
-        frame_graph->builder->register_render_pass("lighting_pass", &light_pass);
-        frame_graph->builder->register_render_pass("transparent_pass", &transparent_pass);
-        frame_graph->builder->register_render_pass("depth_of_field_pass", &dof_pass);
-        frame_graph->builder->register_render_pass("debug_pass", &debug_pass);
-        frame_graph->builder->register_render_pass("mesh_occlusion_early_pass", &mesh_occlusion_early_pass);
-        frame_graph->builder->register_render_pass("mesh_occlusion_late_pass", &mesh_occlusion_late_pass);
-        frame_graph->builder->register_render_pass("depth_pyramid_pass", &depth_pyramid_pass);
-        frame_graph->builder->register_render_pass("point_shadows_pass", &pointlight_shadow_pass);
+        auto add_render_pass = [&](cstring name, FrameGraphRenderPass* render_pass) {
+            frame_graph->builder->register_render_pass(name, render_pass);
+
+            render_passes.push(render_pass);
+        };
+
+        add_render_pass("depth_pre_pass", &depth_pre_pass);
+        add_render_pass("gbuffer_pass_early", &gbuffer_pass_early);
+        add_render_pass("gbuffer_pass_late", &gbuffer_pass_late);
+        add_render_pass("lighting_pass", &light_pass);
+        add_render_pass("transparent_pass", &transparent_pass);
+        add_render_pass("depth_of_field_pass", &dof_pass);
+        add_render_pass("debug_pass", &debug_pass);
+        add_render_pass("mesh_occlusion_early_pass", &mesh_occlusion_early_pass);
+        add_render_pass("mesh_occlusion_late_pass", &mesh_occlusion_late_pass);
+        add_render_pass("depth_pyramid_pass", &depth_pyramid_pass);
+        add_render_pass("point_shadows_pass", &pointlight_shadow_pass);
+        add_render_pass("volumetric_fog_pass", &volumetric_fog_pass);
+        add_render_pass("ray_tracing_test", &ray_tracing_test_pass);
     }
 
     void FrameRenderer::shutdown() {
-        depth_pre_pass.free_gpu_resources();
-        gbuffer_pass_early.free_gpu_resources();
-        gbuffer_pass_late.free_gpu_resources();
-        light_pass.free_gpu_resources();
-        transparent_pass.free_gpu_resources();
-        dof_pass.free_gpu_resources();
-        debug_pass.free_gpu_resources();
-        mesh_occlusion_early_pass.free_gpu_resources();
-        mesh_occlusion_late_pass.free_gpu_resources();
-        depth_pyramid_pass.free_gpu_resources();
-        pointlight_shadow_pass.free_gpu_resources();
+
+        for (u32 i = 0; i < render_passes.size; ++i) {
+            render_passes[i]->free_gpu_resources(*renderer->gpu);
+        }
 
         renderer->gpu->destroy_descriptor_set(fullscreen_ds);
+
+        render_passes.shutdown();
     }
 
     void FrameRenderer::upload_gpu_data(UploadGpuDataContext& context) {
-        light_pass.upload_gpu_data(*scene);
-        dof_pass.upload_gpu_data();
-        pointlight_shadow_pass.upload_gpu_data(*scene);
+        for (u32 i = 0; i < render_passes.size; ++i) {
+            render_passes[i]->upload_gpu_data(*scene);
+        }
 
         scene->upload_gpu_data(context);
 
@@ -3634,17 +4065,9 @@ namespace Magnefu {
 
         scene->prepare_draws(renderer, scratch_allocator, scene_graph);
 
-        depth_pre_pass.prepare_draws(*scene, frame_graph, renderer->gpu->allocator, scratch_allocator);
-        gbuffer_pass_early.prepare_draws(*scene, frame_graph, renderer->gpu->allocator, scratch_allocator);
-        gbuffer_pass_late.prepare_draws(*scene, frame_graph, renderer->gpu->allocator, scratch_allocator);
-        light_pass.prepare_draws(*scene, frame_graph, renderer->gpu->allocator, scratch_allocator);
-        transparent_pass.prepare_draws(*scene, frame_graph, renderer->gpu->allocator, scratch_allocator);
-        dof_pass.prepare_draws(*scene, frame_graph, renderer->gpu->allocator, scratch_allocator);
-        debug_pass.prepare_draws(*scene, frame_graph, renderer->gpu->allocator, scratch_allocator);
-        mesh_occlusion_early_pass.prepare_draws(*scene, frame_graph, renderer->gpu->allocator, scratch_allocator);
-        mesh_occlusion_late_pass.prepare_draws(*scene, frame_graph, renderer->gpu->allocator, scratch_allocator);
-        depth_pyramid_pass.prepare_draws(*scene, frame_graph, renderer->gpu->allocator, scratch_allocator);
-        pointlight_shadow_pass.prepare_draws(*scene, frame_graph, renderer->gpu->allocator, scratch_allocator);
+        for (u32 i = 0; i < render_passes.size; ++i) {
+            render_passes[i]->prepare_draws(*scene, frame_graph, renderer->gpu->allocator, scratch_allocator);
+        }
 
         // Handle fullscreen pass.
         fullscreen_tech = renderer->resource_cache.techniques.get(hash_calculate("fullscreen"));
@@ -3653,6 +4076,12 @@ namespace Magnefu {
         DescriptorSetLayoutHandle descriptor_set_layout = renderer->gpu->get_descriptor_set_layout(fullscreen_tech->passes[0].pipeline, k_material_descriptor_set_index);
         dsc.reset().buffer(scene->scene_cb, 0).set_layout(descriptor_set_layout);
         fullscreen_ds = renderer->gpu->create_descriptor_set(dsc);
+    }
+
+    void FrameRenderer::update_dependent_resources() {
+        for (u32 i = 0; i < render_passes.size; ++i) {
+            render_passes[i]->update_dependent_resources(*renderer->gpu, frame_graph, scene);
+        }
     }
 
     // Transform /////////////////////////////////////////////////////////////
@@ -3789,6 +4218,20 @@ namespace Magnefu {
 
         t_min = glm_min(-aabb[1].y * rd_min, -aabb[1].y * rd_max);
         t_max = glm_max(-aabb[0].y * rd_min, -aabb[0].y * rd_max);
+    }
+
+    f32 halton(i32 i, i32 b) {
+        // Creates a halton sequence of values between 0 and 1.
+        // https://en.wikipedia.org/wiki/Halton_sequence
+        // Used for jittering based on a constant set of 2D points.
+        f32 f = 1.0f;
+        f32 r = 0.0f;
+        while (i > 0) {
+            f = f / f32(b);
+            r = r + f * f32(i % b);
+            i = i / b;
+        }
+        return r;
     }
 
     // DebugRenderer //////////////////////////////////////////////////////////
