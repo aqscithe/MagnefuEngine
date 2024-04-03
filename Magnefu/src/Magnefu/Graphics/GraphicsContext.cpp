@@ -3802,8 +3802,8 @@ namespace Magnefu
         vkAllocateDescriptorSets(vulkan_device, &allocInfo, &descriptor_set->vk_descriptor_set);
 
         u32 num_resources = descriptor_set_layout->num_bindings;
-        fill_write_descriptor_sets(*this, descriptor_set_layout, descriptor_set->vk_descriptor_set, descriptor_write, buffer_info, image_info, vk_default_sampler->vk_sampler,
-            num_resources, descriptor_set->resources, descriptor_set->samplers, descriptor_set->bindings);
+        fill_write_descriptor_sets(*this, descriptor_set_layout, descriptor_set, descriptor_write, buffer_info, image_info, vk_default_sampler->vk_sampler,
+            num_resources);
 
         vkUpdateDescriptorSets(vulkan_device, num_resources, descriptor_write, 0, nullptr);
     }
@@ -3834,9 +3834,7 @@ namespace Magnefu
             // Resize textures if needed
             const u32 rts = vk_framebuffer->num_color_attachments;
             for (u32 i = 0; i < rts; ++i) {
-                TextureHandle texture = vk_framebuffer->color_attachments[i];
-
-                resize_texture(texture, new_width, new_height);
+                resize_texture(vk_framebuffer->color_attachments[i], new_width, new_height);
             }
 
             if (vk_framebuffer->depth_stencil_attachment.index != k_invalid_index) {
@@ -3982,7 +3980,7 @@ namespace Magnefu
     void GraphicsContext::destroy_page_pool(PagePoolHandle pool_handle) {
         if (pool_handle.index < page_pools.pool_size) {
 
-            resource_tracker.track_destroy_resource(ResourceUpdateType::PagePool, pool_handle.index);
+            //resource_tracker.track_destroy_resource(ResourceUpdateType::PagePool, pool_handle.index);
 
             resource_deletion_queue.push({ ResourceUpdateType::PagePool, pool_handle.index, current_frame + k_max_frames, 1 });
         }
@@ -4174,6 +4172,7 @@ namespace Magnefu
 
         // Copy all commands
         VkCommandBuffer enqueued_command_buffers[4];
+        MF_CORE_ASSERT((num_queued_command_buffers < 4), "");
         for (u32 c = 0; c < num_queued_command_buffers; c++) {
 
             CommandBuffer* command_buffer = queued_command_buffers[c];
@@ -4309,7 +4308,7 @@ namespace Magnefu
             sparse_info.signalSemaphoreCount = 1;
             sparse_info.pSignalSemaphores = &vulkan_bind_semaphore;
 
-            vkQueueBindSparse(vulkan_main_queue, 1, &sparse_info, VK_NULL_HANDLE);
+            check(vkQueueBindSparse(vulkan_main_queue, 1, &sparse_info, VK_NULL_HANDLE), "Failed to bind sparse info to main queue");
 
             sparse_binding_infos.shutdown();
 
@@ -4358,7 +4357,7 @@ namespace Magnefu
                 submit_info.signalSemaphoreInfoCount = 2;
                 submit_info.pSignalSemaphoreInfos = signal_semaphores;
 
-                vkQueueSubmit2KHR(vulkan_main_queue, 1, &submit_info, VK_NULL_HANDLE);
+                check(vkQueueSubmit2KHR(vulkan_main_queue, 1, &submit_info, VK_NULL_HANDLE), "Failed to submit to main queue");
 
                 wait_semaphores.shutdown();
             }
@@ -4417,7 +4416,7 @@ namespace Magnefu
 
                 submit_info.pNext = &semaphore_info;
 
-                vkQueueSubmit(vulkan_main_queue, 1, &submit_info, VK_NULL_HANDLE);
+                check(vkQueueSubmit(vulkan_main_queue, 1, &submit_info, VK_NULL_HANDLE), "Failed to submit to main queue");
 
                 wait_semaphores.shutdown();
                 wait_values.shutdown();
@@ -4456,7 +4455,7 @@ namespace Magnefu
                 submit_info.signalSemaphoreInfoCount = 1;
                 submit_info.pSignalSemaphoreInfos = signal_semaphores;
 
-                vkQueueSubmit2KHR(vulkan_main_queue, 1, &submit_info, render_complete_fence);
+                check(vkQueueSubmit2KHR(vulkan_main_queue, 1, &submit_info, render_complete_fence), "Failed to submit queue2");
 
                 wait_semaphores.shutdown();
             }
@@ -4486,7 +4485,7 @@ namespace Magnefu
                 submit_info.signalSemaphoreCount = 1;
                 submit_info.pSignalSemaphores = render_complete_semaphore;
 
-                vkQueueSubmit(vulkan_main_queue, 1, &submit_info, render_complete_fence);
+                check(vkQueueSubmit(vulkan_main_queue, 1, &submit_info, render_complete_fence), "Failed to submit queue");
 
                 wait_semaphores.shutdown();
                 wait_stages.shutdown();
@@ -4509,6 +4508,8 @@ namespace Magnefu
         present_info.pImageIndices = &vulkan_image_index;
         present_info.pResults = nullptr; // Optional
         VkResult result = vkQueuePresentKHR(vulkan_main_queue, &present_info);
+
+        MF_CORE_ASSERT((result != VK_ERROR_DEVICE_LOST), "vk device lost error");
 
         num_queued_command_buffers = 0;
 
@@ -4769,6 +4770,33 @@ namespace Magnefu
         }
     }
 
+
+    void GraphicsContext::submit_immediate(CommandBuffer* command_buffer) 
+    {
+        vkCmdEndQuery(command_buffer->vk_command_buffer, command_buffer->thread_frame_pool->vulkan_pipeline_stats_query_pool, 0);
+        command_buffer->end();
+
+        vkResetFences(vulkan_device, 1, &vulkan_immediate_fence);
+
+        VkSubmitInfo submit_info = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+        submit_info.waitSemaphoreCount = 0;
+        submit_info.pWaitSemaphores = nullptr;
+        submit_info.pWaitDstStageMask = nullptr;
+        submit_info.commandBufferCount = 1;
+        submit_info.pCommandBuffers = &command_buffer->vk_command_buffer;
+        submit_info.signalSemaphoreCount = 0;
+        submit_info.pSignalSemaphores = nullptr;
+
+        vkQueueSubmit(vulkan_main_queue, 1, &submit_info, vulkan_immediate_fence);
+
+        if (vkGetFenceStatus(vulkan_device, vulkan_immediate_fence) != VK_SUCCESS) {
+
+            vkWaitForFences(vulkan_device, 1, &vulkan_immediate_fence, VK_TRUE, UINT64_MAX);
+
+        }
+
+    }
+
     static VkPresentModeKHR to_vk_present_mode(PresentMode::Enum mode) {
         switch (mode) {
         case PresentMode::VSyncFast:
@@ -4823,6 +4851,16 @@ namespace Magnefu
         current_frame = (current_frame + 1) % k_max_frames;
 
         ++absolute_frame;
+    }
+
+    VkDeviceAddress GraphicsContext::get_buffer_device_address(BufferHandle handle) 
+    {
+
+        Buffer* buffer = access_buffer(handle);
+        VkBufferDeviceAddressInfoKHR device_address_info{ VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO_KHR };
+        device_address_info.buffer = buffer->vk_buffer;
+        return vkGetBufferDeviceAddressKHR(vulkan_device, &device_address_info);
+
     }
 
     //
