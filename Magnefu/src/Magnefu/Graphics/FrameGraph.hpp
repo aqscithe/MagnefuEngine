@@ -77,7 +77,12 @@ namespace Magnefu
 				bool                            compute;
 			} texture;
 		};
-	};
+
+		FrameGraphResourceInfo& set_external(bool value);
+		FrameGraphResourceInfo& set_buffer(sizet size, VkBufferUsageFlags flags, BufferHandle handle);
+		FrameGraphResourceInfo& set_external_texture_2d(u32 width, u32 height, VkFormat format, VkImageUsageFlags flags, TextureHandle handle);
+
+	}; // struct FrameGraphResourceInfo
 
 
 	// NOTE(marco): an input could be used as a texture or as an attachment.
@@ -129,6 +134,7 @@ namespace Magnefu
 		const char* name;
 
 		bool									compute;
+		bool                                    ray_tracing;
 	};
 
 
@@ -138,7 +144,12 @@ namespace Magnefu
 		virtual void                            pre_render(u32 current_frame_index, CommandBuffer* gpu_commands, FrameGraph* frame_graph, RenderScene* render_scene) { }
 		virtual void                            render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) { }
 		virtual void                            post_render(u32 current_frame_index, CommandBuffer* gpu_commands, FrameGraph* frame_graph, RenderScene* render_scene) { }
+		virtual void                            prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) {}
+		virtual void                            free_gpu_resources(GraphicsContext& gpu) {}
+
+		virtual void                            upload_gpu_data(RenderScene& scene) {}
 		virtual void                            on_resize(GraphicsContext& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) {}
+		virtual void                            update_dependent_resources(GraphicsContext& gpu, FrameGraph* frame_graph, RenderScene* render_scene) {}
 
 		bool                                    enabled = true;
 	};

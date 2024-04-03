@@ -105,17 +105,14 @@ namespace Magnefu
         json graph_data = json::parse(read_result.data);
 
         StringBuffer string_buffer;
-        string_buffer.init(1024, &local_allocator);
+        string_buffer.init(2048, &local_allocator);
 
         std::string name_value = graph_data.value("name", "");
         name = string_buffer.append_use_f("%s", name_value.c_str());
 
         json passes = graph_data["passes"];
         for (sizet i = 0; i < passes.size(); ++i) {
-            if (i == 10)
-            {
-                int x = 1;
-            }
+
             json pass = passes[i];
 
             json pass_inputs = pass["inputs"];
@@ -125,7 +122,9 @@ namespace Magnefu
             node_creation.inputs.init(temp_allocator, (u32)pass_inputs.size());
             node_creation.outputs.init(temp_allocator, (u32)pass_outputs.size());
 
-            node_creation.compute = pass.value("type", "").compare("compute") == 0;
+            std::string node_type = pass.value("type", "");
+            node_creation.compute = node_type.compare("compute") == 0;
+            node_creation.ray_tracing = node_type.compare("ray_tracing") == 0;
 
             for (sizet ii = 0; ii < pass_inputs.size(); ++ii) {
                 json pass_input = pass_inputs[ii];
@@ -765,6 +764,15 @@ namespace Magnefu
 
                 gpu_commands->pop_marker();
             }
+            else if (node->ray_tracing) {
+
+                gpu_commands->push_marker(node->name);
+                node->graph_render_pass->pre_render(current_frame_index, gpu_commands, this, render_scene);
+                node->graph_render_pass->render(current_frame_index, gpu_commands, render_scene);
+                node->graph_render_pass->post_render(current_frame_index, gpu_commands, this, render_scene);
+                gpu_commands->pop_marker();
+            }
+
             else {
                 gpu_commands->push_marker(node->name);
 
@@ -855,9 +863,9 @@ namespace Magnefu
             FrameGraphNode* node = builder->access_node(nodes[n]);
             MF_CORE_ASSERT(node->enabled, "");
 
-            {
-                gpu.resize_output_textures(node->framebuffer, new_width, new_height);
-            }
+            
+            gpu.resize_output_textures(node->framebuffer, new_width, new_height);
+            
 
             node->graph_render_pass->on_resize(gpu, this, new_width, new_height);
         }
@@ -1039,6 +1047,8 @@ namespace Magnefu
         node->name = creation.name;
         node->enabled = creation.enabled;
         node->compute = creation.compute;
+        node->ray_tracing = creation.ray_tracing;
+
         node->inputs.init(allocator, creation.inputs.size);
         node->outputs.init(allocator, creation.outputs.size);
         node->edges.init(allocator, creation.outputs.size);
@@ -1143,5 +1153,55 @@ namespace Magnefu
         FrameGraphNode* node = (FrameGraphNode*)node_cache.nodes.access_resource(node_cache.node_map.get(it));
         node->graph_render_pass = render_pass;
     }
+
+
+
+    FrameGraphResourceInfo& FrameGraphResourceInfo::set_external(bool value) {
+
+        external = value;
+
+        return *this;
+
+    }
+
+
+
+    FrameGraphResourceInfo& FrameGraphResourceInfo::set_buffer(sizet size, VkBufferUsageFlags flags, BufferHandle handle) {
+
+        buffer.size = size;
+
+        buffer.flags = flags;
+
+        buffer.handle = handle;
+
+        return *this;
+
+    }
+
+
+
+    FrameGraphResourceInfo& FrameGraphResourceInfo::set_external_texture_2d(u32 width, u32 height, VkFormat format, VkImageUsageFlags flags, TextureHandle handle) {
+
+
+
+        texture.width = width;
+
+        texture.height = height;
+
+        texture.depth = 1;
+
+        texture.format = format;
+
+        texture.flags = flags;
+
+        texture.handle = handle;
+
+
+
+        external = true;
+
+
+
+        return *this;
 
 } // namespace Magnefu
