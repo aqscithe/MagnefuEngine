@@ -242,7 +242,7 @@ namespace Magnefu
         bool triggerBreak = severity & (VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT);
         triggerBreak = triggerBreak && (types & VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT);
 
-        MF_CORE_DEBUG("VULKAN VALIDATION LAYER - Message ID: {} {} | Message: {}", callback_data->pMessageIdName, callback_data->messageIdNumber, callback_data->pMessage);
+        MF_CORE_WARN("VULKAN VALIDATION LAYER - Message ID: {} {} | Message: {}", callback_data->pMessageIdName, callback_data->messageIdNumber, callback_data->pMessage);
 
 
         if (triggerBreak) {
@@ -1735,7 +1735,7 @@ namespace Magnefu
     }
 
     void dump_shader_code(StringBuffer& temp_string_buffer, cstring code, VkShaderStageFlagBits stage, cstring name) {
-        MF_CORE_INFO("Error in creation of shader %s, stage %s. Writing shader:\n", name, to_stage_defines(stage));
+        MF_CORE_INFO("Error in creation of shader {}, stage {}. Writing shader:", name, to_stage_defines(stage));
 
         cstring current_code = code;
         u32 line_index = 1;
@@ -1757,7 +1757,7 @@ namespace Magnefu
 
             temp_string_buffer.clear();
             char* line = temp_string_buffer.append_use_substring(current_code, 0, (end_of_line - current_code));
-            MF_CORE_INFO("%u: %s", line_index++, line);
+            MF_CORE_INFO("{}: {}", line_index++, line);
 
             current_code = end_of_line;
         }
