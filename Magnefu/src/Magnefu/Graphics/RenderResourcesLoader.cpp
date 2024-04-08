@@ -377,6 +377,7 @@ namespace Magnefu {
         pc.shaders.set_name(pc.name);
 
         bool compute_shader_pass = false;
+        bool rt_shader_pass = true;
 
         json shaders = pipeline["shaders"];
         if (!shaders.is_null()) {
@@ -448,6 +449,35 @@ namespace Magnefu {
                         return false;
                     }
                     shader_stage.type = VK_SHADER_STAGE_TASK_BIT_NV;
+                }
+                else if (name == "raygen") {
+                    if (!renderer->gpu->ray_tracing_present) {
+                        MF_CORE_ASSERT(false, "");
+                        return false;
+                    }
+
+                    rt_shader_pass = true;
+                    shader_stage.type = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+
+                }
+                else if (name == "closest_hit") {
+                    if (!renderer->gpu->ray_tracing_present) {
+                        MF_CORE_ASSERT(false, "");
+                        return false;
+                    }
+
+                    rt_shader_pass = true;
+                    shader_stage.type = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
+
+                }
+                else if (name == "miss") {
+                    if (!renderer->gpu->ray_tracing_present) {
+                        MF_CORE_ASSERT(false, "");
+                        return false;
+                    }
+
+                    rt_shader_pass = true;
+                    shader_stage.type = VK_SHADER_STAGE_MISS_BIT_KHR;
                 }
 
                 // Do not compile shaders when parsing the parent technique
