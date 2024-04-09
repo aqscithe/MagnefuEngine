@@ -866,13 +866,13 @@ namespace Magnefu {
         void                    pre_render(u32 current_frame_index, CommandBuffer* gpu_commands, FrameGraph* frame_graph, RenderScene* render_scene) override;
         void                    render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) override;
 
-        void                    on_resize(GpuDevice& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) override;
+        void                    on_resize(GraphicsContext& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) override;
 
         void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) override;
         void                    upload_gpu_data(RenderScene& scene) override;
-        void                    free_gpu_resources(GpuDevice& gpu) override;
+        void                    free_gpu_resources(GraphicsContext& gpu) override;
 
-        void                    update_dependent_resources(GpuDevice& gpu, FrameGraph* frame_graph, RenderScene* render_scene) override;
+        void                    update_dependent_resources(GraphicsContext& gpu, FrameGraph* frame_graph, RenderScene* render_scene) override;
 
         PipelineHandle          taa_pipeline;
         TextureHandle           history_textures[2];
@@ -893,13 +893,13 @@ namespace Magnefu {
         void                    pre_render(u32 current_frame_index, CommandBuffer* gpu_commands, FrameGraph* frame_graph, RenderScene* render_scene) override;
         void                    render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) override;
 
-        void                    on_resize(GpuDevice& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) override;
+        void                    on_resize(GraphicsContext& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) override;
 
         void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) override;
         void                    upload_gpu_data(RenderScene& scene) override;
-        void                    free_gpu_resources(GpuDevice& gpu) override;
+        void                    free_gpu_resources(GraphicsContext& gpu) override;
 
-        void                    update_dependent_resources(GpuDevice& gpu, FrameGraph* frame_graph, RenderScene* render_scene) override;
+        void                    update_dependent_resources(GraphicsContext& gpu, FrameGraph* frame_graph, RenderScene* render_scene) override;
 
         PipelineHandle          camera_composite_pipeline;
         DescriptorSetHandle     camera_composite_descriptor_set;
@@ -1063,13 +1063,13 @@ namespace Magnefu {
         };
 
         void                    render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) override;
-        void                    on_resize(GpuDevice& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) override;
+        void                    on_resize(GraphicsContext& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) override;
 
         void                    prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) override;
         void                    upload_gpu_data(RenderScene& scene) override;
-        void                    free_gpu_resources(GpuDevice& gpu) override;
+        void                    free_gpu_resources(GraphicsContext& gpu) override;
 
-        void                    recreate_textures(GpuDevice& gpu, u32 lights_count);
+        void                    recreate_textures(GraphicsContext& gpu, u32 lights_count);
 
         Renderer* renderer;
 
