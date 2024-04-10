@@ -81,6 +81,7 @@ namespace Magnefu
 		FrameGraphResourceInfo& set_external(bool value);
 		FrameGraphResourceInfo& set_buffer(sizet size, VkBufferUsageFlags flags, BufferHandle handle);
 		FrameGraphResourceInfo& set_external_texture_2d(u32 width, u32 height, VkFormat format, VkImageUsageFlags flags, TextureHandle handle);
+		FrameGraphResourceInfo& set_external_texture_3d(u32 width, u32 height, u32 depth, VkFormat format, VkImageUsageFlags flags, TextureHandle handle);
 
 	}; // struct FrameGraphResourceInfo
 
@@ -263,6 +264,7 @@ namespace Magnefu
 		void                            add_ui();
 		void                            render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene);
 		void                            on_resize(GraphicsContext& gpu, u32 new_width, u32 new_height);
+		void                            debug_ui();
 
 		FrameGraphNode* get_node(cstring name);
 		FrameGraphNode* access_node(FrameGraphNodeHandle handle);

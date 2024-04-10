@@ -9,10 +9,8 @@
 
 //static const char* kDefault3DModel = "res/models/FlightHelmet/glTF/FlightHelmet.gltf";
 static const char* kDefault3DModel = "res/models/Sponza/glTF/Sponza.gltf";
+//static const char* kDefault3DModel = "res/models/ABeautifulGame/glTF/ABeautifulGame.gltf";
 //static const char* kDefault3DModel = "res/models/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf";
-//static const char* kDefault3DModel = "res/models/buster_drone/glTF/buster_drone.gltf";
-//static const char* kDefault3DModel = "res/models/corridor/glTF/corridor.gltf";
-
 #define InjectDefault3DModel(x) \
     if (Magnefu::file_exists(kDefault3DModel)) \
     {\

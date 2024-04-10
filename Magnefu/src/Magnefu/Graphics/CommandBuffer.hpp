@@ -47,7 +47,17 @@ namespace Magnefu {
         void                            draw_indirect(BufferHandle handle, u32 draw_count, u32 offset, u32 stride);
 
         void                            global_debug_barrier(); // Use only to debug barrier-related problems
-        void                            buffer_barrier(BufferHandle buffer, ResourceState old_state, ResourceState new_state, QueueType::Enum source_queue_type, QueueType::Enum destination_queue_type);
+
+        // Issue instant barriers
+
+        void                            issue_buffer_barrier(BufferHandle buffer, ResourceState old_state, ResourceState new_state, QueueType::Enum source_queue_type, QueueType::Enum destination_queue_type);
+
+        void                            issue_texture_barrier(TextureHandle texture, ResourceState new_state, u32 mip_level, u32 mip_count);
+
+        // TODO: add batched barriers
+
+        //void                            barrier( const ExecutionBarrier& barrier );
+        void                            clear_color_image(TextureHandle texture, VkClearColorValue clear_color);
         void                            draw_indirect_count(BufferHandle argument_buffer, u32 argument_offset, BufferHandle count_buffer, u32 count_offset, u32 max_draws, u32 stride);
         void                            draw_indexed_indirect(BufferHandle handle, u32 draw_count, u32 offset, u32 stride);
 

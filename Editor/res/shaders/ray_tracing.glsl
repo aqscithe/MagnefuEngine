@@ -2,7 +2,7 @@
 
 #extension GL_EXT_ray_tracing : enable
 
-#ifdef RAYGEN_MAIN
+#ifdef RAYGEN_TEST
 
 layout( location = 0 ) rayPayloadEXT vec4 payload;
 
@@ -47,7 +47,7 @@ void main()
 
 #endif
 
-#ifdef CLOSEST_HIT_MAIN
+#ifdef CLOSEST_HIT_TEST
 
 layout( location = 0 ) rayPayloadInEXT vec4 payload;
 
@@ -57,7 +57,7 @@ void main() {
 
 #endif
 
-#ifdef MISS_MAIN
+#ifdef MISS_TEST
 
 layout( location = 0 ) rayPayloadInEXT vec4 payload;
 

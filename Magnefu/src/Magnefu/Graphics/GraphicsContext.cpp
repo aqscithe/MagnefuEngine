@@ -587,6 +587,11 @@ namespace Magnefu
                     ray_tracing_present = true;
                     continue;
                 }
+
+                if (!strcmp(extensions[i].extensionName, VK_KHR_RAY_QUERY_EXTENSION_NAME)) {
+                    ray_query_present = true;
+                    continue;
+                }
             }
 
             temp_allocator->freeToMarker(initial_temp_allocator_marker);
@@ -642,10 +647,12 @@ namespace Magnefu
 
         acceleration_structure_features = VkPhysicalDeviceAccelerationStructureFeaturesKHR{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR };
         ray_tracing_pipeline_features = VkPhysicalDeviceRayTracingPipelineFeaturesKHR{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR };
+        ray_query_features = VkPhysicalDeviceRayQueryFeaturesKHR{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR };
 
         if (ray_tracing_present) {
             indexing_features.pNext = &acceleration_structure_features;
             acceleration_structure_features.pNext = &ray_tracing_pipeline_features;
+            ray_tracing_pipeline_features.pNext = &ray_query_features;
         }
 
         vkGetPhysicalDeviceFeatures2(vulkan_physical_device, &device_features);
@@ -746,6 +753,10 @@ namespace Magnefu
             device_extensions.push(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
         }
 
+        if (ray_query_present) {
+            device_extensions.push(VK_KHR_RAY_QUERY_EXTENSION_NAME);
+        }
+
         const float queue_priority[] = { 1.0f, 1.0f };
         VkDeviceQueueCreateInfo queue_info[3] = {};
 
@@ -816,6 +827,11 @@ namespace Magnefu
             ray_tracing_pipeline_features.pNext = &acceleration_structure_features;
             acceleration_structure_features.pNext = current_pnext;
             current_pnext = &ray_tracing_pipeline_features;
+        }
+
+        if (ray_query_present) {
+            ray_query_features.pNext = current_pnext;
+            current_pnext = &ray_query_features;
         }
 
         physical_features2.pNext = current_pnext;
@@ -1148,9 +1164,9 @@ namespace Magnefu
         // Init resource tracker
 #if defined (MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING)
         resource_tracker.init(allocator);
-        resource_tracker.tracked_resource_type = ResourceUpdateType::Buffer;
-        resource_tracker.tracked_resource_index = 17;
-        resource_tracker.track_resource = true;
+        resource_tracker.tracked_resource_type = ResourceUpdateType::Texture;
+        resource_tracker.tracked_resource_index = 31;
+        resource_tracker.track_resource = false;
         resource_tracker.track_all_indices_per_type = false;
 #endif // MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
 
@@ -1542,7 +1558,7 @@ namespace Magnefu
             MF_CORE_ASSERT((alias_texture != nullptr), "");
             MF_CORE_ASSERT((!is_sparse_texture), "");
 
-            texture->vma_allocation = 0;
+            texture->vma_allocation = nullptr;
             check(vmaCreateAliasingImage(gpu.vma_allocator, alias_texture->vma_allocation, &image_info, &texture->vk_image), "Failed to create aliasing image");
         }
 
@@ -2759,7 +2775,7 @@ namespace Magnefu
             const DescriptorBinding& binding = descriptor_set_layout->bindings[binding_data_index];
 
             if (binding_data_index >= descriptor_set_layout->num_bindings) {
-                MF_CORE_INFO("Error adding binding %u, layout has max %u bindings\n", binding_data_index, descriptor_set_layout->num_bindings);
+                MF_CORE_INFO("Error adding binding {}, layout has max {} bindings", binding_data_index, descriptor_set_layout->num_bindings);
                 continue;
             }
 
@@ -3411,11 +3427,17 @@ namespace Magnefu
             // Default texture view added as separate destroy command.
             vkDestroyImageView(vulkan_device, v_texture->vk_image_view, vulkan_allocation_callbacks);
             v_texture->vk_image_view = VK_NULL_HANDLE;
+            // Standard texture: vma allocation valid, and is NOT a texture view (parent_texture is invalid)
 
             if (v_texture->vma_allocation != 0 && v_texture->parent_texture.index == k_invalid_texture.index) {
                 vmaDestroyImage(vma_allocator, v_texture->vk_image, v_texture->vma_allocation);
             }
             else if ((v_texture->flags & TextureFlags::Sparse_mask) == TextureFlags::Sparse_mask) {
+                // Sparse textures
+                vkDestroyImage(vulkan_device, v_texture->vk_image, vulkan_allocation_callbacks);
+            }
+            else if (v_texture->vma_allocation == nullptr) {
+                // Aliased textures
                 vkDestroyImage(vulkan_device, v_texture->vk_image, vulkan_allocation_callbacks);
             }
         }
@@ -3864,6 +3886,7 @@ namespace Magnefu
     }
 
     void GraphicsContext::resize_texture(TextureHandle texture, u32 width, u32 height) {
+        resize_texture_3d(texture, width, height, 1);
 
         Texture* vk_texture = access_texture(texture);
 
@@ -3887,6 +3910,35 @@ namespace Magnefu
         TextureCreation tc;
         tc.set_flags(vk_texture->flags).set_format_type(vk_texture->vk_format, vk_texture->type)
             .set_name(vk_texture->name).set_size(width, height, vk_texture->depth)
+            .set_mips(vk_texture->mip_level_count);
+        vulkan_create_texture(*this, tc, vk_texture->handle, vk_texture);
+
+        destroy_texture(texture_to_delete);
+    }
+
+    void GraphicsContext::resize_texture_3d(TextureHandle texture, u32 width, u32 height, u32 depth) {
+        Texture* vk_texture = access_texture(texture);
+
+        if (vk_texture->width == width && vk_texture->height == height && vk_texture->depth == depth) {
+            return;
+        }
+
+        // Queue deletion of texture by creating a temporary one
+        TextureHandle texture_to_delete = { textures.obtain_resource() };
+        Texture* vk_texture_to_delete = access_texture(texture_to_delete);
+
+        // Cache all informations (image, image view, flags, ...) into texture to delete.
+        // Missing even one information (like it is a texture view, sparse, ...)
+        // can lead to memory leaks.
+        memoryCopy(vk_texture_to_delete, vk_texture, sizeof(Texture));
+        // Update handle so it can be used to update bindless to dummy texture
+        // and delete the old image and image view.
+        vk_texture_to_delete->handle = texture_to_delete;
+
+        // Re-create image in place.
+        TextureCreation tc;
+        tc.set_flags(vk_texture->flags).set_format_type(vk_texture->vk_format, vk_texture->type)
+            .set_name(vk_texture->name).set_size(width, height, depth)
             .set_mips(vk_texture->mip_level_count);
         vulkan_create_texture(*this, tc, vk_texture->handle, vk_texture);
 
@@ -4251,6 +4303,12 @@ namespace Magnefu
                     texture_to_update_bindless.delete_swap(it);
 
                     ++current_write_index;
+
+                    // Debug
+
+                //if ( strcmp("", texture->name) == 0 ) {
+                    //rprint( "%s texture %u\n", add_texture_to_delete ? "Deleting" : "Updating", texture->handle.index );
+                //}
 
                     // Add texture to delete
                     if (add_texture_to_delete) {
