@@ -2775,7 +2775,7 @@ namespace Magnefu
             const DescriptorBinding& binding = descriptor_set_layout->bindings[binding_data_index];
 
             if (binding_data_index >= descriptor_set_layout->num_bindings) {
-                MF_CORE_INFO("Error adding binding %u, layout has max %u bindings\n", binding_data_index, descriptor_set_layout->num_bindings);
+                MF_CORE_INFO("Error adding binding {}, layout has max {} bindings", binding_data_index, descriptor_set_layout->num_bindings);
                 continue;
             }
 
