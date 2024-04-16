@@ -25,11 +25,11 @@ namespace Magnefu {
     //
     // glTFScene //////////////////////////////////////////////////////////////
 
-    void glTFScene::get_mesh_vertex_buffer(i32 accessor_index, u32 flag, BufferHandle& out_buffer_handle, u32& out_buffer_offset, u32& out_flags) {
+    void glTFScene::get_mesh_vertex_buffer(glTF::glTF& gltf_scene, u32 buffers_offset, i32 accessor_index, u32 flag, BufferHandle& out_buffer_handle, u32& out_buffer_offset, u32& out_flags) {
         if (accessor_index != -1) {
             glTF::Accessor& buffer_accessor = gltf_scene.accessors[accessor_index];
             glTF::BufferView& buffer_view = gltf_scene.buffer_views[buffer_accessor.buffer_view];
-            BufferResource& buffer_gpu = buffers[buffer_view.buffer];
+            BufferResource& buffer_gpu = buffers[buffer_view.buffer + buffers_offset];
 
             out_buffer_handle = buffer_gpu.handle;
             out_buffer_offset = glTF::get_data_offset(buffer_accessor.byte_offset, buffer_view.byte_offset);
@@ -38,7 +38,7 @@ namespace Magnefu {
         }
     }
 
-    void glTFScene::fill_pbr_material(Renderer& renderer, glTF::Material& material, PBRMaterial& pbr_material) {
+    void glTFScene::fill_pbr_material(glTF::glTF& gltf_scene, Renderer& renderer, glTF::Material& material, PBRMaterial& pbr_material) {
         GraphicsContext& gpu = *renderer.gpu;
 
         // Handle flags
@@ -68,12 +68,12 @@ namespace Magnefu {
             pbr_material.roughness = material.pbr_metallic_roughness->roughness_factor != glTF::INVALID_FLOAT_VALUE ? material.pbr_metallic_roughness->roughness_factor : 1.f;
             pbr_material.metallic = material.pbr_metallic_roughness->metallic_factor != glTF::INVALID_FLOAT_VALUE ? material.pbr_metallic_roughness->metallic_factor : 0.f;
 
-            pbr_material.diffuse_texture_index = get_material_texture(gpu, material.pbr_metallic_roughness->base_color_texture);
-            pbr_material.roughness_texture_index = get_material_texture(gpu, material.pbr_metallic_roughness->metallic_roughness_texture);
+            pbr_material.diffuse_texture_index = get_material_texture(gpu, gltf_scene, material.pbr_metallic_roughness->base_color_texture);
+            pbr_material.roughness_texture_index = get_material_texture(gpu, gltf_scene, material.pbr_metallic_roughness->metallic_roughness_texture);
         }
 
         if (material.emissive_texture != nullptr) {
-            pbr_material.emissive_texture_index = get_material_texture(gpu, material.emissive_texture);
+            pbr_material.emissive_texture_index = get_material_texture(gpu, gltf_scene, material.emissive_texture);
         }
 
         if (material.emissive_factor_count != 0) {
@@ -85,8 +85,8 @@ namespace Magnefu {
             pbr_material.emissive_factor = { 0.0f, 0.0f, 0.0f };
         }
 
-        pbr_material.occlusion_texture_index = get_material_texture(gpu, (material.occlusion_texture != nullptr) ? material.occlusion_texture->index : -1);
-        pbr_material.normal_texture_index = get_material_texture(gpu, (material.normal_texture != nullptr) ? material.normal_texture->index : -1);
+        pbr_material.occlusion_texture_index = get_material_texture(gpu, gltf_scene, (material.occlusion_texture != nullptr) ? material.occlusion_texture->index : -1);
+        pbr_material.normal_texture_index = get_material_texture(gpu, gltf_scene, (material.normal_texture != nullptr) ? material.normal_texture->index : -1);
 
         if (material.occlusion_texture != nullptr) {
             if (material.occlusion_texture->strength != glTF::INVALID_FLOAT_VALUE) {
@@ -98,7 +98,7 @@ namespace Magnefu {
         }
     }
 
-    u16 glTFScene::get_material_texture(GraphicsContext& gpu, glTF::TextureInfo* texture_info) {
+    u16 glTFScene::get_material_texture(GraphicsContext& gpu, glTF::glTF& gltf_scene, glTF::TextureInfo* texture_info) {
         if (texture_info != nullptr) {
             glTF::Texture& gltf_texture = gltf_scene.textures[texture_info->index];
             TextureResource& texture_gpu = images[gltf_texture.source];
@@ -116,7 +116,7 @@ namespace Magnefu {
         }
     }
 
-    u16 glTFScene::get_material_texture(GraphicsContext& gpu, i32 gltf_texture_index) {
+    u16 glTFScene::get_material_texture(GraphicsContext& gpu, glTF::glTF& gltf_scene, i32 gltf_texture_index) {
         if (gltf_texture_index >= 0) {
             glTF::Texture& gltf_texture = gltf_scene.textures[gltf_texture_index];
             TextureResource& texture_gpu = images[gltf_texture.source];
@@ -134,24 +134,50 @@ namespace Magnefu {
         }
     }
 
-
-    void glTFScene::init(cstring filename, cstring path, SceneGraph* scene_graph_, Allocator* resident_allocator_, StackAllocator* temp_allocator, AsynchronousLoader* async_loader) {
+    void glTFScene::init(SceneGraph* scene_graph_, Allocator* resident_allocator_, Renderer* renderer_) {
 
         resident_allocator = resident_allocator_;
-        renderer = async_loader->renderer;
+        renderer = renderer_;
         scene_graph = scene_graph_;
+
+        buffers.init(resident_allocator, 4);
+        names_buffer.init(mfkilo(64), resident_allocator);
+
+        meshes.init(resident_allocator, 16);
+        meshlets.init(resident_allocator, 16);
+        meshlets_data.init(resident_allocator, 16);
+        meshlets_vertex_positions.init(resident_allocator, 16);
+        meshlets_vertex_data.init(resident_allocator, 16);
+        gltf_mesh_to_mesh_offset.init(resident_allocator, 16);
+
+        meshlets_index_count = 0;
+
+        mesh_instances.init(resident_allocator, 32);
+        images.init(resident_allocator, 32);
+        samplers.init(resident_allocator, 8);
+
+        animations.init(resident_allocator, 8);
+        skins.init(resident_allocator, 8);
+
+        geometries.init(resident_allocator, 16);
+        build_range_infos.init(resident_allocator, 16);
+        geometry_transform_buffers.init(resident_allocator, 4);
+
+        gltf_scenes.init(resident_allocator, 4);
+    }
+
+    void glTFScene::add_mesh(cstring filename, cstring path, StackAllocator* temp_allocator, AsynchronousLoader* async_loader) {
+
         enki::TaskScheduler* task_scheduler = async_loader->task_scheduler;
         sizet temp_allocator_initial_marker = temp_allocator->getMarker();
 
         // Time statistics
         i64 start_scene_loading = time_now();
 
-        gltf_scene = gltf_load_file(filename);
+        glTF::glTF gltf_scene = gltf_load_file(filename);
+        gltf_scenes.push(gltf_scene);
 
         i64 end_loading_file = time_now();
-
-        // Load all textures
-        images.init(resident_allocator, gltf_scene.images_count);
 
         Array<TextureCreation> tcs;
         tcs.init(temp_allocator, gltf_scene.images_count, gltf_scene.images_count);
@@ -197,11 +223,7 @@ namespace Magnefu {
 
         i64 end_creating_textures = time_now();
 
-        names_buffer.init(mfkilo(64), resident_allocator);
-
         // Load all samplers
-        samplers.init(resident_allocator, gltf_scene.samplers_count);
-
         for (u32 sampler_index = 0; sampler_index < gltf_scene.samplers_count; ++sampler_index) {
             glTF::Sampler& sampler = gltf_scene.samplers[sampler_index];
 
@@ -282,8 +304,7 @@ namespace Magnefu {
 
 
         // Load all buffers and initialize them with buffer data
-        buffers.init(resident_allocator, gltf_scene.buffer_views_count);
-
+        u32 buffers_offset = buffers.size;
         for (u32 buffer_index = 0; buffer_index < gltf_scene.buffers_count; ++buffer_index) {
 
             glTF::Buffer& buffer = gltf_scene.buffers[buffer_index];
@@ -305,20 +326,15 @@ namespace Magnefu {
         const sizet max_triangles = 124;
         const f32 cone_weight = 0.0f;
 
-        meshes.init(resident_allocator_, 16);
-        meshlets.init(resident_allocator, 16);
-        meshlets_data.init(resident_allocator, 16);
-        meshlets_vertex_positions.init(resident_allocator, 16);
-        meshlets_vertex_data.init(resident_allocator, 16);
-        gltf_mesh_to_mesh_offset.init(resident_allocator_, 16);
-
         u32 mesh_index = 0;
-        u32 meshlets_index_count = 0;
 
         mesh_aabb[0] = vec3s{ FLT_MAX, FLT_MAX, FLT_MAX };
         mesh_aabb[1] = vec3s{ FLT_MIN, FLT_MIN, FLT_MIN };
 
         sizet temp_marker = temp_allocator->getMarker();
+
+        u32 mesh_offset = meshes.size;
+        u32 mesh_instances_offset = mesh_instances.size;
 
         for (u32 mi = 0; mi < gltf_scene.meshes_count; ++mi) {
             glTF::Mesh& mesh = gltf_scene.meshes[mi];
@@ -390,16 +406,16 @@ namespace Magnefu {
                 }
 
                 // Cache vertex buffers
-                get_mesh_vertex_buffer(position_accessor_index, 0, mesh.position_buffer, mesh.position_offset, mesh.pbr_material.flags);
-                get_mesh_vertex_buffer(tangent_accessor_index, DrawFlags_HasTangents, mesh.tangent_buffer, mesh.tangent_offset, mesh.pbr_material.flags);
-                get_mesh_vertex_buffer(normal_accessor_index, DrawFlags_HasNormals, mesh.normal_buffer, mesh.normal_offset, mesh.pbr_material.flags);
-                get_mesh_vertex_buffer(tex_coord_accessor_index, DrawFlags_HasTexCoords, mesh.texcoord_buffer, mesh.texcoord_offset, mesh.pbr_material.flags);
+                get_mesh_vertex_buffer(gltf_scene, buffers_offset, position_accessor_index, 0, mesh.position_buffer, mesh.position_offset, mesh.pbr_material.flags);
+                get_mesh_vertex_buffer(gltf_scene, buffers_offset, tangent_accessor_index, DrawFlags_HasTangents, mesh.tangent_buffer, mesh.tangent_offset, mesh.pbr_material.flags);
+                get_mesh_vertex_buffer(gltf_scene, buffers_offset, normal_accessor_index, DrawFlags_HasNormals, mesh.normal_buffer, mesh.normal_offset, mesh.pbr_material.flags);
+                get_mesh_vertex_buffer(gltf_scene, buffers_offset, tex_coord_accessor_index, DrawFlags_HasTexCoords, mesh.texcoord_buffer, mesh.texcoord_offset, mesh.pbr_material.flags);
 
                 const i32 joints_accessor_index = gltf_get_attribute_accessor_index(mesh_primitive.attributes, mesh_primitive.attribute_count, "JOINTS_0");
                 const i32 weights_accessor_index = gltf_get_attribute_accessor_index(mesh_primitive.attributes, mesh_primitive.attribute_count, "WEIGHTS_0");
 
-                get_mesh_vertex_buffer(joints_accessor_index, DrawFlags_HasJoints, mesh.joints_buffer, mesh.joints_offset, mesh.pbr_material.flags);
-                get_mesh_vertex_buffer(weights_accessor_index, DrawFlags_HasWeights, mesh.weights_buffer, mesh.weights_offset, mesh.pbr_material.flags);
+                get_mesh_vertex_buffer(gltf_scene, buffers_offset, joints_accessor_index, DrawFlags_HasJoints, mesh.joints_buffer, mesh.joints_offset, mesh.pbr_material.flags);
+                get_mesh_vertex_buffer(gltf_scene, buffers_offset, weights_accessor_index, DrawFlags_HasWeights, mesh.weights_buffer, mesh.weights_offset, mesh.pbr_material.flags);
 
 
                 // Index buffer
@@ -412,10 +428,10 @@ namespace Magnefu {
                 // Read pbr material data if present
                 if (mesh_primitive.material != glTF::INVALID_INT_VALUE) {
                     glTF::Material& material = gltf_scene.materials[mesh_primitive.material];
-                    fill_pbr_material(*renderer, material, mesh.pbr_material);
+                    fill_pbr_material(gltf_scene, *renderer, material, mesh.pbr_material);
                 }
 
-                BufferResource& indices_buffer_gpu = buffers[indices_buffer_view.buffer];
+                BufferResource& indices_buffer_gpu = buffers[indices_buffer_view.buffer + buffers_offset];
                 mesh.index_buffer = indices_buffer_gpu.handle;
                 mesh.index_offset = glTF::get_data_offset(indices_accessor.byte_offset, indices_buffer_view.byte_offset);
                 mesh.primitive_count = indices_accessor.count;
@@ -586,9 +602,6 @@ namespace Magnefu {
             }
         }
 
-        // Init mesh instances with at least meshes count.
-        mesh_instances.init(resident_allocator_, meshes.size);
-
         // Create material
         const u64 hashed_name = hash_calculate("main");
         GpuTechnique* main_technique = renderer->resource_cache.techniques.get(hashed_name);
@@ -628,7 +641,10 @@ namespace Magnefu {
             total_node_count += node.children_count;
         }
 
-        scene_graph->resize(total_node_count);
+        u32 node_offset = scene_graph->node_count();
+        u32 new_node_count = node_offset + total_node_count;
+        scene_graph->resize(new_node_count);
+        scene_graph->init_new_nodes(node_offset, total_node_count);
 
         // Populate scene graph: visit again
         nodes_to_visit.clear();
@@ -641,10 +657,11 @@ namespace Magnefu {
         u32 total_meshlets = 0;
 
         while (nodes_to_visit.size) {
-            i32 node_index = nodes_to_visit.front();
+            i32 gltf_node = nodes_to_visit.front();
+            i32 node_index = gltf_node + node_offset;
             nodes_to_visit.delete_swap(0);
 
-            glTF::Node& node = gltf_scene.nodes[node_index];
+            glTF::Node& node = gltf_scene.nodes[gltf_node];
 
             // Compute local transform: read either raw matrix or individual Scale/Rotation/Translation components
             if (node.matrix_count) {
@@ -689,8 +706,9 @@ namespace Magnefu {
 
                 for (u32 ch = 0; ch < node.children_count; ++ch) {
                     const i32 children_index = node.children[ch];
-                    Hierarchy& children_hierarchy = scene_graph->nodes_hierarchy[children_index];
-                    scene_graph->set_hierarchy(children_index, node_index, node_hierarchy.level + 1);
+                    i32 global_child_index = children_index + node_offset;
+                    Hierarchy& children_hierarchy = scene_graph->nodes_hierarchy[global_child_index];
+                    scene_graph->set_hierarchy(global_child_index, node_index, node_hierarchy.level + 1);
 
                     nodes_to_visit.push(children_index);
                 }
@@ -736,33 +754,29 @@ namespace Magnefu {
             }
         }
 
-        MF_CORE_DEBUG("Total meshlet instances {}", total_meshlets);
+        MF_CORE_INFO("Total meshlet instances {}", total_meshlets);
 
-        sizet geometry_transform_buffer_size = sizeof(VkTransformMatrixKHR) * meshes.size;
+        sizet mesh_count = meshes.size - mesh_offset;
+        sizet geometry_transform_buffer_size = sizeof(VkTransformMatrixKHR) * mesh_count;
         BufferCreation bc{};
         bc.set(VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_KHR, ResourceUsageType::Immutable, geometry_transform_buffer_size).set_persistent(true).set_name("geometry_transform_buffer");
-        geometry_transform_buffer = renderer->gpu->create_buffer(bc);
-
-        geometries.init(resident_allocator, mesh_instances.size);
-        build_range_infos.init(resident_allocator, mesh_instances.size);
+        BufferHandle geometry_transform_buffer = renderer->gpu->create_buffer(bc);
+        geometry_transform_buffers.push(geometry_transform_buffer);
 
         Array<VkTransformMatrixKHR> geometry_transform;
-        geometry_transform.init(temp_allocator, mesh_instances.size, mesh_instances.size);
+        sizet transform_count = mesh_instances.size - mesh_instances_offset;
+        geometry_transform.init(temp_allocator, transform_count, transform_count);
 
-
-
-        for (u32 mesh_index = 0; mesh_index < mesh_instances.size; ++mesh_index) {
-            MeshInstance& mesh_instance = mesh_instances[mesh_index];
+        for (u32 mesh_index = 0; mesh_index < transform_count; ++mesh_index) {
+            MeshInstance& mesh_instance = mesh_instances[mesh_index + mesh_instances_offset];
             MF_CORE_ASSERT((mesh_instance.mesh != nullptr), "");
             Mesh& mesh = *mesh_instance.mesh;
-
 
             VkAccelerationStructureGeometryKHR geometry{ VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR };
             geometry.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
             geometry.flags = mesh.is_transparent() ? 0 : VK_GEOMETRY_OPAQUE_BIT_KHR;
 
             u32 vertex_count = mesh.primitive_count / 3;
-
 
             geometry.geometry.triangles.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR;
             geometry.geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
@@ -775,7 +789,6 @@ namespace Magnefu {
 
             geometries.push(geometry);
 
-
             VkAccelerationStructureBuildRangeInfoKHR build_range_info{ };
             build_range_info.primitiveCount = vertex_count;
             build_range_info.primitiveOffset = 0;
@@ -784,9 +797,7 @@ namespace Magnefu {
             build_range_infos.push(build_range_info);
 
             mat4s& local_transform = scene_graph->local_matrices[mesh_instance.scene_graph_node_index];
-
             VkTransformMatrixKHR& transform = geometry_transform[mesh_index];
-
             for (int y = 0; y < 3; ++y) {
                 for (int x = 0; x < 4; ++x) {
                     transform.matrix[y][x] = local_transform.raw[y][x];
@@ -795,34 +806,11 @@ namespace Magnefu {
         }
 
         Buffer* gpu_geometry_transform_buffer = renderer->gpu->access_buffer(geometry_transform_buffer);
-        memcpy(gpu_geometry_transform_buffer->mapped_data, geometry_transform.data, geometry_transform.size * sizeof(VkTransformMatrixKHR));
-
-        // Create meshlets index buffer, that will be used to emulate meshlets if mesh shaders are not present.
-        bc.reset().set(VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, ResourceUsageType::Stream, meshlets_index_count * sizeof(u32) * 8).set_name("meshlets_index_buffer");
-
-        for (u32 i = 0; i < k_max_frames; ++i) {
-            meshlets_index_buffer_sb[i] = renderer->gpu->create_buffer(bc);
-        }
-
-        // Create meshlets instances buffer
-        bc.reset().set(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, ResourceUsageType::Stream, (meshlets.size * 2 /* not sure about max number here */) * sizeof(u32) * 2).set_name("meshlets_instances_buffer");
-
-        for (u32 i = 0; i < k_max_frames; ++i) {
-            meshlets_instances_sb[i] = renderer->gpu->create_buffer(bc);
-        }
-
-        // Create meshlets visible instances buffer
-        bc.reset().set(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, ResourceUsageType::Stream, (meshlets.size * 2 /* not sure about max number here */) * sizeof(u32) * 2).set_name("meshlets_instances_buffer");
-
-        for (u32 i = 0; i < k_max_frames; ++i) {
-            meshlets_visible_instances_sb[i] = renderer->gpu->create_buffer(bc);
-        }
+        memcpy(gpu_geometry_transform_buffer->mapped_data, geometry_transform.data, geometry_transform_buffer_size);
 
         i64 end_building_meshlets = time_now();
 
         // Before unloading buffer data, load animations
-        animations.init(resident_allocator, gltf_scene.animations_count);
-
         for (u32 animation_index = 0; animation_index < gltf_scene.animations_count; ++animation_index) {
             glTF::Animation& gltf_animation = gltf_scene.animations[animation_index];
 
@@ -877,7 +865,7 @@ namespace Magnefu {
 
                     i32 byte_offset = glTF::get_data_offset(buffer_accessor.byte_offset, buffer_view.byte_offset);
 
-                    MF_CORE_ASSERT((buffer_accessor.count == key_frames_count),"");
+                    MF_CORE_ASSERT((buffer_accessor.count == key_frames_count), "");
 
                     u8* buffer_data = (u8*)buffers_data[buffer_view.buffer] + byte_offset;
 
@@ -902,7 +890,7 @@ namespace Magnefu {
                     }
                     default:
                     {
-                        MF_CORE_ASSERT(false, "");
+                        MF_CORE_ASSERT((false), "");
                         break;
                     }
                     }
@@ -914,8 +902,6 @@ namespace Magnefu {
         }
 
         // Load skins
-        skins.init(resident_allocator, gltf_scene.skins_count);
-
         for (u32 si = 0; si < gltf_scene.skins_count; ++si) {
             glTF::Skin& gltf_skin = gltf_scene.skins[si];
 
@@ -959,8 +945,6 @@ namespace Magnefu {
         // This is not needed anymore, free all temp memory after.
         //resource_name_buffer.shutdown();
         temp_allocator->freeToMarker(temp_allocator_initial_marker);
-
-
 
         i64 end_loading = time_now();
 
@@ -1025,7 +1009,11 @@ namespace Magnefu {
         gpu.destroy_buffer(debug_line_sb);
         gpu.destroy_buffer(debug_line_count_sb);
         gpu.destroy_buffer(debug_line_commands_sb);
-        gpu.destroy_buffer(geometry_transform_buffer);
+
+        for (u32 bi = 0; bi < geometry_transform_buffers.size; ++bi) {
+            gpu.destroy_buffer(geometry_transform_buffers[bi]);
+        }
+        geometry_transform_buffers.shutdown();
 
         for (u32 i = 0; i < k_max_frames; ++i) {
             gpu.destroy_buffer(meshlets_index_buffer_sb[i]);
@@ -1064,7 +1052,6 @@ namespace Magnefu {
         }
 
         gpu.destroy_buffer(lights_list_sb);
-
         gpu.destroy_texture(fragment_shading_rate_image);
 
         lights.shutdown();
@@ -1082,7 +1069,10 @@ namespace Magnefu {
 
         // NOTE(marco): we can't destroy this sooner as textures and buffers
         // hold a pointer to the names stored here
-        gltf_free(gltf_scene);
+        for (u32 i = 0; i < gltf_scenes.size; ++i) {
+            gltf_free(gltf_scenes[i]);
+        }
+        gltf_scenes.shutdown();
 
         debug_renderer.shutdown();
     }
@@ -1104,7 +1094,6 @@ namespace Magnefu {
 
         buffer_creation.reset().set(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, ResourceUsageType::Immutable, sizeof(GpuMeshletVertexData) * meshlets_vertex_data.size).set_name("meshlet_vertex_sb").set_data(meshlets_vertex_data.data);
         meshlets_vertex_data_sb = renderer->gpu->create_buffer(buffer_creation);
-
 
         // Meshlets buffers
         buffer_creation.reset().set(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, ResourceUsageType::Immutable, sizeof(GpuMeshlet) * meshlets.size).set_name("meshlet_sb").set_data(meshlets.data);
@@ -1201,6 +1190,29 @@ namespace Magnefu {
             mesh.pbr_material.descriptor_set_main = renderer->gpu->create_descriptor_set(ds_creation);
         }
 
+        // Create meshlets index buffer, that will be used to emulate meshlets if mesh shaders are not present.
+        {
+            BufferCreation bc{ };
+            bc.set(VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, ResourceUsageType::Stream, meshlets_index_count * sizeof(u32) * 8).set_name("meshlets_index_buffer");
+
+            for (u32 i = 0; i < k_max_frames; ++i) {
+                meshlets_index_buffer_sb[i] = renderer->gpu->create_buffer(bc);
+            }
+
+            // Create meshlets instances buffer
+            bc.reset().set(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, ResourceUsageType::Stream, (meshlets.size * 2 /* not sure about max number here */) * sizeof(u32) * 2).set_name("meshlets_instances_buffer");
+
+            for (u32 i = 0; i < k_max_frames; ++i) {
+                meshlets_instances_sb[i] = renderer->gpu->create_buffer(bc);
+            }
+
+            // Create meshlets visible instances buffer
+            bc.reset().set(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, ResourceUsageType::Stream, (meshlets.size * 2 /* not sure about max number here */) * sizeof(u32) * 2).set_name("meshlets_instances_buffer");
+
+            for (u32 i = 0; i < k_max_frames; ++i) {
+                meshlets_visible_instances_sb[i] = renderer->gpu->create_buffer(bc);
+            }
+        }
 
         // Meshlet and meshlet emulation descriptors
         {
@@ -1342,15 +1354,13 @@ namespace Magnefu {
             const u32 tile_y_count = ceilu32(renderer->height * 1.0f / k_tile_size);
             const u32 tiles_entry_count = tile_x_count * tile_y_count * k_num_words;
             const u32 buffer_size = tiles_entry_count * sizeof(u32);
-
             buffer_creation.reset().set(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, ResourceUsageType::Dynamic, buffer_size).set_name("light_tiles");
             lights_tiles_sb[i] = renderer->gpu->create_buffer(buffer_creation);
         }
 
-        debug_renderer.init(*this, resident_allocator, scratch_allocator); 
+        debug_renderer.init(*this, resident_allocator, scratch_allocator);
 
         if (use_meshlets) {
-
             GpuTechnique* transparent_technique = renderer->resource_cache.techniques.get(hash_calculate("meshlet"));
             u32 meshlet_technique_index = transparent_technique->get_pass_index("transparent_no_cull");
             GpuTechniquePass& transparent_pass = transparent_technique->passes[meshlet_technique_index];
@@ -1359,26 +1369,22 @@ namespace Magnefu {
             DescriptorSetCreation ds_creation;
 
             for (u32 i = 0; i < k_max_frames; ++i) {
+
                 renderer->gpu->destroy_descriptor_set(mesh_shader_transparent_descriptor_set[i]);
 
                 ds_creation.reset().buffer(mesh_task_indirect_early_commands_sb[i], 6).buffer(mesh_task_indirect_count_early_sb[i], 7).set_layout(transparent_layout);
                 ds_creation.buffer(lights_lut_sb[i], 20).buffer(lights_list_sb, 21).buffer(lights_tiles_sb[i], 22).buffer(lighting_constants_cb[i], 23).buffer(lights_indices_sb[i], 25);
 
-
                 add_mesh_descriptors(ds_creation, transparent_pass);
                 add_scene_descriptors(ds_creation, transparent_pass);
                 add_meshlet_descriptors(ds_creation, transparent_pass);
-
-                add_lighting_descriptors( ds_creation, transparent_pass, i );
+                add_lighting_descriptors(ds_creation, transparent_pass, i);
+                add_debug_descriptors(ds_creation, transparent_pass);
 
                 mesh_shader_transparent_descriptor_set[i] = renderer->gpu->create_descriptor_set(ds_creation);
-
             }
-
         }
 
-
     }
-    
 
 } // namespace Magnefu

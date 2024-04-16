@@ -682,7 +682,7 @@ namespace Magnefu
 #endif // DEBUG
 
             // Search for main queue that should be able to do all work (graphics, compute and transfer)
-            if ((queue_family.queueFlags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT)) == (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT)) {
+            if ((queue_family.queueFlags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT)) == (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT)) {
                 main_queue_family_index = fi;
 
                 MF_CORE_ASSERT(((queue_family.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) == VK_QUEUE_SPARSE_BINDING_BIT), "");
@@ -1539,6 +1539,8 @@ namespace Magnefu
 
         VmaAllocationCreateInfo memory_info{};
         memory_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+
+        MF_CORE_INFO("creating tex {}", creation.name);
 
         if (creation.alias.index == k_invalid_texture.index) {
             if (is_sparse_texture) {
@@ -2974,6 +2976,14 @@ namespace Magnefu
         descriptor_set->layout = descriptor_set_layout;
 
         MF_CORE_ASSERT((creation.num_resources < k_max_descriptors_per_set), "Overflow in resources, please bump k_max_descriptors_per_set.");
+
+        // TODO: fix gltf problems and enable this. It asserts when creating draws.
+
+        if (descriptor_set_layout->set_index != 0) {
+
+            //RASSERTM( creation.num_resources == descriptor_set_layout->num_bindings, "DescriptorSet creation mismatch: passed descriptors %u, layout descriptors %u\n", creation.num_resources, descriptor_set_layout->num_bindings );
+
+        }
 
         // Update descriptor set
         VkWriteDescriptorSet descriptor_write[k_max_descriptors_per_set];
@@ -4913,8 +4923,9 @@ namespace Magnefu
 
     VkDeviceAddress GraphicsContext::get_buffer_device_address(BufferHandle handle) 
     {
-
         Buffer* buffer = access_buffer(handle);
+        MF_CORE_ASSERT((buffer != nullptr), "");
+
         VkBufferDeviceAddressInfoKHR device_address_info{ VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO_KHR };
         device_address_info.buffer = buffer->vk_buffer;
         return vkGetBufferDeviceAddressKHR(vulkan_device, &device_address_info);
