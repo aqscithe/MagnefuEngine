@@ -682,7 +682,7 @@ namespace Magnefu
 #endif // DEBUG
 
             // Search for main queue that should be able to do all work (graphics, compute and transfer)
-            if ((queue_family.queueFlags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT)) == (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT)) {
+            if ((queue_family.queueFlags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT)) == (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT)) {
                 main_queue_family_index = fi;
 
                 MF_CORE_ASSERT(((queue_family.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) == VK_QUEUE_SPARSE_BINDING_BIT), "");
@@ -1165,7 +1165,7 @@ namespace Magnefu
 #if defined (MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING)
         resource_tracker.init(allocator);
         resource_tracker.tracked_resource_type = ResourceUpdateType::Texture;
-        resource_tracker.tracked_resource_index = 31;
+        resource_tracker.tracked_resource_index = 45;
         resource_tracker.track_resource = false;
         resource_tracker.track_all_indices_per_type = false;
 #endif // MAGNEFU_GPU_DEVICE_RESOURCE_TRACKING
@@ -1558,7 +1558,7 @@ namespace Magnefu
             MF_CORE_ASSERT((alias_texture != nullptr), "");
             MF_CORE_ASSERT((!is_sparse_texture), "");
 
-            texture->vma_allocation = nullptr;
+            texture->vma_allocation = 0;
             check(vmaCreateAliasingImage(gpu.vma_allocator, alias_texture->vma_allocation, &image_info, &texture->vk_image), "Failed to create aliasing image");
         }
 

@@ -843,7 +843,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 
 	scene->use_meshlets = gpu->mesh_shaders_extension_present;
 	scene->use_meshlets_emulation = !scene->use_meshlets;
-	scene->init(file_name, file_base_path, allocator, scratch_allocator, &s_async_loader);
+	scene->init(file_name, file_base_path, &s_scene_graph, allocator, scratch_allocator, &s_async_loader);
 
 	// NOTE(marco): restore working directory
 	directory_change(cwd.path);
@@ -883,7 +883,8 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	// Load frame graph and parse gpu techniques
 
 	{
-		cstring frame_graph_path = temporary_name_buffer.append_use_f("%s%s", MAGNEFU_FRAME_GRAPH_FOLDER, "graph.json");
+		//cstring frame_graph_path = temporary_name_buffer.append_use_f("%s%s", MAGNEFU_FRAME_GRAPH_FOLDER, "graph.json");
+		cstring frame_graph_path = temporary_name_buffer.append_use_f("%s%s", MAGNEFU_FRAME_GRAPH_FOLDER, "graph_ray_tracing.json");
 
 		s_frame_graph.parse(frame_graph_path, scratch_allocator);
 		s_frame_graph.compile();
@@ -1020,7 +1021,7 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 		// NOTE(marco): identity matrix
 		tlas_structure.transform.matrix[0][0] = 1.0f;
 		tlas_structure.transform.matrix[1][1] = 1.0f;
-		tlas_structure.transform.matrix[2][2] = 1.0f;
+		tlas_structure.transform.matrix[2][2] = -1.0f;
 		tlas_structure.mask = 0xff;
 		tlas_structure.flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
 		tlas_structure.accelerationStructureReference = blas_address;

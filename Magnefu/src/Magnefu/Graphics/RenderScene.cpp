@@ -1446,6 +1446,7 @@ namespace Magnefu {
         MF_CORE_ASSERT((texture != nullptr), "");
 
         gpu_commands->copy_texture(texture->resource_info.texture.handle, scene_mips->handle, RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
     }
 
     void DoFPass::render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) {
