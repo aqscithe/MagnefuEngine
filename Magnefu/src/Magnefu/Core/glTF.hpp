@@ -9,11 +9,11 @@
 
 
 // TODO: [leon] Scene list should be defined in separate file
-#define SCENE_COUNT 2
+#define SCENE_COUNT 1
 
 static const char* kDefault3DModels[SCENE_COUNT] = {
-    "res/models/FlightHelmet/glTF/FlightHelmet.gltf",
-    "res/models/Sponza/glTF/Sponza.gltf"
+    "res/models/Sponza/glTF/Sponza.gltf",
+    //"res/models/FlightHelmet/glTF/FlightHelmet.gltf",
 };
 
 #define InjectDefault3DModel(scene_paths) \

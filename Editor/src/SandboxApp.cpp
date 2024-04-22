@@ -828,7 +828,6 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	InjectDefault3DModel(scene_paths);
 
 
-	RenderScene* scene = nullptr;
 	//for (i32 scene_i = 1; scene_i < SCENE_COUNT; ++scene_i) { 
 	for (i32 scene_i = 0; scene_i < SCENE_COUNT; ++scene_i) { // why does book start from 1 instead of 0 ?
 		cstring scene_path = scene_paths[scene_i];

@@ -217,6 +217,7 @@ vec2 POISSON_SAMPLES[SAMPLE_NUM] =
     vec2( 0.5999403247649068f, 0.4733652413019988f ),
 };
 
+
 float get_directional_light_visibility( vec3 light_position, uint sample_count, vec3 world_position, vec3 normal, uint frame_index ) {
 
     const vec3 l = normalize( light_position );
