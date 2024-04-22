@@ -182,7 +182,8 @@ namespace Magnefu
         }
     }
 
-    void ObjScene::init(cstring filename, cstring path, Allocator* resident_allocator_, StackAllocator* temp_allocator, AsynchronousLoader* async_loader_)
+
+    void ObjScene::init(cstring filename, cstring path, SceneGraph* scene_graph, Allocator* resident_allocator_, StackAllocator* temp_allocator, AsynchronousLoader* async_loader_)
     {
         async_loader = async_loader_;
         resident_allocator = resident_allocator_;

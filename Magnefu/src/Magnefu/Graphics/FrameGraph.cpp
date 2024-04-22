@@ -1022,6 +1022,13 @@ namespace Magnefu
             resource->producer = producer;
             resource->ref_count = 0;
 
+            if (resource->type == FrameGraphResourceType_Buffer) {
+                resource->resource_info.buffer.handle.index = k_invalid_index;
+            }
+            else {
+                resource->resource_info.texture.handle.index = k_invalid_index;
+            }
+
             FrameGraphNode* producer_node = access_node(producer);
             MF_CORE_ASSERT((producer_node != nullptr), "");
 
