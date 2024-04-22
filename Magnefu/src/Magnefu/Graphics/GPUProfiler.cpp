@@ -6,7 +6,7 @@
 
 // -- Graphics Includes ----------------- //
 #include "Renderer.hpp"
-
+#include "Magnefu/Application/ImGui/ImGuiService.hpp"
 
 // -- Core Includes ----------------------- //
 #include "Magnefu/Core/HashMap.hpp"
@@ -120,7 +120,7 @@ namespace Magnefu
             ImVec2 canvas_size = ImGui::GetContentRegionAvail();
             f32 widget_height = canvas_size.y - 100;
 
-            f32 legend_width = 200;
+            f32 legend_width = 250;
             f32 graph_width = fabsf(canvas_size.x - legend_width);
             u32 rect_width = ceilu32(graph_width / max_frames);
             i32 rect_x = ceili32(graph_width - rect_width);
@@ -222,26 +222,27 @@ namespace Magnefu
                     const GPUTimeQuery& timestamp = frame_timestamps[j];
 
                     // Skip inner timestamps
-                    if (timestamp.depth > 1) {
+                    if (timestamp.depth > max_visible_depth) {
                         continue;
                     }
 
+                    const f32 timestamp_x = x + timestamp.depth * 4;
+
                     // Draw root (frame) on top
                     if (timestamp.depth == 0) {
-                        draw_list->AddRectFilled({ x, cursor_pos.y + 4 },
-                            { x + 8, cursor_pos.y + 12 }, timestamp.color);
+                        draw_list->AddRectFilled({ timestamp_x, cursor_pos.y + 4 },
+                            { timestamp_x + 8, cursor_pos.y + 12 }, timestamp.color);
 
-                        sprintf(buf, "%2.3fms (%d)-%s", timestamp.elapsed_ms, timestamp.depth, timestamp.name);
-                        draw_list->AddText({ x + 20, cursor_pos.y }, 0xffffffff, buf);
+                        sprintf(buf, "%2.3fms %d %s", timestamp.elapsed_ms, timestamp.depth, timestamp.name);
+                        draw_list->AddText({ timestamp_x + 20, cursor_pos.y }, 0xffffffff, buf);
                     }
                     else {
                         // Draw all other timestamps starting from bottom
-                        draw_list->AddRectFilled({ x, y + 4 },
-                            { x + 8, y + 12 }, timestamp.color);
+                        draw_list->AddRectFilled({ timestamp_x, y + 4 },
+                            { timestamp_x + 8, y + 12 }, timestamp.color);
 
-                        sprintf(buf, "%2.3fms (%d)-%s", timestamp.elapsed_ms, timestamp.depth, timestamp.name);
-                        draw_list->AddText({ x + 20, y }, 0xffffffff, buf);
-
+                        sprintf(buf, "%2.3fms %d %s", timestamp.elapsed_ms, timestamp.depth, timestamp.name);
+                        draw_list->AddText({ timestamp_x + 20, y }, 0xffffffff, buf);
                         y -= 14;
                     }
                 }
@@ -268,6 +269,8 @@ namespace Magnefu
         if (ImGui::Combo("Graph Max", &max_duration_index, items, IM_ARRAYSIZE(items))) {
             max_duration = max_durations[max_duration_index];
         }
+
+        ImGui::SliderUint("Max Depth", &max_visible_depth, 1, 4);
 
         ImGui::Separator();
         static const char* stat_unit_names[] = { "Normal", "Kilo", "Mega" };

@@ -113,7 +113,7 @@ namespace Magnefu
         u32                         max_frames;
         u32                         max_queries_per_frame;
         u32                         current_frame;
-
+        u32                         max_visible_depth = 2;
         f32                         max_time;
         f32                         min_time;
         f32                         average_time;

@@ -7,19 +7,27 @@
 #include "String.hpp"
 #include "File.hpp"
 
-//static const char* kDefault3DModel = "res/models/FlightHelmet/glTF/FlightHelmet.gltf";
-static const char* kDefault3DModel = "res/models/Sponza/glTF/Sponza.gltf";
-//static const char* kDefault3DModel = "res/models/ABeautifulGame/glTF/ABeautifulGame.gltf";
-//static const char* kDefault3DModel = "res/models/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf";
-#define InjectDefault3DModel(x) \
-    if (Magnefu::file_exists(kDefault3DModel)) \
-    {\
-        x = const_cast<char*>(kDefault3DModel);\
-    }\
-    else \
-    {\
-        MF_CORE_WARN("Invalid default model path! | {}", kDefault3DModel); \
+
+// TODO: [leon] Scene list should be defined in separate file
+#define SCENE_COUNT 1
+
+static const char* kDefault3DModels[SCENE_COUNT] = {
+    "res/models/Sponza/glTF/Sponza.gltf",
+    //"res/models/FlightHelmet/glTF/FlightHelmet.gltf",
+};
+
+#define InjectDefault3DModel(scene_paths) \
+    for(int scene = 0; scene < SCENE_COUNT; scene++) { \
+        if (Magnefu::file_exists(kDefault3DModels[scene])) \
+        {\
+            scene_paths[scene] = const_cast<char*>(kDefault3DModels[scene]);\
+        }\
+        else \
+        {\
+            MF_CORE_WARN("Invalid default model path! | {}", kDefault3DModels[scene]); \
+        } \
     }
+    
 
 namespace Magnefu
 {
