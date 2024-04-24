@@ -1,5 +1,4 @@
 
-
 #if defined(COMPUTE_SHADOW_VISIBILITY_VARIANCE) || defined (COMPUTE_SHADOW_VISIBILITY) || defined(COMPUTE_SHADOW_VISIBILITY_FILTERING)
 
 layout ( std140, set = MATERIAL_SET, binding = 30 ) uniform ShadowVisibilityConstants {
@@ -232,7 +231,7 @@ void main() {
             const float closest_depth = texture(global_textures_cubemaps[nonuniformEXT(cubemap_shadows_index)], vec3(position_to_light)).r;
 
             imageStore(global_images_2d[debug_texture_index], pos.xy, vec4(dbDistance, closest_depth, 0, 1));
-
+            
         }
         else if (debug_modes == 8) {
 

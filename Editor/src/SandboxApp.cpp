@@ -1543,6 +1543,45 @@ bool Sandbox::MainLoop()
 					if (raytraced_shadow_light_type == 0) {
 						ImGui::EndDisabled();
 					}
+
+				}
+				if (ImGui::CollapsingHeader("Global Illumination")) {
+
+					ImGui::Text("Total Rays: %u, Rays per probe %u, Total Probes %u", s_frame_renderer.indirect_pass.get_total_rays(), s_frame_renderer.indirect_pass.probe_rays, s_frame_renderer.indirect_pass.get_total_probes());
+					ImGui::SliderInt("Per frame probe updates", &scene->gi_per_frame_probes_update, 0, s_frame_renderer.indirect_pass.get_total_probes());
+					// Check if probe offsets needs to be recalculated.
+					scene->gi_recalculate_offsets = false;
+
+					ImGui::SliderFloat("Indirect Intensity", &scene->gi_intensity, 0.0f, 1.0f);
+					if (ImGui::SliderFloat3("Probe Grid Position", scene->gi_probe_grid_position.raw, -5.f, 5.f, "%2.3f")) {
+						scene->gi_recalculate_offsets = true;
+					}
+
+					ImGui::Checkbox("Use Infinite Bounces", &scene->gi_use_infinite_bounces);
+					ImGui::SliderFloat("Infinite bounces multiplier", &scene->gi_infinite_bounces_multiplier, 0.0f, 1.0f);
+
+					if (ImGui::SliderFloat3("Probe Spacing", scene->gi_probe_spacing.raw, -2.f, 2.f, "%2.3f")) {
+						scene->gi_recalculate_offsets = true;
+					}
+
+					ImGui::SliderFloat("Hysteresis", &scene->gi_hysteresis, 0.0f, 1.0f);
+					ImGui::SliderFloat("Max Probe Offset", &scene->gi_max_probe_offset, 0.0f, 0.5f);
+					ImGui::SliderFloat("Sampling self shadow bias", &scene->gi_self_shadow_bias, 0.0f, 1.0f);
+					ImGui::SliderFloat("Probe Sphere Scale", &scene->gi_probe_sphere_scale, 0.0f, 1.0f);
+					ImGui::Checkbox("Show debug probes", &scene->gi_show_probes);
+					ImGui::Checkbox("Use Visibility", &scene->gi_use_visibility);
+					ImGui::Checkbox("Use Smooth Backface", &scene->gi_use_backface_smoothing);
+					ImGui::Checkbox("Use Perceptual Encoding", &scene->gi_use_perceptual_encoding);
+					ImGui::Checkbox("Use Backface Blending", &scene->gi_use_backface_blending);
+					ImGui::Checkbox("Use Probe Offsetting", &scene->gi_use_probe_offsetting);
+					ImGui::Checkbox("Use Probe Status", &scene->gi_use_probe_status);
+					if (ImGui::Checkbox("Use Half Resolution Output", &scene->gi_use_half_resolution)) {
+						s_frame_renderer.indirect_pass.half_resolution_output = scene->gi_use_half_resolution;
+						s_frame_renderer.indirect_pass.on_resize(*gpu, &s_frame_graph, gpu->swapchain_width, gpu->swapchain_height);
+					}
+					ImGui::Checkbox("Debug border vs inside", &scene->gi_debug_border);
+					ImGui::Checkbox("Debug border type (corner, row, column)", &scene->gi_debug_border_type);
+					ImGui::Checkbox("Debug border source pixels", &scene->gi_debug_border_source);
 				}
 				ImGui::Separator();
 
