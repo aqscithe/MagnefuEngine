@@ -553,45 +553,66 @@ namespace Magnefu
             vkEnumerateDeviceExtensionProperties(vulkan_physical_device, nullptr, &device_extension_count, extensions);
             for (size_t i = 0; i < device_extension_count; i++) {
 
+                //MF_CORE_DEBUG("Extension: {}", extensions[i].extensionName);
+
                 if (!creation.force_disable_dynamic_rendering && !strcmp(extensions[i].extensionName, VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)) {
                     dynamic_rendering_extension_present = true;
+                    MF_CORE_DEBUG("Dynamic Rendering Extension Enabled");
                     continue;
                 }
 
                 if (!strcmp(extensions[i].extensionName, VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME)) {
                     timeline_semaphore_extension_present = true;
+                    MF_CORE_DEBUG("Timeline Semaphore Extension Enabled");
                     continue;
                 }
 
                 if (!strcmp(extensions[i].extensionName, VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME)) {
                     synchronization2_extension_present = true;
+                    MF_CORE_DEBUG("Synchronization2 Extension Enabled");
                     continue;
                 }
 
                 if (!strcmp(extensions[i].extensionName, VK_NV_MESH_SHADER_EXTENSION_NAME)) {
                     mesh_shaders_extension_present = true;
+                    MF_CORE_DEBUG("Mesh Shaders Extension Enabled");
                     continue;
                 }
 
                 if (!strcmp(extensions[i].extensionName, VK_KHR_MULTIVIEW_EXTENSION_NAME)) {
                     multiview_extension_present = true;
+                    MF_CORE_DEBUG("Multiview Extension Enabled");
                     continue;
                 }
 
                 if (!strcmp(extensions[i].extensionName, VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME)) {
                     fragment_shading_rate_present = true;
+                    MF_CORE_DEBUG("Fragment Shading Rate Extension Enabled");
                     continue;
                 }
 
                 if (!strcmp(extensions[i].extensionName, VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME)) {
                     ray_tracing_present = true;
+                    MF_CORE_DEBUG("Ray Tracing Extension Enabled");
                     continue;
                 }
 
                 if (!strcmp(extensions[i].extensionName, VK_KHR_RAY_QUERY_EXTENSION_NAME)) {
                     ray_query_present = true;
+                    MF_CORE_DEBUG("Ray Query Extension Enabled");
                     continue;
                 }
+
+                if (!strcmp(extensions[i].extensionName, VK_GOOGLE_DISPLAY_TIMING_EXTENSION_NAME)) {
+                    google_display_timing_present = true;
+                    MF_CORE_DEBUG("Google Display Timing Extension Enabled");
+                    continue;
+                }
+            }
+
+            if (!google_display_timing_present)
+            {
+                MF_CORE_DEBUG("Google Display Timing Extension Not Available");
             }
 
             temp_allocator->freeToMarker(initial_temp_allocator_marker);
@@ -654,6 +675,8 @@ namespace Magnefu
             acceleration_structure_features.pNext = &ray_tracing_pipeline_features;
             ray_tracing_pipeline_features.pNext = &ray_query_features;
         }
+
+
 
         vkGetPhysicalDeviceFeatures2(vulkan_physical_device, &device_features);
         // For the feature to be correctly working, we need both the possibility to partially bind a descriptor,
@@ -755,6 +778,11 @@ namespace Magnefu
 
         if (ray_query_present) {
             device_extensions.push(VK_KHR_RAY_QUERY_EXTENSION_NAME);
+        }
+
+        if (google_display_timing_present)
+        {
+            device_extensions.push(VK_GOOGLE_DISPLAY_TIMING_EXTENSION_NAME);
         }
 
         const float queue_priority[] = { 1.0f, 1.0f };
