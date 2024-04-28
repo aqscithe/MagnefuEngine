@@ -12,11 +12,14 @@ namespace Magnefu
     struct Hierarchy {
         i32                 parent : 24;
         i32                 level : 8;
+        u32                 children_count;
+        u32                 first_child_index;
     }; // struct Hierarchy
 
     //
     struct SceneGraphNodeDebugData {
         cstring             name;
+        i32                 mesh_index;
     }; // struct SceneGraphNodeDebugData
 
 
@@ -33,6 +36,7 @@ namespace Magnefu
         void                set_hierarchy(u32 node_index, u32 parent_index, u32 level);
         void                set_local_matrix(u32 node_index, const mat4s& local_matrix);
         void                set_debug_data(u32 node_index, cstring name);
+        void                set_mesh_data(u32 node_index, i32 mesh_index);
         u32                 node_count();
 
         Array<mat4s>        local_matrices;

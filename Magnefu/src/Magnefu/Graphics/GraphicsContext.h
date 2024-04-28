@@ -417,7 +417,7 @@ namespace Magnefu
         PFN_vkCopyAccelerationStructureKHR vkCopyAccelerationStructureKHR;
         PFN_vkCopyMemoryToAccelerationStructureKHR vkCopyMemoryToAccelerationStructureKHR;
 
-        // For Example Google Display timing implementation:
+        // TODO: (leon) For Example Google Display timing implementation:
         // https://github.com/KhronosGroup/Vulkan-Tools/blob/main/cube/cube.c
         // Google Display Timing functions
         PFN_vkGetRefreshCycleDurationGOOGLE vkGetRefreshCycleDurationGOOGLE;

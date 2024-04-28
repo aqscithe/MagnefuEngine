@@ -29,6 +29,8 @@ namespace Magnefu
 
 		void                    fill_pbr_material(glTF::glTF& gltf_scene, Renderer& renderer, glTF::Material& material, PBRMaterial& pbr_material);
 
+		void processNode(i32 gltf_node_index, i32 parent_index, glTF::Scene& gltf_scene, SceneGraph* scene_graph, u32 node_offset, Array<MeshInstance>& mesh_instances, u32& total_meshlets);
+
 
 
 		// All graphics resources used by the scene

@@ -123,6 +123,11 @@ namespace Magnefu
         nodes_debug_data[node_index].name = name;
     }
 
+    void SceneGraph::set_mesh_data(u32 node_index, i32 mesh_index)
+    {
+        nodes_debug_data[node_index].mesh_index = mesh_index;
+    }
+
     u32 SceneGraph::node_count() {
         return nodes_hierarchy.size;
     }

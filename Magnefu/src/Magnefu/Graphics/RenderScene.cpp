@@ -4784,6 +4784,8 @@ namespace Magnefu {
     Transform animated_transforms[256];
 
     void RenderScene::update_animations(f32 delta_time) {
+        // TODO: (leon) fix animation copying on glTF file load
+        return;
 
         if (animations.size == 0) {
             return;
