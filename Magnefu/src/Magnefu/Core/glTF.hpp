@@ -14,8 +14,8 @@
 static const char* kDefault3DModels[SCENE_COUNT] = {
     //"res/models/Sponza/glTF/Sponza.gltf",
     //"res/models/FlightHelmet/glTF/FlightHelmet.gltf",
-    "res/models/pony_cartoon/scene.gltf"
-    //"res/models/hand_low_poly/scene.gltf"
+    //"res/models/pony_cartoon/scene.gltf",
+    "res/models/the_iron_throne_stylized_remake/scene.gltf"
 };
 
 #define InjectDefault3DModel(scene_paths) \

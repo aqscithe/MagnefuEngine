@@ -148,37 +148,91 @@ f32 linearize_depth(f32 depth, f32 z_far, f32 z_near) {
 	return z_near * z_far / (z_far + depth * (z_near - z_far));
 }
 
-static void DrawNode(u32 node_index, u32& selected_node, u32& meshlet_count, const Magnefu::SceneGraph& scene_graph, Magnefu::RenderScene* scene) {
+//static void DrawNode(u32 node_index, u32& selected_node, u32& meshlet_count, const Magnefu::SceneGraph& scene_graph, Magnefu::RenderScene* scene) {
+//	const Magnefu::SceneGraphNodeDebugData& node_debug_data = scene_graph.nodes_debug_data[node_index];
+//	bool is_selected = (node_index == selected_node);
+//
+//	// Option for a tree node
+//	ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+//	if (is_selected)
+//		node_flags |= ImGuiTreeNodeFlags_Selected;
+//
+//	bool node_open = false;
+//	
+//	if (ImGui::TreeNodeEx((void*)(intptr_t)node_index, node_flags, node_debug_data.name ? node_debug_data.name : "-"))
+//	{
+//		node_open = true;
+//
+//
+//	}
+//
+//	// If the node is selected
+//	if (ImGui::IsItemClicked()) {
+//		selected_node = node_index;
+//		if (scene->mesh_instances.count() > node_debug_data.mesh_index)
+//		{
+//			meshlet_count = scene->mesh_instances[node_debug_data.mesh_index].mesh->meshlet_count;
+//		}
+//	}
+//
+//	// If this is a leaf node, there's no need to attempt to draw children
+//	if (node_open) {
+//		u32 child_index = scene_graph.nodes_hierarchy[node_index].first_child_index;
+//		for (u32 i = 0; i < scene_graph.nodes_hierarchy[node_index].children_count; ++i) {
+//			DrawNode(child_index, selected_node, meshlet_count, scene_graph, scene);
+//			child_index++;
+//		}
+//		ImGui::TreePop();
+//	}
+//}
+
+static void DrawNode(u32 node_index, Magnefu::SceneGraph& scene_graph, Magnefu::RenderScene* scene) {
+	static u32 selected_node = u32_max;
+	static u32 meshlet_count = u32_max;
+
 	const Magnefu::SceneGraphNodeDebugData& node_debug_data = scene_graph.nodes_debug_data[node_index];
 	bool is_selected = (node_index == selected_node);
 
-	// Option for a tree node
+	// Options for a tree node
 	ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
 	if (is_selected)
 		node_flags |= ImGuiTreeNodeFlags_Selected;
 
 	bool node_open = ImGui::TreeNodeEx((void*)(intptr_t)node_index, node_flags, node_debug_data.name ? node_debug_data.name : "-");
 
-	// If the node is selected
+	// If the node is selected by clicking
 	if (ImGui::IsItemClicked()) {
 		selected_node = node_index;
-		if (scene->mesh_instances.count() > node_debug_data.mesh_index)
-		{
+		if (scene->mesh_instances.count() > node_debug_data.mesh_index) {
 			meshlet_count = scene->mesh_instances[node_debug_data.mesh_index].mesh->meshlet_count;
 		}
 	}
 
-	// If this is a leaf node, there's no need to attempt to draw children
+	// Display transformation and meshlet count details under the node when it's open
 	if (node_open) {
+		// Show transformation sliders if this node is selected
+		if (is_selected) {
+			mat4s& local_transform = scene_graph.local_matrices[node_index];
+			f32 position[3] = { local_transform.m30, local_transform.m31, local_transform.m32 };
+			if (ImGui::SliderFloat3("Node Position", position, -100.0f, 100.0f)) {
+				local_transform.m30 = position[0];
+				local_transform.m31 = position[1];
+				local_transform.m32 = position[2];
+				scene_graph.set_local_matrix(node_index, local_transform);
+			}
+			ImGui::Text("Meshlet Count: %u", meshlet_count);
+		}
+
+		// Recursive call to draw children nodes
 		u32 child_index = scene_graph.nodes_hierarchy[node_index].first_child_index;
 		for (u32 i = 0; i < scene_graph.nodes_hierarchy[node_index].children_count; ++i) {
-			DrawNode(child_index, selected_node, meshlet_count, scene_graph, scene);
+			DrawNode(child_index, scene_graph, scene);
 			child_index++;
 		}
+
 		ImGui::TreePop();
 	}
 }
-
 
 
 static void test_sphere_aabb(Magnefu::GameCamera& game_camera) {
@@ -1641,67 +1695,13 @@ bool Sandbox::MainLoop()
 			}
 			ImGui::End();
 
-			/*if (ImGui::Begin("Scene")) {
-
-				static u32 selected_node = u32_max;
-				static u32 meshlet_count = u32_max;
-
-				ImGui::Text("Selected node %u", selected_node);
-				if (selected_node < s_scene_graph.nodes_hierarchy.size) {
-
-					
-
-					mat4s& local_transform = s_scene_graph.local_matrices[selected_node];
-					f32 position[3]{ local_transform.m30, local_transform.m31, local_transform.m32 };
-
-					if (ImGui::SliderFloat3("Node Position", position, -100.0f, 100.0f)) {
-						local_transform.m30 = position[0];
-						local_transform.m31 = position[1];
-						local_transform.m32 = position[2];
-
-						s_scene_graph.set_local_matrix(selected_node, local_transform);
-					}
-					ImGui::Separator();
-					
-					ImGui::Text("Meshlet Count: %u", meshlet_count);
-
-					ImGui::Separator();
-				}
-
-				for (u32 n = 0; n < s_scene_graph.nodes_hierarchy.size; ++n) {
-					const SceneGraphNodeDebugData& node_debug_data = s_scene_graph.nodes_debug_data[n];
-					if (ImGui::Selectable(node_debug_data.name ? node_debug_data.name : "-", n == selected_node)) {
-						selected_node = n;
-						if(scene->mesh_instances.count() > node_debug_data.mesh_index)
-							meshlet_count = scene->mesh_instances[node_debug_data.mesh_index].mesh->meshlet_count;
-					}
-				}
-			}
-			ImGui::End();*/
 
 			if (ImGui::Begin("Scene")) {
-				static u32 selected_node = u32_max;
-				static u32 meshlet_count = u32_max;
-
-				if (selected_node < s_scene_graph.nodes_hierarchy.size) {
-					mat4s& local_transform = s_scene_graph.local_matrices[selected_node];
-					f32 position[3] = { local_transform.m30, local_transform.m31, local_transform.m32 };
-
-					if (ImGui::SliderFloat3("Node Position", position, -100.0f, 100.0f)) {
-						local_transform.m30 = position[0];
-						local_transform.m31 = position[1];
-						local_transform.m32 = position[2];
-						s_scene_graph.set_local_matrix(selected_node, local_transform);
-					}
-					ImGui::Separator();
-					ImGui::Text("Meshlet Count: %u", meshlet_count);
-					ImGui::Separator();
-				}
 
 				// Iterate over root nodes and draw the full hierarchy
 				for (u32 n = 0; n < s_scene_graph.nodes_hierarchy.size; ++n) {
 					if (s_scene_graph.nodes_hierarchy[n].parent == -1) {  // Assuming u32_max indicates no parent
-						DrawNode(n, selected_node, meshlet_count, s_scene_graph, scene);
+						DrawNode(n, s_scene_graph, scene);
 					}
 				}
 			}
