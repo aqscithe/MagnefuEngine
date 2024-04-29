@@ -148,6 +148,92 @@ f32 linearize_depth(f32 depth, f32 z_far, f32 z_near) {
 	return z_near * z_far / (z_far + depth * (z_near - z_far));
 }
 
+//static void DrawNode(u32 node_index, u32& selected_node, u32& meshlet_count, const Magnefu::SceneGraph& scene_graph, Magnefu::RenderScene* scene) {
+//	const Magnefu::SceneGraphNodeDebugData& node_debug_data = scene_graph.nodes_debug_data[node_index];
+//	bool is_selected = (node_index == selected_node);
+//
+//	// Option for a tree node
+//	ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+//	if (is_selected)
+//		node_flags |= ImGuiTreeNodeFlags_Selected;
+//
+//	bool node_open = false;
+//	
+//	if (ImGui::TreeNodeEx((void*)(intptr_t)node_index, node_flags, node_debug_data.name ? node_debug_data.name : "-"))
+//	{
+//		node_open = true;
+//
+//
+//	}
+//
+//	// If the node is selected
+//	if (ImGui::IsItemClicked()) {
+//		selected_node = node_index;
+//		if (scene->mesh_instances.count() > node_debug_data.mesh_index)
+//		{
+//			meshlet_count = scene->mesh_instances[node_debug_data.mesh_index].mesh->meshlet_count;
+//		}
+//	}
+//
+//	// If this is a leaf node, there's no need to attempt to draw children
+//	if (node_open) {
+//		u32 child_index = scene_graph.nodes_hierarchy[node_index].first_child_index;
+//		for (u32 i = 0; i < scene_graph.nodes_hierarchy[node_index].children_count; ++i) {
+//			DrawNode(child_index, selected_node, meshlet_count, scene_graph, scene);
+//			child_index++;
+//		}
+//		ImGui::TreePop();
+//	}
+//}
+
+static void DrawNode(u32 node_index, Magnefu::SceneGraph& scene_graph, Magnefu::RenderScene* scene) {
+	static u32 selected_node = u32_max;
+	static u32 meshlet_count = u32_max;
+
+	const Magnefu::SceneGraphNodeDebugData& node_debug_data = scene_graph.nodes_debug_data[node_index];
+	bool is_selected = (node_index == selected_node);
+
+	// Options for a tree node
+	ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+	if (is_selected)
+		node_flags |= ImGuiTreeNodeFlags_Selected;
+
+	bool node_open = ImGui::TreeNodeEx((void*)(intptr_t)node_index, node_flags, node_debug_data.name ? node_debug_data.name : "-");
+
+	// If the node is selected by clicking
+	if (ImGui::IsItemClicked()) {
+		selected_node = node_index;
+		if (scene->mesh_instances.count() > node_debug_data.mesh_index) {
+			meshlet_count = scene->mesh_instances[node_debug_data.mesh_index].mesh->meshlet_count;
+		}
+	}
+
+	// Display transformation and meshlet count details under the node when it's open
+	if (node_open) {
+		// Show transformation sliders if this node is selected
+		if (is_selected) {
+			mat4s& local_transform = scene_graph.local_matrices[node_index];
+			f32 position[3] = { local_transform.m30, local_transform.m31, local_transform.m32 };
+			if (ImGui::SliderFloat3("Node Position", position, -100.0f, 100.0f)) {
+				local_transform.m30 = position[0];
+				local_transform.m31 = position[1];
+				local_transform.m32 = position[2];
+				scene_graph.set_local_matrix(node_index, local_transform);
+			}
+			ImGui::Text("Meshlet Count: %u", meshlet_count);
+		}
+
+		// Recursive call to draw children nodes
+		u32 child_index = scene_graph.nodes_hierarchy[node_index].first_child_index;
+		for (u32 i = 0; i < scene_graph.nodes_hierarchy[node_index].children_count; ++i) {
+			DrawNode(child_index, scene_graph, scene);
+			child_index++;
+		}
+
+		ImGui::TreePop();
+	}
+}
+
 
 static void test_sphere_aabb(Magnefu::GameCamera& game_camera) {
 	vec4s pos{ -14.5f, 1.28f, 0.f, 1.f };
@@ -1543,6 +1629,45 @@ bool Sandbox::MainLoop()
 					if (raytraced_shadow_light_type == 0) {
 						ImGui::EndDisabled();
 					}
+
+				}
+				if (ImGui::CollapsingHeader("Global Illumination")) {
+
+					ImGui::Text("Total Rays: %u, Rays per probe %u, Total Probes %u", s_frame_renderer.indirect_pass.get_total_rays(), s_frame_renderer.indirect_pass.probe_rays, s_frame_renderer.indirect_pass.get_total_probes());
+					ImGui::SliderInt("Per frame probe updates", &scene->gi_per_frame_probes_update, 0, s_frame_renderer.indirect_pass.get_total_probes());
+					// Check if probe offsets needs to be recalculated.
+					scene->gi_recalculate_offsets = false;
+
+					ImGui::SliderFloat("Indirect Intensity", &scene->gi_intensity, 0.0f, 1.0f);
+					if (ImGui::SliderFloat3("Probe Grid Position", scene->gi_probe_grid_position.raw, -5.f, 5.f, "%2.3f")) {
+						scene->gi_recalculate_offsets = true;
+					}
+
+					ImGui::Checkbox("Use Infinite Bounces", &scene->gi_use_infinite_bounces);
+					ImGui::SliderFloat("Infinite bounces multiplier", &scene->gi_infinite_bounces_multiplier, 0.0f, 1.0f);
+
+					if (ImGui::SliderFloat3("Probe Spacing", scene->gi_probe_spacing.raw, -2.f, 2.f, "%2.3f")) {
+						scene->gi_recalculate_offsets = true;
+					}
+
+					ImGui::SliderFloat("Hysteresis", &scene->gi_hysteresis, 0.0f, 1.0f);
+					ImGui::SliderFloat("Max Probe Offset", &scene->gi_max_probe_offset, 0.0f, 0.5f);
+					ImGui::SliderFloat("Sampling self shadow bias", &scene->gi_self_shadow_bias, 0.0f, 1.0f);
+					ImGui::SliderFloat("Probe Sphere Scale", &scene->gi_probe_sphere_scale, 0.0f, 1.0f);
+					ImGui::Checkbox("Show debug probes", &scene->gi_show_probes);
+					ImGui::Checkbox("Use Visibility", &scene->gi_use_visibility);
+					ImGui::Checkbox("Use Smooth Backface", &scene->gi_use_backface_smoothing);
+					ImGui::Checkbox("Use Perceptual Encoding", &scene->gi_use_perceptual_encoding);
+					ImGui::Checkbox("Use Backface Blending", &scene->gi_use_backface_blending);
+					ImGui::Checkbox("Use Probe Offsetting", &scene->gi_use_probe_offsetting);
+					ImGui::Checkbox("Use Probe Status", &scene->gi_use_probe_status);
+					if (ImGui::Checkbox("Use Half Resolution Output", &scene->gi_use_half_resolution)) {
+						s_frame_renderer.indirect_pass.half_resolution_output = scene->gi_use_half_resolution;
+						s_frame_renderer.indirect_pass.on_resize(*gpu, &s_frame_graph, gpu->swapchain_width, gpu->swapchain_height);
+					}
+					ImGui::Checkbox("Debug border vs inside", &scene->gi_debug_border);
+					ImGui::Checkbox("Debug border type (corner, row, column)", &scene->gi_debug_border_type);
+					ImGui::Checkbox("Debug border source pixels", &scene->gi_debug_border_source);
 				}
 				ImGui::Separator();
 
@@ -1570,34 +1695,18 @@ bool Sandbox::MainLoop()
 			}
 			ImGui::End();
 
+
 			if (ImGui::Begin("Scene")) {
 
-				static u32 selected_node = u32_max;
-
-				ImGui::Text("Selected node %u", selected_node);
-				if (selected_node < s_scene_graph.nodes_hierarchy.size) {
-
-					mat4s& local_transform = s_scene_graph.local_matrices[selected_node];
-					f32 position[3]{ local_transform.m30, local_transform.m31, local_transform.m32 };
-
-					if (ImGui::SliderFloat3("Node Position", position, -100.0f, 100.0f)) {
-						local_transform.m30 = position[0];
-						local_transform.m31 = position[1];
-						local_transform.m32 = position[2];
-
-						s_scene_graph.set_local_matrix(selected_node, local_transform);
-					}
-					ImGui::Separator();
-				}
-
+				// Iterate over root nodes and draw the full hierarchy
 				for (u32 n = 0; n < s_scene_graph.nodes_hierarchy.size; ++n) {
-					const SceneGraphNodeDebugData& node_debug_data = s_scene_graph.nodes_debug_data[n];
-					if (ImGui::Selectable(node_debug_data.name ? node_debug_data.name : "-", n == selected_node)) {
-						selected_node = n;
+					if (s_scene_graph.nodes_hierarchy[n].parent == -1) {  // Assuming u32_max indicates no parent
+						DrawNode(n, s_scene_graph, scene);
 					}
 				}
 			}
 			ImGui::End();
+
 
 			if (ImGui::Begin("GPU"))
 			{

@@ -53,7 +53,7 @@
 					"shader" : "reflections.glsl",
 					"includes" : ["platform.h", "scene.h"]
 				}
-			]
+			]	
 		}
 	]
 }

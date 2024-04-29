@@ -12,8 +12,10 @@
 #define SCENE_COUNT 1
 
 static const char* kDefault3DModels[SCENE_COUNT] = {
-    "res/models/Sponza/glTF/Sponza.gltf",
+    //"res/models/Sponza/glTF/Sponza.gltf",
     //"res/models/FlightHelmet/glTF/FlightHelmet.gltf",
+    //"res/models/pony_cartoon/scene.gltf",
+    "res/models/the_iron_throne_stylized_remake/scene.gltf"
 };
 
 #define InjectDefault3DModel(scene_paths) \
@@ -142,6 +144,21 @@ namespace Magnefu
             i32                         texCoord;
         };
 
+        /*"pbrMetallicRoughness": {
+            "baseColorFactor": [
+                0.5879999995231628,
+                    0.5879999995231628,
+                    0.5879999995231628,
+                    1
+            ] ,
+                "baseColorTexture": {
+                "index": 0
+            },
+                "metallicRoughnessTexture" : {
+                "index": 2
+            }
+        }*/
+
         struct MaterialPBRMetallicRoughness {
             u32                         base_color_factor_count;
             f32* base_color_factor;
@@ -149,6 +166,38 @@ namespace Magnefu
             f32                         metallic_factor;
             TextureInfo* metallic_roughness_texture;
             f32                         roughness_factor;
+        };
+
+
+        /*"KHR_materials_pbrSpecularGlossiness": {
+            "diffuseFactor": [
+                0.61,
+                    0.61,
+                    0.61,
+                    1.0
+            ] ,
+                "diffuseTexture": {
+                "index": 0
+            },
+                "glossinessFactor" : 1.0,
+                "specularFactor" : [
+                    0.0,
+                        0.0,
+                        0.0
+                ] ,
+                "specularGlossinessTexture" : {
+                "index": 1
+            }
+        }*/
+        // TODO: (leon) Add support for KHR_materials_pbrSpecularGlossiness
+        // Do I want to support this? The standard pbr texture is ao, roughness, metallic
+        struct MaterialPBRSpecularGlossiness {
+            u32     diffuse_color_factor_count;
+            f32*    diffuse_color_factor;
+            f32     glossiness_factor;
+            f32*    specular_factor;
+            TextureInfo* diffuse_texture;
+            TextureInfo* specular_glossiness_texture;
         };
 
         struct MeshPrimitive {

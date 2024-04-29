@@ -417,6 +417,13 @@ namespace Magnefu
         PFN_vkCopyAccelerationStructureKHR vkCopyAccelerationStructureKHR;
         PFN_vkCopyMemoryToAccelerationStructureKHR vkCopyMemoryToAccelerationStructureKHR;
 
+        // TODO: (leon) For Example Google Display timing implementation:
+        // https://github.com/KhronosGroup/Vulkan-Tools/blob/main/cube/cube.c
+        // Google Display Timing functions
+        PFN_vkGetRefreshCycleDurationGOOGLE vkGetRefreshCycleDurationGOOGLE;
+        PFN_vkGetPastPresentationTimingGOOGLE vkGetPastPresentationTimingGOOGLE;
+
+
         Array<VkPhysicalDeviceFragmentShadingRateKHR> fragment_shading_rates;
 
         // These are dynamic - so that workload can be handled correctly.
@@ -439,6 +446,7 @@ namespace Magnefu
         bool                            fragment_shading_rate_present = false;
         bool                            ray_tracing_present = false;
         bool                            ray_query_present = false;
+        bool                            google_display_timing_present = false;
 
         sizet                           ubo_alignment = 256;
         sizet                           ssbo_alignemnt = 256;

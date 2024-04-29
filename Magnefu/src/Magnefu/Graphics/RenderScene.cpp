@@ -33,7 +33,7 @@
 #define DEBUG_DRAW_MESHLET_CONES 0
 
 #define DEBUG_DRAW_POINT_LIGHT_SPHERES 0
-
+#define DEBUG_DRAW_REFLECTION_PROBES 1
 
 
 
@@ -1201,7 +1201,7 @@ namespace Magnefu {
         mesh_name.init(1024, scratch_allocator);
         cstring filename = mesh_name.append_use_f("%s/sphere.obj", MAGNEFU_MODEL_FOLDER);
 
-#if ( DEBUG_DRAW_MESHLET_SPHERES | DEBUG_DRAW_POINT_LIGHT_SPHERES)
+#if ( DEBUG_DRAW_MESHLET_SPHERES || DEBUG_DRAW_POINT_LIGHT_SPHERES || DEBUG_DRAW_REFLECTION_PROBES)
         load_debug_mesh(filename, resident_allocator, renderer, sphere_index_count, &sphere_mesh_buffer, &sphere_mesh_indices);
 #endif // DEBUG_DRAW_MESHLET_SPHERES | DEBUG_DRAW_POINT_LIGHT_SPHERES
 
@@ -1220,7 +1220,8 @@ namespace Magnefu {
         Array<VkDrawIndexedIndirectCommand> sphere_indirect_commands;
         sphere_indirect_commands.init(resident_allocator, 4096);
 
-#if DEBUG_DRAW_MESHLET_SPHERES
+
+#if (DEBUG_DRAW_MESHLET_SPHERES)
         Array<mat4s> cone_matrices;
         cone_matrices.init(resident_allocator, 4096);
 
@@ -1308,7 +1309,9 @@ namespace Magnefu {
 
             sphere_mesh_descriptor_set = renderer->gpu->create_descriptor_set(creation);
         }
+#endif // DEBUG_DRAW_MESHLET_SPHERES
 
+#if (DEBUG_DRAW_MESHLET_CONES)
         {
             BufferCreation creation{ };
             sizet buffer_size = cone_matrices.size * sizeof(mat4s);
@@ -1337,7 +1340,7 @@ namespace Magnefu {
 
         cone_matrices.shutdown();
         cone_indirect_commands.shutdown();
-#endif
+#endif // DEBUG_DRAW_MESHLET_CONES
 
 #if DEBUG_DRAW_POINT_LIGHT_SPHERES
         for (u32 i = 0; i < scene.active_lights; ++i) {
@@ -1383,7 +1386,7 @@ namespace Magnefu {
 
             sphere_mesh_descriptor_set = renderer->gpu->create_descriptor_set(creation);
         }
-#endif
+#endif // DEBUG_DRAW_POINT_LIGHT_SPHERES
 
         bounding_matrices.shutdown();
         sphere_indirect_commands.shutdown();
@@ -1427,9 +1430,13 @@ namespace Magnefu {
         if (!enabled)
             return;
 
-#if ( DEBUG_DRAW_MESHLET_SPHERES | DEBUG_DRAW_POINT_LIGHT_SPHERES)
+#if ( DEBUG_DRAW_MESHLET_SPHERES || DEBUG_DRAW_POINT_LIGHT_SPHERES || DEBUG_DRAW_REFLECTION_PROBES )
         renderer->destroy_buffer(sphere_mesh_indices);
         renderer->destroy_buffer(sphere_mesh_buffer);
+#endif
+
+
+#if ( DEBUG_DRAW_MESHLET_SPHERES || DEBUG_DRAW_POINT_LIGHT_SPHERES )
         renderer->destroy_buffer(sphere_matrices_buffer);
         renderer->destroy_buffer(sphere_draw_indirect_buffer);
 
@@ -1464,6 +1471,7 @@ namespace Magnefu {
 
             DescriptorSetLayoutHandle layout = gpu.get_descriptor_set_layout(gi_debug_probes_pipeline, k_material_descriptor_set_index);
             DescriptorSetCreation ds_creation{};
+            ds_creation.reset().set_layout(layout).buffer(render_scene->ddgi_constants_cache, 55).buffer(render_scene->ddgi_probe_status_cache, 43);
             render_scene->add_scene_descriptors(ds_creation, pass);
 
             gi_debug_probes_descriptor_set = gpu.create_descriptor_set(ds_creation);
@@ -2091,9 +2099,6 @@ namespace Magnefu {
 
         enabled = node->enabled;
 
-        if (!enabled) {
-            return;
-        }
 
         renderer = scene.renderer;
 
@@ -3566,7 +3571,8 @@ namespace Magnefu {
 
         f32         hysteresis;
         f32         infinte_bounces_multiplier;
-        f32         pad[2];
+        i32         probe_update_offset;
+        i32         probe_update_count;
 
         vec3s       probe_grid_position;
         f32         probe_sphere_scale;
@@ -3601,25 +3607,22 @@ namespace Magnefu {
 
         if (!enabled)
             return;
-
+        static i32 offsets_calculations_count = 24;
+        if (render_scene->gi_recalculate_offsets) {
+            offsets_calculations_count = 24;
+        }
         // Probe raytrace
         gpu_commands->push_marker("RT");
         gpu_commands->issue_texture_barrier(probe_raytrace_radiance_texture, RESOURCE_STATE_UNORDERED_ACCESS, 0, 1);
         gpu_commands->bind_pipeline(probe_raytrace_pipeline);
         gpu_commands->bind_descriptor_set(&probe_raytrace_descriptor_set, 1, nullptr, 0);
-        // TODO: dispatch size
-        const u32 probe_count = probe_count_x * probe_count_y * probe_count_z;
+        // When calculating offsets, needs all the probes to be updated.
+        const u32 probe_count = offsets_calculations_count >= 0 ? get_total_probes() : per_frame_probe_updates;
         gpu_commands->trace_rays(probe_raytrace_pipeline, probe_rays, probe_count, 1);
 
         gpu_commands->issue_texture_barrier(probe_raytrace_radiance_texture, RESOURCE_STATE_UNORDERED_ACCESS, 0, 1);
         gpu_commands->pop_marker();
 
-        // Calculate probe offsets
-        static i32 offsets_calculations_count = 24;
-
-        if (render_scene->gi_recalculate_offsets) {
-            offsets_calculations_count = 24;
-        }
 
         if (offsets_calculations_count >= 0) {
             --offsets_calculations_count;
@@ -3715,7 +3718,9 @@ namespace Magnefu {
 
         GraphicsContext& gpu = *renderer->gpu;
 
-        const u32 num_probes = probe_count_x * probe_count_y * probe_count_z;
+        per_frame_probe_updates = scene.gi_per_frame_probes_update;
+        const u32 num_probes = get_total_probes();
+
         // Cache count of probes for debug probe spheres drawing.
         scene.gi_total_probes = num_probes;
 
@@ -3790,7 +3795,7 @@ namespace Magnefu {
 
             DescriptorSetLayoutHandle layout = gpu.get_descriptor_set_layout(probe_raytrace_pipeline, k_material_descriptor_set_index);
             DescriptorSetCreation ds_creation{};
-            ds_creation.reset().set_layout(layout).set_as(scene.tlas, 26).buffer(ddgi_constants_buffer, 40)
+            ds_creation.reset().set_layout(layout).set_as(scene.tlas, 26).buffer(ddgi_constants_buffer, 55)
                 .buffer(scene.lights_list_sb, 27).buffer(ddgi_probe_status_buffer, 43);
             scene.add_scene_descriptors(ds_creation, pass);
             scene.add_mesh_descriptors(ds_creation, pass);
@@ -3804,7 +3809,7 @@ namespace Magnefu {
             probe_grid_update_irradiance_pipeline = pass1.pipeline;
 
             layout = gpu.get_descriptor_set_layout(probe_grid_update_irradiance_pipeline, k_material_descriptor_set_index);
-            ds_creation.reset().set_layout(layout).buffer(ddgi_constants_buffer, 40).buffer(ddgi_probe_status_buffer, 43)
+            ds_creation.reset().set_layout(layout).buffer(ddgi_constants_buffer, 55).buffer(ddgi_probe_status_buffer, 43)
                 .texture(probe_grid_irradiance_texture, 41).texture(probe_grid_visibility_texture, 42);
             scene.add_scene_descriptors(ds_creation, pass1);
             probe_grid_update_descriptor_set = gpu.create_descriptor_set(ds_creation);
@@ -3834,7 +3839,7 @@ namespace Magnefu {
             sample_irradiance_pipeline = pass5.pipeline;
 
             layout = gpu.get_descriptor_set_layout(sample_irradiance_pipeline, k_material_descriptor_set_index);
-            ds_creation.reset().set_layout(layout).buffer(ddgi_constants_buffer, 40).buffer(ddgi_probe_status_buffer, 43);
+            ds_creation.reset().set_layout(layout).buffer(ddgi_constants_buffer, 55).buffer(ddgi_probe_status_buffer, 43);
             scene.add_scene_descriptors(ds_creation, pass5);
             sample_irradiance_descriptor_set = gpu.create_descriptor_set(ds_creation);
         }
@@ -3893,11 +3898,17 @@ namespace Magnefu {
             gpu_constants->visibility_texture_width = visibility_atlas_width;
             gpu_constants->visibility_texture_height = visibility_atlas_height;
             gpu_constants->visibility_side_length = visibility_probe_size;
+            gpu_constants->probe_update_offset = probe_update_offset;
+            gpu_constants->probe_update_count = per_frame_probe_updates;
 
             const f32 rotation_scaler = 0.001f;
             gpu_constants->random_rotation = glms_euler_xyz({ get_random_value(-1,1) * rotation_scaler, get_random_value(-1,1) * rotation_scaler, get_random_value(-1,1) * rotation_scaler });
 
             gpu.unmap_buffer(cb_map);
+
+            const u32 num_probes = probe_count_x * probe_count_y * probe_count_z;
+            probe_update_offset = (probe_update_offset + per_frame_probe_updates) % num_probes;
+            per_frame_probe_updates = scene.gi_per_frame_probes_update;
         }
     }
 
@@ -4773,6 +4784,8 @@ namespace Magnefu {
     Transform animated_transforms[256];
 
     void RenderScene::update_animations(f32 delta_time) {
+        // TODO: (leon) fix animation copying on glTF file load
+        return;
 
         if (animations.size == 0) {
             return;
