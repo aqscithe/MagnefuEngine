@@ -36,7 +36,6 @@
 #define DEBUG_DRAW_REFLECTION_PROBES 1
 
 
-
 namespace Magnefu {
 
 
@@ -391,7 +390,7 @@ namespace Magnefu {
 
             // TODO: remove
             gpu_commands->global_debug_barrier();
-            
+
             // Write counts
             gpu_commands->bind_pipeline(meshlet_write_counts_pipeline);
             gpu_commands->bind_descriptor_set(&meshlet_instance_culling_descriptor_set[current_frame_index], 1, nullptr, 0);
@@ -1201,7 +1200,7 @@ namespace Magnefu {
         mesh_name.init(1024, scratch_allocator);
         cstring filename = mesh_name.append_use_f("%s/sphere.obj", MAGNEFU_MODEL_FOLDER);
 
-#if ( DEBUG_DRAW_MESHLET_SPHERES || DEBUG_DRAW_POINT_LIGHT_SPHERES || DEBUG_DRAW_REFLECTION_PROBES)
+#if ( DEBUG_DRAW_MESHLET_SPHERES || DEBUG_DRAW_POINT_LIGHT_SPHERES || DEBUG_DRAW_REFLECTION_PROBES )
         load_debug_mesh(filename, resident_allocator, renderer, sphere_index_count, &sphere_mesh_buffer, &sphere_mesh_indices);
 #endif // DEBUG_DRAW_MESHLET_SPHERES | DEBUG_DRAW_POINT_LIGHT_SPHERES
 
@@ -1220,8 +1219,7 @@ namespace Magnefu {
         Array<VkDrawIndexedIndirectCommand> sphere_indirect_commands;
         sphere_indirect_commands.init(resident_allocator, 4096);
 
-
-#if (DEBUG_DRAW_MESHLET_SPHERES)
+#if DEBUG_DRAW_MESHLET_SPHERES
         Array<mat4s> cone_matrices;
         cone_matrices.init(resident_allocator, 4096);
 
@@ -1340,7 +1338,7 @@ namespace Magnefu {
 
         cone_matrices.shutdown();
         cone_indirect_commands.shutdown();
-#endif // DEBUG_DRAW_MESHLET_CONES
+#endif
 
 #if DEBUG_DRAW_POINT_LIGHT_SPHERES
         for (u32 i = 0; i < scene.active_lights; ++i) {
@@ -1386,7 +1384,7 @@ namespace Magnefu {
 
             sphere_mesh_descriptor_set = renderer->gpu->create_descriptor_set(creation);
         }
-#endif // DEBUG_DRAW_POINT_LIGHT_SPHERES
+#endif
 
         bounding_matrices.shutdown();
         sphere_indirect_commands.shutdown();
@@ -1434,7 +1432,6 @@ namespace Magnefu {
         renderer->destroy_buffer(sphere_mesh_indices);
         renderer->destroy_buffer(sphere_mesh_buffer);
 #endif
-
 
 #if ( DEBUG_DRAW_MESHLET_SPHERES || DEBUG_DRAW_POINT_LIGHT_SPHERES )
         renderer->destroy_buffer(sphere_matrices_buffer);
@@ -1492,7 +1489,7 @@ namespace Magnefu {
     void DoFPass::pre_render(u32 current_frame_index, CommandBuffer* gpu_commands, FrameGraph* frame_graph, RenderScene* render_scene) {
 
         FrameGraphResource* texture = (FrameGraphResource*)frame_graph->get_resource("lighting");
-        MF_CORE_ASSERT((texture != nullptr), "");
+        MF_CORE_ASSERT((texture != nullptr),"");
 
         gpu_commands->copy_texture(texture->resource_info.texture.handle, scene_mips->handle, RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     }
@@ -1887,7 +1884,7 @@ namespace Magnefu {
         cstring rt_render_target = "final";
 
         FrameGraphResource* texture = frame_graph->get_resource(rt_render_target);
-        MF_CORE_ASSERT((texture != nullptr), "");
+        MF_CORE_ASSERT((texture != nullptr),"");
 
         if (texture->resource_info.texture.handle.index == k_invalid_index) {
             TextureCreation texture_creation{ };
@@ -1963,13 +1960,11 @@ namespace Magnefu {
             return;
         }
 
-        // TODO(marco): remove this as we are only ray-tracing direct lighting
         if (render_scene->active_lights != last_active_lights_count) {
             GraphicsContext& gpu = *renderer->gpu;
             recreate_textures(gpu, render_scene->active_lights);
 
             FrameGraphResourceInfo resource_info{ };
-
             const u32 adjusted_width = ceilu32(gpu.swapchain_width * texture_scale);
             const u32 adjusted_height = ceilu32(gpu.swapchain_height * texture_scale);
             resource_info.set_external_texture_3d(adjusted_width, adjusted_height, render_scene->active_lights, VK_FORMAT_R16_SFLOAT, 0, filtered_visibility_texture);
@@ -1998,7 +1993,7 @@ namespace Magnefu {
         gpu_commands->issue_texture_barrier(visibility_cache_texture, ResourceState::RESOURCE_STATE_GENERIC_READ, 0, 1);
         gpu_commands->issue_texture_barrier(variation_texture, ResourceState::RESOURCE_STATE_UNORDERED_ACCESS, 0, 1);
 
-        // Variance pass
+        // NOTE(marco): variance pass
         gpu_commands->bind_pipeline(variance_pipeline);
 
         gpu_commands->bind_descriptor_set(descriptor_set + current_frame_index, 1, 0, 0);
@@ -2012,7 +2007,7 @@ namespace Magnefu {
         gpu_commands->issue_texture_barrier(filtered_variation_texture, ResourceState::RESOURCE_STATE_UNORDERED_ACCESS, 0, 1);
         gpu_commands->issue_texture_barrier(variation_texture, ResourceState::RESOURCE_STATE_GENERIC_READ, 0, 1);
 
-        // Visibility pass
+        // NOTE(marco): visiblity pass
         gpu_commands->bind_pipeline(visibility_pipeline);
 
         gpu_commands->dispatch(x, y, 1);
@@ -2021,7 +2016,7 @@ namespace Magnefu {
         gpu_commands->issue_texture_barrier(filtered_variation_texture, ResourceState::RESOURCE_STATE_GENERIC_READ, 0, 1);
         gpu_commands->issue_texture_barrier(filtered_visibility_texture, ResourceState::RESOURCE_STATE_UNORDERED_ACCESS, 0, 1);
 
-        // Visibility filtering pass
+        // NOTE(marco): visiblity filtering pass
         gpu_commands->bind_pipeline(visibility_filtering_pipeline);
 
         gpu_commands->dispatch(x, y, 1);
@@ -2098,7 +2093,6 @@ namespace Magnefu {
         }
 
         enabled = node->enabled;
-
 
         renderer = scene.renderer;
 
@@ -2348,7 +2342,7 @@ namespace Magnefu {
         }
         default:
         {
-            MF_CORE_ASSERT(false, "Error face index %u is invalid", face_index);
+            MF_CORE_ASSERT(false, "Error face index {} is invalid", face_index);
             break;
         }
         }
@@ -3499,8 +3493,8 @@ namespace Magnefu {
 
         GpuTechnique* technique = renderer->resource_cache.techniques.get(hash_calculate("fullscreen"));
         if (technique) {
-            FrameGraphResource* gubffer_normals_resource = frame_graph->get_resource("gbuffer_normals");
-            MF_CORE_ASSERT((gubffer_normals_resource != nullptr), "");
+            FrameGraphResource* gbuffer_normals_resource = frame_graph->get_resource("gbuffer_normals");
+            MF_CORE_ASSERT((gbuffer_normals_resource != nullptr), "");
 
             u32 pass_index = technique->get_pass_index("composite_camera_motion");
             GpuTechniquePass& pass = technique->passes[pass_index];
@@ -3513,7 +3507,7 @@ namespace Magnefu {
             ds_creation.reset().set_layout(common_layout);
             ds_creation.texture(scene.motion_vector_texture, 51);
             ds_creation.texture(scene.visibility_motion_vector_texture, 52);
-            ds_creation.texture(gubffer_normals_resource->resource_info.texture.handle, 53);
+            ds_creation.texture(gbuffer_normals_resource->resource_info.texture.handle, 53);
             scene.add_scene_descriptors(ds_creation, pass);
             camera_composite_descriptor_set = gpu.create_descriptor_set(ds_creation);
         }
@@ -3539,8 +3533,8 @@ namespace Magnefu {
 
         GpuTechnique* technique = renderer->resource_cache.techniques.get(hash_calculate("fullscreen"));
         if (technique) {
-            FrameGraphResource* gubffer_normals_resource = frame_graph->get_resource("gbuffer_normals");
-            MF_CORE_ASSERT((gubffer_normals_resource != nullptr), "");
+            FrameGraphResource* gbuffer_normals_resource = frame_graph->get_resource("gbuffer_normals");
+            MF_CORE_ASSERT((gbuffer_normals_resource != nullptr), "");
 
             u32 pass_index = technique->get_pass_index("composite_camera_motion");
             GpuTechniquePass& pass = technique->passes[pass_index];
@@ -3550,7 +3544,7 @@ namespace Magnefu {
             ds_creation.reset().set_layout(common_layout);
             ds_creation.texture(render_scene->motion_vector_texture, 51);
             ds_creation.texture(render_scene->visibility_motion_vector_texture, 52);
-            ds_creation.texture(gubffer_normals_resource->resource_info.texture.handle, 53);
+            ds_creation.texture(gbuffer_normals_resource->resource_info.texture.handle, 53);
             render_scene->add_scene_descriptors(ds_creation, pass);
             camera_composite_descriptor_set = gpu.create_descriptor_set(ds_creation);
         }
@@ -3607,15 +3601,18 @@ namespace Magnefu {
 
         if (!enabled)
             return;
+
         static i32 offsets_calculations_count = 24;
         if (render_scene->gi_recalculate_offsets) {
             offsets_calculations_count = 24;
         }
+
         // Probe raytrace
         gpu_commands->push_marker("RT");
         gpu_commands->issue_texture_barrier(probe_raytrace_radiance_texture, RESOURCE_STATE_UNORDERED_ACCESS, 0, 1);
         gpu_commands->bind_pipeline(probe_raytrace_pipeline);
         gpu_commands->bind_descriptor_set(&probe_raytrace_descriptor_set, 1, nullptr, 0);
+
         // When calculating offsets, needs all the probes to be updated.
         const u32 probe_count = offsets_calculations_count >= 0 ? get_total_probes() : per_frame_probe_updates;
         gpu_commands->trace_rays(probe_raytrace_pipeline, probe_rays, probe_count, 1);
@@ -3623,7 +3620,7 @@ namespace Magnefu {
         gpu_commands->issue_texture_barrier(probe_raytrace_radiance_texture, RESOURCE_STATE_UNORDERED_ACCESS, 0, 1);
         gpu_commands->pop_marker();
 
-
+        // Calculate probe offsets
         if (offsets_calculations_count >= 0) {
             --offsets_calculations_count;
             gpu_commands->push_marker("Offsets");
@@ -3719,8 +3716,8 @@ namespace Magnefu {
         GraphicsContext& gpu = *renderer->gpu;
 
         per_frame_probe_updates = scene.gi_per_frame_probes_update;
-        const u32 num_probes = get_total_probes();
 
+        const u32 num_probes = get_total_probes();
         // Cache count of probes for debug probe spheres drawing.
         scene.gi_total_probes = num_probes;
 
@@ -3898,6 +3895,7 @@ namespace Magnefu {
             gpu_constants->visibility_texture_width = visibility_atlas_width;
             gpu_constants->visibility_texture_height = visibility_atlas_height;
             gpu_constants->visibility_side_length = visibility_probe_size;
+
             gpu_constants->probe_update_offset = probe_update_offset;
             gpu_constants->probe_update_count = per_frame_probe_updates;
 
@@ -3935,23 +3933,43 @@ namespace Magnefu {
             return;
     }
 
+    i32 generate_brdf_counter = 3;
+
     void ReflectionsPass::render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) {
         if (!enabled)
             return;
+
+        if (generate_brdf_counter > 0) {
+
+            --generate_brdf_counter;
+
+            gpu_commands->issue_texture_barrier(brdf_lut_texture, RESOURCE_STATE_UNORDERED_ACCESS, 0, 1);
+            gpu_commands->bind_pipeline(brdf_lut_generation_pipeline);
+            gpu_commands->bind_descriptor_set(&brdf_lut_generation_descriptor_set, 1, nullptr, 0);
+
+            u32 push_constants[] = { brdf_lut_texture.index, 512 };
+            gpu_commands->push_constants(brdf_lut_generation_pipeline, 0, 8, &push_constants);
+
+            gpu_commands->dispatch(512 / 8, 512 / 8, 1);
+            gpu_commands->issue_texture_barrier(brdf_lut_texture, RESOURCE_STATE_SHADER_RESOURCE, 0, 1);
+        }
 
         // TODO(marco): clear
         gpu_commands->issue_texture_barrier(reflections_texture, RESOURCE_STATE_UNORDERED_ACCESS, 0, 1);
         gpu_commands->bind_pipeline(reflections_pipeline);
         gpu_commands->bind_descriptor_set(&reflections_descriptor_set, 1, nullptr, 0);
 
-        gpu_commands->trace_rays(reflections_pipeline, renderer->width, renderer->height, 1);
+        f32 push_constants[] = { 1.f / texture_scale, 1.f };
+        gpu_commands->push_constants(reflections_pipeline, 0, 8, &push_constants);
+
+        gpu_commands->trace_rays(reflections_pipeline, ceilu32(renderer->width * texture_scale), ceilu32(renderer->height * texture_scale), 1);
     }
 
     void ReflectionsPass::on_resize(GraphicsContext& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) {
         if (!enabled)
             return;
 
-        gpu.resize_texture(reflections_texture, new_width, new_height);
+        gpu.resize_texture(reflections_texture, new_width * texture_scale, new_height * texture_scale);
     }
 
     void ReflectionsPass::prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) {
@@ -3985,15 +4003,24 @@ namespace Magnefu {
         resource = frame_graph->get_resource("indirect_lighting");
         indirect_texture = resource->resource_info.texture.handle;
 
+        texture_scale = scene.rt_reflections_scale;
+
         TextureCreation texture_creation{ };
-        u32 adjusted_width = renderer->width;
-        u32 adjusted_height = renderer->height;
+        u32 adjusted_width = ceilu32(renderer->width * texture_scale);
+        u32 adjusted_height = ceilu32(renderer->height * texture_scale);
         texture_creation.set_size(adjusted_width, adjusted_height, 1).set_format_type(VK_FORMAT_B10G11R11_UFLOAT_PACK32, TextureType::Texture2D).set_mips(1).set_layers(1).set_flags(TextureFlags::Compute_mask).set_name("reflections_texture");
 
         reflections_texture = gpu.create_texture(texture_creation);
 
         resource = frame_graph->get_resource("reflections");
         resource->resource_info.set_external_texture_2d(adjusted_width, adjusted_height, VK_FORMAT_B10G11R11_UFLOAT_PACK32, 0, reflections_texture);
+
+        // Create BRDF Lut texture
+        texture_creation.reset().set_size(512, 512, 1).set_format_type(VK_FORMAT_R16G16_SFLOAT, TextureType::Texture2D)
+            .set_name("brdf_lut").set_flags(TextureFlags::Compute_mask);
+        brdf_lut_texture = gpu.create_texture(texture_creation);
+
+        scene.brdf_lut_texture = brdf_lut_texture;
 
         GpuTechnique* technique = renderer->resource_cache.techniques.get(hash_calculate("reflections"));
         if (technique) {
@@ -4005,13 +4032,25 @@ namespace Magnefu {
 
             DescriptorSetLayoutHandle layout = gpu.get_descriptor_set_layout(reflections_pipeline, k_material_descriptor_set_index);
             DescriptorSetCreation ds_creation{};
-            ds_creation.reset().set_layout(layout).buffer(reflections_constants_buffer, 40);
+            ds_creation.reset().set_layout(layout).buffer(reflections_constants_buffer, 40).buffer(scene.ddgi_constants_cache, 55);
             scene.add_scene_descriptors(ds_creation, pass);
             scene.add_mesh_descriptors(ds_creation, pass);
             scene.add_lighting_descriptors(ds_creation, pass, 0);
             scene.add_debug_descriptors(ds_creation, pass);
 
             reflections_descriptor_set = gpu.create_descriptor_set(ds_creation);
+
+            // BRDF LUT generation
+            pass_index = technique->get_pass_index("brdf_lut_generation");
+            GpuTechniquePass& brdf_lut_pass = technique->passes[pass_index];
+
+            brdf_lut_generation_pipeline = brdf_lut_pass.pipeline;
+
+            layout = gpu.get_descriptor_set_layout(brdf_lut_generation_pipeline, k_material_descriptor_set_index);
+            ds_creation.reset().set_layout(layout);
+            scene.add_scene_descriptors(ds_creation, brdf_lut_pass);
+
+            brdf_lut_generation_descriptor_set = gpu.create_descriptor_set(ds_creation);
         }
     }
 
@@ -4041,17 +4080,88 @@ namespace Magnefu {
         if (!enabled)
             return;
 
+        gpu.destroy_texture(brdf_lut_texture);
         gpu.destroy_texture(reflections_texture);
         gpu.destroy_buffer(reflections_constants_buffer);
         gpu.destroy_descriptor_set(reflections_descriptor_set);
+
+        gpu.destroy_descriptor_set(brdf_lut_generation_descriptor_set);
+    }
+
+    void ReflectionsPass::reload_shaders(RenderScene& scene, FrameGraph* frame_graph,
+        Allocator* resident_allocator, StackAllocator* scratch_allocator) {
+
+        update_dependent_resources(*renderer->gpu, frame_graph, &scene);
     }
 
     void ReflectionsPass::update_dependent_resources(GraphicsContext& gpu, FrameGraph* frame_graph, RenderScene* render_scene) {
         if (!enabled)
             return;
+
+
+        GpuTechnique* technique = renderer->resource_cache.techniques.get(hash_calculate("reflections"));
+        if (technique) {
+            gpu.destroy_descriptor_set(reflections_descriptor_set);
+
+            // Probe raytracing
+            u32 pass_index = technique->get_pass_index("reflections_rt");
+            GpuTechniquePass& pass = technique->passes[pass_index];
+
+            reflections_pipeline = pass.pipeline;
+
+            DescriptorSetLayoutHandle layout = gpu.get_descriptor_set_layout(reflections_pipeline, k_material_descriptor_set_index);
+            DescriptorSetCreation ds_creation{};
+            ds_creation.reset().set_layout(layout).buffer(reflections_constants_buffer, 40).buffer(render_scene->ddgi_constants_cache, 55);
+            render_scene->add_scene_descriptors(ds_creation, pass);
+            render_scene->add_mesh_descriptors(ds_creation, pass);
+            render_scene->add_lighting_descriptors(ds_creation, pass, 0);
+            render_scene->add_debug_descriptors(ds_creation, pass);
+
+            reflections_descriptor_set = gpu.create_descriptor_set(ds_creation);
+
+            gpu.destroy_descriptor_set(brdf_lut_generation_descriptor_set);
+            // BRDF LUT generation
+            pass_index = technique->get_pass_index("brdf_lut_generation");
+            GpuTechniquePass& brdf_lut_pass = technique->passes[pass_index];
+
+            brdf_lut_generation_pipeline = brdf_lut_pass.pipeline;
+
+            layout = gpu.get_descriptor_set_layout(brdf_lut_generation_pipeline, k_material_descriptor_set_index);
+            ds_creation.reset().set_layout(layout);
+            render_scene->add_scene_descriptors(ds_creation, brdf_lut_pass);
+
+            brdf_lut_generation_descriptor_set = gpu.create_descriptor_set(ds_creation);
+        }
     }
 
     // SVGFAccumulationPass ///////////////////////////////////////////////////////////
+    struct SVGFGpuConstants {
+        u32 motion_vectors_texture_index;
+        u32 mesh_id_texture_index;
+        u32 normals_texture_index;
+        u32 depth_normal_fwidth_texture_index;
+
+        u32 history_mesh_id_texture_index;
+        u32 history_normals_texture_index;
+        u32 history_linear_depth_texture;
+        u32 reflections_texture_index;
+
+        u32 history_reflections_texture_index;
+        u32 history_moments_texture_index;
+        u32 integrated_color_texture_index;
+        u32 integrated_moments_texture_index;
+
+        u32 variance_texture_index;
+        u32 filtered_color_texture_index;
+        u32 updated_variance_texture_index;
+        u32 linear_z_dd_texture_index;
+
+        f32 resolution_scale;
+        f32 resolution_scale_rcp;
+        f32 temporal_depth_difference;
+        f32 temporal_normal_difference;
+    };
+
     void SVGFAccumulationPass::pre_render(u32 current_frame_index, CommandBuffer* gpu_commands, FrameGraph* frame_graph, RenderScene* render_scene) {
         if (!enabled) {
             return;
@@ -4066,7 +4176,7 @@ namespace Magnefu {
         gpu_commands->bind_pipeline(pipeline);
         gpu_commands->bind_descriptor_set(&descriptor_set, 1, nullptr, 0);
 
-        gpu_commands->dispatch(Magnefu::ceilu32(renderer->width / 8.0f), Magnefu::ceilu32(renderer->height / 8.0f), 1);
+        gpu_commands->dispatch(Magnefu::ceilu32(renderer->width * texture_scale / 8.0f), Magnefu::ceilu32(renderer->height * texture_scale / 8.0f), 1);
     }
 
     void SVGFAccumulationPass::on_resize(GraphicsContext& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) {
@@ -4074,11 +4184,14 @@ namespace Magnefu {
             return;
         }
 
-        gpu.resize_texture(last_frame_normals_texture, new_width, new_height);
-        gpu.resize_texture(last_frame_mesh_id_texture, new_width, new_height);
-        gpu.resize_texture(last_frame_depth_texture, new_width, new_height);
-        gpu.resize_texture(reflections_history_texture, new_width, new_height);
-        gpu.resize_texture(moments_history_texture, new_width, new_height);
+        const u32 adjusted_width = ceilu32(new_width * texture_scale);
+        const u32 adjusted_height = ceilu32(new_height * texture_scale);
+
+        gpu.resize_texture(last_frame_normals_texture, adjusted_width, adjusted_height);
+        gpu.resize_texture(last_frame_mesh_id_texture, adjusted_width, adjusted_height);
+        gpu.resize_texture(last_frame_linear_depth_texture, adjusted_width, adjusted_height);
+        gpu.resize_texture(reflections_history_texture, adjusted_width, adjusted_height);
+        gpu.resize_texture(moments_history_texture, adjusted_width, adjusted_height);
     }
 
     void SVGFAccumulationPass::prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) {
@@ -4098,8 +4211,10 @@ namespace Magnefu {
 
         GraphicsContext& gpu = *renderer->gpu;
 
+        texture_scale = scene.rt_reflections_scale;
+
         BufferCreation buffer_creation{};
-        buffer_creation.set(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Dynamic, sizeof(GpuConstants)).set_name("svgf_accumulation_constants");
+        buffer_creation.set(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Dynamic, sizeof(SVGFGpuConstants)).set_name("svgf_accumulation_constants");
         gpu_constants = gpu.create_buffer(buffer_creation);
 
         // NOTE(marco): cache textures from previous passes
@@ -4118,8 +4233,11 @@ namespace Magnefu {
         resource = frame_graph->get_resource("reflections");
         reflections_texture = resource->resource_info.texture.handle;
 
-        resource = frame_graph->get_resource("depth_normal_dd");
-        depth_normal_dd_texture = resource->resource_info.texture.handle;
+        resource = frame_graph->get_resource("depth_normal_fwidth");
+        depth_normal_fwidth_texture = resource->resource_info.texture.handle;
+
+        resource = frame_graph->get_resource("linear_z_dd");
+        linear_z_dd_texture = resource->resource_info.texture.handle;
 
         resource = frame_graph->get_resource("integrated_reflection_color");
         integrated_color_texture = resource->resource_info.texture.handle;
@@ -4128,8 +4246,8 @@ namespace Magnefu {
         integrated_moments_texture = resource->resource_info.texture.handle;
 
         TextureCreation texture_creation{ };
-        u32 adjusted_width = renderer->width;
-        u32 adjusted_height = renderer->height;
+        const u32 adjusted_width = ceilu32(renderer->width * texture_scale);
+        const u32 adjusted_height = ceilu32(renderer->height * texture_scale);
         texture_creation.set_size(adjusted_width, adjusted_height, 1).set_format_type(VK_FORMAT_B10G11R11_UFLOAT_PACK32, TextureType::Texture2D).set_mips(1).set_layers(1).set_flags(TextureFlags::Compute_mask).set_name("reflections_history_texture");
 
         reflections_history_texture = gpu.create_texture(texture_creation);
@@ -4147,15 +4265,15 @@ namespace Magnefu {
         resource = frame_graph->get_resource("normals_history");
         resource->resource_info.set_external_texture_2d(adjusted_width, adjusted_height, VK_FORMAT_R16G16_SFLOAT, 0, last_frame_normals_texture);
 
+        texture_creation.set_name("linear_depth_history");
+        last_frame_linear_depth_texture = gpu.create_texture(texture_creation);
+        resource = frame_graph->get_resource("depth_history");
+        resource->resource_info.set_external_texture_2d(adjusted_width, adjusted_height, VK_FORMAT_R16G16_SFLOAT, 0, last_frame_linear_depth_texture);
+
         texture_creation.set_format_type(VK_FORMAT_R32_UINT, TextureType::Texture2D).set_name("mesh_id_history");
         last_frame_mesh_id_texture = gpu.create_texture(texture_creation);
         resource = frame_graph->get_resource("mesh_id_history");
         resource->resource_info.set_external_texture_2d(adjusted_width, adjusted_height, VK_FORMAT_R32_UINT, 0, last_frame_mesh_id_texture);
-
-        texture_creation.set_format_type(VK_FORMAT_D32_SFLOAT, TextureType::Texture2D).set_flags(0).set_name("depth_history");
-        last_frame_depth_texture = gpu.create_texture(texture_creation);
-        resource = frame_graph->get_resource("depth_history");
-        resource->resource_info.set_external_texture_2d(adjusted_width, adjusted_height, VK_FORMAT_D32_SFLOAT, 0, last_frame_depth_texture);
 
         GpuTechnique* technique = renderer->resource_cache.techniques.get(hash_calculate("reflections"));
         if (technique) {
@@ -4182,25 +4300,31 @@ namespace Magnefu {
         GraphicsContext& gpu = *renderer->gpu;
 
         MapBufferParameters cb_map = { gpu_constants, 0, 0 };
-        GpuConstants* gpu_constants = (GpuConstants*)gpu.map_buffer(cb_map);
+        SVGFGpuConstants* gpu_constants = (SVGFGpuConstants*)gpu.map_buffer(cb_map);
         if (gpu_constants) {
             gpu_constants->motion_vectors_texture_index = motion_vectors_texture.index;
             gpu_constants->mesh_id_texture_index = mesh_id_texture.index;
             gpu_constants->normals_texture_index = normals_texture.index;
-            gpu_constants->depth_normal_dd_texture_index = depth_normal_dd_texture.index;
+            gpu_constants->linear_z_dd_texture_index = linear_z_dd_texture.index;
             gpu_constants->history_mesh_id_texture_index = last_frame_mesh_id_texture.index;
             gpu_constants->history_normals_texture_index = last_frame_normals_texture.index;
-            gpu_constants->history_depth_texture = last_frame_depth_texture.index;
+            gpu_constants->history_linear_depth_texture = last_frame_linear_depth_texture.index;
             gpu_constants->reflections_texture_index = reflections_texture.index;
             gpu_constants->history_reflections_texture_index = reflections_history_texture.index;
             gpu_constants->history_moments_texture_index = moments_history_texture.index;
             gpu_constants->integrated_color_texture_index = integrated_color_texture.index;
             gpu_constants->integrated_moments_texture_index = integrated_moments_texture.index;
+            gpu_constants->depth_normal_fwidth_texture_index = depth_normal_fwidth_texture.index;
 
             // NOTE(marco): unused
             gpu_constants->variance_texture_index = 0;
             gpu_constants->filtered_color_texture_index = 0;
             gpu_constants->updated_variance_texture_index = 0;
+
+            gpu_constants->resolution_scale = texture_scale;
+            gpu_constants->resolution_scale_rcp = 1.0f / texture_scale;
+            gpu_constants->temporal_depth_difference = scene.rt_temporal_depth_difference;
+            gpu_constants->temporal_normal_difference = scene.rt_temporal_normal_difference;
 
             gpu.unmap_buffer(cb_map);
         }
@@ -4212,12 +4336,35 @@ namespace Magnefu {
         }
 
         gpu.destroy_texture(last_frame_normals_texture);
-        gpu.destroy_texture(last_frame_depth_texture);
+        gpu.destroy_texture(last_frame_linear_depth_texture);
         gpu.destroy_texture(last_frame_mesh_id_texture);
         gpu.destroy_texture(reflections_history_texture);
         gpu.destroy_texture(moments_history_texture);
         gpu.destroy_buffer(gpu_constants);
         gpu.destroy_descriptor_set(descriptor_set);
+    }
+
+    void SVGFAccumulationPass::reload_shaders(RenderScene& scene, FrameGraph* frame_graph,
+        Allocator* resident_allocator, StackAllocator* scratch_allocator) {
+
+        GpuTechnique* technique = renderer->resource_cache.techniques.get(hash_calculate("reflections"));
+        if (technique) {
+            GraphicsContext& gpu = *renderer->gpu;
+            gpu.destroy_descriptor_set(descriptor_set);
+
+            // Probe raytracing
+            u32 pass_index = technique->get_pass_index("svgf_accumulation");
+            GpuTechniquePass& pass = technique->passes[pass_index];
+
+            pipeline = pass.pipeline;
+
+            DescriptorSetLayoutHandle layout = gpu.get_descriptor_set_layout(pipeline, k_material_descriptor_set_index);
+            DescriptorSetCreation ds_creation{};
+            ds_creation.reset().set_layout(layout).buffer(gpu_constants, 40);
+            scene.add_scene_descriptors(ds_creation, pass);
+
+            descriptor_set = gpu.create_descriptor_set(ds_creation);
+        }
     }
 
     void SVGFAccumulationPass::update_dependent_resources(GraphicsContext& gpu, FrameGraph* frame_graph, RenderScene* render_scene) {
@@ -4239,13 +4386,32 @@ namespace Magnefu {
         gpu_commands->bind_pipeline(pipeline);
         gpu_commands->bind_descriptor_set(&descriptor_set, 1, nullptr, 0);
 
-        gpu_commands->dispatch(Magnefu::ceilu32(renderer->width / 8.0f), Magnefu::ceilu32(renderer->height / 8.0f), 1);
+        gpu_commands->dispatch(Magnefu::ceilu32(renderer->width * texture_scale / 8.0f), Magnefu::ceilu32(renderer->height * texture_scale / 8.0f), 1);
 
-        // NOTE(marco): copy history textures
-        gpu_commands->copy_texture(normals_texture, last_frame_normals_texture, ResourceState::RESOURCE_STATE_GENERIC_READ);
-        gpu_commands->copy_texture(mesh_id_texture, last_frame_mesh_id_texture, ResourceState::RESOURCE_STATE_GENERIC_READ);
-        gpu_commands->copy_texture(depth_texture, last_frame_depth_texture, ResourceState::RESOURCE_STATE_GENERIC_READ);
-        gpu_commands->copy_texture(integrated_moments_texture, moments_history_texture, ResourceState::RESOURCE_STATE_GENERIC_READ);
+        if (texture_scale < 1.f) {
+
+            gpu_commands->issue_texture_barrier(last_frame_normals_texture, RESOURCE_STATE_UNORDERED_ACCESS, 0, 1);
+            gpu_commands->issue_texture_barrier(last_frame_mesh_id_texture, RESOURCE_STATE_UNORDERED_ACCESS, 0, 1);
+            gpu_commands->issue_texture_barrier(last_frame_linear_depth_texture, RESOURCE_STATE_UNORDERED_ACCESS, 0, 1);
+            gpu_commands->issue_texture_barrier(moments_history_texture, RESOURCE_STATE_UNORDERED_ACCESS, 0, 1);
+
+            gpu_commands->bind_pipeline(downsample_pipeline);
+            gpu_commands->bind_descriptor_set(&downsample_descriptor_set, 1, nullptr, 0);
+
+            gpu_commands->dispatch(Magnefu::ceilu32(renderer->width * texture_scale / 8.0f), Magnefu::ceilu32(renderer->height * texture_scale / 8.0f), 1);
+
+            gpu_commands->issue_texture_barrier(last_frame_normals_texture, RESOURCE_STATE_SHADER_RESOURCE, 0, 1);
+            gpu_commands->issue_texture_barrier(last_frame_mesh_id_texture, RESOURCE_STATE_SHADER_RESOURCE, 0, 1);
+            gpu_commands->issue_texture_barrier(last_frame_linear_depth_texture, RESOURCE_STATE_SHADER_RESOURCE, 0, 1);
+            gpu_commands->issue_texture_barrier(moments_history_texture, RESOURCE_STATE_SHADER_RESOURCE, 0, 1);
+        }
+        else {
+            // NOTE(marco): copy history textures
+            gpu_commands->copy_texture(normals_texture, last_frame_normals_texture, ResourceState::RESOURCE_STATE_GENERIC_READ);
+            gpu_commands->copy_texture(mesh_id_texture, last_frame_mesh_id_texture, ResourceState::RESOURCE_STATE_GENERIC_READ);
+            gpu_commands->copy_texture(linear_z_dd_texture, last_frame_linear_depth_texture, ResourceState::RESOURCE_STATE_GENERIC_READ);
+            gpu_commands->copy_texture(integrated_moments_texture, moments_history_texture, ResourceState::RESOURCE_STATE_GENERIC_READ);
+        }
     }
 
     void SVGFVariancePass::on_resize(GraphicsContext& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) {
@@ -4271,8 +4437,10 @@ namespace Magnefu {
 
         GraphicsContext& gpu = *renderer->gpu;
 
+        texture_scale = scene.rt_reflections_scale;
+
         BufferCreation buffer_creation{};
-        buffer_creation.set(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Dynamic, sizeof(GpuConstants)).set_name("svgf_accumulation_constants");
+        buffer_creation.set(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Dynamic, sizeof(SVGFGpuConstants)).set_name("svgf_accumulation_constants");
         gpu_constants = gpu.create_buffer(buffer_creation);
 
         // NOTE(marco): cache textures from previous passes
@@ -4291,8 +4459,11 @@ namespace Magnefu {
         resource = frame_graph->get_resource("reflections");
         reflections_texture = resource->resource_info.texture.handle;
 
-        resource = frame_graph->get_resource("depth_normal_dd");
-        depth_normal_dd_texture = resource->resource_info.texture.handle;
+        resource = frame_graph->get_resource("depth_normal_fwidth");
+        depth_normal_fwidth_texture = resource->resource_info.texture.handle;
+
+        resource = frame_graph->get_resource("linear_z_dd");
+        linear_z_dd_texture = resource->resource_info.texture.handle;
 
         resource = frame_graph->get_resource("integrated_reflection_color");
         integrated_color_texture = resource->resource_info.texture.handle;
@@ -4316,11 +4487,11 @@ namespace Magnefu {
         last_frame_mesh_id_texture = resource->resource_info.texture.handle;
 
         resource = frame_graph->get_resource("depth_history");
-        last_frame_depth_texture = resource->resource_info.texture.handle;
+        last_frame_linear_depth_texture = resource->resource_info.texture.handle;
 
         GpuTechnique* technique = renderer->resource_cache.techniques.get(hash_calculate("reflections"));
         if (technique) {
-            // Probe raytracing
+
             u32 pass_index = technique->get_pass_index("svgf_variance");
             GpuTechniquePass& pass = technique->passes[pass_index];
 
@@ -4332,6 +4503,17 @@ namespace Magnefu {
             scene.add_scene_descriptors(ds_creation, pass);
 
             descriptor_set = gpu.create_descriptor_set(ds_creation);
+
+            // Downsample pipeline
+            pass_index = technique->get_pass_index("svgf_downsample");
+            GpuTechniquePass& downsample_pass = technique->passes[pass_index];
+
+            downsample_pipeline = downsample_pass.pipeline;
+
+            layout = gpu.get_descriptor_set_layout(downsample_pipeline, k_material_descriptor_set_index);
+            ds_creation.reset().set_layout(layout).buffer(gpu_constants, 40).buffer(scene.scene_cb, 0);
+
+            downsample_descriptor_set = gpu.create_descriptor_set(ds_creation);
         }
     }
 
@@ -4343,25 +4525,31 @@ namespace Magnefu {
         GraphicsContext& gpu = *renderer->gpu;
 
         MapBufferParameters cb_map = { gpu_constants, 0, 0 };
-        GpuConstants* gpu_constants = (GpuConstants*)gpu.map_buffer(cb_map);
+        SVGFGpuConstants* gpu_constants = (SVGFGpuConstants*)gpu.map_buffer(cb_map);
         if (gpu_constants) {
             gpu_constants->motion_vectors_texture_index = motion_vectors_texture.index;
             gpu_constants->mesh_id_texture_index = mesh_id_texture.index;
             gpu_constants->normals_texture_index = normals_texture.index;
-            gpu_constants->depth_normal_dd_texture_index = depth_normal_dd_texture.index;
+            gpu_constants->linear_z_dd_texture_index = linear_z_dd_texture.index;
             gpu_constants->history_mesh_id_texture_index = last_frame_mesh_id_texture.index;
             gpu_constants->history_normals_texture_index = last_frame_normals_texture.index;
-            gpu_constants->history_depth_texture = last_frame_depth_texture.index;
+            gpu_constants->history_linear_depth_texture = last_frame_linear_depth_texture.index;
             gpu_constants->reflections_texture_index = reflections_texture.index;
             gpu_constants->history_reflections_texture_index = reflections_history_texture.index;
             gpu_constants->history_moments_texture_index = moments_history_texture.index;
             gpu_constants->integrated_color_texture_index = integrated_color_texture.index;
             gpu_constants->integrated_moments_texture_index = integrated_moments_texture.index;
             gpu_constants->variance_texture_index = variance_texture.index;
+            gpu_constants->depth_normal_fwidth_texture_index = depth_normal_fwidth_texture.index;
 
             // NOTE(marco): unused
             gpu_constants->filtered_color_texture_index = 0;
             gpu_constants->updated_variance_texture_index = 0;
+
+            gpu_constants->resolution_scale = texture_scale;
+            gpu_constants->resolution_scale_rcp = 1.0f / texture_scale;
+            gpu_constants->temporal_depth_difference = scene.rt_temporal_depth_difference;
+            gpu_constants->temporal_normal_difference = scene.rt_temporal_normal_difference;
 
             gpu.unmap_buffer(cb_map);
         }
@@ -4374,6 +4562,39 @@ namespace Magnefu {
 
         gpu.destroy_buffer(gpu_constants);
         gpu.destroy_descriptor_set(descriptor_set);
+        gpu.destroy_descriptor_set(downsample_descriptor_set);
+    }
+
+    void SVGFVariancePass::reload_shaders(RenderScene& scene, FrameGraph* frame_graph,
+        Allocator* resident_allocator, StackAllocator* scratch_allocator) {
+        GpuTechnique* technique = renderer->resource_cache.techniques.get(hash_calculate("reflections"));
+        if (technique) {
+            GraphicsContext& gpu = *renderer->gpu;
+            gpu.destroy_descriptor_set(descriptor_set);
+
+            u32 pass_index = technique->get_pass_index("svgf_variance");
+            GpuTechniquePass& pass = technique->passes[pass_index];
+
+            pipeline = pass.pipeline;
+
+            DescriptorSetLayoutHandle layout = gpu.get_descriptor_set_layout(pipeline, k_material_descriptor_set_index);
+            DescriptorSetCreation ds_creation{};
+            ds_creation.reset().set_layout(layout).buffer(gpu_constants, 40);
+            scene.add_scene_descriptors(ds_creation, pass);
+
+            descriptor_set = gpu.create_descriptor_set(ds_creation);
+
+            // Downsample pipeline
+            pass_index = technique->get_pass_index("svgf_downsample");
+            GpuTechniquePass& downsample_pass = technique->passes[pass_index];
+
+            downsample_pipeline = pass.pipeline;
+
+            layout = gpu.get_descriptor_set_layout(downsample_pipeline, k_material_descriptor_set_index);
+            ds_creation.reset().set_layout(layout).buffer(gpu_constants, 40).buffer(scene.scene_cb, 0);
+
+            downsample_descriptor_set = gpu.create_descriptor_set(ds_creation);
+        }
     }
 
     void SVGFVariancePass::update_dependent_resources(GraphicsContext& gpu, FrameGraph* frame_graph, RenderScene* render_scene) {
@@ -4389,12 +4610,25 @@ namespace Magnefu {
         }
     }
 
+    struct SVGFPushConstants {
+        u32         step_size = 1;
+        f32         sigma_z = 1.0;
+        f32         sigma_n = 128.0;
+        f32         sigma_l = 4.0;
+    };
+
     void SVGFWaveletPass::render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) {
         if (!enabled) {
             return;
         }
 
         gpu_commands->bind_pipeline(pipeline);
+
+        SVGFPushConstants push_constants;
+        push_constants.sigma_l = render_scene->rt_wavelet_sigma_l;
+        push_constants.sigma_n = render_scene->rt_wavelet_sigma_n;
+        push_constants.sigma_z = render_scene->rt_wavelet_sigma_z;
+
         for (u32 i = 0; i < k_num_passes; ++i) {
             gpu_commands->bind_descriptor_set(&descriptor_set[i], 1, nullptr, 0);
 
@@ -4411,7 +4645,10 @@ namespace Magnefu {
                 gpu_commands->issue_texture_barrier(integrated_color_texture, ResourceState::RESOURCE_STATE_GENERIC_READ, 0, 1);
             }
 
-            gpu_commands->dispatch(Magnefu::ceilu32(renderer->width / 8.0f), Magnefu::ceilu32(renderer->height / 8.0f), 1);
+            push_constants.step_size = 1 << i;
+
+            gpu_commands->push_constants(pipeline, 0, sizeof(SVGFPushConstants), &push_constants);
+            gpu_commands->dispatch(Magnefu::ceilu32(renderer->width * texture_scale / 8.0f), Magnefu::ceilu32(renderer->height * texture_scale / 8.0f), 1);
 
             if (i == 0) {
                 gpu_commands->copy_texture(ping_pong_color_texture, reflections_history_texture, ResourceState::RESOURCE_STATE_GENERIC_READ);
@@ -4423,9 +4660,11 @@ namespace Magnefu {
         if (!enabled) {
             return;
         }
+        const u32 adjusted_width = ceilu32(new_width * texture_scale);
+        const u32 adjusted_height = ceilu32(new_height * texture_scale);
 
-        gpu.resize_texture(ping_pong_color_texture, new_width, new_height);
-        gpu.resize_texture(ping_pong_variance_texture, new_width, new_height);
+        gpu.resize_texture(ping_pong_color_texture, adjusted_width, adjusted_height);
+        gpu.resize_texture(ping_pong_variance_texture, adjusted_width, adjusted_height);
     }
 
     void SVGFWaveletPass::prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) {
@@ -4445,15 +4684,17 @@ namespace Magnefu {
 
         GraphicsContext& gpu = *renderer->gpu;
 
+        texture_scale = scene.rt_reflections_scale;
+
         BufferCreation buffer_creation{};
-        buffer_creation.set(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Dynamic, sizeof(GpuConstants)).set_name("svgf_accumulation_constants");
+        buffer_creation.set(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Dynamic, sizeof(SVGFGpuConstants)).set_name("svgf_accumulation_constants");
         for (u32 i = 0; i < k_num_passes; ++i) {
             gpu_constants[i] = gpu.create_buffer(buffer_creation);
         }
 
         TextureCreation texture_creation{ };
-        u32 adjusted_width = renderer->width;
-        u32 adjusted_height = renderer->height;
+        const u32 adjusted_width = ceilu32(renderer->width * texture_scale);
+        const u32 adjusted_height = ceilu32(renderer->height * texture_scale);
         texture_creation.set_size(adjusted_width, adjusted_height, 1).set_format_type(VK_FORMAT_B10G11R11_UFLOAT_PACK32, TextureType::Texture2D).set_mips(1).set_layers(1).set_flags(TextureFlags::Compute_mask).set_name("ping_pong_color_texture");
 
         ping_pong_color_texture = gpu.create_texture(texture_creation);
@@ -4477,8 +4718,11 @@ namespace Magnefu {
         resource = frame_graph->get_resource("reflections");
         reflections_texture = resource->resource_info.texture.handle;
 
-        resource = frame_graph->get_resource("depth_normal_dd");
-        depth_normal_dd_texture = resource->resource_info.texture.handle;
+        resource = frame_graph->get_resource("depth_normal_fwidth");
+        depth_normal_fwidth_texture = resource->resource_info.texture.handle;
+
+        resource = frame_graph->get_resource("linear_z_dd");
+        linear_z_dd_texture = resource->resource_info.texture.handle;
 
         resource = frame_graph->get_resource("integrated_reflection_color");
         integrated_color_texture = resource->resource_info.texture.handle;
@@ -4502,14 +4746,14 @@ namespace Magnefu {
         last_frame_mesh_id_texture = resource->resource_info.texture.handle;
 
         resource = frame_graph->get_resource("depth_history");
-        last_frame_depth_texture = resource->resource_info.texture.handle;
+        last_frame_linear_depth_texture = resource->resource_info.texture.handle;
 
         resource = frame_graph->get_resource("svgf_output");
         resource->resource_info.set_external_texture_2d(adjusted_width, adjusted_height, VK_FORMAT_B10G11R11_UFLOAT_PACK32, 0, ping_pong_color_texture);
 
         GpuTechnique* technique = renderer->resource_cache.techniques.get(hash_calculate("reflections"));
         if (technique) {
-            // Probe raytracing
+
             u32 pass_index = technique->get_pass_index("svgf_wavelet");
             GpuTechniquePass& pass = technique->passes[pass_index];
 
@@ -4536,25 +4780,31 @@ namespace Magnefu {
 
         for (u32 i = 0; i < k_num_passes; ++i) {
             MapBufferParameters cb_map = { gpu_constants[i], 0, 0 };
-            GpuConstants* gpu_constants = (GpuConstants*)gpu.map_buffer(cb_map);
+            SVGFGpuConstants* gpu_constants = (SVGFGpuConstants*)gpu.map_buffer(cb_map);
             if (gpu_constants) {
                 gpu_constants->motion_vectors_texture_index = motion_vectors_texture.index;
                 gpu_constants->mesh_id_texture_index = mesh_id_texture.index;
                 gpu_constants->normals_texture_index = normals_texture.index;
-                gpu_constants->depth_normal_dd_texture_index = depth_normal_dd_texture.index;
+                gpu_constants->linear_z_dd_texture_index = linear_z_dd_texture.index;
                 gpu_constants->history_mesh_id_texture_index = last_frame_mesh_id_texture.index;
                 gpu_constants->history_normals_texture_index = last_frame_normals_texture.index;
-                gpu_constants->history_depth_texture = last_frame_depth_texture.index;
+                gpu_constants->history_linear_depth_texture = last_frame_linear_depth_texture.index;
                 gpu_constants->reflections_texture_index = reflections_texture.index;
                 gpu_constants->history_reflections_texture_index = reflections_history_texture.index;
                 gpu_constants->history_moments_texture_index = moments_history_texture.index;
                 gpu_constants->integrated_moments_texture_index = integrated_moments_texture.index;
+                gpu_constants->depth_normal_fwidth_texture_index = depth_normal_fwidth_texture.index;
 
                 gpu_constants->integrated_color_texture_index = (i % 2 == 0) ? integrated_color_texture.index : ping_pong_color_texture.index;
                 gpu_constants->variance_texture_index = (i % 2 == 0) ? variance_texture.index : ping_pong_variance_texture.index;
 
                 gpu_constants->filtered_color_texture_index = (i % 2 == 1) ? integrated_color_texture.index : ping_pong_color_texture.index;
                 gpu_constants->updated_variance_texture_index = (i % 2 == 1) ? variance_texture.index : ping_pong_variance_texture.index;
+
+                gpu_constants->resolution_scale = texture_scale;
+                gpu_constants->resolution_scale_rcp = 1.0f / texture_scale;
+                gpu_constants->temporal_depth_difference = scene.rt_temporal_depth_difference;
+                gpu_constants->temporal_normal_difference = scene.rt_temporal_normal_difference;
 
                 gpu.unmap_buffer(cb_map);
             }
@@ -4572,6 +4822,32 @@ namespace Magnefu {
         for (u32 i = 0; i < k_num_passes; ++i) {
             gpu.destroy_buffer(gpu_constants[i]);
             gpu.destroy_descriptor_set(descriptor_set[i]);
+        }
+    }
+
+    void SVGFWaveletPass::reload_shaders(RenderScene& scene, FrameGraph* frame_graph,
+        Allocator* resident_allocator, StackAllocator* scratch_allocator) {
+
+        GpuTechnique* technique = renderer->resource_cache.techniques.get(hash_calculate("reflections"));
+        if (technique) {
+            GraphicsContext& gpu = *renderer->gpu;
+
+            u32 pass_index = technique->get_pass_index("svgf_wavelet");
+            GpuTechniquePass& pass = technique->passes[pass_index];
+
+            pipeline = pass.pipeline;
+
+            DescriptorSetLayoutHandle layout = gpu.get_descriptor_set_layout(pipeline, k_material_descriptor_set_index);
+            DescriptorSetCreation ds_creation{};
+
+            for (u32 i = 0; i < k_num_passes; ++i) {
+                gpu.destroy_descriptor_set(descriptor_set[i]);
+
+                ds_creation.reset().set_layout(layout).buffer(gpu_constants[i], 40);
+                scene.add_scene_descriptors(ds_creation, pass);
+
+                descriptor_set[i] = gpu.create_descriptor_set(ds_creation);
+            }
         }
     }
 
@@ -4784,8 +5060,6 @@ namespace Magnefu {
     Transform animated_transforms[256];
 
     void RenderScene::update_animations(f32 delta_time) {
-        // TODO: (leon) fix animation copying on glTF file load
-        return;
 
         if (animations.size == 0) {
             return;
@@ -5557,6 +5831,7 @@ namespace Magnefu {
     }
 
     void DrawTask::ExecuteRange(enki::TaskSetPartition range_, uint32_t threadnum_) {
+        MF_PROFILE_SCOPE("Draw Task Execute");
 
         using namespace Magnefu;
 
@@ -5578,7 +5853,7 @@ namespace Magnefu {
 
         // Apply fullscreen material
         FrameGraphResource* texture = frame_graph->get_resource("final");
-        MF_CORE_ASSERT((texture != nullptr), "");
+        MF_CORE_ASSERT((texture != nullptr),"");
         // TODO: proper handling.
         TextureHandle output_texture = texture->resource_info.texture.handle;
         if (scene->taa_enabled) {

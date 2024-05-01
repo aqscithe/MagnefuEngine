@@ -105,7 +105,6 @@ namespace Magnefu {
         f32                     volumetric_fog_application_dithering_scale;
         u32                     volumetric_fog_application_options;
 
-
         vec4s                   frustum_planes[6];
 
         // Helpers for bit packing. Would be perfect for code generation
@@ -152,15 +151,19 @@ namespace Magnefu {
         f32                     volumetric_fog_distribution_scale;
         f32                     volumetric_fog_distribution_bias;
         f32                     gi_intensity;
-
         u32                     indirect_lighting_texture_index;
+
         u32                     bilateral_weights_texture_index;
         u32                     reflections_texture_index;
+
         u32                     raytraced_shadow_light_color_type;
         f32                     raytraced_shadow_light_radius;
 
         vec3s                   raytraced_shadow_light_position;
         f32                     raytraced_shadow_light_intensity;
+
+        u32                     brdf_lut_texture_index;
+        u32                     pad[3];
     }; // GpuLightingData
 
     struct glTFScene;
@@ -408,6 +411,7 @@ namespace Magnefu {
         u32                     meshlet_count;
         u32                     meshlet_index_count;
         u32                     padding1_;
+
         VkDeviceAddress         position_buffer;
         VkDeviceAddress         uv_buffer;
         VkDeviceAddress         index_buffer;
@@ -568,7 +572,9 @@ namespace Magnefu {
     struct UploadGpuDataContext {
         GameCamera& game_camera;
         StackAllocator* scratch_allocator;
+
         vec2s                   last_clicked_position_left_button;
+
         u8                      skip_invisible_lights : 1;
         u8                      use_mcguire_method : 1;
         u8                      use_view_aabb : 1;
@@ -626,6 +632,7 @@ namespace Magnefu {
 
     }; // struct GpuVolumetricFogConstants
 
+    //
     struct alignas(16) GpuTaaConstants {
 
         u32                     history_color_texture_index;
@@ -872,7 +879,8 @@ namespace Magnefu {
 
     }; // struct VolumetricFogPass
 
-
+    //
+    //
     struct TemporalAntiAliasingPass : public FrameGraphRenderPass {
 
         void                    pre_render(u32 current_frame_index, CommandBuffer* gpu_commands, FrameGraph* frame_graph, RenderScene* render_scene) override;
@@ -1063,6 +1071,8 @@ namespace Magnefu {
 
     }; // struct RayTracingTestPass
 
+    //
+    //
     struct ShadowVisibilityPass : public FrameGraphRenderPass {
         struct GpuShadowVisibilityConstants {
             u32 visibility_cache_texture_index;
@@ -1088,6 +1098,7 @@ namespace Magnefu {
         void                    upload_gpu_data(RenderScene& scene) override;
         void                    free_gpu_resources(GraphicsContext& gpu) override;
         void                    update_dependent_resources(GraphicsContext& gpu, FrameGraph* frame_graph, RenderScene* render_scene);
+
         void                    recreate_textures(GraphicsContext& gpu, u32 lights_count);
 
         Renderer* renderer;
@@ -1113,12 +1124,14 @@ namespace Magnefu {
 
         bool                    clear_resources;
         u32                     last_active_lights_count = 0;
+
         f32                     texture_scale;
 
     }; // struct ShadowVisibilityPass
-    //
-    //
 
+
+    //
+    //
     struct IndirectPass : public FrameGraphRenderPass {
 
         void                    pre_render(u32 current_frame_index, CommandBuffer* gpu_commands, FrameGraph* frame_graph, RenderScene* render_scene) override;
@@ -1131,8 +1144,9 @@ namespace Magnefu {
         void                    free_gpu_resources(GraphicsContext& gpu) override;
 
         void                    update_dependent_resources(GraphicsContext& gpu, FrameGraph* frame_graph, RenderScene* render_scene) override;
+
         u32                     get_total_probes() { return probe_count_x * probe_count_y * probe_count_z; }
-        u32                     get_total_rays() { return probe_rays * probe_count_x * probe_count_y * probe_count_z; }
+        u32                     get_total_rays() { return probe_rays * get_total_probes(); }
 
         Renderer* renderer;
 
@@ -1164,9 +1178,10 @@ namespace Magnefu {
         u32                     probe_count_x = 20;
         u32                     probe_count_y = 12;
         u32                     probe_count_z = 20;
-        i32                     per_frame_probe_updates = 0;
 
+        i32                     per_frame_probe_updates = 0;
         i32                     probe_update_offset = 0;
+
         i32                     probe_rays = 128;
         i32                     irradiance_atlas_width;
         i32                     irradiance_atlas_height;
@@ -1201,6 +1216,7 @@ namespace Magnefu {
         void                    upload_gpu_data(RenderScene& scene) override;
         void                    free_gpu_resources(GraphicsContext& gpu) override;
 
+        void                    reload_shaders(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) override;
         void                    update_dependent_resources(GraphicsContext& gpu, FrameGraph* frame_graph, RenderScene* render_scene) override;
 
         Renderer* renderer;
@@ -1215,31 +1231,17 @@ namespace Magnefu {
         DescriptorSetHandle     reflections_descriptor_set;
         PipelineHandle          reflections_pipeline;
 
+        DescriptorSetHandle     brdf_lut_generation_descriptor_set;
+        PipelineHandle          brdf_lut_generation_pipeline;
+        TextureHandle           brdf_lut_texture;
+
+        f32                     texture_scale = 1.f;
+
     }; // ReflectionsPass
 
     //
     //
     struct SVGFAccumulationPass : public FrameGraphRenderPass {
-        struct GpuConstants {
-            u32 motion_vectors_texture_index;
-            u32 mesh_id_texture_index;
-            u32 normals_texture_index;
-            u32 depth_normal_dd_texture_index;
-
-            u32 history_mesh_id_texture_index;
-            u32 history_normals_texture_index;
-            u32 history_depth_texture;
-            u32 reflections_texture_index;
-
-            u32 history_reflections_texture_index;
-            u32 history_moments_texture_index;
-            u32 integrated_color_texture_index;
-            u32 integrated_moments_texture_index;
-
-            u32 variance_texture_index;
-            u32 filtered_color_texture_index;
-            u32 updated_variance_texture_index;
-        };
 
         void                    pre_render(u32 current_frame_index, CommandBuffer* gpu_commands, FrameGraph* frame_graph, RenderScene* render_scene) override;
         void                    render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) override;
@@ -1250,6 +1252,7 @@ namespace Magnefu {
         void                    upload_gpu_data(RenderScene& scene) override;
         void                    free_gpu_resources(GraphicsContext& gpu) override;
 
+        void                    reload_shaders(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) override;
         void                    update_dependent_resources(GraphicsContext& gpu, FrameGraph* frame_graph, RenderScene* render_scene) override;
 
         Renderer* renderer;
@@ -1261,12 +1264,13 @@ namespace Magnefu {
         TextureHandle           depth_texture;
         TextureHandle           normals_texture;
         TextureHandle           mesh_id_texture;
-        TextureHandle           depth_normal_dd_texture;
+        TextureHandle           depth_normal_fwidth_texture;
+        TextureHandle           linear_z_dd_texture;
         TextureHandle           integrated_color_texture;
         TextureHandle           integrated_moments_texture;
 
         TextureHandle           last_frame_normals_texture;
-        TextureHandle           last_frame_depth_texture;
+        TextureHandle           last_frame_linear_depth_texture;
         TextureHandle           last_frame_mesh_id_texture;
         TextureHandle           reflections_history_texture;
         TextureHandle           moments_history_texture;
@@ -1274,31 +1278,13 @@ namespace Magnefu {
         DescriptorSetHandle     descriptor_set;
         PipelineHandle          pipeline;
 
+        f32                     texture_scale = 1.f;
+
     }; // SVGFAccumulationPass
 
     //
     //
     struct SVGFVariancePass : public FrameGraphRenderPass {
-        struct GpuConstants {
-            u32 motion_vectors_texture_index;
-            u32 mesh_id_texture_index;
-            u32 normals_texture_index;
-            u32 depth_normal_dd_texture_index;
-
-            u32 history_mesh_id_texture_index;
-            u32 history_normals_texture_index;
-            u32 history_depth_texture;
-            u32 reflections_texture_index;
-
-            u32 history_reflections_texture_index;
-            u32 history_moments_texture_index;
-            u32 integrated_color_texture_index;
-            u32 integrated_moments_texture_index;
-
-            u32 variance_texture_index;
-            u32 filtered_color_texture_index;
-            u32 updated_variance_texture_index;
-        };
 
         void                    pre_render(u32 current_frame_index, CommandBuffer* gpu_commands, FrameGraph* frame_graph, RenderScene* render_scene) override;
         void                    render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) override;
@@ -1309,6 +1295,7 @@ namespace Magnefu {
         void                    upload_gpu_data(RenderScene& scene) override;
         void                    free_gpu_resources(GraphicsContext& gpu) override;
 
+        void                    reload_shaders(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) override;
         void                    update_dependent_resources(GraphicsContext& gpu, FrameGraph* frame_graph, RenderScene* render_scene) override;
 
         Renderer* renderer;
@@ -1321,18 +1308,24 @@ namespace Magnefu {
         TextureHandle           depth_texture;
         TextureHandle           normals_texture;
         TextureHandle           mesh_id_texture;
-        TextureHandle           depth_normal_dd_texture;
+        TextureHandle           depth_normal_fwidth_texture;
+        TextureHandle           linear_z_dd_texture;
         TextureHandle           integrated_color_texture;
         TextureHandle           integrated_moments_texture;
 
         TextureHandle           last_frame_normals_texture;
-        TextureHandle           last_frame_depth_texture;
+        TextureHandle           last_frame_linear_depth_texture;
         TextureHandle           last_frame_mesh_id_texture;
         TextureHandle           reflections_history_texture;
         TextureHandle           moments_history_texture;
 
         DescriptorSetHandle     descriptor_set;
         PipelineHandle          pipeline;
+
+        PipelineHandle          downsample_pipeline;
+        DescriptorSetHandle     downsample_descriptor_set;
+
+        f32                     texture_scale = 1.f;
 
     }; // SVGFVariancePass
 
@@ -1341,27 +1334,6 @@ namespace Magnefu {
     struct SVGFWaveletPass : public FrameGraphRenderPass {
         static const u32 k_num_passes = 5;
 
-        struct GpuConstants {
-            u32 motion_vectors_texture_index;
-            u32 mesh_id_texture_index;
-            u32 normals_texture_index;
-            u32 depth_normal_dd_texture_index;
-
-            u32 history_mesh_id_texture_index;
-            u32 history_normals_texture_index;
-            u32 history_depth_texture;
-            u32 reflections_texture_index;
-
-            u32 history_reflections_texture_index;
-            u32 history_moments_texture_index;
-            u32 integrated_color_texture_index;
-            u32 integrated_moments_texture_index;
-
-            u32 variance_texture_index;
-            u32 filtered_color_texture_index;
-            u32 updated_variance_texture_index;
-        };
-
         void                    pre_render(u32 current_frame_index, CommandBuffer* gpu_commands, FrameGraph* frame_graph, RenderScene* render_scene) override;
         void                    render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) override;
 
@@ -1371,6 +1343,7 @@ namespace Magnefu {
         void                    upload_gpu_data(RenderScene& scene) override;
         void                    free_gpu_resources(GraphicsContext& gpu) override;
 
+        void                    reload_shaders(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) override;
         void                    update_dependent_resources(GraphicsContext& gpu, FrameGraph* frame_graph, RenderScene* render_scene) override;
 
         Renderer* renderer;
@@ -1381,12 +1354,13 @@ namespace Magnefu {
         TextureHandle           depth_texture;
         TextureHandle           normals_texture;
         TextureHandle           mesh_id_texture;
-        TextureHandle           depth_normal_dd_texture;
+        TextureHandle           depth_normal_fwidth_texture;
+        TextureHandle           linear_z_dd_texture;
         TextureHandle           integrated_color_texture;
         TextureHandle           integrated_moments_texture;
 
         TextureHandle           last_frame_normals_texture;
-        TextureHandle           last_frame_depth_texture;
+        TextureHandle           last_frame_linear_depth_texture;
         TextureHandle           last_frame_mesh_id_texture;
         TextureHandle           reflections_history_texture;
         TextureHandle           moments_history_texture;
@@ -1401,10 +1375,12 @@ namespace Magnefu {
         DescriptorSetHandle     descriptor_set[k_num_passes];
         PipelineHandle          pipeline;
 
+        f32                     texture_scale = 1.f;
+
     }; // SVGFWaveletPass
 
-
-
+    //
+    //
     struct DebugRenderer {
 
         void                    init(RenderScene& scene, Allocator* resident_allocator, StackAllocator* scratch_allocator);
@@ -1441,7 +1417,6 @@ namespace Magnefu {
         virtual                 ~RenderScene() { };
 
         virtual void            init(SceneGraph* scene_graph, Allocator* resident_allocator, Renderer* renderer_) { };
-
         virtual void            add_mesh(cstring filename, cstring path, StackAllocator* temp_allocator, AsynchronousLoader* async_loader) { };
         virtual void            shutdown(Renderer* renderer) { };
 
@@ -1476,6 +1451,7 @@ namespace Magnefu {
         Array<GpuMeshletVertexData> meshlets_vertex_data;
         Array<u32>              meshlets_data;
         u32                     meshlets_index_count;
+
         // Animation and skinning data
         Array<Animation>        animations;
         Array<Skin>             skins;
@@ -1530,11 +1506,13 @@ namespace Magnefu {
         BufferHandle            mesh_task_indirect_late_commands_sb[k_max_frames];
 
         BufferHandle            meshlet_instances_indirect_count_sb[k_max_frames];
+
         Array<BufferHandle>     geometry_transform_buffers;
 
         TextureHandle           fragment_shading_rate_image;
         TextureHandle           motion_vector_texture;
         TextureHandle           visibility_motion_vector_texture;
+        TextureHandle           brdf_lut_texture;
 
         Array<VkAccelerationStructureGeometryKHR> geometries;
         Array<VkAccelerationStructureBuildRangeInfoKHR> build_range_infos;
@@ -1587,7 +1565,6 @@ namespace Magnefu {
         f32                     volumetric_fog_height_fog_falloff = 1.0f;
         f32                     volumetric_fog_noise_scale = 0.5f;
         f32                     volumetric_fog_lighting_noise_scale = 0.11f;
-        f32                     volumetric_fog_integration_noise_scale = 0.25f;
         u32                     volumetric_fog_noise_type = 0;
         f32                     volumetric_fog_noise_position_scale = 1.0f;
         f32                     volumetric_fog_noise_speed_scale = 0.2f;
@@ -1618,7 +1595,6 @@ namespace Magnefu {
         u32                     post_zoom_scale = 2;
         bool                    post_enable_zoom = false;
         bool                    post_block_zoom_input = false;
-
         // Global illumination
         bool                    gi_show_probes = false;
         vec3s                   gi_probe_grid_position{ -10.0,0.5,-10.0 };
@@ -1643,6 +1619,14 @@ namespace Magnefu {
         bool                    gi_use_infinite_bounces = true;
         f32                     gi_infinite_bounces_multiplier = 0.75f;
         i32                     gi_per_frame_probes_update = 1000;
+        // Reflections
+        f32                     rt_reflections_scale = 0.5f;
+        f32                     rt_temporal_depth_difference = 10.f;
+        f32                     rt_temporal_normal_difference = 16.f;
+        f32                     rt_wavelet_sigma_z = 1.f;
+        f32                     rt_wavelet_sigma_n = 128.f;
+        f32                     rt_wavelet_sigma_l = 4.f;
+
         bool                    use_meshlets = true;
         bool                    use_meshlets_emulation = false;
         bool                    show_debug_gpu_draws = false;
