@@ -83,6 +83,7 @@ namespace Magnefu
 
     void ResourcePool::release_resource(u32 handle) 
     {
+
         // TODO: add bits for checking if resource is alive and use bitmasks.
         free_indices[--free_indices_head] = handle;
         --used_indices;

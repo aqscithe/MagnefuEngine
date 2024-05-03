@@ -1317,6 +1317,7 @@ namespace Magnefu
         for (u32 i = 0; i < resource_deletion_queue.size; i++) {
             ResourceUpdate& resource_deletion = resource_deletion_queue[i];
 
+
             // Skip just freed resources.
             if (resource_deletion.current_frame == -1)
                 continue;
@@ -1385,7 +1386,7 @@ namespace Magnefu
 
             default:
             {
-                MF_CORE_ASSERT(false, "Cannot process resource type %u\n", resource_deletion.type);
+                MF_CORE_ASSERT(false, "Cannot process resource type {}", resource_deletion.type);
                 break;
             }
             }
@@ -1493,7 +1494,7 @@ namespace Magnefu
         info.subresourceRange.baseArrayLayer = creation.sub_resource.array_base_layer;
         info.subresourceRange.layerCount = creation.sub_resource.array_layer_count;
         check(vkCreateImageView(gpu.vulkan_device, &info, gpu.vulkan_allocation_callbacks, &texture->vk_image_view), "Failed to create image view");
-
+        
         gpu.set_resource_name(VK_OBJECT_TYPE_IMAGE_VIEW, (u64)texture->vk_image_view, creation.name);
     }
 
@@ -1569,15 +1570,15 @@ namespace Magnefu
         VmaAllocationCreateInfo memory_info{};
         memory_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-        MF_CORE_INFO("creating tex {}", creation.name);
+        MF_CORE_INFO("Creating tex {}", creation.name);
 
         if (creation.alias.index == k_invalid_texture.index) {
             if (is_sparse_texture) {
-                check(vkCreateImage(gpu.vulkan_device, &image_info, gpu.vulkan_allocation_callbacks, &texture->vk_image), "failed to create image");
+                check(vkCreateImage(gpu.vulkan_device, &image_info, gpu.vulkan_allocation_callbacks, &texture->vk_image), "failed to create texture image(sparse)");
             }
             else {
                 check(vmaCreateImage(gpu.vma_allocator, &image_info, &memory_info,
-                    &texture->vk_image, &texture->vma_allocation, nullptr), "failed to create image");
+                    &texture->vk_image, &texture->vma_allocation, nullptr), "failed to create texture image");
 
 #if defined (_DEBUG)
                 vmaSetAllocationName(gpu.vma_allocator, texture->vma_allocation, creation.name);
@@ -1593,6 +1594,8 @@ namespace Magnefu
             check(vmaCreateAliasingImage(gpu.vma_allocator, alias_texture->vma_allocation, &image_info, &texture->vk_image), "Failed to create aliasing image");
             texture->alias_texture = creation.alias;
         }
+
+        MF_CORE_DEBUG("Created tex: {}, Handle Index: {}", creation.name, texture->handle.index);
 
         gpu.set_resource_name(VK_OBJECT_TYPE_IMAGE, (u64)texture->vk_image, creation.name);
 
@@ -1742,7 +1745,7 @@ namespace Magnefu
         Texture* texture = access_texture(handle);
 
         vulkan_create_texture(*this, creation, handle, texture);
-
+        
         //// Copy buffer_data if present
         if (creation.initial_data) {
             upload_texture_data(texture, creation.initial_data, *this);
@@ -2776,6 +2779,8 @@ namespace Magnefu
             vkCreateDescriptorSetLayout(vulkan_device, &layout_info, vulkan_allocation_callbacks, &descriptor_set_layout->vk_descriptor_set_layout);
         }
 
+        MF_CORE_DEBUG("Created Descriptor Set: {}, Handle Index: {}", creation.name, handle.index);
+
         return handle;
     }
 
@@ -3011,7 +3016,7 @@ namespace Magnefu
 
         if (descriptor_set_layout->set_index != 0) {
 
-            //RASSERTM( creation.num_resources == descriptor_set_layout->num_bindings, "DescriptorSet creation mismatch: passed descriptors %u, layout descriptors %u\n", creation.num_resources, descriptor_set_layout->num_bindings );
+            //RASSERTM( creation.num_resources == descriptor_set_layout->num_bindings, "DescriptorSet creation mismatch: passed descriptors %u, layout descriptors {}", creation.num_resources, descriptor_set_layout->num_bindings );
 
         }
 
@@ -3075,7 +3080,8 @@ namespace Magnefu
         framebuffer_info.pAttachments = framebuffer_attachments;
         framebuffer_info.attachmentCount = active_attachments;
 
-        check(vkCreateFramebuffer(gpu.vulkan_device, &framebuffer_info, nullptr, &framebuffer->vk_framebuffer), "");
+        check(vkCreateFramebuffer(gpu.vulkan_device, &framebuffer_info, nullptr, &framebuffer->vk_framebuffer), "Failed to create frame buffer");
+        MF_CORE_DEBUG("Created Framebuffer: {}, Width: {}, Height: {}, Layers: {}, Color Attachments: {}", framebuffer->name, framebuffer->width, framebuffer->height, framebuffer->layers, framebuffer->num_color_attachments);
         gpu.set_resource_name(VK_OBJECT_TYPE_FRAMEBUFFER, (u64)framebuffer->vk_framebuffer, framebuffer->name);
     }
 
@@ -3216,7 +3222,7 @@ namespace Magnefu
 
         VkRenderPass vk_render_pass;
         check(vkCreateRenderPass(gpu.vulkan_device, &render_pass_info, nullptr, &vk_render_pass), "failed to create render pass");
-
+        MF_CORE_DEBUG("Created RenderPass: {}", name);
         gpu.set_resource_name(VK_OBJECT_TYPE_RENDER_PASS, (u64)vk_render_pass, name);
 
         return vk_render_pass;
@@ -3304,6 +3310,7 @@ namespace Magnefu
             // TODO(marco): shading rate image
             MF_CORE_ASSERT((creation.shading_rate_attachment.index == k_invalid_index), "");
             vulkan_create_framebuffer(*this, framebuffer);
+
         }
 
         return handle;
@@ -3320,7 +3327,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::Buffer, buffer.index, current_frame, 1 });
         }
         else {
-            MF_CORE_INFO("Graphics error: trying to free invalid Buffer %u\n", buffer.index);
+            MF_CORE_INFO("Graphics error: trying to free invalid Buffer {}", buffer.index);
         }
     }
 
@@ -3333,7 +3340,7 @@ namespace Magnefu
             texture_to_update_bindless.push({ ResourceUpdateType::Texture, texture.index, current_frame, 1 });
         }
         else {
-            MF_CORE_INFO("Graphics error: trying to free invalid Texture %u\n", texture.index);
+            MF_CORE_INFO("Graphics error: trying to free invalid Texture {}", texture.index);
         }
     }
 
@@ -3364,7 +3371,7 @@ namespace Magnefu
             destroy_shader_state(v_pipeline->shader_state);
         }
         else {
-            MF_CORE_INFO("Graphics error: trying to free invalid Pipeline %u\n", pipeline.index);
+            MF_CORE_INFO("Graphics error: trying to free invalid Pipeline {}", pipeline.index);
         }
     }
 
@@ -3376,7 +3383,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::Sampler, sampler.index, current_frame, 1 });
         }
         else {
-            MF_CORE_INFO("Graphics error: trying to free invalid Sampler %u\n", sampler.index);
+            MF_CORE_INFO("Graphics error: trying to free invalid Sampler {}", sampler.index);
         }
     }
 
@@ -3388,7 +3395,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::DescriptorSetLayout, descriptor_set_layout.index, current_frame, 1 });
         }
         else {
-            MF_CORE_INFO("Graphics error: trying to free invalid DescriptorSetLayout %u\n", descriptor_set_layout.index);
+            MF_CORE_INFO("Graphics error: trying to free invalid DescriptorSetLayout {}", descriptor_set_layout.index);
         }
     }
 
@@ -3400,7 +3407,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::DescriptorSet, descriptor_set.index, current_frame, 1 });
         }
         else {
-            MF_CORE_INFO("Graphics error: trying to free invalid DescriptorSet %u\n", descriptor_set.index);
+            MF_CORE_INFO("Graphics error: trying to free invalid DescriptorSet {}", descriptor_set.index);
         }
     }
 
@@ -3412,7 +3419,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::RenderPass, render_pass.index, current_frame, 1 });
         }
         else {
-            MF_CORE_INFO("Graphics error: trying to free invalid RenderPass %u\n", render_pass.index);
+            MF_CORE_INFO("Graphics error: trying to free invalid RenderPass {}", render_pass.index);
         }
     }
 
@@ -3424,7 +3431,7 @@ namespace Magnefu
             resource_deletion_queue.push({ ResourceUpdateType::Framebuffer, framebuffer.index, current_frame, 1 });
         }
         else {
-            MF_CORE_INFO("Graphics error: trying to free invalid Framebuffer %u\n", framebuffer.index);
+            MF_CORE_INFO("Graphics error: trying to free invalid Framebuffer {}", framebuffer.index);
         }
     }
 
@@ -3440,7 +3447,7 @@ namespace Magnefu
             allocator->deallocate(state->parse_result);
         }
         else {
-            MF_CORE_INFO("Graphics error: trying to free invalid Shader %u\n", shader.index);
+            MF_CORE_INFO("Graphics error: trying to free invalid Shader {}", shader.index);
         }
     }
 
@@ -3525,6 +3532,7 @@ namespace Magnefu
             // This is freed with the DescriptorSet pool.
             //vkFreeDescriptorSets
         }
+        MF_CORE_DEBUG("Destroying descriptor set: {}", descriptor_set);
         descriptor_sets.release_resource(descriptor_set);
     }
 
@@ -3801,7 +3809,7 @@ namespace Magnefu
         VkExtent2D swapchain_extent = surface_capabilities.currentExtent;
 
         // Skip zero-sized swapchain
-        //MF_CORE_INFO( "Requested swapchain resize %u %u\n", swapchain_extent.width, swapchain_extent.height );
+        //MF_CORE_INFO( "Requested swapchain resize %u {}", swapchain_extent.width, swapchain_extent.height );
         if (swapchain_extent.width == 0 || swapchain_extent.height == 0) {
             //MF_CORE_INFO( "Cannot create a zero-sized swapchain\n" );
             return;
@@ -3829,7 +3837,7 @@ namespace Magnefu
 
         }
         else {
-            MF_CORE_INFO("Graphics error: trying to update invalid DescriptorSet %u\n", descriptor_set.index);
+            MF_CORE_INFO("Graphics error: trying to update invalid DescriptorSet {}", descriptor_set.index);
         }
     }
 
@@ -4259,6 +4267,8 @@ namespace Magnefu
     }
 
     void GraphicsContext::present(CommandBuffer* async_compute_command_buffer) {
+        // TODO: (leon) Remove this line. Used to avoid resource deletion bug
+        //resource_deletion_queue.size = 0;
 
         VkSemaphore* render_complete_semaphore = &vulkan_render_complete_semaphore[current_frame];
 
@@ -4347,7 +4357,7 @@ namespace Magnefu
                     // Debug
 
                 //if ( strcmp("", texture->name) == 0 ) {
-                    //rprint( "%s texture %u\n", add_texture_to_delete ? "Deleting" : "Updating", texture->handle.index );
+                    //rprint( "%s texture {}", add_texture_to_delete ? "Deleting" : "Updating", texture->handle.index );
                 //}
 
                     // Add texture to delete
@@ -4680,7 +4690,7 @@ namespace Magnefu
             return;
         }
 
-        //Magnefu::print_format( "Index %u, %u, %u\n", current_frame, previous_frame, vulkan_image_index );
+        //Magnefu::print_format( "Index %u, %u, {}", current_frame, previous_frame, vulkan_image_index );
 
         // This is called inside resize_swapchain as well to correctly work.
         frame_counters_advance();

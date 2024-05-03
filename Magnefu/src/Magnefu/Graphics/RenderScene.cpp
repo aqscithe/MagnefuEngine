@@ -815,7 +815,7 @@ namespace Magnefu {
             DescriptorSetLayoutHandle layout = renderer->gpu->get_descriptor_set_layout(pass.pipeline, k_material_descriptor_set_index);
 
             for (u32 i = 0; i < k_max_frames; ++i) {
-                scene.renderer->gpu->destroy_descriptor_set(lighting_descriptor_set[i]);
+                //scene.renderer->gpu->destroy_descriptor_set(lighting_descriptor_set[i]);
 
                 // Legacy non-compute descriptor set.
                 ds_creation.reset().set_layout(layout);
@@ -881,6 +881,7 @@ namespace Magnefu {
             gpu.destroy_descriptor_set(lighting_descriptor_set[f]);
         }
 
+        
         // TODO(marco): destroy scene.fragment_shading_rate_image
     }
 
@@ -1458,7 +1459,7 @@ namespace Magnefu {
 
         GpuTechnique* technique = renderer->resource_cache.techniques.get(hash_calculate("ddgi"));
         if (technique) {
-            gpu.destroy_descriptor_set(gi_debug_probes_descriptor_set);
+            //gpu.destroy_descriptor_set(gi_debug_probes_descriptor_set);
 
             // Probe raytracing
             u32 pass_index = technique->get_pass_index("debug_mesh");
