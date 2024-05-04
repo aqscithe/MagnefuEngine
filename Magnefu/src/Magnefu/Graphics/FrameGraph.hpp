@@ -151,6 +151,7 @@ namespace Magnefu
 		virtual void                            upload_gpu_data(RenderScene& scene) {}
 		virtual void                            on_resize(GraphicsContext& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) {}
 		virtual void                            update_dependent_resources(GraphicsContext& gpu, FrameGraph* frame_graph, RenderScene* render_scene) {}
+		virtual void                            reload_shaders(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) {}
 
 		bool                                    enabled = true;
 	};
@@ -264,6 +265,7 @@ namespace Magnefu
 		void                            add_ui();
 		void                            render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene);
 		void                            on_resize(GraphicsContext& gpu, u32 new_width, u32 new_height);
+		void                            reload_shaders(RenderScene& scene, Allocator* resident_allocator, StackAllocator* scratch_allocator);
 		void                            debug_ui();
 
 		FrameGraphNode* get_node(cstring name);

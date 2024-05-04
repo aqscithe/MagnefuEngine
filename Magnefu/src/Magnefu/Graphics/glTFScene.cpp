@@ -590,7 +590,7 @@ namespace Magnefu {
 
                     meshlets_index_count += index_group_count;
 
-                    MF_CORE_DEBUG("Meshlet: Center - ({}, {}, {}) | Radius - {}, Data Offset - {}, Triangle Count - {}, Vertex Count - {}, Mesh Index - {}", meshlet.center.x, meshlet.center.y, meshlet.center.z, meshlet.radius, meshlet.data_offset, meshlet.triangle_count, meshlet.vertex_count, meshlet.mesh_index);
+                    //MF_CORE_DEBUG("Meshlet: Center - ({}, {}, {}) | Radius - {}, Data Offset - {}, Triangle Count - {}, Vertex Count - {}, Mesh Index - {}", meshlet.center.x, meshlet.center.y, meshlet.center.z, meshlet.radius, meshlet.data_offset, meshlet.triangle_count, meshlet.vertex_count, meshlet.mesh_index);
                 }
 
                 // Add mesh with all data
@@ -603,7 +603,7 @@ namespace Magnefu {
 
                 mesh_index++;
 
-                MF_CORE_DEBUG("Mesh: Meshlet Count - {} | Meshlet Index Count - {} | Meshlet Offset - {} | Index Buffer - {} | Index Offset - {} | Primitive Count - {} | GPU Mesh Index - {} | Bounding Sphere - ({}, {}, {}, {})", mesh.meshlet_count, mesh.meshlet_index_count, mesh.meshlet_offset, mesh.index_buffer.index, mesh.index_offset, mesh.primitive_count, mesh.gpu_mesh_index, mesh.bounding_sphere.x, mesh.bounding_sphere.y, mesh.bounding_sphere.z, mesh.bounding_sphere.w);
+                //MF_CORE_DEBUG("Mesh: Meshlet Count - {} | Meshlet Index Count - {} | Meshlet Offset - {} | Index Buffer - {} | Index Offset - {} | Primitive Count - {} | GPU Mesh Index - {} | Bounding Sphere - ({}, {}, {}, {})", mesh.meshlet_count, mesh.meshlet_index_count, mesh.meshlet_offset, mesh.index_buffer.index, mesh.index_offset, mesh.primitive_count, mesh.gpu_mesh_index, mesh.bounding_sphere.x, mesh.bounding_sphere.y, mesh.bounding_sphere.z, mesh.bounding_sphere.w);
             }
         }
 

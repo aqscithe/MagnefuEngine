@@ -10,6 +10,7 @@
 
 
 
+
 namespace Magnefu {
 
     // Utility methods ////////////////////////////////////////////////////////
@@ -20,7 +21,7 @@ namespace Magnefu {
         Magnefu::StringBuffer& shader_buffer, Magnefu::Allocator* temp_allocator, Magnefu::Renderer* renderer,
         Magnefu::FrameGraph* frame_graph, Magnefu::StringBuffer& pass_name_buffer,
         const Array<VertexInputCreation>& vertex_input_creations, FlatHashMap<u64, u16>& name_to_vertex_inputs,
-        cstring technique_name, bool use_cache, bool parent_technique);
+        cstring technique_name, bool use_cache, bool parent_technique, bool& is_shader_changed);
 
     // RenderResourcesLoader //////////////////////////////////////////////////
     void RenderResourcesLoader::init(Magnefu::Renderer* renderer_, Magnefu::StackAllocator* temp_allocator_, Magnefu::FrameGraph* frame_graph_) {
@@ -32,16 +33,16 @@ namespace Magnefu {
     void RenderResourcesLoader::shutdown() {
     }
 
-    GpuTechnique* RenderResourcesLoader::load_gpu_technique(cstring json_path, bool use_shader_cache) {
+    void RenderResourcesLoader::parse_gpu_technique(GpuTechniqueCreation& technique_creation, cstring json_path, bool use_shader_cache, bool& is_techinque_changed) {
 
         using namespace Magnefu;
-        i64 begin_time = time_now();
-        sizet allocated_marker = temp_allocator->getMarker();
+
+        is_techinque_changed = false;
 
         FileReadResult read_result = file_read_text(json_path, temp_allocator);
 
         StringBuffer path_buffer;
-        path_buffer.init(1024, temp_allocator);
+        path_buffer.init(mfkilo(1), temp_allocator);
 
         StringBuffer shader_code_buffer;
         shader_code_buffer.init(mfmega(2), temp_allocator);
@@ -49,20 +50,24 @@ namespace Magnefu {
         StringBuffer pass_name_buffer;
         pass_name_buffer.init(mfkilo(2), temp_allocator);
 
+        StringBuffer technique_name_buffer;
+        technique_name_buffer.init(256, temp_allocator);
+
         using json = nlohmann::json;
 
         json json_data = json::parse(read_result.data);
 
         // parse 1 pipeline
         json name = json_data["name"];
-        std::string name_string;
         if (name.is_string()) {
+            std::string name_string;
             name.get_to(name_string);
-            MF_CORE_INFO("Parsing GPU Technique {}", name_string.c_str());
+
+            technique_name_buffer.append_f("%s", name_string.c_str());
+            MF_CORE_INFO("Parsing GPU Technique {}", technique_name_buffer.data);
         }
 
-        GpuTechniqueCreation technique_creation;
-        technique_creation.name = name_string.c_str();
+        technique_creation.name = technique_name_buffer.data;
 
         Array<VertexInputCreation> vertex_input_creations;
 
@@ -145,7 +150,7 @@ namespace Magnefu {
                                 vertex_stream.input_rate = VertexInputRate::PerInstance;
                             }
                             else {
-                                MF_CORE_ASSERT(false, "");
+                                MF_CORE_ASSERT((false), "");
                             }
                         }
 
@@ -167,6 +172,8 @@ namespace Magnefu {
 
                 bool add_pass = true;
 
+                bool parent_shader_changed = false;
+
                 json inherit_from = pipeline["inherit_from"];
                 if (inherit_from.is_string()) {
                     std::string inherited_name;
@@ -178,31 +185,65 @@ namespace Magnefu {
                         pipeline_i["name"].get_to(name);
 
                         if (name == inherited_name) {
-                            add_pass = parse_gpu_pipeline(pipeline_i, pc, path_buffer, shader_code_buffer, temp_allocator, renderer, frame_graph, pass_name_buffer, vertex_input_creations, name_to_vertex_inputs, technique_creation.name, false, true);
+                            add_pass = parse_gpu_pipeline(pipeline_i, pc, path_buffer, shader_code_buffer, temp_allocator, renderer, frame_graph, pass_name_buffer, vertex_input_creations, name_to_vertex_inputs, technique_creation.name, false, true, parent_shader_changed);
                             break;
                         }
                     }
                 }
 
-                add_pass = add_pass && parse_gpu_pipeline(pipeline, pc, path_buffer, shader_code_buffer, temp_allocator, renderer, frame_graph, pass_name_buffer, vertex_input_creations, name_to_vertex_inputs, technique_creation.name, use_shader_cache, false);
+                bool current_shader_changed = false;
+                add_pass = add_pass && parse_gpu_pipeline(pipeline, pc, path_buffer, shader_code_buffer, temp_allocator, renderer, frame_graph, pass_name_buffer, vertex_input_creations, name_to_vertex_inputs, technique_creation.name, use_shader_cache, false, current_shader_changed);
 
                 if (add_pass) {
                     technique_creation.creations[technique_creation.num_creations++] = pc;
+
+                    is_techinque_changed = current_shader_changed || parent_shader_changed;
                 }
             }
         }
+    }
+
+
+    GpuTechnique* RenderResourcesLoader::load_gpu_technique(cstring json_path, bool use_shader_cache, bool& is_shader_changed) {
+
+        i64 begin_time = time_now();
+        sizet allocated_marker = temp_allocator->getMarker();
+
+        GpuTechniqueCreation technique_creation;
+        parse_gpu_technique(technique_creation, json_path, use_shader_cache, is_shader_changed);
 
         // Create technique and cache it.
         GpuTechnique* technique = renderer->create_technique(technique_creation);
 
-        vertex_input_creations.shutdown();
-
+        // Needs to be freed after the technique is created, or the name will be 0.
         temp_allocator->freeToMarker(allocated_marker);
 
-        MF_CORE_INFO("Created technique {} in {} seconds", technique_creation.name, time_from_seconds(begin_time));
+        MF_CORE_INFO("Created technique %s in {} seconds", technique_creation.name, time_from_seconds(begin_time));
 
         return technique;
     }
+
+    void RenderResourcesLoader::reload_gpu_technique(cstring json_path, bool use_shader_cache, bool& is_technique_changed) {
+
+        i64 begin_time = time_now();
+        sizet allocated_marker = temp_allocator->getMarker();
+
+        GpuTechniqueCreation technique_creation;
+        parse_gpu_technique(technique_creation, json_path, use_shader_cache, is_technique_changed);
+
+        if (is_technique_changed) {
+            // Destroy old gpu technique
+            GpuTechnique* old_technique = renderer->resource_cache.techniques.get(hash_calculate(technique_creation.name));
+            renderer->destroy_technique(old_technique);
+            // Load new one
+            GpuTechnique* new_technique = renderer->create_technique(technique_creation);
+        }
+
+        temp_allocator->freeToMarker(allocated_marker);
+
+        MF_CORE_INFO("Re-created technique %s in {} seconds\n", technique_creation.name, time_from_seconds(begin_time));
+    }
+
 
     TextureResource* RenderResourcesLoader::load_texture(cstring path, bool generate_mipmaps) {
         int comp, width, height;
@@ -244,7 +285,6 @@ namespace Magnefu {
 
         return texture;
     }
-
 
     VkBlendFactor get_blend_factor(const std::string factor) {
         if (factor == "ZERO") {
@@ -333,7 +373,7 @@ namespace Magnefu {
             return VK_PIPELINE_RASTERIZATION_STATE_CREATE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;
         }
 
-        MF_CORE_ASSERT(false, "");
+        MF_CORE_ASSERT((false), "");
         return 0;
     }
 
@@ -362,9 +402,11 @@ namespace Magnefu {
         Magnefu::StringBuffer& shader_buffer, Magnefu::Allocator* temp_allocator, Magnefu::Renderer* renderer,
         Magnefu::FrameGraph* frame_graph, Magnefu::StringBuffer& pass_name_buffer,
         const Array<VertexInputCreation>& vertex_input_creations, FlatHashMap<u64, u16>& name_to_vertex_inputs,
-        cstring technique_name, bool use_cache, bool parent_technique) {
+        cstring technique_name, bool use_cache, bool parent_technique, bool& shader_changed) {
         using json = nlohmann::json;
         using namespace Magnefu;
+
+        shader_changed = false;
 
         json json_name = pipeline["name"];
         if (json_name.is_string()) {
@@ -457,8 +499,8 @@ namespace Magnefu {
                     }
 
                     rt_shader_pass = true;
-                    shader_stage.type = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
 
+                    shader_stage.type = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
                 }
                 else if (name == "closest_hit") {
                     if (!renderer->gpu->ray_tracing_present) {
@@ -467,8 +509,8 @@ namespace Magnefu {
                     }
 
                     rt_shader_pass = true;
-                    shader_stage.type = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
 
+                    shader_stage.type = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
                 }
                 else if (name == "miss") {
                     if (!renderer->gpu->ray_tracing_present) {
@@ -477,6 +519,7 @@ namespace Magnefu {
                     }
 
                     rt_shader_pass = true;
+
                     shader_stage.type = VK_SHADER_STAGE_MISS_BIT_KHR;
                 }
 
@@ -540,6 +583,9 @@ namespace Magnefu {
                             // Write spirv
                             file_write_binary(shader_spirv_path, (void*)shader_create_info.pCode, sizeof(u32) * shader_create_info.codeSize);
                         }
+
+                        // Only when compiling a shader we can say that it is changed.
+                        shader_changed = true;
                     }
                     else {
                         MF_CORE_ERROR("Error compiling shader {} stage {}", pc.shaders.name, to_compiler_extension(shader_stage.type));

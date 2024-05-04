@@ -71,6 +71,11 @@ layout ( std140, set = MATERIAL_SET, binding = 23 ) uniform LightConstants {
 
     vec3        raytraced_shadow_light_position;
     float       raytraced_shadow_light_intensity;
+
+    uint        brdf_lut_texture_index;
+    uint        pad001_lc;
+    uint        pad002_lc;
+    uint        pad003_lc;
 };
 
 layout( set = MATERIAL_SET, binding = 25 ) readonly buffer LightIndices {
@@ -512,6 +517,7 @@ vec3 calculate_point_light_contribution(vec4 albedo, float roughness, vec3 norma
     return pixel_luminance;
 }
 
+
 // Volumetric fog application
 vec3 apply_volumetric_fog( vec2 screen_uv, float raw_depth, vec3 color ) {
 
@@ -665,7 +671,7 @@ vec4 calculate_lighting(vec4 base_colour, vec3 orm, vec3 normal, vec3 emissive, 
             final_color.rgb += calculate_directional_light_contribution( albedo, roughness, normal, emissive, world_position, V, F0, NoV, position, raytraced_shadow_light_position );
         }
     }
-    
+
     // Ambient term
     vec3 F = fresnel_schlick_roughness(max(dot(normal, V), 0.0), F0, roughness);
 
@@ -679,6 +685,12 @@ vec4 calculate_lighting(vec4 base_colour, vec3 orm, vec3 normal, vec3 emissive, 
 
     const float ao = 1.0f;
     final_color.rgb += (kD * indirect_diffuse) * ao;
+
+    vec3 reflection_color = texture( global_textures[reflections_texture_index], screen_uv ).rgb;
+
+    vec2 envBRDF  = textureLod(global_textures[nonuniformEXT(brdf_lut_texture_index)], vec2(NoV, roughness), 0).rg;
+    vec3 indirect_specular = reflection_color * (F * envBRDF.x + envBRDF.y);
+    final_color.rgb += (indirect_specular) * ao;
 
 #if defined(DEBUG_OPTIONS)
 

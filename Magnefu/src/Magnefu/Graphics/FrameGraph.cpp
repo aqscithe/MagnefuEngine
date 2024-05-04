@@ -641,6 +641,13 @@ namespace Magnefu
                                     alias_texture->height != info.texture.height ||
                                     alias_texture->vk_format != info.texture.format) {
                                     continue;
+
+                                }
+
+                                // NOTE(marco): this texture has already been aliased, get original image
+                                if (alias_texture->alias_texture.index != k_invalid_index) {
+                                    alias_texture_handle = alias_texture->alias_texture;
+                                    alias_texture = builder->gpu->access_texture(alias_texture_handle);
                                 }
 
                                 TextureCreation texture_creation{ };
@@ -729,6 +736,7 @@ namespace Magnefu
 
     void FrameGraph::render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene)
     {
+        MF_PROFILE_SCOPE("Renderpass");
         for (u32 n = 0; n < nodes.size; ++n) {
             FrameGraphNode* node = builder->access_node(nodes[n]);
             MF_CORE_ASSERT(node->enabled, "");
@@ -885,6 +893,15 @@ namespace Magnefu
         }
     }
 
+
+    void FrameGraph::reload_shaders(RenderScene& scene, Allocator* resident_allocator, StackAllocator* scratch_allocator) {
+        for (u32 n = 0; n < nodes.size; ++n) {
+            FrameGraphNode* node = builder->access_node(nodes[n]);
+            MF_CORE_ASSERT((node->enabled), "");
+            node->graph_render_pass->reload_shaders(scene, this, resident_allocator, scratch_allocator);
+        }
+    }
+
     void FrameGraph::debug_ui() {
         if (ImGui::CollapsingHeader("Nodes")) {
             for (u32 n = 0; n < nodes.size; ++n) {
@@ -895,13 +912,13 @@ namespace Magnefu
                 ImGui::Text("\tInputs");
                 for (u32 i = 0; i < node->inputs.size; ++i) {
                     FrameGraphResource* resource = builder->access_resource(node->inputs[i]);
-                    ImGui::Text("\t\t%s", resource->name);
+                    ImGui::Text("\t\t%s %u %u", resource->name, resource->resource_info.texture.handle.index, resource->resource_info.buffer.handle.index);
                 }
 
                 ImGui::Text("\tOutputs");
                 for (u32 o = 0; o < node->outputs.size; ++o) {
                     FrameGraphResource* resource = builder->access_resource(node->outputs[o]);
-                    ImGui::Text("\t\t%s", resource->name);
+                    ImGui::Text("\t\t%s %u %u", resource->name, resource->resource_info.texture.handle.index, resource->resource_info.buffer.handle.index);
                 }
             }
         }
