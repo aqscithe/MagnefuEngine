@@ -1269,7 +1269,7 @@ void Sandbox::Destroy()
 	gpu->destroy_sampler(repeat_nearest_sampler);
 	gpu->destroy_sampler(repeat_sampler);
 
-	gpu->destroy_buffer(scene_cb);
+	//gpu->destroy_buffer(scene_cb);
 
 	imgui->Shutdown();
 	
