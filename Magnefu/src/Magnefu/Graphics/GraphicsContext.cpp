@@ -1303,7 +1303,8 @@ namespace Magnefu
         destroy_buffer(fullscreen_vertex_buffer);
         destroy_buffer(dynamic_buffer);
         destroy_render_pass(swapchain_render_pass);
-        destroy_texture(dummy_texture);
+        // Automatically destroyed when swapchain is destroyed. No need for manual destruction.
+        //destroy_texture(dummy_texture);
         destroy_buffer(dummy_constant_buffer);
         destroy_sampler(default_sampler);
 
@@ -3346,7 +3347,8 @@ namespace Magnefu
             resource_tracker.track_destroy_resource(ResourceUpdateType::Texture, texture.index);
 
             // Do not add textures to deletion queue, textures will be deleted after bindless descriptor is updated.
-            
+            if (texture.index == 0)
+                int x = 2;
             texture_to_update_bindless.push({ ResourceUpdateType::Texture, texture.index, current_frame, 1 });
             MF_CORE_DEBUG("Texture to be deleted after bindless descriptor update: {}, Textures added: {}", texture.index, texture_to_update_bindless.size);
         }
