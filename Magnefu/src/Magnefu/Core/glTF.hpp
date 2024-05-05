@@ -16,9 +16,9 @@ static const char* kDefault3DModels[SCENE_COUNT] = {
     //"res/models/FlightHelmet/glTF/FlightHelmet.gltf",
     //"res/models/pony_cartoon/scene.gltf",
     //"res/models/pony_cartoon/flattened.gltf",
-    "res/models/pony_cartoon/sans_nom.gltf",
+    //"res/models/pony_cartoon/sans_nom.gltf",
     //"res/models/the_iron_throne_stylized_remake/scene.gltf"
-    //"res/models/apollo_interior-medium_resolution-gltf/apollo_interior-medium_resolution.gltf"
+    "res/models/apollo_interior-medium_resolution-gltf/apollo_interior-medium_resolution.gltf"
     //"res/models/spartan_armour_mkv_-_halo_reach/scene.gltf"
 };
 

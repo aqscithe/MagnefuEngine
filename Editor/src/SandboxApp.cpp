@@ -1833,6 +1833,8 @@ bool Sandbox::MainLoop()
 			}
 			ImGui::End();
 
+			input->DebugUI();
+
 			DrawGUI();
 		}
 
