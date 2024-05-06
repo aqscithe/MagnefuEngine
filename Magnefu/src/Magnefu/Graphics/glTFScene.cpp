@@ -143,6 +143,7 @@ namespace Magnefu {
         buffers.init(resident_allocator, 4);
         names_buffer.init(mfkilo(64), resident_allocator);
 
+        entities.init(resident_allocator, 16);
         meshes.init(resident_allocator, 16);
         meshlets.init(resident_allocator, 16);
         meshlets_data.init(resident_allocator, 16);
@@ -164,6 +165,27 @@ namespace Magnefu {
         geometry_transform_buffers.init(resident_allocator, 4);
 
         gltf_scenes.init(resident_allocator, 4);
+
+        // -- Connect Entity Listeners -- //
+
+        registry.on_construct<entt::entity>().connect<&RenderScene::on_create_entity>();
+        registry.on_destroy<entt::entity>().connect<&RenderScene::on_destroy_entity>();
+        registry.on_update<entt::entity>().connect<&RenderScene::on_update_entity>();
+
+        // ---------------------------------- //
+
+        // -- Connect Component Listeners -- //
+
+        // Transform
+        //registry.on_construct<TransformComponent>().connect<&Scene::OnAttachTransformComponent>();
+        //registry.on_destroy<TransformComponent>().connect<&Scene::OnDetachTransformComponent>();
+        //registry.on_update<TransformComponent>().connect<&Scene::OnUpdateTransformComponent>();
+
+        //// Mesh
+        //registry.on_construct<MeshComponent>().connect<&Scene::OnAttachMeshComponent>();
+        //registry.on_destroy<MeshComponent>().connect<&Scene::OnDetachMeshComponent>();
+        //registry.on_update<MeshComponent>().connect<&Scene::OnUpdateMeshComponent>();
+
     }
 
     void glTFScene::add_mesh(cstring filename, cstring path, StackAllocator* temp_allocator, AsynchronousLoader* async_loader) {
@@ -1151,6 +1173,30 @@ namespace Magnefu {
 
         meshes.shutdown();
         mesh_instances.shutdown();
+
+        registry.clear();
+
+        // -- Disconnect Listeners -- //
+
+        // Entity Listeners
+        registry.on_construct<entt::entity>().disconnect();
+        registry.on_destroy<entt::entity>().disconnect();
+        registry.on_update<entt::entity>().disconnect();
+
+        // Component Listeners
+        /*registry.on_construct<TransformComponent>().disconnect();
+        registry.on_construct<MeshComponent>().disconnect();
+
+        registry.on_destroy<TransformComponent>().disconnect();
+        registry.on_destroy<MeshComponent>().disconnect();
+
+
+        registry.on_update<TransformComponent>().disconnect();
+        registry.on_update<MeshComponent>().disconnect();*/
+
+        // --------------------------- //
+
+        entities.shutdown();
 
         names_buffer.shutdown();
 

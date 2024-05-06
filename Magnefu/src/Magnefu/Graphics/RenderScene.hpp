@@ -9,7 +9,7 @@
 #include "Magnefu/Core/Color.hpp"
 
 #include "enkiTS/TaskScheduler.h"
-
+#include "ECS/Entity.h"
 #include "cglm/types-struct.h"
 
 #include <atomic>
@@ -1437,6 +1437,40 @@ namespace Magnefu {
         void                    add_meshlet_descriptors(DescriptorSetCreation& descriptor_set_creation, GpuTechniquePass& pass);
         void                    add_debug_descriptors(DescriptorSetCreation& descriptor_set_creation, GpuTechniquePass& pass);
         void                    add_lighting_descriptors(DescriptorSetCreation& descriptor_set_creation, GpuTechniquePass& pass, u32 frame_index);
+
+
+        // ECS functions
+        Entity&                 create_entity(cstring name);
+
+        /*template<typename T, typename By>
+        bool SortEntitiesByComponent()
+        {
+            registry.sort<T, By>();
+        }*/
+
+        // -- Entity Listeners -- //
+
+        static void             on_create_entity(entt::entity entity);
+        static void             on_destroy_entity(entt::entity entity);
+        static void             on_update_entity(entt::entity entity);
+
+        // -- Component Listeners -- //
+
+        static void             on_attach_transform_component(entt::entity entity);
+        static void             on_attach_mesh_component(entt::entity entity);
+        static void             on_detach_transform_component(entt::entity entity);
+        static void             on_detach_mesh_component(entt::entity entity);
+        static void             on_update_transform_component(entt::entity entity);
+        static void             on_update_mesh_component(entt::entity entity);
+
+
+
+        // ECS Primitives
+        entt::registry          registry;
+        entt::observer			observer;
+        Array<Entity>           entities; // Maybe this should be an array of entity handles, not the entities themselves
+
+        
 
         DebugRenderer           debug_renderer;
 

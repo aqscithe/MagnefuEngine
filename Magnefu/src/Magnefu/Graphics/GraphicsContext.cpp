@@ -1572,8 +1572,6 @@ namespace Magnefu
         VmaAllocationCreateInfo memory_info{};
         memory_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-        MF_CORE_INFO("Creating tex {}", creation.name);
-
         if (creation.alias.index == k_invalid_texture.index) {
             if (is_sparse_texture) {
                 check(vkCreateImage(gpu.vulkan_device, &image_info, gpu.vulkan_allocation_callbacks, &texture->vk_image), "failed to create texture image(sparse)");

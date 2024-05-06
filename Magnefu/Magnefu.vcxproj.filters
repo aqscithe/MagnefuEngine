@@ -333,16 +333,10 @@
     <ClInclude Include="src\Magnefu\Application\LayerStack.h">
       <Filter>src\Magnefu\Application</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Scene\Components.h">
+    <ClInclude Include="src\Magnefu\Graphics\ECS\Components.h">
       <Filter>src\Magnefu\Application\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Scene\Entity.h">
-      <Filter>src\Magnefu\Application\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Scene\Scene.h">
-      <Filter>src\Magnefu\Application\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Scene\SceneManager.h">
+    <ClInclude Include="src\Magnefu\Graphics\ECS\Entity.h">
       <Filter>src\Magnefu\Application\Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Application\Windows\Window.h">
@@ -3890,13 +3884,7 @@
     <ClCompile Include="src\Magnefu\Application\LayerStack.cpp">
       <Filter>src\Magnefu\Application</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\Scene\Entity.cpp">
-      <Filter>src\Magnefu\Application\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\Scene\Scene.cpp">
-      <Filter>src\Magnefu\Application\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\Scene\SceneManager.cpp">
+    <ClCompile Include="src\Magnefu\Graphics\ECS\Entity.cpp">
       <Filter>src\Magnefu\Application\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Application\Windows\Window.cpp">

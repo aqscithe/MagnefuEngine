@@ -1,16 +1,5 @@
 #pragma once
 
-
-// -- Application Includes ---------//
-#include "Scene.h"
-
-// -- Graphics Includes --------------------- //
-
-
-// -- Core Includes ---------------------------------- //
-
-
-
 // -- vendor Includes ------------------------- //
 #include "entt.hpp"
 
@@ -23,8 +12,8 @@ namespace Magnefu
 	{
 	public:
 		Entity() = default;
-		Entity(entt::entity entity, Scene* scene, cstring name) :
-			entity_handle(entity), scene(scene), name(name)
+		Entity(entt::entity entity, entt::registry* registry, cstring name) :
+			entity_handle(entity), registry(registry), name(name)
 		{}
 
 		~Entity();
@@ -36,20 +25,20 @@ namespace Magnefu
 		template<typename T>
 		bool Contains()
 		{
-			return scene->registry.all_of<T>(entity_handle);
+			return registry->all_of<T>(entity_handle);
 		}
 		
 
 		template<typename T, typename...Args>
 		T& AddComponent(Args&&...args)
 		{
-			return scene->registry.emplace<T>(entity_handle, std::forward<Args>(args)...);
+			return registry->emplace<T>(entity_handle, std::forward<Args>(args)...);
 		}
 
 		template<typename T, typename...Args>
 		T& ReplaceComponent(Args&&...args)
 		{
-			return scene->registry.emplace_or_replace<T>(entity_handle, std::forward<Args>(args)...);
+			return registry->emplace_or_replace<T>(entity_handle, std::forward<Args>(args)...);
 		}
 
 		/*template<typename T, typename...Args>
@@ -61,6 +50,6 @@ namespace Magnefu
 	public:
 		cstring name;
 		entt::entity entity_handle;
-		Scene* scene;
+		entt::registry* registry; 
 	};
 }

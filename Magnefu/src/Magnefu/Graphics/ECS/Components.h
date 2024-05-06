@@ -6,9 +6,6 @@
 // -- Graphics Includes --------------------- //
 
 // -- Core Includes ---------------------------------- //
-#include "Magnefu/Core/Maths/MathsCommon.h"
-#include "Magnefu/Core/Maths/Matrices.h"
-
 
 
 namespace Magnefu

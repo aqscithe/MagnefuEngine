@@ -5815,6 +5815,62 @@ namespace Magnefu {
         }
     }
 
+
+    // -- Entity Listeners -- //
+
+    void RenderScene::on_create_entity(entt::entity entity)
+    {
+        MF_CORE_DEBUG("Entity Created | {}", (uint32_t)entity);
+    }
+
+    void RenderScene::on_destroy_entity(entt::entity entity)
+    {
+        MF_CORE_DEBUG("Entity Destroyed | {}", (uint32_t)entity);
+    }
+
+    void RenderScene::on_update_entity(entt::entity entity)
+    {
+        MF_CORE_DEBUG("Entity Updated | {}", (uint32_t)entity);
+    }
+
+    // -- Component Listeners -- //
+
+    void RenderScene::on_attach_transform_component(entt::entity entity)
+    {
+        MF_CORE_DEBUG("Transform Component Attached | Entity {}", (uint32_t)entity);
+    }
+
+    void RenderScene::on_attach_mesh_component(entt::entity entity)
+    {
+        MF_CORE_DEBUG("Mesh Component Attached | Entity {}", (uint32_t)entity);
+    }
+
+    void RenderScene::on_detach_transform_component(entt::entity entity)
+    {
+        MF_CORE_DEBUG("Transform Component Detached | Entity {}", (uint32_t)entity);
+    }
+
+    void RenderScene::on_detach_mesh_component(entt::entity entity)
+    {
+        MF_CORE_DEBUG("Mesh Component Detached | Entity {}", (uint32_t)entity);
+    }
+
+    void RenderScene::on_update_transform_component(entt::entity entity)
+    {
+        MF_CORE_DEBUG("Transform Component Updated | Entity {}", (uint32_t)entity);
+    }
+
+    void RenderScene::on_update_mesh_component(entt::entity entity)
+    {
+        MF_CORE_DEBUG("Mesh Component Updated | Entity {}", (uint32_t)entity);
+    }
+
+    Entity& RenderScene::create_entity(cstring name)
+    {
+        entities.push(Entity(registry.create(), &registry, name));
+        return entities.back();
+    }
+
     // DrawTask ///////////////////////////////////////////////////////////////
     void DrawTask::init(GraphicsContext* gpu_, FrameGraph* frame_graph_, Renderer* renderer_,
         ImGuiService* imgui_, GpuVisualProfiler* gpu_profiler_, RenderScene* scene_,
