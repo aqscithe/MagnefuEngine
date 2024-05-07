@@ -676,8 +676,8 @@ namespace Magnefu {
             {
                 parent_stack.top().children_left = node.children_count;
             }
-             
-            entities.push(create_entity(node.name.get_text(0), parent_stack.top().parent, node.children_count));
+            
+            Entity& entity = create_entity(node.name.get_text(0), parent_stack.top().parent, node.children_count);
             parent_stack.top().children_left--;
 
             if (node.children_count)
@@ -703,6 +703,12 @@ namespace Magnefu {
             // Add only children nodes to the count, as the current node is
             // already calculated when inserting it.
             total_node_count += node.children_count;
+        }
+
+        for (int i = 0; i < entities.size; i++)
+        {
+            Entity& ent = entities[i];
+            MF_CORE_DEBUG("Entity Name: {}, Handle: {}, Parent Handle: {}, Child Count: {}", ent.name, (u32)ent.entity_handle, (u32)ent.parent_handle, ent.child_count);
         }
 
         u32 node_offset = scene_graph->node_count();
