@@ -5865,9 +5865,9 @@ namespace Magnefu {
         MF_CORE_DEBUG("Mesh Component Updated | Entity {}", (uint32_t)entity);
     }
 
-    Entity& RenderScene::create_entity(cstring name)
+    Entity& RenderScene::create_entity(cstring name, entt::entity parent, u32 child_count)
     {
-        entities.push(Entity(registry.create(), &registry, name));
+        entities.push(Entity(registry.create(), parent, child_count, &registry, name));
         return entities.back();
     }
 

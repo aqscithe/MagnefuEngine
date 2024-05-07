@@ -18,6 +18,7 @@
 
 
 #include "meshoptimizer/meshoptimizer.h"
+#include <stack>
 
 
 namespace Magnefu {
@@ -652,12 +653,48 @@ namespace Magnefu {
             const i32 node = root_gltf_scene.nodes[node_index];
             nodes_to_visit.push(node);
         }
+
+
+        struct ParentChild
+        {
+            entt::entity parent;
+            u32 children_left;
+        };
+
+        
+        // Stack to track parent scope
+        std::stack<ParentChild> parent_stack;
+        parent_stack.push({ entt::null, 0 }); // Initial parent is null for root nodes
+
         // Visit nodes
         while (nodes_to_visit.size) {
             i32 node_index = nodes_to_visit.front();
             nodes_to_visit.delete_swap(0);
 
             glTF::Node& node = gltf_scene.nodes[node_index];
+            if (parent_stack.top().parent == entt::null)
+            {
+                parent_stack.top().children_left = node.children_count;
+            }
+             
+            entities.push(create_entity(node.name.get_text(0), parent_stack.top().parent, node.children_count));
+            parent_stack.top().children_left--;
+
+            if (node.children_count)
+            {
+                ParentChild relationship{};
+                relationship.parent = entities.back().entity_handle;
+                relationship.children_left = node.children_count;
+                parent_stack.push(relationship);                
+            }
+            else 
+            {
+                while (!parent_stack.empty() && parent_stack.top().children_left == 0) 
+                {
+                    parent_stack.pop();
+                }
+            }
+
             for (u32 ch = 0; ch < node.children_count; ++ch) {
                 const i32 children_index = node.children[ch];
                 nodes_to_visit.push(children_index);
@@ -673,6 +710,9 @@ namespace Magnefu {
         scene_graph->resize(new_node_count);
         scene_graph->init_new_nodes(node_offset, total_node_count);
 
+
+        // TODO: Somewhere in this function I should create entities 
+        // 
         // Populate scene graph: visit again
         nodes_to_visit.clear();
         // Add initial nodes
@@ -992,81 +1032,6 @@ namespace Magnefu {
             time_delta_seconds(end_creating_textures, end_creating_samplers),
             time_delta_seconds(end_creating_samplers, end_reading_buffers_data), time_delta_seconds(end_reading_buffers_data, end_creating_buffers));
     }
-
-    //void glTFScene::processNode(i32 gltf_node_index, i32 parent_index, glTF::Scene& gltf_scene, SceneGraph* scene_graph, u32 node_offset, Array<MeshInstance>& mesh_instances, u32& total_meshlets) {
-    //    i32 node_index = gltf_node_index + node_offset;
-    //    glTF::Node& node = gltf_scene.nodes[gltf_node_index];
-
-    //    // Compute local transform: read either raw matrix or individual Scale/Rotation/Translation components
-    //    if (node.matrix_count) {
-    //        // CGLM and glTF have the same matrix layout, just memcpy it
-    //        memcpy(&scene_graph->local_matrices[node_index], node.matrix, sizeof(mat4s));
-    //        scene_graph->updated_nodes.set_bit(node_index);
-    //    }
-    //    else {
-    //        // Handle individual transform components: SRT (scale, rotation, translation)
-    //        vec3s node_scale{ 1.0f, 1.0f, 1.0f };
-    //        if (node.scale_count) {
-    //            node_scale = vec3s{ node.scale[0], node.scale[1], node.scale[2] };
-    //        }
-
-    //        vec3s node_translation{ 0.f, 0.f, 0.f };
-    //        if (node.translation_count) {
-    //            node_translation = vec3s{ node.translation[0], node.translation[1], node.translation[2] };
-    //        }
-
-    //        versors node_rotation = glms_quat_identity();
-    //        if (node.rotation_count) {
-    //            node_rotation = glms_quat_init(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
-    //        }
-
-    //        Transform transform;
-    //        transform.translation = node_translation;
-    //        transform.scale = node_scale;
-    //        transform.rotation = node_rotation;
-
-    //        const mat4s local_matrix = transform.calculate_matrix();
-    //        scene_graph->set_local_matrix(node_index, local_matrix);
-    //    }
-
-    //    // Handle parent-relationship
-    //    scene_graph->set_hierarchy(node_index, parent_index, parent_index != -1 ? scene_graph->nodes_hierarchy[parent_index].level + 1 : 0);
-
-    //    // Cache node name
-    //    scene_graph->set_debug_data(node_index, node.name.data);
-
-    //    // Process mesh if exists
-    //    if (node.mesh != glTF::INVALID_INT_VALUE) {
-    //        glTF::Mesh& gltf_mesh = gltf_scene.meshes[node.mesh];
-    //        u32 gltf_mesh_offset = gltf_mesh_to_mesh_offset[node.mesh];  // Ensure this is defined somewhere accessible
-
-    //        // Gltf primitives are conceptually submeshes.
-    //        for (u32 primitive_index = 0; primitive_index < gltf_mesh.primitives_count; ++primitive_index) {
-    //            MeshInstance mesh_instance{};
-    //            mesh_instance.scene_graph_node_index = node_index;
-
-    //            glTF::MeshPrimitive& mesh_primitive = gltf_mesh.primitives[primitive_index];
-    //            u32 mesh_primitive_index = gltf_mesh_offset + primitive_index;
-    //            mesh_instance.mesh = &meshes[mesh_primitive_index];
-    //            mesh_instance.mesh->pbr_material.material = pbr_material;  // Define or fetch pbr_material appropriately
-    //            mesh_instance.gpu_mesh_instance_index = mesh_instances.size;
-
-    //            if (node.skin != glTF::INVALID_INT_VALUE) {
-    //                mesh_instance.mesh->skin_index = node.skin;
-    //            }
-
-    //            total_meshlets += mesh_instance.mesh->meshlet_count;
-    //            mesh_instances.push(mesh_instance);
-    //        }
-    //    }
-
-    //    // Recursively process children
-    //    for (u32 ch = 0; ch < node.children_count; ++ch) {
-    //        i32 children_index = node.children[ch];
-    //        processNode(children_index, node_index, gltf_scene, scene_graph, node_offset, mesh_instances, total_meshlets);
-    //    }
-    //}
-
 
     void glTFScene::shutdown(Renderer* renderer) {
         GraphicsContext& gpu = *renderer->gpu;

@@ -12,8 +12,8 @@ namespace Magnefu
 	{
 	public:
 		Entity() = default;
-		Entity(entt::entity entity, entt::registry* registry, cstring name) :
-			entity_handle(entity), registry(registry), name(name)
+		Entity(entt::entity entity, entt::entity parent, u32 child_count, entt::registry* registry, cstring name) :
+			entity_handle(entity), parent_handle(parent), child_count(child_count), registry(registry), name(name)
 		{}
 
 		~Entity();
@@ -50,6 +50,8 @@ namespace Magnefu
 	public:
 		cstring name;
 		entt::entity entity_handle;
+		entt::entity parent_handle;
 		entt::registry* registry; 
+		u32 child_count;
 	};
 }

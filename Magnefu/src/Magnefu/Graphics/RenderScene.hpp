@@ -1440,7 +1440,7 @@ namespace Magnefu {
 
 
         // ECS functions
-        Entity&                 create_entity(cstring name);
+        Entity&                 create_entity(cstring name, entt::entity parent, u32 child_count);
 
         /*template<typename T, typename By>
         bool SortEntitiesByComponent()
