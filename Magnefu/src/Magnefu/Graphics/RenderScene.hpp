@@ -1439,36 +1439,9 @@ namespace Magnefu {
         void                    add_lighting_descriptors(DescriptorSetCreation& descriptor_set_creation, GpuTechniquePass& pass, u32 frame_index);
 
 
-        // ECS functions
-        Entity&                 create_entity(cstring name, entt::entity parent, u32 child_count);
-
-        /*template<typename T, typename By>
-        bool SortEntitiesByComponent()
-        {
-            registry.sort<T, By>();
-        }*/
-
-        // -- Entity Listeners -- //
-
-        static void             on_create_entity(entt::entity entity);
-        static void             on_destroy_entity(entt::entity entity);
-        static void             on_update_entity(entt::entity entity);
-
-        // -- Component Listeners -- //
-
-        static void             on_attach_transform_component(entt::entity entity);
-        static void             on_attach_mesh_component(entt::entity entity);
-        static void             on_detach_transform_component(entt::entity entity);
-        static void             on_detach_mesh_component(entt::entity entity);
-        static void             on_update_transform_component(entt::entity entity);
-        static void             on_update_mesh_component(entt::entity entity);
-
-
 
         // ECS Primitives
-        entt::registry          registry;
-        entt::observer			observer;
-        Array<Entity>           entities; // Maybe this should be an array of entity handles, not the entities themselves
+        EntityManager           entity_manager;
 
         
 

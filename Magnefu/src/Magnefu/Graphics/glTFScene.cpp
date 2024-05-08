@@ -141,10 +141,11 @@ namespace Magnefu {
         renderer = renderer_;
         scene_graph = scene_graph_;
 
+        entity_manager.init(resident_allocator);
+
         buffers.init(resident_allocator, 4);
         names_buffer.init(mfkilo(64), resident_allocator);
 
-        entities.init(resident_allocator, 16);
         meshes.init(resident_allocator, 16);
         meshlets.init(resident_allocator, 16);
         meshlets_data.init(resident_allocator, 16);
@@ -166,26 +167,6 @@ namespace Magnefu {
         geometry_transform_buffers.init(resident_allocator, 4);
 
         gltf_scenes.init(resident_allocator, 4);
-
-        // -- Connect Entity Listeners -- //
-
-        registry.on_construct<entt::entity>().connect<&RenderScene::on_create_entity>();
-        registry.on_destroy<entt::entity>().connect<&RenderScene::on_destroy_entity>();
-        registry.on_update<entt::entity>().connect<&RenderScene::on_update_entity>();
-
-        // ---------------------------------- //
-
-        // -- Connect Component Listeners -- //
-
-        // Transform
-        //registry.on_construct<TransformComponent>().connect<&Scene::OnAttachTransformComponent>();
-        //registry.on_destroy<TransformComponent>().connect<&Scene::OnDetachTransformComponent>();
-        //registry.on_update<TransformComponent>().connect<&Scene::OnUpdateTransformComponent>();
-
-        //// Mesh
-        //registry.on_construct<MeshComponent>().connect<&Scene::OnAttachMeshComponent>();
-        //registry.on_destroy<MeshComponent>().connect<&Scene::OnDetachMeshComponent>();
-        //registry.on_update<MeshComponent>().connect<&Scene::OnUpdateMeshComponent>();
 
     }
 
@@ -665,6 +646,8 @@ namespace Magnefu {
         // Stack to track parent scope
         std::stack<ParentChild> parent_stack;
         parent_stack.push({ entt::null, 0 }); // Initial parent is null for root nodes
+        
+        EntityHandle parent_handle;
 
         // Visit nodes
         while (nodes_to_visit.size) {
@@ -672,13 +655,20 @@ namespace Magnefu {
             nodes_to_visit.delete_swap(0);
 
             glTF::Node& node = gltf_scene.nodes[node_index];
+            
             if (parent_stack.top().parent == entt::null)
             {
                 parent_stack.top().children_left = node.children_count;
             }
             
-            Entity& entity = create_entity(node.name.get_text(0), parent_stack.top().parent, node.children_count);
+            EntityHandle entity_handle = entity_manager.create_entity(node.name.get_text(0), parent_stack.top().parent, node.children_count);
+            Entity& entity = entity_manager.get_entity(entity_handle);
             parent_stack.top().children_left--;
+
+            if (entity.parent_handle != entt::null)
+            {
+                
+            }
 
             if (node.children_count)
             {
@@ -708,17 +698,21 @@ namespace Magnefu {
         for (int i = 0; i < entities.size; i++)
         {
             Entity& ent = entities[i];
-            MF_CORE_DEBUG("Entity Name: {}, Handle: {}, Parent Handle: {}, Child Count: {}", ent.name, (u32)ent.entity_handle, (u32)ent.parent_handle, ent.child_count);
+            MF_CORE_DEBUG("Entity Name: {}, Handle: {}, Parent Handle: {}, Child Count: {}", ent.name, (u32)ent.entity_handle, (u32)ent.parent_handle, ent.children.size);
         }
 
-        u32 node_offset = scene_graph->node_count();
+        /*u32 node_offset = scene_graph->node_count();
+        u32 new_node_count = node_offset + total_node_count;*/
+        u32 node_offset = entities.size - total_node_count; // Total Entity count - this glTF scene's node count
         u32 new_node_count = node_offset + total_node_count;
         scene_graph->resize(new_node_count);
         scene_graph->init_new_nodes(node_offset, total_node_count);
 
+        
+        
 
-        // TODO: Somewhere in this function I should create entities 
-        // 
+        
+        
         // Populate scene graph: visit again
         nodes_to_visit.clear();
         // Add initial nodes
@@ -728,6 +722,7 @@ namespace Magnefu {
         }
 
         u32 total_meshlets = 0;
+        u32 entity_index = node_offset;
 
         while (nodes_to_visit.size) {
             i32 gltf_node = nodes_to_visit.front();
@@ -767,6 +762,9 @@ namespace Magnefu {
                 transform.translation = node_translation;
                 transform.scale = node_scale;
                 transform.rotation = node_rotation;
+
+                Entity& entity = entities[entity_index];
+                entity.AddComponent<Transform>(transform);
 
                 // Final SRT composition
                 const mat4s local_matrix = transform.calculate_matrix();
@@ -1042,6 +1040,8 @@ namespace Magnefu {
     void glTFScene::shutdown(Renderer* renderer) {
         GraphicsContext& gpu = *renderer->gpu;
 
+        entity_manager.shutdown();
+
         // Unload animations
         for (u32 ai = 0; ai < animations.size; ++ai) {
             Animation& animation = animations[ai];
@@ -1144,30 +1144,6 @@ namespace Magnefu {
 
         meshes.shutdown();
         mesh_instances.shutdown();
-
-        registry.clear();
-
-        // -- Disconnect Listeners -- //
-
-        // Entity Listeners
-        registry.on_construct<entt::entity>().disconnect();
-        registry.on_destroy<entt::entity>().disconnect();
-        registry.on_update<entt::entity>().disconnect();
-
-        // Component Listeners
-        /*registry.on_construct<TransformComponent>().disconnect();
-        registry.on_construct<MeshComponent>().disconnect();
-
-        registry.on_destroy<TransformComponent>().disconnect();
-        registry.on_destroy<MeshComponent>().disconnect();
-
-
-        registry.on_update<TransformComponent>().disconnect();
-        registry.on_update<MeshComponent>().disconnect();*/
-
-        // --------------------------- //
-
-        entities.shutdown();
 
         names_buffer.shutdown();
 
