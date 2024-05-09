@@ -97,9 +97,10 @@ namespace Magnefu
 		handleToDense.shutdown();
 	}
 
-	EntityHandle EntityManager::create_entity(cstring name, entt::entity parent, u32 child_count)
+	EntityHandle EntityManager::create_entity(cstring name, EntityHandle parent_handle, u32 child_count)
 	{
 		EntityHandle handle;
+		Entity entity;
 		if (!freeHandles.empty())
 		{
 			// Retrieve available handle
@@ -113,7 +114,8 @@ namespace Magnefu
 			}
 
 			// Create new entity
-			Entity entity = Entity(registry.create(), parent, child_count, &registry, name);
+			
+			entity = Entity(registry.create(), &registry, name);
 
 			// Assign new entity to correct location in dense
 			dense[handle] = entity;
@@ -124,7 +126,7 @@ namespace Magnefu
 
 			// Create a new entity in the registry
 			entt::entity newEntity = registry.create();
-			Entity entity = Entity(newEntity, parent, child_count, &registry, name);
+			entity = Entity(newEntity, &registry, name);
 
 			// Add the new entity to the 'dense' array
 			dense.push(entity);
@@ -135,6 +137,14 @@ namespace Magnefu
 			// Ensure that the reverse mapping is maintained as well
 			denseToHandle.push(handle); // denseToHandle maps the index in 'dense' back to the handle
 		}
+
+		if (parent_handle != u32_max)
+		{
+			Entity& parent_entity = get_entity(parent_handle);
+			add_child(parent_handle, handle);
+		}
+		
+
 		return handle;
 	}
 
@@ -150,6 +160,49 @@ namespace Magnefu
 	{
 		// Direct access via indirection table
 		return dense[handleToDense[handle]];
+	}
+
+	void EntityManager::add_child(EntityHandle parent_handle, EntityHandle child_handle)
+	{
+		Entity& parent = get_entity(parent_handle);
+		Entity& child = get_entity(child_handle);
+
+		// Add or update the parent component of the child
+		registry.emplace_or_replace<Parent>(child.id, parent.id);
+
+		// Add Children component to parent entity if doesn't exist
+		if (!registry.all_of<Children>(parent.id))
+		{
+			registry.emplace<Children>(parent.id);
+		}
+
+		// Add the child to the parent's children component
+		registry.get<Children>(parent.id).children.push(child.id);
+	}
+
+	void EntityManager::remove_child(EntityHandle parent_handle, EntityHandle child_handle)
+	{
+		Entity& parent = get_entity(parent_handle);
+		Entity& child = get_entity(child_handle);
+
+		// -- Remove child from parent's list
+
+		// Get children
+		auto& children = registry.get<Children>(parent.id).children;
+
+		// Places child to be removed at the end
+		std::remove(children.begin(), children.end(), child.id);
+
+		// Remove last child in array
+		children.pop();
+
+		// Remove the former child's parent component
+		registry.remove<Parent>(child.id);
+		
+	}
+
+	void EntityManager::change_parent(EntityHandle child, EntityHandle newParent)
+	{
 	}
 
 	// -- Entity Listeners -- //

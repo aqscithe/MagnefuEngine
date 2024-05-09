@@ -11,15 +11,27 @@ namespace Magnefu
 {
 
 	typedef u32 EntityHandle;
+
+	// While technically components, I will not add component to the names of
+	// Parent and Children
+	struct Parent 
+	{
+		entt::entity parent;
+	};
+
+	struct Children
+	{
+		Array<entt::entity> children;
+	};
+
 	
 	struct Entity
 	{
 	public:
 		Entity() = default;
-		Entity(entt::entity entity, entt::entity parent, u32 child_count, entt::registry* registry, cstring name) :
-			entity_handle(entity), parent_handle(parent), registry(registry), name(name)
+		Entity(entt::entity entity, entt::registry* registry, cstring name) :
+			id(entity), registry(registry), name(name)
 		{
-			children.init(&MemoryService::Instance()->systemAllocator, child_count);
 		}
 
 		~Entity();
@@ -55,12 +67,8 @@ namespace Magnefu
 
 	public:
 		cstring name;
-		entt::entity entity_handle;
-		entt::entity parent_handle;
-		u32 entity_index;
-		u32 parent_index;
+		entt::entity id;
 		entt::registry* registry; 
-		Array<entt::entity> children;
 	};
 
 
@@ -71,9 +79,14 @@ namespace Magnefu
 		void                        init(Allocator* resident_allocator_);
 		void						shutdown();
 
-		EntityHandle				create_entity(cstring name, entt::entity parent, u32 child_count);
+		// Modify this function to also add parent component
+		EntityHandle				create_entity(cstring name, EntityHandle parent, u32 child_count);
 		void						delete_entity(EntityHandle handle);
 		Entity&						get_entity(EntityHandle handle);
+
+		void						add_child(EntityHandle parent, EntityHandle child);
+		void						remove_child(EntityHandle parent, EntityHandle child);
+		void						change_parent(EntityHandle child, EntityHandle newParent);
 
 		/*template<typename T, typename By>
 		bool SortEntitiesByComponent()

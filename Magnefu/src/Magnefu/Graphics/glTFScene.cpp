@@ -636,54 +636,15 @@ namespace Magnefu {
         }
 
 
-        struct ParentChild
-        {
-            entt::entity parent;
-            u32 children_left;
-        };
-
-        
-        // Stack to track parent scope
-        std::stack<ParentChild> parent_stack;
-        parent_stack.push({ entt::null, 0 }); // Initial parent is null for root nodes
-        
-        EntityHandle parent_handle;
-
         // Visit nodes
         while (nodes_to_visit.size) {
             i32 node_index = nodes_to_visit.front();
             nodes_to_visit.delete_swap(0);
 
+
+            // Get access to node
             glTF::Node& node = gltf_scene.nodes[node_index];
-            
-            if (parent_stack.top().parent == entt::null)
-            {
-                parent_stack.top().children_left = node.children_count;
-            }
-            
-            EntityHandle entity_handle = entity_manager.create_entity(node.name.get_text(0), parent_stack.top().parent, node.children_count);
-            Entity& entity = entity_manager.get_entity(entity_handle);
-            parent_stack.top().children_left--;
 
-            if (entity.parent_handle != entt::null)
-            {
-                
-            }
-
-            if (node.children_count)
-            {
-                ParentChild relationship{};
-                relationship.parent = entities.back().entity_handle;
-                relationship.children_left = node.children_count;
-                parent_stack.push(relationship);                
-            }
-            else 
-            {
-                while (!parent_stack.empty() && parent_stack.top().children_left == 0) 
-                {
-                    parent_stack.pop();
-                }
-            }
 
             for (u32 ch = 0; ch < node.children_count; ++ch) {
                 const i32 children_index = node.children[ch];
@@ -695,21 +656,12 @@ namespace Magnefu {
             total_node_count += node.children_count;
         }
 
-        for (int i = 0; i < entities.size; i++)
-        {
-            Entity& ent = entities[i];
-            MF_CORE_DEBUG("Entity Name: {}, Handle: {}, Parent Handle: {}, Child Count: {}", ent.name, (u32)ent.entity_handle, (u32)ent.parent_handle, ent.children.size);
-        }
+ 
 
-        /*u32 node_offset = scene_graph->node_count();
-        u32 new_node_count = node_offset + total_node_count;*/
-        u32 node_offset = entities.size - total_node_count; // Total Entity count - this glTF scene's node count
+        u32 node_offset = scene_graph->node_count();
         u32 new_node_count = node_offset + total_node_count;
         scene_graph->resize(new_node_count);
         scene_graph->init_new_nodes(node_offset, total_node_count);
-
-        
-        
 
         
         
@@ -763,8 +715,8 @@ namespace Magnefu {
                 transform.scale = node_scale;
                 transform.rotation = node_rotation;
 
-                Entity& entity = entities[entity_index];
-                entity.AddComponent<Transform>(transform);
+                //Entity& entity = entities[entity_index];
+                //entity.AddComponent<Transform>(transform);
 
                 // Final SRT composition
                 const mat4s local_matrix = transform.calculate_matrix();
