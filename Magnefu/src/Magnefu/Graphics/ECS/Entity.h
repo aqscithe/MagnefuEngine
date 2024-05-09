@@ -43,20 +43,20 @@ namespace Magnefu
 		template<typename T>
 		bool Contains()
 		{
-			return registry->all_of<T>(entity_handle);
+			return registry->all_of<T>(id);
 		}
 		
 
 		template<typename T, typename...Args>
 		T& AddComponent(Args&&...args)
 		{
-			return registry->emplace<T>(entity_handle, std::forward<Args>(args)...);
+			return registry->emplace<T>(id, std::forward<Args>(args)...);
 		}
 
 		template<typename T, typename...Args>
 		T& ReplaceComponent(Args&&...args)
 		{
-			return registry->emplace_or_replace<T>(entity_handle, std::forward<Args>(args)...);
+			return registry->emplace_or_replace<T>(id, std::forward<Args>(args)...);
 		}
 
 		/*template<typename T, typename...Args>
@@ -84,8 +84,16 @@ namespace Magnefu
 		void						delete_entity(EntityHandle handle);
 		Entity&						get_entity(EntityHandle handle);
 
-		void						add_child(EntityHandle parent, EntityHandle child);
+		
+		
+	private:
+		void						remove_child(entt::entity parent, entt::entity child);
+		void						add_child(entt::entity parent, entt::entity child);
+		void						change_parent(entt::entity parent, entt::entity child);
+
+	public:
 		void						remove_child(EntityHandle parent, EntityHandle child);
+		void						add_child(EntityHandle parent, EntityHandle child);
 		void						change_parent(EntityHandle child, EntityHandle newParent);
 
 		/*template<typename T, typename By>

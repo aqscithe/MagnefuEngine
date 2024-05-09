@@ -162,22 +162,14 @@ namespace Magnefu
 		return dense[handleToDense[handle]];
 	}
 
+	
+
 	void EntityManager::add_child(EntityHandle parent_handle, EntityHandle child_handle)
 	{
 		Entity& parent = get_entity(parent_handle);
 		Entity& child = get_entity(child_handle);
 
-		// Add or update the parent component of the child
-		registry.emplace_or_replace<Parent>(child.id, parent.id);
-
-		// Add Children component to parent entity if doesn't exist
-		if (!registry.all_of<Children>(parent.id))
-		{
-			registry.emplace<Children>(parent.id);
-		}
-
-		// Add the child to the parent's children component
-		registry.get<Children>(parent.id).children.push(child.id);
+		add_child(parent.id, child.id);
 	}
 
 	void EntityManager::remove_child(EntityHandle parent_handle, EntityHandle child_handle)
@@ -185,24 +177,61 @@ namespace Magnefu
 		Entity& parent = get_entity(parent_handle);
 		Entity& child = get_entity(child_handle);
 
+		remove_child(parent.id, child.id);
+	}
+
+	void EntityManager::change_parent(EntityHandle new_parent_handle, EntityHandle child_handle)
+	{
+		Entity& new_parent = get_entity(new_parent_handle);
+		Entity& child = get_entity(child_handle);
+
+		change_parent(new_parent.id, child.id);
+	}
+
+
+	void EntityManager::add_child(entt::entity parent, entt::entity child)
+	{
+		// Add or update the parent component of the child
+		registry.emplace_or_replace<Parent>(child, parent);
+
+		// Add Children component to parent entity if doesn't exist
+		if (!registry.all_of<Children>(parent))
+		{
+			registry.emplace<Children>(parent);
+		}
+
+		// Add the child to the parent's children component
+		registry.get<Children>(parent).children.push(child);
+	}
+
+	void EntityManager::remove_child(entt::entity parent, entt::entity child)
+	{
 		// -- Remove child from parent's list
 
 		// Get children
-		auto& children = registry.get<Children>(parent.id).children;
+		auto& children = registry.get<Children>(parent).children;
 
 		// Places child to be removed at the end
-		std::remove(children.begin(), children.end(), child.id);
+		std::remove(children.begin(), children.end(), child);
 
 		// Remove last child in array
 		children.pop();
 
 		// Remove the former child's parent component
-		registry.remove<Parent>(child.id);
-		
+		registry.remove<Parent>(child);
 	}
 
-	void EntityManager::change_parent(EntityHandle child, EntityHandle newParent)
+	void EntityManager::change_parent(entt::entity parent, entt::entity child)
 	{
+		// Remove child from old parent's children list if it has a parent
+		if (registry.all_of<Parent>(child))
+		{
+			entt::entity old_parent = registry.get<Parent>(child).parent;
+			remove_child(old_parent, child);
+		}
+
+		// Add child to new parent's children list
+		add_child(parent, child);
 	}
 
 	// -- Entity Listeners -- //
