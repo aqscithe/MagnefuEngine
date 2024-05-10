@@ -11,7 +11,7 @@
 #include "enkiTS/TaskScheduler.h"
 #include "ECS/Entity.h"
 #include "cglm/types-struct.h"
-
+#include "glm/glm.hpp"
 #include <atomic>
 
 
@@ -529,6 +529,9 @@ namespace Magnefu {
 
         void                    reset();
         mat4s                   calculate_matrix() const;
+
+        static void             decompose_matrix(const glm::mat4& matrix, vec3s& scale, versors& rotation, vec3s& translation);
+        static versors          glmToVersor(const glm::quat& glmQuat);
 
     }; // struct Transform
 

@@ -50,13 +50,19 @@ namespace Magnefu
 		template<typename T, typename...Args>
 		T& AddComponent(Args&&...args)
 		{
-			return registry->emplace<T>(id, std::forward<Args>(args)...);
+			return registry->emplace_or_replace<T>(id, std::forward<Args>(args)...);
 		}
 
-		template<typename T, typename...Args>
-		T& ReplaceComponent(Args&&...args)
+		template<typename T>
+		T& GetComponent()
 		{
-			return registry->emplace_or_replace<T>(id, std::forward<Args>(args)...);
+			return registry->get<T>(id);
+		}
+
+		template<typename T>
+		bool HasComponent()
+		{
+			return registry->all_of<T>(id);
 		}
 
 		/*template<typename T, typename...Args>
@@ -80,10 +86,9 @@ namespace Magnefu
 		void						shutdown();
 
 		// Modify this function to also add parent component
-		EntityHandle				create_entity(cstring name, EntityHandle parent, u32 child_count);
+		EntityHandle				create_entity(cstring name);
 		void						delete_entity(EntityHandle handle);
-		Entity&						get_entity(EntityHandle handle);
-
+		Entity& get_entity(EntityHandle handle);
 		
 		
 	private:
@@ -109,6 +114,13 @@ namespace Magnefu
 		static void             on_update_entity(entt::entity entity);
 
 		// -- Component Listeners -- //
+
+		static void             on_attach_parent_component(entt::entity entity);
+		static void             on_attach_children_component(entt::entity entity);
+		static void             on_detach_parent_component(entt::entity entity);
+		static void             on_detach_children_component(entt::entity entity);
+		static void             on_update_parent_component(entt::entity entity);
+		static void             on_update_children_component(entt::entity entity);
 
 		static void             on_attach_transform_component(entt::entity entity);
 		static void             on_attach_mesh_component(entt::entity entity);

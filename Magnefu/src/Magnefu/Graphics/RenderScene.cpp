@@ -24,6 +24,7 @@
 #include "cglm/struct/mat4.h"
 #include "cglm/struct/cam.h"
 #include "cglm/struct/euler.h"
+#include "glm/gtx/matrix_decompose.hpp"
 
 #include <assimp/cimport.h>
 #include <assimp/scene.h>
@@ -6035,6 +6036,33 @@ namespace Magnefu {
         const mat4s local_matrix = glms_mat4_mul(glms_mat4_mul(translation_matrix, glms_quat_mat4(rotation)), scale_matrix);
         return local_matrix;
     }
+
+    void Transform::decompose_matrix(const glm::mat4& matrix, vec3s& scale, versors& rotation, vec3s& translation) {
+        glm::vec3 glm_scale;
+        glm::vec3 glm_translation;
+        glm::vec3 skew;
+        glm::vec4 perspective;
+        glm::quat glm_rotation;
+
+        glm::decompose(matrix, glm_scale, glm_rotation, glm_translation, skew, perspective);
+
+        // Convert glm types to CGLM types
+        scale = { glm_scale.x, glm_scale.y, glm_scale.z };
+        translation = { glm_translation.x, glm_translation.y, glm_translation.z };
+        rotation = glmToVersor(glm_rotation);
+    }
+
+
+    versors Transform::glmToVersor(const glm::quat& glmQuat) {
+        versors v;
+        v.raw[0] = glmQuat.x;
+        v.raw[1] = glmQuat.y;
+        v.raw[2] = glmQuat.z;
+        v.raw[3] = glmQuat.w;
+        return v;
+    }
+
+
 
     //////////////////////////////////////////////////////////////////////////
 

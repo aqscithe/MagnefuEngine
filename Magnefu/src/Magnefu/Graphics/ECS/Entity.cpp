@@ -55,6 +55,14 @@ namespace Magnefu
 
 		// -- Connect Component Listeners -- //
 
+		registry.on_construct<Parent>().connect<&EntityManager::on_attach_parent_component>();
+		registry.on_destroy<Parent>()  .connect<&EntityManager::on_detach_parent_component>();
+		registry.on_update<Parent>()   .connect<&EntityManager::on_update_parent_component>();
+
+		registry.on_construct<Children>().connect<&EntityManager::on_attach_children_component>();
+		registry.on_destroy<Children>()  .connect<&EntityManager::on_detach_children_component>();
+		registry.on_update<Children>()   .connect<&EntityManager::on_update_children_component>();
+
 		// Transform
 		//registry.on_construct<TransformComponent>().connect<&Scene::OnAttachTransformComponent>();
 		//registry.on_destroy<TransformComponent>().connect<&Scene::OnDetachTransformComponent>();
@@ -79,6 +87,15 @@ namespace Magnefu
 		registry.on_update<entt::entity>().disconnect();
 
 		// Component Listeners
+
+		registry.on_construct<Parent>().disconnect();
+		registry.on_destroy<Parent>().disconnect();
+		registry.on_update<Parent>().disconnect();
+
+		registry.on_construct<Children>().disconnect();
+		registry.on_destroy<Children>().disconnect();
+		registry.on_update<Children>().disconnect();
+
 		/*registry.on_construct<TransformComponent>().disconnect();
 		registry.on_construct<MeshComponent>().disconnect();
 
@@ -97,7 +114,7 @@ namespace Magnefu
 		handleToDense.shutdown();
 	}
 
-	EntityHandle EntityManager::create_entity(cstring name, EntityHandle parent_handle, u32 child_count)
+	EntityHandle EntityManager::create_entity(cstring name)
 	{
 		EntityHandle handle;
 		Entity entity;
@@ -138,12 +155,6 @@ namespace Magnefu
 			denseToHandle.push(handle); // denseToHandle maps the index in 'dense' back to the handle
 		}
 
-		if (parent_handle != u32_max)
-		{
-			Entity& parent_entity = get_entity(parent_handle);
-			add_child(parent_handle, handle);
-		}
-		
 
 		return handle;
 	}
@@ -249,6 +260,36 @@ namespace Magnefu
 	void EntityManager::on_update_entity(entt::entity entity)
 	{
 		MF_CORE_DEBUG("Entity Updated | {}", (uint32_t)entity);
+	}
+
+	void EntityManager::on_attach_parent_component(entt::entity entity)
+	{
+		MF_CORE_DEBUG("Parent Component Attached | Entity {}", (uint32_t)entity);
+	}
+
+	void EntityManager::on_attach_children_component(entt::entity entity)
+	{
+		MF_CORE_DEBUG("Chldren Component Attached | Entity {}", (uint32_t)entity);
+	}
+
+	void EntityManager::on_detach_parent_component(entt::entity entity)
+	{
+		MF_CORE_DEBUG("Parent Component Detached | Entity {}", (uint32_t)entity);
+	}
+
+	void EntityManager::on_detach_children_component(entt::entity entity)
+	{
+		MF_CORE_DEBUG("Children Component Detached | Entity {}", (uint32_t)entity);
+	}
+
+	void EntityManager::on_update_parent_component(entt::entity entity)
+	{
+		MF_CORE_DEBUG("Parent Component Updated | Entity {}", (uint32_t)entity);
+	}
+
+	void EntityManager::on_update_children_component(entt::entity entity)
+	{
+		MF_CORE_DEBUG("Chldren Component Updated | Entity {}", (uint32_t)entity);
 	}
 
 	// -- Component Listeners -- //

@@ -622,7 +622,7 @@ namespace Magnefu {
 
         glTF::Scene& root_gltf_scene = gltf_scene.scenes[gltf_scene.scene];
 
-        //
+        
         Array<i32> nodes_to_visit;
         nodes_to_visit.init(temp_allocator, 4);
 
@@ -636,116 +636,182 @@ namespace Magnefu {
         }
 
 
-        // Visit nodes
-        while (nodes_to_visit.size) {
-            i32 node_index = nodes_to_visit.front();
-            nodes_to_visit.delete_swap(0);
+        //// Visit nodes
+        //while (nodes_to_visit.size) {
+        //    i32 node_index = nodes_to_visit.front();
+        //    nodes_to_visit.delete_swap(0);
 
 
-            // Get access to node
-            glTF::Node& node = gltf_scene.nodes[node_index];
+        //    // Get access to node
+        //    glTF::Node& node = gltf_scene.nodes[node_index];
 
 
-            for (u32 ch = 0; ch < node.children_count; ++ch) {
-                const i32 children_index = node.children[ch];
-                nodes_to_visit.push(children_index);
-            }
+        //    for (u32 ch = 0; ch < node.children_count; ++ch) {
+        //        const i32 children_index = node.children[ch];
+        //        nodes_to_visit.push(children_index);
+        //    }
 
-            // Add only children nodes to the count, as the current node is
-            // already calculated when inserting it.
-            total_node_count += node.children_count;
-        }
+        //    // Add only children nodes to the count, as the current node is
+        //    // already calculated when inserting it.
+        //    total_node_count += node.children_count;
+        //}
 
  
 
-        u32 node_offset = scene_graph->node_count();
-        u32 new_node_count = node_offset + total_node_count;
-        scene_graph->resize(new_node_count);
-        scene_graph->init_new_nodes(node_offset, total_node_count);
+        //u32 node_offset = scene_graph->node_count();
+        //u32 new_node_count = node_offset + total_node_count;
+        //scene_graph->resize(new_node_count);
+        //scene_graph->init_new_nodes(node_offset, total_node_count);
 
-        
-        
-        // Populate scene graph: visit again
-        nodes_to_visit.clear();
-        // Add initial nodes
-        for (u32 node_index = 0; node_index < root_gltf_scene.nodes_count; ++node_index) {
-            const i32 node = root_gltf_scene.nodes[node_index];
-            nodes_to_visit.push(node);
-        }
+        //
+        //
+        //// Populate scene graph: visit again
+        //nodes_to_visit.clear();
+        //// Add initial nodes
+        //for (u32 node_index = 0; node_index < root_gltf_scene.nodes_count; ++node_index) {
+        //    const i32 node = root_gltf_scene.nodes[node_index];
+        //    nodes_to_visit.push(node);
+        //}
 
-        u32 total_meshlets = 0;
-        u32 entity_index = node_offset;
+        //u32 total_meshlets = 0;
+        //u32 entity_index = node_offset;
 
-        while (nodes_to_visit.size) {
-            i32 gltf_node = nodes_to_visit.front();
-            i32 node_index = gltf_node + node_offset;
-            nodes_to_visit.delete_swap(0);
+        //while (nodes_to_visit.size) {
+        //    i32 gltf_node = nodes_to_visit.front();
+        //    i32 node_index = gltf_node + node_offset;
+        //    nodes_to_visit.delete_swap(0);
 
-            glTF::Node& node = gltf_scene.nodes[gltf_node];
+        //    glTF::Node& node = gltf_scene.nodes[gltf_node];
+        //    
+        //    // Compute local transform: read either raw matrix or individual Scale/Rotation/Translation components
+        //    if (node.matrix_count) {
+        //        // CGLM and glTF have the same matrix layout, just memcopy it
+        //        memcpy(&scene_graph->local_matrices[node_index], node.matrix, sizeof(mat4s));
+        //        scene_graph->updated_nodes.set_bit(node_index);
+        //    }
+        //    else {
+        //        // Handle individual transform components: SRT (scale, rotation, translation)
+        //        vec3s node_scale{ 1.0f, 1.0f, 1.0f };
+        //        if (node.scale_count) {
+        //            MF_CORE_ASSERT((node.scale_count == 3), "");
+        //            node_scale = vec3s{ node.scale[0], node.scale[1], node.scale[2] };
+        //        }
 
-            // Compute local transform: read either raw matrix or individual Scale/Rotation/Translation components
-            if (node.matrix_count) {
-                // CGLM and glTF have the same matrix layout, just memcopy it
-                memcpy(&scene_graph->local_matrices[node_index], node.matrix, sizeof(mat4s));
-                scene_graph->updated_nodes.set_bit(node_index);
-            }
-            else {
-                // Handle individual transform components: SRT (scale, rotation, translation)
-                vec3s node_scale{ 1.0f, 1.0f, 1.0f };
-                if (node.scale_count) {
-                    MF_CORE_ASSERT((node.scale_count == 3), "");
-                    node_scale = vec3s{ node.scale[0], node.scale[1], node.scale[2] };
-                }
+        //        vec3s node_translation{ 0.f, 0.f, 0.f };
+        //        if (node.translation_count) {
+        //            MF_CORE_ASSERT((node.translation_count == 3), "");
+        //            node_translation = vec3s{ node.translation[0], node.translation[1], node.translation[2] };
+        //        }
 
-                vec3s node_translation{ 0.f, 0.f, 0.f };
-                if (node.translation_count) {
-                    MF_CORE_ASSERT((node.translation_count == 3), "");
-                    node_translation = vec3s{ node.translation[0], node.translation[1], node.translation[2] };
-                }
+        //        // Rotation is written as a plain quaternion
+        //        versors node_rotation = glms_quat_identity();
+        //        if (node.rotation_count) {
+        //            MF_CORE_ASSERT((node.rotation_count == 4), "");
+        //            node_rotation = glms_quat_init(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
+        //        }
 
-                // Rotation is written as a plain quaternion
-                versors node_rotation = glms_quat_identity();
-                if (node.rotation_count) {
-                    MF_CORE_ASSERT((node.rotation_count == 4), "");
-                    node_rotation = glms_quat_init(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
-                }
+        //        Transform transform;
+        //        transform.translation = node_translation;
+        //        transform.scale = node_scale;
+        //        transform.rotation = node_rotation;
 
-                Transform transform;
-                transform.translation = node_translation;
-                transform.scale = node_scale;
-                transform.rotation = node_rotation;
+        //        //Entity& entity = entities[entity_index];
+        //        //entity.AddComponent<Transform>(transform);
 
-                //Entity& entity = entities[entity_index];
-                //entity.AddComponent<Transform>(transform);
+        //        // Final SRT composition
+        //        const mat4s local_matrix = transform.calculate_matrix();
+        //        scene_graph->set_local_matrix(node_index, local_matrix);
+        //    }
 
-                // Final SRT composition
-                const mat4s local_matrix = transform.calculate_matrix();
-                scene_graph->set_local_matrix(node_index, local_matrix);
-            }
+        //    // Handle parent-relationship
+        //    if (node.children_count) {
+        //        const Hierarchy& node_hierarchy = scene_graph->nodes_hierarchy[node_index];
 
-            // Handle parent-relationship
-            if (node.children_count) {
-                const Hierarchy& node_hierarchy = scene_graph->nodes_hierarchy[node_index];
+        //        for (u32 ch = 0; ch < node.children_count; ++ch) {
+        //            const i32 children_index = node.children[ch];
+        //            i32 global_child_index = children_index + node_offset;
+        //            Hierarchy& children_hierarchy = scene_graph->nodes_hierarchy[global_child_index];
+        //            scene_graph->set_hierarchy(global_child_index, node_index, node_hierarchy.level + 1);
 
-                for (u32 ch = 0; ch < node.children_count; ++ch) {
-                    const i32 children_index = node.children[ch];
-                    i32 global_child_index = children_index + node_offset;
-                    Hierarchy& children_hierarchy = scene_graph->nodes_hierarchy[global_child_index];
-                    scene_graph->set_hierarchy(global_child_index, node_index, node_hierarchy.level + 1);
+        //                //nodes_to_visit.push(children_index);
+        //                nodes_to_visit.push(global_child_index);
+        //        }
 
-                        //nodes_to_visit.push(children_index);
-                        nodes_to_visit.push(global_child_index);
-                }
-
-                // Set hierarchy child info
-                scene_graph->nodes_hierarchy[node_index].children_count = node.children_count;
-                scene_graph->nodes_hierarchy[node_index].first_child_index = node.children[0]; // + node_offset; ???
-            }
+        //        // Set hierarchy child info
+        //        scene_graph->nodes_hierarchy[node_index].children_count = node.children_count;
+        //        scene_graph->nodes_hierarchy[node_index].first_child_index = node.children[0]; // + node_offset; ???
+        //    }
 
 
 
             // Cache node name
-            scene_graph->set_debug_data(node_index, node.name.data);
+            //scene_graph->set_debug_data(node_index, node.name.data);
+
+        u32 total_meshlets = 0;
+
+        // Create entities and establish hierarchy
+        while (nodes_to_visit.size) 
+        {
+            i32 node_index = nodes_to_visit.front();
+            nodes_to_visit.delete_swap(0);
+
+            // Access the current node
+            glTF::Node& node = gltf_scene.nodes[node_index];
+
+            // Create a new entity for the current node
+            EntityHandle parent_handle = entt::null; // Initialize parent handle
+            EntityHandle entity_handle = entity_manager.create_entity(node.name.get_text(0));
+            Entity& entity = entity_manager.get_entity(entity_handle);
+
+            // Compute and set the local transform
+            Transform transform;
+            if (node.matrix_count) {
+
+                // Directly use the matrix
+                glm::mat4 matrix;
+               memcpy(&matrix, node.matrix, sizeof(mat4s));
+               Transform::decompose_matrix(matrix, transform.scale, transform.rotation, transform.translation);
+            }
+            else 
+            {
+                // Calculate SRT (Scale, Rotation, Translation) transform
+                vec3s node_scale = vec3s{ 1.0f, 1.0f, 1.0f };
+                vec3s node_translation = vec3s{ 0.f, 0.f, 0.f };
+                versors node_rotation = glms_quat_identity();
+
+                if (node.scale_count == 3) {
+                    node_scale = vec3s{ node.scale[0], node.scale[1], node.scale[2] };
+                }
+                if (node.translation_count == 3) {
+                    node_translation = vec3s{ node.translation[0], node.translation[1], node.translation[2] };
+                }
+                if (node.rotation_count == 4) {
+                    node_rotation = glms_quat_init(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
+                }
+
+                transform.translation = node_translation;
+                transform.scale = node_scale;
+                transform.rotation = node_rotation;
+            }
+
+            // Add the transform component to the entity
+            entity.AddComponent<Transform>(transform);
+
+            
+            // Process and assign parent-child relationships
+            if (node.children_count > 0) {
+                auto& children = entity.AddComponent<Children>();
+                // Add children to the current entity's Children component
+                for (u32 ch = 0; ch < node.children_count; ++ch) {
+                    const i32 child_index = node.children[ch];
+                    nodes_to_visit.push(child_index);
+
+                    // Create a child entity and add to the children list
+                    EntityHandle child_handle = entity_manager.create_entity(gltf_scene.nodes[child_index].name.get_text(0));
+                    entity_manager.change_parent(entity_handle, child_handle);
+                    children.children.push(entity_manager.get_entity(child_handle).id);
+                }
+            }
 
             if (node.mesh == glTF::INVALID_INT_VALUE) {
                 continue;
@@ -786,7 +852,7 @@ namespace Magnefu {
             }
         }
 
-        MF_CORE_INFO("Total meshlet instances {}", total_meshlets);
+        //MF_CORE_INFO("Total meshlet instances {}", total_meshlets);
 
         sizet mesh_count = meshes.size - mesh_offset;
         sizet geometry_transform_buffer_size = sizeof(VkTransformMatrixKHR) * mesh_count;

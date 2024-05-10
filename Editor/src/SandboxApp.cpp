@@ -869,6 +869,16 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	input->Init(allocator);
 	input->SetEventCallback(BIND_EVENT_FN(this, Sandbox::OnEvent));
 
+	// will eventually have an EditorLayer
+	// may even have more specific layers like Physics Collisions and AI...
+	// this is how updates can be controlled separately
+
+	// TODO: How should i give the app access to its layer and overlay?
+
+	layer_stack = new Magnefu::LayerStack();
+	layer_stack->PushLayer(new SandboxLayer());
+	layer_stack->PushOverlay(new Overlay());
+
 	// graphics
 	GraphicsContextCreation dc;
     dc.set_window(window->GetWidth(), window->GetHeight(), window->GetWindowHandle()).
@@ -1009,17 +1019,6 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 
 		s_frame_graph.add_resource("shading_rate_image", FrameGraphResourceType_ShadingRate, resource_info);
 	}
-	
-
-	// will eventually have an EditorLayer
-	// may even have more specific layers like Physics Collisions and AI...
-	// this is how updates can be controlled separately
-
-	// TODO: How should i give the app access to its layer and overlay?
-
-	layer_stack = new Magnefu::LayerStack();
-	layer_stack->PushLayer(new SandboxLayer());
-	layer_stack->PushOverlay(new Overlay());
 
 
 	// Load frame graph and parse gpu techniques
