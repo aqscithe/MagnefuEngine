@@ -131,7 +131,7 @@ namespace Magnefu
 
 
 	private:
-		Array<u32> sparse; // Sparse array for quick access and existence check
+		Array<u32> sparse; // Sparse array for quick access and existence check. init to maximum possible number of entities. After init, no Array function should be used that causes sparse to grow in size.
 		Array<Entity> dense; // Dense array for packed data storage
 		Array<u32> handleToDense; // Indirection from handles to dense array
 		Array<u32> denseToHandle; // Reverse indirection from dense to handles

@@ -16,7 +16,8 @@
 
 namespace Magnefu
 {
-
+// arbitrary value for now
+#define MAX_ENTITY_COUNT 255
 
 	Entity::~Entity()
 	{
@@ -39,7 +40,11 @@ namespace Magnefu
 
 	void EntityManager::init(Allocator* resident_allocator_)
 	{
-		sparse.init(resident_allocator_, 16);
+		// has a size equal to the maximum number of possible entities and typically stores indices into the dense array.
+		sparse.init(resident_allocator_, MAX_ENTITY_COUNT, MAX_ENTITY_COUNT); 
+		u32 entt_null = entt::null;
+		memset(sparse.data, entt_null, MAX_ENTITY_COUNT);
+
 		dense.init(resident_allocator_, 16);
 		denseToHandle.init(resident_allocator_, 16);
 		handleToDense.init(resident_allocator_, 16);
@@ -136,10 +141,15 @@ namespace Magnefu
 
 			// Assign new entity to correct location in dense
 			dense[handle] = entity;
+
+			// Update sparse array to map handle to dense index
+			sparse[handle] = handle;
 		}
 		else
 		{
 			handle = static_cast<EntityHandle>(handleToDense.size);
+
+			MF_CORE_ASSERT((handle < sparse.capacity), "Handle exceeds max entity capacity");
 
 			// Create a new entity in the registry
 			entt::entity newEntity = registry.create();
@@ -147,6 +157,10 @@ namespace Magnefu
 
 			// Add the new entity to the 'dense' array
 			dense.push(entity);
+
+			// Update the sparse array
+			sparse[handle] = dense.size - 1;
+
 
 			// Map the new handle to the new dense index
 			handleToDense.push(dense.size - 1); // handleToDense maps the handle to the index in 'dense'
@@ -161,16 +175,45 @@ namespace Magnefu
 
 	void EntityManager::delete_entity(EntityHandle handle)
 	{
-		// Find entity in dense array via handleToDense
-		// Swap with last entity in dense array
-		// Update mappings
-		// Optional: defer actual deletion or re-use the spot
+		MF_CORE_ASSERT((handle < handleToDense.size && sparse[handle] != entt::null), "Invalid handle");
+
+		// Get index of entity in the dense array
+		u32 dense_index = sparse[handle];
+
+		// Get the last element's handle and index
+		u32 last_index = dense.size - 1;
+		EntityHandle last_handle = denseToHandle[last_index];
+
+		// Swap the entity to be deleted with the last entity in the dense array
+		std::swap(dense[dense_index], dense[last_index]);
+
+		// Update mappings for the swapped entity
+		sparse[last_handle] = dense_index;
+		handleToDense[last_handle] = dense_index;
+		denseToHandle[dense_index] = last_handle;
+
+		// Remove last element from dense array
+		dense.pop();
+
+		// Mark handle as free for future use
+		freeHandles.push(handle);
+
+		// Invalidate the mappings for the deleted entity
+		sparse[handle] = entt::null;
+		handleToDense[handle] = entt::null;
+		denseToHandle[last_index] = entt::null;
+
+		// Remove the entity from the registry
+		registry.destroy(dense[last_index].id); // Correct index to destroy
 	}
 
 	Entity& EntityManager::get_entity(EntityHandle handle)
 	{
-		// Direct access via indirection table
-		return dense[handleToDense[handle]];
+		// Validate handle and ensure it maps to a valid index
+		MF_CORE_ASSERT(((handle < sparse.size) && (sparse[handle] != entt::null)), "Invalid handle");
+
+		// Direct access via the sparse array
+		return dense[sparse[handle]];
 	}
 
 	
@@ -269,7 +312,7 @@ namespace Magnefu
 
 	void EntityManager::on_attach_children_component(entt::entity entity)
 	{
-		MF_CORE_DEBUG("Chldren Component Attached | Entity {}", (uint32_t)entity);
+		MF_CORE_DEBUG("Children Component Attached | Entity {}", (uint32_t)entity);
 	}
 
 	void EntityManager::on_detach_parent_component(entt::entity entity)
@@ -289,7 +332,7 @@ namespace Magnefu
 
 	void EntityManager::on_update_children_component(entt::entity entity)
 	{
-		MF_CORE_DEBUG("Chldren Component Updated | Entity {}", (uint32_t)entity);
+		MF_CORE_DEBUG("Children Component Updated | Entity {}", (uint32_t)entity);
 	}
 
 	// -- Component Listeners -- //
