@@ -1,10 +1,7 @@
-
-
 workspace "Magnefu"
     architecture "x64"
     configurations { "Debug", "Release", "Dist" }
     startproject "Editor"
-
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 resourcedir = "%{prj.name}/res"
@@ -19,12 +16,14 @@ IncludeDir["entt"] = "Magnefu/vendor/entt/include"
 IncludeDir["assimp"] = "Magnefu/vendor/assimp/include"
 IncludeDir["meshoptimizer"] = "Magnefu/vendor/meshoptimizer"
 IncludeDir["vma"] = "Magnefu/vendor/vma"
+IncludeDir["MoltenVK"] = "path/to/MoltenVK/include"  -- Adjust this path
 
 LibDir = {}
 LibDir["GLFW"] = "Magnefu/vendor/GLAD/lib"
 LibDir["Vulkan"] = "Magnefu/vendor/vulkan/lib"
 LibDir["SOIL2"] = "Magnefu/vendor/SOIL2/lib"
 LibDir["assimp"] = "Magnefu/vendor/assimp/lib/x64"
+LibDir["MoltenVK"] = "/usr/local/lib"  -- Adjust this path
 
 -- Includes Premake files
 include "Magnefu/vendor/GLFW"
@@ -90,7 +89,6 @@ project "Magnefu"
         "%{IncludeDir.assimp}",
         "%{IncludeDir.meshoptimizer}",
         "%{IncludeDir.vma}",
-        
     }
 
     libdirs {
@@ -98,7 +96,6 @@ project "Magnefu"
         "%{LibDir.GLFW}",
         "%{LibDir.SOIL2}",
         "%{LibDir.assimp}",
-        
     }
 
     links {
@@ -125,7 +122,6 @@ project "Magnefu"
             "NoPCH"
         }
 
-
     filter "system:windows"
         systemversion "latest"
 
@@ -135,6 +131,29 @@ project "Magnefu"
             "_GLFW_USE_HYBRID_HPG",
             "GLFW_INCLUDE_NONE",
             "_CRT_SECURE_NO_WARNINGS"
+        }
+
+    filter "system:macosx"
+        systemversion "latest"
+
+        defines {
+            "MF_PLATFORM_MACOS",
+            "GLFW_INCLUDE_NONE"
+        }
+
+        includedirs {
+            "%{IncludeDir.MoltenVK}",
+        }
+
+        libdirs {
+            "%{LibDir.MoltenVK}",
+        }
+
+        links {
+            "Cocoa.framework",
+            "IOKit.framework",
+            "CoreVideo.framework",
+            "libMoltenVK.dylib"
         }
 
     filter "configurations:Debug"
@@ -200,65 +219,17 @@ project "Editor"
             "MF_PLATFORM_WINDOWS",
         }
 
-    postbuildcommands {
-        "{COPYDIR} %{prj.location}/res/* %{cfg.buildtarget.directory}/res" 
-    }
-
-    filter "configurations:Debug"
-        defines {
-            "MF_DEBUG"
-        }
-        symbols "on"
-
-    filter "configurations:Release"
-        defines  "MF_RELEASE"
-        optimize "on"
-
-    filter "configurations:Dist"
-        defines  "MF_DIST"
-        optimize "on"
-
---[[
-project "Sandbox"
-    location "Sandbox"
-    kind "ConsoleApp" 
-    staticruntime "on"
-    language "C++"
-    cppdialect "C++20"
-
-    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-    objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
-
-    files {
-        "%{prj.name}/src/**.h",
-        "%{prj.name}/src/**.cpp",
-        resourcedir .. "/**",
-    }
-
-    includedirs {
-        "Magnefu/src",
-        "Magnefu/vendor",
-        "Magnefu/vendor/spdlog/include",
-        "Magnefu/src/Maths",
-        "%{prj.name}/src",
-        "%{IncludeDir.GLAD}",
-        "%{IncludeDir.entt}",
-    }
-
-    libdirs {
-    }
-
-    links {
-        "Magnefu"
-    }
-
-    filter "system:windows"
+    filter "system:macosx"
         systemversion "latest"
 
         defines {
-            "MF_PLATFORM_WINDOWS",
+            "MF_PLATFORM_MACOS",
         }
 
+        includedirs {
+            "%{IncludeDir.MoltenVK}",
+        }
+        
     postbuildcommands {
         "{COPYDIR} %{prj.location}/res/* %{cfg.buildtarget.directory}/res" 
     }
@@ -276,9 +247,3 @@ project "Sandbox"
     filter "configurations:Dist"
         defines  "MF_DIST"
         optimize "on"
-]]
-
-
-
-
-

@@ -7,7 +7,7 @@
 #    include <spdlog/details/os.h>
 #endif
 
-#include <spdlog/common.h>
+#include "spdlog/common.h"
 
 #include <algorithm>
 #include <chrono>
