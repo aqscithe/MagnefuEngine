@@ -1,5 +1,4 @@
 workspace "Magnefu"
-    architecture "x64"
     configurations { "Debug", "Release", "Dist" }
     startproject "Editor"
 
@@ -126,9 +125,11 @@ project "Magnefu"
 
     filter "system:windows"
         systemversion "latest"
+        architecture "x64"
 
         defines {
             "MF_PLATFORM_WINDOWS",
+            "MF_ARCH_X64",
             "MF_BUILD_DLL",
             "_GLFW_USE_HYBRID_HPG",
             "GLFW_INCLUDE_NONE",
@@ -137,11 +138,12 @@ project "Magnefu"
 
     filter "system:macosx"
         systemversion "11.0" -- Earliest MacOS with m1 support (ARM Architecture)
-        architecture { "x64", "ARM64" }  -- Specifies building for both Intel (x64) and Apple Silicon (ARM64)
+        architecture { "ARM64" }  -- Specifies building for both Intel (x64) and Apple Silicon (ARM64)
 
         defines {
             "MF_PLATFORM_MACOS",
-            "GLFW_INCLUDE_NONE"
+            "GLFW_INCLUDE_NONE",
+            "MF_ARCH_ARM"
         }
 
         buildoptions {
@@ -226,17 +228,20 @@ project "Editor"
 
     filter "system:windows"
         systemversion "latest"
+        architecture "x64"
 
         defines {
             "MF_PLATFORM_WINDOWS",
+            "MF_ARCH_X64",
         }
 
     filter "system:macosx"
         systemversion "11.0" -- Earliest MacOS with m1 support (ARM Architecture)
-        architecture { "x64", "ARM64" }  -- Specifies building for both Intel (x64) and Apple Silicon (ARM64)
+        architecture { "ARM64" }  -- Specifies building for both Intel (x64) and Apple Silicon (ARM64)
 
         defines {
             "MF_PLATFORM_MACOS",
+            "MF_ARCH_ARM",
         }
 
         buildoptions {
