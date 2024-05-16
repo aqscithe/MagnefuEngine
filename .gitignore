@@ -16,6 +16,9 @@
 *.dylib
 *.dll
 
+# MacOS
+*.DS_Store
+
 # Fortran module files
 *.mod
 

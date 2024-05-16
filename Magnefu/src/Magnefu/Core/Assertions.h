@@ -2,10 +2,12 @@
 
 #include "Log.h"
 
-#ifdef MF_PLATFORM_WINDOWS
-#else
-	#error Magnefu only supports Windows...for now
+#if defined(MF_PLATFORM_WINDOWS)
 
+#elif defined(MF_PLATFORM_MACOS)
+
+#else
+	#error Magnefu only supports Windows and MacOS for now...
 #endif
 
 #define BIT(x) (1 << x)

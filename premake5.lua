@@ -10,20 +10,21 @@ IncludeDir = {}
 IncludeDir["GLFW"] = "Magnefu/vendor/GLFW/include"
 IncludeDir["GLAD"] = "Magnefu/vendor/GLAD/include"
 IncludeDir["ImGui"] = "Magnefu/vendor/imgui"
+IncludeDir["spdlog"] = "Magnefu/vendor/spdlog/include"
 IncludeDir["Vulkan"] = "Magnefu/vendor/vulkan/include"
 IncludeDir["SOIL2"] = "Magnefu/vendor/SOIL2/include"
 IncludeDir["entt"] = "Magnefu/vendor/entt/include"
 IncludeDir["assimp"] = "Magnefu/vendor/assimp/include"
 IncludeDir["meshoptimizer"] = "Magnefu/vendor/meshoptimizer"
 IncludeDir["vma"] = "Magnefu/vendor/vma"
-IncludeDir["MoltenVK"] = "path/to/MoltenVK/include"  -- Adjust this path
+-- IncludeDir["MoltenVK"] = "path/to/MoltenVK/include"  -- Adjust this path
 
 LibDir = {}
 LibDir["GLFW"] = "Magnefu/vendor/GLAD/lib"
 LibDir["Vulkan"] = "Magnefu/vendor/vulkan/lib"
 LibDir["SOIL2"] = "Magnefu/vendor/SOIL2/lib"
 LibDir["assimp"] = "Magnefu/vendor/assimp/lib/x64"
-LibDir["MoltenVK"] = "/usr/local/lib"  -- Adjust this path
+LibDir["MoltenVK"] = "/usr/local/lib"  
 
 -- Includes Premake files
 include "Magnefu/vendor/GLFW"
@@ -80,6 +81,7 @@ project "Magnefu"
         "%{prj.name}/src",
         "%{prj.name}/src/Maths",
         "%{prj.name}/src/Renderer",
+        "%{IncludeDir.spdlog}",
         "%{IncludeDir.Vulkan}",
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.GLAD}",
@@ -134,15 +136,25 @@ project "Magnefu"
         }
 
     filter "system:macosx"
-        systemversion "latest"
+        systemversion "11.0" -- Earliest MacOS with m1 support (ARM Architecture)
+        architecture { "x64", "ARM64" }  -- Specifies building for both Intel (x64) and Apple Silicon (ARM64)
 
         defines {
             "MF_PLATFORM_MACOS",
             "GLFW_INCLUDE_NONE"
         }
 
+        buildoptions {
+            "-fmodules",  -- Example: Enabling Clang modules
+            "-fcxx-modules"
+        }
+
+        linkoptions {
+            "-dead_strip"  -- Corresponds to enabling dead code stripping
+        }
+
         includedirs {
-            "%{IncludeDir.MoltenVK}",
+            --"%{IncludeDir.MoltenVK}",
         }
 
         libdirs {
@@ -195,7 +207,7 @@ project "Editor"
         "Magnefu/src",
         "Magnefu/vendor",
         "Magnefu/vendor/vulkan/include",  -- TODO: Other projects shouldn't have access to Graphics API code
-        "Magnefu/vendor/spdlog/include",
+        "%{IncludeDir.spdlog}",
         "Magnefu/src/Maths",
         "%{prj.name}/src",
         "%{IncludeDir.GLAD}",
@@ -220,10 +232,19 @@ project "Editor"
         }
 
     filter "system:macosx"
-        systemversion "latest"
+        systemversion "11.0" -- Earliest MacOS with m1 support (ARM Architecture)
+        architecture { "x64", "ARM64" }  -- Specifies building for both Intel (x64) and Apple Silicon (ARM64)
 
         defines {
             "MF_PLATFORM_MACOS",
+        }
+
+        buildoptions {
+            "-fmodules",  -- Example: Enabling Clang modules
+            "-fcxx-modules"
+        }
+        linkoptions {
+            "-dead_strip"  -- Corresponds to enabling dead code stripping
         }
 
         includedirs {

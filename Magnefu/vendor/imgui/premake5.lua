@@ -49,7 +49,7 @@ project "ImGui"
         systemversion "latest"
 
     filter "system:macosx"
-        systemversion "latest"
+        systemversion "11.0" -- Earliest MacOS with m1 support (ARM Architecture)
 
         defines {
             "MF_PLATFORM_MACOS"

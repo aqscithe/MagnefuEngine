@@ -27,9 +27,6 @@
 
 #include "Magnefu/Application/ImGui/ImGuiDefs.h"
 
-#include "Magnefu/Core/Maths/MathsCommon.h"
-#include "Magnefu/Core/Maths/Vectors.h"
-#include "Magnefu/Core/Maths/Matrices.h"
 
 #include "Magnefu/Core/Log.h"
 #include "Magnefu/Core/SmartPointers.h"
