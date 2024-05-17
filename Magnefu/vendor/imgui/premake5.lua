@@ -50,9 +50,11 @@ project "ImGui"
 
     filter "system:macosx"
         systemversion "11.0" -- Earliest MacOS with m1 support (ARM Architecture)
+        architecture "ARM64"
 
         defines {
-            "MF_PLATFORM_MACOS"
+            "MF_PLATFORM_MACOS",
+            "MF_ARCH_ARM",
         }
 
     filter "configurations:Debug"

@@ -8,21 +8,9 @@
 
 // -- Vendore Includes -- //
 
-// Maybe move this to a separate header file in case I want to use wyhash elsewhere
-#define XXH_INLINE_ALL
-#define XXH_FORCE_ALIGN_CHECK
-#define SAFE_XXH_MEMORY_ACCESS
-#if defined(SAFE_XXH_MEMORY_ACCESS)
-    #define XXH_FORCE_MEMORY_ACCESS 0 // Max portability and safetey
-#elif defined(MF_ARCH_X64)
-    #define XXH_FORCE_MEMORY_ACCESS 2 // Potentially improved performance on architectures where unaligned memory access is supported and does not incur a performance penalty (e.g., x86, x64).
-#elif defined(MF_ARCH_ARM)
-    #define XXH_FORCE_MEMORY_ACCESS 1 // GCC or Clang with support for packed attributes and if testing shows performance improvement.
-#endif
-#if defined(MF_ARCH_ARM)
-    #define XXH_VECTOR XXH_NEON // For ARM with NEON support
-#endif
-#include "xxhash/xxhash.h"
+// Maybe move this to a separate header file in case I want to use xxhash elsewhere
+
+#include "xxhash_config.h"
 
 //#include "wyhash/wyhash.h"
 
@@ -167,22 +155,26 @@ namespace Magnefu
     //
     template<typename T>
     inline u64 hash_calculate(const T& value, sizet seed = 0) {
-        return wyhash(&value, sizeof(T), seed, _wyp);
+        return XXH3_64bits_withSeed(&value, sizeof(T), seed);
+        //return wyhash(&value, sizeof(T), seed, _wyp);
     }
 
     template <size_t N>
     inline u64 hash_calculate(const char(&value)[N], sizet seed = 0) {
-        return wyhash(value, strlen(value), seed, _wyp);
+        return XXH3_64bits_withSeed(value, strlen(value), seed);
+        //return wyhash(value, strlen(value), seed, _wyp);
     }
 
     template <>
     inline u64 hash_calculate(const cstring& value, sizet seed) {
-        return wyhash(value, strlen(value), seed, _wyp);
+        return XXH3_64bits_withSeed(value, strlen(value), seed);
+        //return wyhash(value, strlen(value), seed, _wyp);
     }
 
     // Method to hash memory itself.
     inline u64 hash_bytes(void* data, sizet length, sizet seed = 0) {
-        return wyhash(data, length, seed, _wyp);
+        return XXH3_64bits_withSeed(data, length, seed);
+        //return wyhash(data, length, seed, _wyp);
     }
 
     // https://gankra.github.io/blah/hashbrown-tldr/
@@ -216,6 +208,12 @@ namespace Magnefu
 
     static u64              hash_1(u64 hash, const i8* ctrl) { return (hash >> 7) ^ hash_seed(ctrl); }
     static i8               hash_2(u64 hash) { return hash & 0x7F; }
+
+
+
+#if defined(MF_ARCH_X64) 
+    #include <emmintrin.h> // SSE2
+    #include <tmmintrin.h> // SSSE3
 
 
     struct GroupSse2Impl {
@@ -276,7 +274,65 @@ namespace Magnefu
         __m128i ctrl;
     };
 
+#endif
 
+#if defined(MF_ARCH_ARM)
+    #include <arm_neon.h>
+
+    struct GroupNeonImpl {
+        static constexpr size_t kWidth = 16;  // the number of slots per group
+
+        explicit GroupNeonImpl(const int8_t* pos) {
+            ctrl = vld1q_s8(pos);
+        }
+
+        BitMask<uint32_t, kWidth> Match(int8_t hash) const {
+            int8x16_t match = vdupq_n_s8(hash);
+            uint8x16_t result = vceqq_s8(match, ctrl);
+            return BitMask<uint32_t, kWidth>(vaddvq_u8(result) & 0xFFFF);
+        }
+
+        BitMask<uint32_t, kWidth> MatchEmpty() const {
+            int8x16_t zero = vdupq_n_s8(0);
+            uint8x16_t result = vceqq_s8(ctrl, zero);
+            return BitMask<uint32_t, kWidth>(vaddvq_u8(result) & 0xFFFF);
+        }
+
+        BitMask<uint32_t, kWidth> MatchEmptyOrDeleted() const {
+            int8x16_t special = vdupq_n_s8(k_control_bitmask_sentinel);
+            uint8x16_t result = vcgtq_s8(special, ctrl);
+            return BitMask<uint32_t, kWidth>(vaddvq_u8(result) & 0xFFFF);
+        }
+
+        uint32_t CountLeadingEmptyOrDeleted() const {
+            int8x16_t special = vdupq_n_s8(k_control_bitmask_sentinel);
+            uint8x16_t result = vcgtq_s8(special, ctrl);
+            return trailing_zeros_u32(vaddvq_u8(result) + 1);
+        }
+
+        void ConvertSpecialToEmptyAndFullToDeleted(int8_t* dst) const {
+            int8x16_t msbs = vdupq_n_s8(static_cast<char>(-128));
+            int8x16_t x126 = vdupq_n_s8(126);
+            int8x16_t zero = vdupq_n_s8(0);
+            uint8x16_t special_mask = vcgtq_s8(zero, ctrl);
+            int8x16_t res = vorrq_s8(msbs, vbicq_s8(x126, special_mask));
+            vst1q_s8(dst, res);
+        }
+
+        int8x16_t ctrl;
+    };
+
+#endif
+
+
+// Define the unified alias for Group
+#if defined(MF_ARCH_X64)
+    using Group = GroupSse2Impl;
+#elif defined(MF_ARCH_ARM)
+    using Group = GroupNeonImpl;
+#else
+    #error Unsupported architecture
+#endif
 
     // Capacity --------------------------------------------------------------------- //
 
@@ -306,11 +362,11 @@ namespace Magnefu
     {
         //assert( ctrl[ capacity ] == k_control_bitmask_sentinel );
         //assert( IsValidCapacity( capacity ) );
-        for (i8* pos = ctrl; pos != ctrl + capacity + 1; pos += GroupSse2Impl::kWidth) {
-            GroupSse2Impl{ pos }.ConvertSpecialToEmptyAndFullToDeleted(pos);
+        for (i8* pos = ctrl; pos != ctrl + capacity + 1; pos += Group::kWidth) {
+            Group{ pos }.ConvertSpecialToEmptyAndFullToDeleted(pos);
         }
         // Copy the cloned ctrl bytes.
-        Magnefu::memoryCopy(ctrl + capacity + 1, ctrl, GroupSse2Impl::kWidth);
+        Magnefu::memoryCopy(ctrl + capacity + 1, ctrl, Group::kWidth);
         ctrl[capacity] = k_control_bitmask_sentinel;
     }
 
@@ -318,7 +374,7 @@ namespace Magnefu
     // -- FlatHashMap --------------------------------------------------------------------- //
     template <typename K, typename V>
     void FlatHashMap<K, V>::reset_ctrl() {
-        memset(control_bytes, k_control_bitmask_empty, capacity + GroupSse2Impl::kWidth);
+        memset(control_bytes, k_control_bitmask_empty, capacity + Group::kWidth);
         control_bytes[capacity] = k_control_bitmask_sentinel;
         //SanitizerPoisonMemoryRegion( slots_, sizeof( slot_type ) * capacity_ );
     }
@@ -360,7 +416,7 @@ namespace Magnefu
         ProbeSequence sequence = probe(hash);
 
         while (true) {
-            const GroupSse2Impl group{ control_bytes + sequence.get_offset() };
+            const Group group{ control_bytes + sequence.get_offset() };
             const i8 hash2 = hash_2(hash);
             for (int i : group.Match(hash2)) {
                 const KeyValue& key_value = *(slots_ + sequence.get_offset(i));
@@ -398,9 +454,9 @@ namespace Magnefu
         --size;
 
         const u64 index = iterator.index;
-        const u64 index_before = (index - GroupSse2Impl::kWidth) & capacity;
-        const auto empty_after = GroupSse2Impl(control_bytes + index).MatchEmpty();
-        const auto empty_before = GroupSse2Impl(control_bytes + index_before).MatchEmpty();
+        const u64 index_before = (index - Group::kWidth) & capacity;
+        const auto empty_after = Group(control_bytes + index).MatchEmpty();
+        const auto empty_before = Group(control_bytes + index_before).MatchEmpty();
 
         // We count how many consecutive non empties we have to the right and to the
         // left of `it`. If the sum is >= kWidth then there is at least one probe
@@ -410,7 +466,7 @@ namespace Magnefu
         const u64 zeros = trailing_zeros + leading_zeros;
         //printf( "%x, %x", empty_after.TrailingZeros(), empty_before.LeadingZeros() );
         bool was_never_full = empty_before && empty_after;
-        was_never_full = was_never_full && (zeros < GroupSse2Impl::kWidth);
+        was_never_full = was_never_full && (zeros < Group::kWidth);
 
         set_ctrl(index, was_never_full ? k_control_bitmask_empty : k_control_bitmask_deleted);
         growth_left += was_never_full;
@@ -441,7 +497,7 @@ namespace Magnefu
         ProbeSequence sequence = probe(hash);
 
         while (true) {
-            const GroupSse2Impl group{ control_bytes + sequence.get_offset() };
+            const Group group{ control_bytes + sequence.get_offset() };
             for (int i : group.Match(hash_2(hash))) {
                 const KeyValue& key_value = *(slots_ + sequence.get_offset(i));
                 if (key_value.key == key)
@@ -462,7 +518,7 @@ namespace Magnefu
         ProbeSequence sequence = probe(hash);
 
         while (true) {
-            const GroupSse2Impl group{ control_bytes + sequence.get_offset() };
+            const Group group{ control_bytes + sequence.get_offset() };
             auto mask = group.MatchEmptyOrDeleted();
 
             if (mask) {
@@ -545,7 +601,7 @@ namespace Magnefu
             // If they do, we don't need to move the object as it falls already in the
             // best probe we can.
             const auto probe_index = [&](size_t pos) {
-                return ((pos - probe(hash).get_offset()) & capacity) / GroupSse2Impl::kWidth;
+                return ((pos - probe(hash).get_offset()) & capacity) / Group::kWidth;
             };
 
             // Element doesn't move.
@@ -578,7 +634,7 @@ namespace Magnefu
 
     template <typename K, typename V>
     u64 FlatHashMap<K, V>::calculate_size(u64 new_capacity) {
-        return (new_capacity + GroupSse2Impl::kWidth + new_capacity * (sizeof(KeyValue)));
+        return (new_capacity + Group::kWidth + new_capacity * (sizeof(KeyValue)));
     }
 
     template <typename K, typename V>
@@ -587,7 +643,7 @@ namespace Magnefu
         char* new_memory = (char*)mfalloca(calculate_size(capacity), allocator);
 
         control_bytes = reinterpret_cast<i8*>(new_memory);
-        slots_ = reinterpret_cast<KeyValue*>(new_memory + capacity + GroupSse2Impl::kWidth);
+        slots_ = reinterpret_cast<KeyValue*>(new_memory + capacity + Group::kWidth);
 
         reset_ctrl();
         reset_growth_left();
@@ -639,7 +695,7 @@ namespace Magnefu
         }*/
 
         control_bytes[i] = h;
-        constexpr size_t kClonedBytes = GroupSse2Impl::kWidth - 1;
+        constexpr size_t kClonedBytes = Group::kWidth - 1;
         control_bytes[((i - kClonedBytes) & capacity) + (kClonedBytes & capacity)] = h;
     }
 
@@ -698,7 +754,7 @@ namespace Magnefu
         i8* ctrl = control_bytes + it.index;
 
         while (control_is_empty_or_deleted(*ctrl)) {
-            u32 shift = GroupSse2Impl{ ctrl }.CountLeadingEmptyOrDeleted();
+            u32 shift = Group{ ctrl }.CountLeadingEmptyOrDeleted();
             ctrl += shift;
             it.index += shift;
         }

@@ -80,6 +80,7 @@ project "GLFW"
 
     filter "system:macosx"
         systemversion "11.0" -- Earliest MacOS with m1 support (ARM Architecture)
+        architecture "ARM64"
         staticruntime "on"
 
         files
@@ -97,6 +98,8 @@ project "GLFW"
 
         defines
         {
+            "MF_PLATFORM_MACOS",
+            "MF_ARCH_ARM",
             "_GLFW_COCOA"
         }
 

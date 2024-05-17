@@ -39,12 +39,16 @@ project "GLAD"
 
     filter "system:macosx"
         systemversion "11.0" -- Earliest MacOS with m1 support (ARM Architecture)
+        architecture "ARM64"
         
         files {
             "src/glad.c"
         }
 
-        defines {}
+        defines {
+            "MF_PLATFORM_MACOS",
+            "MF_ARCH_ARM",
+        }
 
     filter "configurations:Debug"
         runtime "Debug"

@@ -1,3 +1,5 @@
+include "common_settings.lua"
+
 workspace "Magnefu"
     configurations { "Debug", "Release", "Dist" }
     startproject "Editor"
@@ -45,8 +47,8 @@ project "Magnefu"
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
-    pchheader "mfpch.h"
-    pchsource "Magnefu/src/mfpch.cpp"
+    pchheader "%{prj.name}/src/mfpch.h"
+    pchsource "%{prj.name}/src/mfpch.cpp"
 
     files {
         "%{prj.name}/src/**.h",
@@ -138,7 +140,7 @@ project "Magnefu"
 
     filter "system:macosx"
         systemversion "11.0" -- Earliest MacOS with m1 support (ARM Architecture)
-        architecture { "ARM64" }  -- Specifies building for both Intel (x64) and Apple Silicon (ARM64)
+        architecture "ARM64"  -- Specifies building for both Intel (x64) and Apple Silicon (ARM64)
 
         defines {
             "MF_PLATFORM_MACOS",
@@ -237,7 +239,7 @@ project "Editor"
 
     filter "system:macosx"
         systemversion "11.0" -- Earliest MacOS with m1 support (ARM Architecture)
-        architecture { "ARM64" }  -- Specifies building for both Intel (x64) and Apple Silicon (ARM64)
+        architecture  "ARM64"  -- Specifies building for both Intel (x64) and Apple Silicon (ARM64)
 
         defines {
             "MF_PLATFORM_MACOS",
