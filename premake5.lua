@@ -1,11 +1,21 @@
 include "common_settings.lua"
 
+
+        -- MAGNEFU WORKSPACE
+
 workspace "Magnefu"
     configurations { "Debug", "Release", "Dist" }
     startproject "Editor"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 resourcedir = "%{prj.name}/res"
+
+SysIncludeDir = {}
+
+-- May need to be adjusted for your system
+-- To figure out where std c++ headers are run:
+-- find /Applications/Xcode.app -name "iostream" 2>/dev/null
+SysIncludeDir["mac_stdcplusplus"] = "/Applications/Xcode.app/Contents/Developer/Platforms/DriverKit.platform/Developer/SDKs/DriverKit.sdk/System/DriverKit/usr/include/c++/v1"
 
 IncludeDir = {}
 IncludeDir["GLFW"] = "Magnefu/vendor/GLFW/include"
@@ -37,6 +47,9 @@ prebuildcommands {
     "{MKDIR} ../bin-int/" .. outputdir .. "/Editor"
 }
 
+
+        -- MAGNEFU PROJECT PREMAKE BUILD SETTINGS
+
 project "Magnefu"
     location "Magnefu"
     kind "StaticLib"
@@ -47,8 +60,13 @@ project "Magnefu"
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
+    --[[
     pchheader "%{prj.name}/src/mfpch.h"
     pchsource "%{prj.name}/src/mfpch.cpp"
+    ]]
+
+    pchheader "src/mfpch.h"   -- Changed for xcode. Testing needed to determine if this works for visual studio
+    pchsource "src/mfpch.cpp"
 
     files {
         "%{prj.name}/src/**.h",
@@ -80,7 +98,6 @@ project "Magnefu"
     includedirs {
         "%{prj.name}/vendor",
         "%{prj.name}/src",
-        "%{prj.name}/src/Maths",
         "%{prj.name}/src/Renderer",
         "%{IncludeDir.spdlog}",
         "%{IncludeDir.Vulkan}",
@@ -149,16 +166,39 @@ project "Magnefu"
         }
 
         buildoptions {
+            "-stdlib=libc++",
             "-fmodules",  -- Example: Enabling Clang modules
-            "-fcxx-modules"
+            "-fcxx-modules",
+            "-fprofile-arcs", 
+            "-ftest-coverage",
+            "-Wall",        -- Enables all the warnings about constructions
+            "-Wextra",      -- Enables some extra warning flags not enabled by -Wall
+            --"-Werror",      -- Make all warnings into errors.
+            "-Wshadow",     -- Warn the user if a variable declaration shadows one from a parent context.
+            "-Wnon-virtual-dtor", -- Warn when a class with a virtual function has a non-virtual destructor.
+            "-Wold-style-cast", -- Warn for c-style casts.
+            "-Wunused",     -- Warn on anything being unused.
+            "-Woverloaded-virtual", -- Warn if you overload (not override) a virtual function.
+            "-Wpedantic",   -- (or -Wpendantic) Warn if non-standard C++ is used.
+            "-Wconversion", -- Warn on type conversions that may lose data.
+            "-Wsign-conversion", -- Warn on sign conversions.
+            "-Wmisleading-indentation", -- Warn if indentation implies blocks where blocks do not exist.
+            "-Wnull-dereference", -- Warn if a null dereference is detected.
+            "-Wdouble-promotion", -- Warn on implicit conversion from float to double.
+            "-Wformat=2"   -- Warn on security issues around functions that format output (like printf).
         }
 
         linkoptions {
-            "-dead_strip"  -- Corresponds to enabling dead code stripping
+            "-Wl, -dead_strip"  -- Corresponds to enabling dead code stripping
         }
 
         includedirs {
             --"%{IncludeDir.MoltenVK}",
+        }
+
+        -- Add your system header search paths here
+        externalincludedirs { 
+            "%{SysIncludeDir.mac_stdcplusplus}" 
         }
 
         libdirs {
@@ -166,11 +206,21 @@ project "Magnefu"
         }
 
         links {
+            "c++",
             "Cocoa.framework",
             "IOKit.framework",
             "CoreVideo.framework",
             "libMoltenVK.dylib"
         }
+
+        filter { "system:macosx", "configurations:Debug" }
+            buildoptions { "-fobjc-weak" }
+
+        filter { "system:macosx", "configurations:Release" }
+            buildoptions { "-fobjc-weak" }
+
+        filter { "system:macosx", "configurations:Dist" }
+            buildoptions { "-fobjc-weak" }
 
     filter "configurations:Debug"
         defines {
@@ -189,6 +239,8 @@ project "Magnefu"
         runtime "Release"
         optimize "on"
 
+
+        -- EDITOR PROJECT PREMAKE BUILD SETTINGS
 
 project "Editor"
     location "Editor"
@@ -212,7 +264,6 @@ project "Editor"
         "Magnefu/vendor",
         "Magnefu/vendor/vulkan/include",  -- TODO: Other projects shouldn't have access to Graphics API code
         "%{IncludeDir.spdlog}",
-        "Magnefu/src/Maths",
         "%{prj.name}/src",
         "%{IncludeDir.GLAD}",
         "%{IncludeDir.entt}",
@@ -247,20 +298,50 @@ project "Editor"
         }
 
         buildoptions {
+            "-stdlib=libc++",
             "-fmodules",  -- Example: Enabling Clang modules
-            "-fcxx-modules"
+            "-fcxx-modules",
+            "-fprofile-arcs", 
+            "-ftest-coverage",
+            "-Wall",        -- Enables all the warnings about constructions
+            "-Wextra",      -- Enables some extra warning flags not enabled by -Wall
+            --"-Werror",      -- Make all warnings into errors.
+            "-Wshadow",     -- Warn the user if a variable declaration shadows one from a parent context.
+            "-Wnon-virtual-dtor", -- Warn when a class with a virtual function has a non-virtual destructor.
+            "-Wold-style-cast", -- Warn for c-style casts.
+            "-Wunused",     -- Warn on anything being unused.
+            "-Woverloaded-virtual", -- Warn if you overload (not override) a virtual function.
+            "-Wpedantic",   -- (or -Wpendantic) Warn if non-standard C++ is used.
+            "-Wconversion", -- Warn on type conversions that may lose data.
+            "-Wsign-conversion", -- Warn on sign conversions.
+            "-Wmisleading-indentation", -- Warn if indentation implies blocks where blocks do not exist.
+            "-Wnull-dereference", -- Warn if a null dereference is detected.
+            "-Wdouble-promotion", -- Warn on implicit conversion from float to double.
+            "-Wformat=2"   -- Warn on security issues around functions that format output (like printf).
         }
+
         linkoptions {
-            "-dead_strip"  -- Corresponds to enabling dead code stripping
+            "-Wl, -dead_strip"  -- Corresponds to enabling dead code stripping
+        }
+
+        links {
+            "c++"
         }
 
         includedirs {
             "%{IncludeDir.MoltenVK}",
         }
         
-    postbuildcommands {
-        "{COPYDIR} %{prj.location}/res/* %{cfg.buildtarget.directory}/res" 
-    }
+        filter { "system:macosx", "configurations:Debug" }
+            buildoptions { "-fobjc-weak", "-fprofile-arcs", "-ftest-coverage" }
+            defines { "ENABLE_TESTABILITY" }
+
+        filter { "system:macosx", "configurations:Release" }
+            buildoptions { "-fobjc-weak" }
+
+        filter { "system:macosx", "configurations:Dist" }
+            buildoptions { "-fobjc-weak" }
+
 
     filter "configurations:Debug"
         defines {
@@ -275,3 +356,7 @@ project "Editor"
     filter "configurations:Dist"
         defines  "MF_DIST"
         optimize "on"
+
+    postbuildcommands {
+        "{COPYDIR} %{prj.location}/res/* %{cfg.buildtarget.directory}/res" 
+    }
