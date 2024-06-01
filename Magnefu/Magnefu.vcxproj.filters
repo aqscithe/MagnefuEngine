@@ -3884,9 +3884,6 @@
     <ClCompile Include="src\Magnefu\Application\Input\Input.cpp">
       <Filter>src\Magnefu\Application\Input</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\Input\KeyCodes.cpp">
-      <Filter>src\Magnefu\Application\Input</Filter>
-    </ClCompile>
     <ClCompile Include="src\Magnefu\Application\Layer.cpp">
       <Filter>src\Magnefu\Application</Filter>
     </ClCompile>

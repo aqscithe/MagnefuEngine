@@ -7,6 +7,8 @@
 
 namespace Magnefu
 {
+
+
 	enum Keys
 	{
         MF_KEY_UNKNOWN = 0,
@@ -276,9 +278,9 @@ namespace Magnefu
         MF_KEY_AUDIOREWIND = 285,
         MF_KEY_AUDIOFASTFORWARD = 286,
 
-        MF_KEY_LAST,
-
-        MF_KEY_COUNT = 512
+        MF_KEY_LAST = MF_KEY_AUDIOFASTFORWARD,
+        MF_KEY_COUNT
+        //MF_KEY_COUNT = 512
 
 	};
 
@@ -291,8 +293,6 @@ namespace Magnefu
 		MF_MOD_CAPS_LOCK = BIT(5),
 		MF_MOD_NUM_LOCK = BIT(6),
 	};
-
-	cstring* KeyNames();
 }
 
 

@@ -1242,14 +1242,14 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
     s_task_scheduler.AddPinnedTask(&s_async_load_task);
 
 
-	MF_CORE_INFO("Sandbox Application created successfully!");
+	MF_APP_INFO("Sandbox Application created successfully!");
 }
 
 void Sandbox::Destroy()
 {
 	using namespace Magnefu;
 
-	MF_CORE_INFO("Begin Sandbox Shutdown...");
+	MF_APP_INFO("Begin Sandbox Shutdown...");
 
 	GraphicsContext* gpu = service_manager->get<GraphicsContext>();
 
@@ -1832,6 +1832,8 @@ bool Sandbox::MainLoop()
 
 			}
 			ImGui::End();
+
+			input->DebugUI();
 
 			DrawGUI();
 		}

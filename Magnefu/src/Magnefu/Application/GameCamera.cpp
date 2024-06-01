@@ -105,6 +105,7 @@ namespace Magnefu
             camera_movement = glms_vec3_add(camera_movement, glms_vec3_scale(camera.right, camera_movement_delta));
         }
 
+
         if (input->IsKeyDown(MF_KEY_PAGEDOWN) || input->IsKeyDown(MF_KEY_Q)) {
             camera_movement = glms_vec3_add(camera_movement, glms_vec3_scale(camera.up, -camera_movement_delta));
         }
