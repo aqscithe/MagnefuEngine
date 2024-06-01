@@ -503,7 +503,8 @@ namespace Magnefu
         if (glfwVulkanSupported() == GLFW_FALSE)
             MF_CORE_DEBUG("GLFW - Vulkan not Supported!!");
 
-        check(glfwCreateWindowSurface(vulkan_instance, window, vulkan_allocation_callbacks, &vulkan_window_surface), "Failed to create a window surface!")
+        result = glfwCreateWindowSurface(vulkan_instance, window, vulkan_allocation_callbacks, &vulkan_window_surface);
+        check(result, "Failed to create a window surface!")
 
         glfw_window = window;
 
@@ -1495,7 +1496,9 @@ namespace Magnefu
         info.subresourceRange.levelCount = creation.sub_resource.mip_level_count;
         info.subresourceRange.baseArrayLayer = creation.sub_resource.array_base_layer;
         info.subresourceRange.layerCount = creation.sub_resource.array_layer_count;
-        check(vkCreateImageView(gpu.vulkan_device, &info, gpu.vulkan_allocation_callbacks, &texture->vk_image_view), "Failed to create image view");
+
+        VkResult result = vkCreateImageView(gpu.vulkan_device, &info, gpu.vulkan_allocation_callbacks, &texture->vk_image_view);
+        check(result, "Failed to create image view");
         
         gpu.set_resource_name(VK_OBJECT_TYPE_IMAGE_VIEW, (u64)texture->vk_image_view, creation.name);
     }
@@ -1574,13 +1577,15 @@ namespace Magnefu
 
         MF_CORE_INFO("Creating tex {}", creation.name);
 
+        VkResult result;
         if (creation.alias.index == k_invalid_texture.index) {
             if (is_sparse_texture) {
-                check(vkCreateImage(gpu.vulkan_device, &image_info, gpu.vulkan_allocation_callbacks, &texture->vk_image), "failed to create texture image(sparse)");
+                result = vkCreateImage(gpu.vulkan_device, &image_info, gpu.vulkan_allocation_callbacks, &texture->vk_image);
+                check(result, "failed to create texture image(sparse)");
             }
             else {
-                check(vmaCreateImage(gpu.vma_allocator, &image_info, &memory_info,
-                    &texture->vk_image, &texture->vma_allocation, nullptr), "failed to create texture image");
+                result = vmaCreateImage(gpu.vma_allocator, &image_info, &memory_info, &texture->vk_image, &texture->vma_allocation, nullptr);
+                check(result, "failed to create texture image");
 
 #if defined (_DEBUG)
                 vmaSetAllocationName(gpu.vma_allocator, texture->vma_allocation, creation.name);
@@ -1593,7 +1598,8 @@ namespace Magnefu
             MF_CORE_ASSERT((!is_sparse_texture), "");
 
             texture->vma_allocation = 0;
-            check(vmaCreateAliasingImage(gpu.vma_allocator, alias_texture->vma_allocation, &image_info, &texture->vk_image), "Failed to create aliasing image");
+            result = vmaCreateAliasingImage(gpu.vma_allocator, alias_texture->vma_allocation, &image_info, &texture->vk_image);
+            check(result, "Failed to create aliasing image");
             texture->alias_texture = creation.alias;
         }
 
@@ -1631,8 +1637,10 @@ namespace Magnefu
         VmaAllocationInfo allocation_info{};
         VkBuffer staging_buffer;
         VmaAllocation staging_allocation;
-        check(vmaCreateBuffer(gpu.vma_allocator, &buffer_info, &memory_info,
-            &staging_buffer, &staging_allocation, &allocation_info), "Failed to create vma buffer - upload_texture_data()");
+
+        VkResult result = vmaCreateBuffer(gpu.vma_allocator, &buffer_info, &memory_info,
+            &staging_buffer, &staging_allocation, &allocation_info);
+        check(result, "Failed to create vma buffer - upload_texture_data()");
 #if defined (_DEBUG)
         vmaSetAllocationName(gpu.vma_allocator, staging_allocation, texture->name);
 #endif // _DEBUG
@@ -2153,6 +2161,8 @@ namespace Magnefu
         VkPipelineCacheCreateInfo pipeline_cache_create_info{ VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO };
 
         bool cache_exists = file_exists(cache_path);
+
+        VkResult result;
         if (cache_path != nullptr && cache_exists) {
             FileReadResult read_result = file_read_binary(cache_path, allocator);
 
@@ -2170,12 +2180,14 @@ namespace Magnefu
                 cache_exists = false;
             }
 
-            check(vkCreatePipelineCache(vulkan_device, &pipeline_cache_create_info, vulkan_allocation_callbacks, &pipeline_cache), "Failed to create pipeline cache");
+            result = vkCreatePipelineCache(vulkan_device, &pipeline_cache_create_info, vulkan_allocation_callbacks, &pipeline_cache);
+            check(result, "Failed to create pipeline cache");
 
             allocator->deallocate(read_result.data);
         }
         else {
-            check(vkCreatePipelineCache(vulkan_device, &pipeline_cache_create_info, vulkan_allocation_callbacks, &pipeline_cache), "faile dto create pipeline cache");
+            result = vkCreatePipelineCache(vulkan_device, &pipeline_cache_create_info, vulkan_allocation_callbacks, &pipeline_cache);
+            check(result, "faile dto create pipeline cache");
         }
 
         ShaderStateHandle shader_state = create_shader_state(creation.shaders);
@@ -2248,7 +2260,8 @@ namespace Magnefu
         }
 
         VkPipelineLayout pipeline_layout;
-        check(vkCreatePipelineLayout(vulkan_device, &pipeline_layout_info, vulkan_allocation_callbacks, &pipeline_layout), "failed to create pipeline layout");
+        result = vkCreatePipelineLayout(vulkan_device, &pipeline_layout_info, vulkan_allocation_callbacks, &pipeline_layout);
+        check(result, "failed to create pipeline layout");
         // Cache pipeline layout
         pipeline->vk_pipeline_layout = pipeline_layout;
         pipeline->num_active_layouts = num_active_layouts;
@@ -2457,7 +2470,8 @@ namespace Magnefu
 
             pipeline_info.pDynamicState = &dynamic_state;
 
-            check(vkCreateGraphicsPipelines(vulkan_device, pipeline_cache, 1, &pipeline_info, vulkan_allocation_callbacks, &pipeline->vk_pipeline), "Failed to create graphics pipelines");
+            result = vkCreateGraphicsPipelines(vulkan_device, pipeline_cache, 1, &pipeline_info, vulkan_allocation_callbacks, &pipeline->vk_pipeline);
+            check(result, "Failed to create graphics pipelines");
 
             pipeline->vk_bind_point = VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS;
 
@@ -2485,8 +2499,8 @@ namespace Magnefu
              pipeline_info.layout = pipeline_layout;
 
 
-
-             check(vkCreateRayTracingPipelinesKHR(vulkan_device, VK_NULL_HANDLE, pipeline_cache, 1, &pipeline_info, vulkan_allocation_callbacks, &pipeline->vk_pipeline), "Failed to create raytracing pipelines");
+             result = vkCreateRayTracingPipelinesKHR(vulkan_device, VK_NULL_HANDLE, pipeline_cache, 1, &pipeline_info, vulkan_allocation_callbacks, &pipeline->vk_pipeline);
+             check(result, "Failed to create raytracing pipelines");
 
 
 
@@ -2507,8 +2521,8 @@ namespace Magnefu
              shader_binding_table_data.init(temporary_allocator, shader_binding_table_size, shader_binding_table_size);
 
 
-
-             check(vkGetRayTracingShaderGroupHandlesKHR(vulkan_device, pipeline->vk_pipeline, 0, shader_state_data->active_shaders, shader_binding_table_size, shader_binding_table_data.data), "Failed to get raytracing shader group handles");
+             result = vkGetRayTracingShaderGroupHandlesKHR(vulkan_device, pipeline->vk_pipeline, 0, shader_state_data->active_shaders, shader_binding_table_size, shader_binding_table_data.data);
+             check(result, "Failed to get raytracing shader group handles");
 
 
 
@@ -2540,17 +2554,22 @@ namespace Magnefu
             pipeline_info.stage = shader_state_data->shader_stage_info[0];
             pipeline_info.layout = pipeline_layout;
 
-            check(vkCreateComputePipelines(vulkan_device, pipeline_cache, 1, &pipeline_info, vulkan_allocation_callbacks, &pipeline->vk_pipeline), "");
+            result = vkCreateComputePipelines(vulkan_device, pipeline_cache, 1, &pipeline_info, vulkan_allocation_callbacks, &pipeline->vk_pipeline);
+            check(result, "");
 
             pipeline->vk_bind_point = VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_COMPUTE;
         }
 
         if (cache_path != nullptr && !cache_exists) {
             sizet cache_data_size = 0;
-            check(vkGetPipelineCacheData(vulkan_device, pipeline_cache, &cache_data_size, nullptr), "");
+
+            result = vkGetPipelineCacheData(vulkan_device, pipeline_cache, &cache_data_size, nullptr);
+            check(result, "");
 
             void* cache_data = allocator->allocate(cache_data_size, 64);
-            check(vkGetPipelineCacheData(vulkan_device, pipeline_cache, &cache_data_size, cache_data), "");
+
+            result = vkGetPipelineCacheData(vulkan_device, pipeline_cache, &cache_data_size, cache_data);
+            check(result, "");
 
             file_write_binary(cache_path, cache_data, cache_data_size);
 
@@ -2614,8 +2633,10 @@ namespace Magnefu
         }
 
         VmaAllocationInfo allocation_info{};
-        check(vmaCreateBuffer(vma_allocator, &buffer_info, &allocation_create_info,
-            &buffer->vk_buffer, &buffer->vma_allocation, &allocation_info), "");
+
+        VkResult result = vmaCreateBuffer(vma_allocator, &buffer_info, &allocation_create_info,
+            &buffer->vk_buffer, &buffer->vma_allocation, &allocation_info);
+        check(result, "");
 #if defined (_DEBUG)
         vmaSetAllocationName(vma_allocator, buffer->vma_allocation, creation.name);
 #endif // _DEBUG
@@ -2998,6 +3019,7 @@ namespace Magnefu
         alloc_info.descriptorSetCount = 1;
         alloc_info.pSetLayouts = &descriptor_set_layout->vk_descriptor_set_layout;
 
+        VkResult result;
         if (descriptor_set_layout->bindless) {
             VkDescriptorSetVariableDescriptorCountAllocateInfoEXT count_info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT };
             u32 max_binding = k_max_bindless_resources - 1;
@@ -3005,10 +3027,12 @@ namespace Magnefu
             // This number is the max allocatable count
             count_info.pDescriptorCounts = &max_binding;
             alloc_info.pNext = &count_info;
-            check(vkAllocateDescriptorSets(vulkan_device, &alloc_info, &descriptor_set->vk_descriptor_set), "");
+            result = vkAllocateDescriptorSets(vulkan_device, &alloc_info, &descriptor_set->vk_descriptor_set);
+            check(result, "");
         }
         else {
-            check(vkAllocateDescriptorSets(vulkan_device, &alloc_info, &descriptor_set->vk_descriptor_set), "");
+            result = vkAllocateDescriptorSets(vulkan_device, &alloc_info, &descriptor_set->vk_descriptor_set);
+            check(result, "");
         }
 
         // Cache data
@@ -3089,7 +3113,8 @@ namespace Magnefu
         framebuffer_info.pAttachments = framebuffer_attachments;
         framebuffer_info.attachmentCount = active_attachments;
 
-        check(vkCreateFramebuffer(gpu.vulkan_device, &framebuffer_info, nullptr, &framebuffer->vk_framebuffer), "Failed to create frame buffer");
+        VkResult result = vkCreateFramebuffer(gpu.vulkan_device, &framebuffer_info, nullptr, &framebuffer->vk_framebuffer);
+        check(result, "Failed to create frame buffer");
         MF_CORE_DEBUG("Created Framebuffer: {}, Width: {}, Height: {}, Layers: {}, Color Attachments: {}", framebuffer->name, framebuffer->width, framebuffer->height, framebuffer->layers, framebuffer->num_color_attachments);
         gpu.set_resource_name(VK_OBJECT_TYPE_FRAMEBUFFER, (u64)framebuffer->vk_framebuffer, framebuffer->name);
     }
@@ -3230,7 +3255,8 @@ namespace Magnefu
         }
 
         VkRenderPass vk_render_pass;
-        check(vkCreateRenderPass(gpu.vulkan_device, &render_pass_info, nullptr, &vk_render_pass), "failed to create render pass");
+        VkResult result = vkCreateRenderPass(gpu.vulkan_device, &render_pass_info, nullptr, &vk_render_pass);
+        check(result, "failed to create render pass");
         MF_CORE_DEBUG("Created RenderPass: {}", name);
         gpu.set_resource_name(VK_OBJECT_TYPE_RENDER_PASS, (u64)vk_render_pass, name);
 
@@ -3756,14 +3782,16 @@ namespace Magnefu
             submit_info.commandBufferInfoCount = 1;
             submit_info.pCommandBufferInfos = &command_buffer_info;
 
-            check(vkQueueSubmit2KHR(vulkan_main_queue, 1, &submit_info, VK_NULL_HANDLE), "Failed queue submit 2");
+            VkResult result = vkQueueSubmit2KHR(vulkan_main_queue, 1, &submit_info, VK_NULL_HANDLE);
+            check(result, "Failed queue submit 2");
         }
         else {
             VkSubmitInfo submitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
             submitInfo.commandBufferCount = 1;
             submitInfo.pCommandBuffers = &command_buffer->vk_command_buffer;
 
-            check(vkQueueSubmit(vulkan_main_queue, 1, &submitInfo, VK_NULL_HANDLE), "Failed queue submit");
+            VkResult result = vkQueueSubmit(vulkan_main_queue, 1, &submitInfo, VK_NULL_HANDLE);
+            check(result, "Failed queue submit");
         }
         vkQueueWaitIdle(vulkan_main_queue);
 
@@ -4434,7 +4462,8 @@ namespace Magnefu
             sparse_info.signalSemaphoreCount = 1;
             sparse_info.pSignalSemaphores = &vulkan_bind_semaphore;
 
-            check(vkQueueBindSparse(vulkan_main_queue, 1, &sparse_info, VK_NULL_HANDLE), "Failed to bind sparse info to main queue");
+            VkResult result = vkQueueBindSparse(vulkan_main_queue, 1, &sparse_info, VK_NULL_HANDLE);
+            check(result, "Failed to bind sparse info to main queue");
 
             sparse_binding_infos.shutdown();
 
@@ -4483,7 +4512,8 @@ namespace Magnefu
                 submit_info.signalSemaphoreInfoCount = 2;
                 submit_info.pSignalSemaphoreInfos = signal_semaphores;
 
-                check(vkQueueSubmit2KHR(vulkan_main_queue, 1, &submit_info, VK_NULL_HANDLE), "Failed to submit to main queue");
+                VkResult result = vkQueueSubmit2KHR(vulkan_main_queue, 1, &submit_info, VK_NULL_HANDLE);
+                check(result, "Failed to submit to main queue");
 
                 wait_semaphores.shutdown();
             }
@@ -4542,7 +4572,8 @@ namespace Magnefu
 
                 submit_info.pNext = &semaphore_info;
 
-                check(vkQueueSubmit(vulkan_main_queue, 1, &submit_info, VK_NULL_HANDLE), "Failed to submit to main queue");
+                VkResult result = vkQueueSubmit(vulkan_main_queue, 1, &submit_info, VK_NULL_HANDLE);
+                check(result, "Failed to submit to main queue");
 
                 wait_semaphores.shutdown();
                 wait_values.shutdown();
@@ -4581,7 +4612,8 @@ namespace Magnefu
                 submit_info.signalSemaphoreInfoCount = 1;
                 submit_info.pSignalSemaphoreInfos = signal_semaphores;
 
-                check(vkQueueSubmit2KHR(vulkan_main_queue, 1, &submit_info, render_complete_fence), "Failed to submit queue2");
+                VkResult result = vkQueueSubmit2KHR(vulkan_main_queue, 1, &submit_info, render_complete_fence);
+                check(result, "Failed to submit queue2");
 
                 wait_semaphores.shutdown();
             }
@@ -4611,7 +4643,8 @@ namespace Magnefu
                 submit_info.signalSemaphoreCount = 1;
                 submit_info.pSignalSemaphores = render_complete_semaphore;
 
-                check(vkQueueSubmit(vulkan_main_queue, 1, &submit_info, render_complete_fence), "Failed to submit queue");
+                VkResult result = vkQueueSubmit(vulkan_main_queue, 1, &submit_info, render_complete_fence);
+                check(result, "Failed to submit queue");
 
                 wait_semaphores.shutdown();
                 wait_stages.shutdown();
