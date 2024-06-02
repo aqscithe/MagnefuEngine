@@ -59,15 +59,12 @@
 - Volumetric Fog
 > ![Volumetric Fog](./SCREENS/volumetric_fog.png)
 - Raytracing
+> ![Raytraced Shadows](./SCREENS/rt_shadows.png)
 > ![Debug Probes](./SCREENS/gi_debug_probes.png)
+- GPU Profiler
+> ![GPU Profiler](./SCREENS/gpu_profiler.gif)
 
 ### Editor
-- Frame Graph Debugger
-> ![Normals](./SCREENS/frame_graph_normals.png)
-> ![Color](./SCREENS/frame_graph_color.png)
-> ![Occlusion Roughness Metallic](./SCREENS/frame_graph_orm.png)
-> ![Depth](./SCREENS/frame_graph_depth.png)
-
 <table>
   <tr>
     <td rowspan="4"><strong>Frame Graph Debugger</strong></td>
@@ -96,11 +93,11 @@
 ## Debugging Tools
 - Nvidia Nsight Graphics
 - RenderDoc
-- chrome://tracing
+- [chrome://tracing](chrome://tracing)
 
 
 ## Updates!
-Devlog coming soon: <span style="color:blue;">leonlaglace.com/blog</span>.
+Devlog coming soon: [Blog](https://leonlaglace.com/blog).
 
 - 26 June 2023 -> 02 July 2023 | I have introduced all of the basic material textures: roughness, metallic, normal and ambient occlusion. Getting the right calculations for the normals was a little tricky but between this [article](https://learnopengl.com/Advanced-Lighting/Normal-Mapping) and some help from GPT, I was able to succeed. There is also the addition of a point light to show off the additional textures. The fragment shader is using the basic BRDF lighting algorithm(to great effect I might add). I'll have a screenshot included in the readme to showcase the new visuals. Next week will likely be less exciting visually. Going to focus on code abstraction in the engine, with my sights set dead on setting up a materials system. I also have a lot of excess code in the shader that needs to be cleaned up.
 
