@@ -77,7 +77,7 @@
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\entt\include;vendor\assimp\include;vendor\meshoptimizer;vendor\vma;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\assimp\include;vendor\meshoptimizer;vendor\vma;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -99,7 +99,7 @@
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\entt\include;vendor\assimp\include;vendor\meshoptimizer;vendor\vma;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\assimp\include;vendor\meshoptimizer;vendor\vma;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -125,7 +125,7 @@
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\entt\include;vendor\assimp\include;vendor\meshoptimizer;vendor\vma;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\assimp\include;vendor\meshoptimizer;vendor\vma;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -163,10 +163,6 @@
     <ClInclude Include="src\Magnefu\Application\Input\MouseButtonCodes.h" />
     <ClInclude Include="src\Magnefu\Application\Layer.h" />
     <ClInclude Include="src\Magnefu\Application\LayerStack.h" />
-    <ClInclude Include="src\Magnefu\Application\Scene\Components.h" />
-    <ClInclude Include="src\Magnefu\Application\Scene\Entity.h" />
-    <ClInclude Include="src\Magnefu\Application\Scene\Scene.h" />
-    <ClInclude Include="src\Magnefu\Application\Scene\SceneManager.h" />
     <ClInclude Include="src\Magnefu\Application\Windows\Window.h" />
     <ClInclude Include="src\Magnefu\Application\Windows\WindowsInput.h" />
     <ClInclude Include="src\Magnefu\Application\Windows\WindowsWindow.h" />
@@ -1350,9 +1346,6 @@
     <ClCompile Include="src\Magnefu\Application\Input\Input.cpp" />
     <ClCompile Include="src\Magnefu\Application\Layer.cpp" />
     <ClCompile Include="src\Magnefu\Application\LayerStack.cpp" />
-    <ClCompile Include="src\Magnefu\Application\Scene\Entity.cpp" />
-    <ClCompile Include="src\Magnefu\Application\Scene\Scene.cpp" />
-    <ClCompile Include="src\Magnefu\Application\Scene\SceneManager.cpp" />
     <ClCompile Include="src\Magnefu\Application\Windows\Window.cpp" />
     <ClCompile Include="src\Magnefu\Application\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Magnefu\Application\Windows\WindowsWindow.cpp" />

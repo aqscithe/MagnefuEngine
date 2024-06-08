@@ -9,11 +9,6 @@
 
 #include "Magnefu/Application/Input/Input.h"
 
-#include "Magnefu/Application/Scene/Scene.h"
-#include "Magnefu/Application/Scene/Entity.h"
-#include "Magnefu/Application/Scene/Components.h"
-#include "Magnefu/Application/Scene/SceneManager.h"
-
 #include "Magnefu/Application/Windows/WindowsWindow.h"
 
 

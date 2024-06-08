@@ -19,9 +19,6 @@
     <Filter Include="src\Magnefu\Application\Input">
       <UniqueIdentifier>{21D5C99A-8DED-B0C4-569A-405EC271455E}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Magnefu\Application\Scene">
-      <UniqueIdentifier>{3F92789B-ABAA-5FC5-7457-EF5EE02EF45E}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\Magnefu\Application\Windows">
       <UniqueIdentifier>{DC9F6B9E-4883-7ADE-5186-A81ABDE8402F}</UniqueIdentifier>
     </Filter>
@@ -332,18 +329,6 @@
     </ClInclude>
     <ClInclude Include="src\Magnefu\Application\LayerStack.h">
       <Filter>src\Magnefu\Application</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Scene\Components.h">
-      <Filter>src\Magnefu\Application\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Scene\Entity.h">
-      <Filter>src\Magnefu\Application\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Scene\Scene.h">
-      <Filter>src\Magnefu\Application\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magnefu\Application\Scene\SceneManager.h">
-      <Filter>src\Magnefu\Application\Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\Magnefu\Application\Windows\Window.h">
       <Filter>src\Magnefu\Application\Windows</Filter>
@@ -3889,15 +3874,6 @@
     </ClCompile>
     <ClCompile Include="src\Magnefu\Application\LayerStack.cpp">
       <Filter>src\Magnefu\Application</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\Scene\Entity.cpp">
-      <Filter>src\Magnefu\Application\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\Scene\Scene.cpp">
-      <Filter>src\Magnefu\Application\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magnefu\Application\Scene\SceneManager.cpp">
-      <Filter>src\Magnefu\Application\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\Magnefu\Application\Windows\Window.cpp">
       <Filter>src\Magnefu\Application\Windows</Filter>
