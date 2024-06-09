@@ -40,6 +40,10 @@
 *.sdf
 *.VC.db
 *.VC.opendb
+*.vcxproj
+*/*.vcxproj
+*.vcxproj.*
+*/*.vcxproj.*
 
 # Precompiled Assets
 SourceArt/**/*.png
@@ -87,9 +91,6 @@ Magnefu/vendor/*/bin-int/*
 Sandbox/res/*
 !Sandbox/res/shaders
 Sandbox/res/shaders/*.cache
-Editor/res/*
-!Editor/res/shaders
-Editor/res/shaders/*.cache
 
 .spv
 Editor/res/shaders/*.spv

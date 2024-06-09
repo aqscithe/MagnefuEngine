@@ -28,6 +28,7 @@ project "GLAD"
 
 	filter "system:windows"
 		systemversion "latest"
+		architecture "x64"  -- Ajoute cette ligne pour forcer l'architecture x64
 
 		files {
 			"src/glad.c"
