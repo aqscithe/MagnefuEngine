@@ -12,7 +12,9 @@
 #define SCENE_COUNT 1
 
 static const char* kDefault3DModels[SCENE_COUNT] = {
-    "res/models/Sponza/glTF/Sponza.gltf",
+    //"res/scenes/sandbox/sandbox.gltf",
+    //"res/models/Sponza/glTF/Sponza.gltf",
+    "res/models/Sponza/glTF/Sponza_ktx2.gltf",
     //"res/models/FlightHelmet/glTF/FlightHelmet.gltf",
     //"res/models/pony_cartoon/scene.gltf",
     //"res/models/pony_cartoon/flattened.gltf",
@@ -202,6 +204,12 @@ namespace Magnefu
             f32*    specular_factor;
             TextureInfo* diffuse_texture;
             TextureInfo* specular_glossiness_texture;
+        };
+
+        // Might be worthwhile to just implement the transmission material
+        struct MaterialTransmission {
+            f32*    transmission_factor;
+            TextureInfo* transmission_texture;
         };
 
         struct MeshPrimitive {

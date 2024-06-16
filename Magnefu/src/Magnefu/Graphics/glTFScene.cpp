@@ -11,6 +11,11 @@
 #include "imgui/imgui.h"
 #include "stb_image/stb_image.h"
 
+#ifndef KHRONOS_STATIC
+#define KHRONOS_STATIC
+#endif
+#include "ktxvulkan.h"
+
 #include "cglm/struct/affine.h"
 #include "cglm/struct/mat4.h"
 #include "cglm/struct/vec3.h"
@@ -188,11 +193,20 @@ namespace Magnefu {
         for (u32 image_index = 0; image_index < gltf_scene.images_count; ++image_index) {
             glTF::Image& image = gltf_scene.images[image_index];
 
-            int comp, width, height;
+            ktx_uint32_t vk_format;
+            u32 mip_levels, width, height;
 
-            stbi_info(image.uri.data, &width, &height, &comp);
+            ktxTexture2* texture;
+            KTX_error_code result = ktxTexture2_CreateFromNamedFile(image.uri.data, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
+            //KTX_error_code result = ktxTexture_CreateFromNamedFile(image.uri.data, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
+            MF_CORE_ASSERT(result == KTX_SUCCESS, "");
 
-            u32 mip_levels = 1;
+            vk_format = texture->vkFormat;
+            width = texture->baseWidth;
+            height = texture->baseHeight;
+            mip_levels = texture->numLevels;
+
+            // TODO: Skip if texture already has mips?
             if (true) {
                 u32 w = width;
                 u32 h = height;
@@ -204,9 +218,11 @@ namespace Magnefu {
                     ++mip_levels;
                 }
             }
+            
 
             TextureCreation tc;
-            tc.set_data(nullptr).set_format_type(VK_FORMAT_R8G8B8A8_UNORM, TextureType::Texture2D).set_flags(0).set_size((u16)width, (u16)height, 1).set_name(image.uri.data).set_mips(mip_levels);
+            //tc.set_data(nullptr).set_format_type(VK_FORMAT_R8G8B8A8_UNORM, TextureType::Texture2D).set_flags(0).set_size((u16)width, (u16)height, 1).set_name(image.uri.data).set_mips(mip_levels);
+            tc.set_data(nullptr).set_format_type((VkFormat)vk_format, TextureType::Texture2D).set_flags(0).set_size((u16)width, (u16)height, 1).set_name(image.uri.data).set_mips(mip_levels);
             TextureResource* tr = renderer->create_texture(tc);
             MF_CORE_ASSERT((tr != nullptr), "");
 

@@ -545,6 +545,15 @@ namespace Magnefu
             return;
         }
 
+        VkFormat format = VK_FORMAT_BC3_UNORM_BLOCK; // Example: BC3 compressed format
+
+        // Check if the format is supported
+        VkFormatProperties formatProperties;
+        vkGetPhysicalDeviceFormatProperties(vulkan_physical_device, format, &formatProperties);
+        if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT)) {
+            MF_CORE_ERROR("BC3 format not supported");
+        }
+
         temp_allocator->freeToMarker(initial_temp_allocator_marker);
 
         {

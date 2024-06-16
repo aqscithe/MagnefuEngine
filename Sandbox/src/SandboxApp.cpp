@@ -189,43 +189,7 @@ f32 linearize_depth(f32 depth, f32 z_far, f32 z_near) {
 	return z_near * z_far / (z_far + depth * (z_near - z_far));
 }
 
-//static void DrawNode(u32 node_index, u32& selected_node, u32& meshlet_count, const Magnefu::SceneGraph& scene_graph, Magnefu::RenderScene* scene) {
-//	const Magnefu::SceneGraphNodeDebugData& node_debug_data = scene_graph.nodes_debug_data[node_index];
-//	bool is_selected = (node_index == selected_node);
-//
-//	// Option for a tree node
-//	ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
-//	if (is_selected)
-//		node_flags |= ImGuiTreeNodeFlags_Selected;
-//
-//	bool node_open = false;
-//	
-//	if (ImGui::TreeNodeEx((void*)(intptr_t)node_index, node_flags, node_debug_data.name ? node_debug_data.name : "-"))
-//	{
-//		node_open = true;
-//
-//
-//	}
-//
-//	// If the node is selected
-//	if (ImGui::IsItemClicked()) {
-//		selected_node = node_index;
-//		if (scene->mesh_instances.count() > node_debug_data.mesh_index)
-//		{
-//			meshlet_count = scene->mesh_instances[node_debug_data.mesh_index].mesh->meshlet_count;
-//		}
-//	}
-//
-//	// If this is a leaf node, there's no need to attempt to draw children
-//	if (node_open) {
-//		u32 child_index = scene_graph.nodes_hierarchy[node_index].first_child_index;
-//		for (u32 i = 0; i < scene_graph.nodes_hierarchy[node_index].children_count; ++i) {
-//			DrawNode(child_index, selected_node, meshlet_count, scene_graph, scene);
-//			child_index++;
-//		}
-//		ImGui::TreePop();
-//	}
-//}
+
 
 static void DrawNode(u32 node_index, Magnefu::SceneGraph& scene_graph, Magnefu::RenderScene* scene) {
 	static u32 selected_node = u32_max;
@@ -944,6 +908,17 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 	s_async_loader.init(renderer, &s_task_scheduler, allocator);
 
 
+	// will eventually have an EditorLayer
+	// may even have more specific layers like Physics Collisions and AI...
+	// this is how updates can be controlled separately
+
+	// TODO: How should i give the app access to its layer and overlay?
+
+	layer_stack = new Magnefu::LayerStack();
+	layer_stack->PushLayer(new SandboxLayer());
+	layer_stack->PushOverlay(new Overlay());
+
+
 	Directory cwd{ };
 	directory_current(&cwd);
 
@@ -952,6 +927,8 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 
 	// TODO: [leon] should read in scene list from separate file instead of 
 	// from glTF.hpp
+	
+
 	InjectDefault3DModel(scene_paths);
 
 
@@ -1010,16 +987,6 @@ void Sandbox::Create(const Magnefu::ApplicationConfiguration& configuration)
 		s_frame_graph.add_resource("shading_rate_image", FrameGraphResourceType_ShadingRate, resource_info);
 	}
 	
-
-	// will eventually have an EditorLayer
-	// may even have more specific layers like Physics Collisions and AI...
-	// this is how updates can be controlled separately
-
-	// TODO: How should i give the app access to its layer and overlay?
-
-	layer_stack = new Magnefu::LayerStack();
-	layer_stack->PushLayer(new SandboxLayer());
-	layer_stack->PushOverlay(new Overlay());
 
 
 	// Load frame graph and parse gpu techniques
@@ -1310,9 +1277,13 @@ bool Sandbox::MainLoop()
 
 	RenderData render_data;
 
-	for (u32 i = 0; i < 6; ++i) {
-		scene->cubeface_flip[i] = false;
+	if (scene != nullptr)
+	{
+		for (u32 i = 0; i < 6; ++i) {
+			scene->cubeface_flip[i] = false;
+		}
 	}
+	
 
 	u32 texture_to_debug = 127;
 	Array<u32> texture_indices;
