@@ -29,7 +29,7 @@ namespace Magnefu
         string_buffer.append(value.c_str());
     }
 
-    static void try_load_int(json& json_data, cstring key, i32& value) {
+    static void try_load_int(const json& json_data, const cstring key, i32& value) {
         auto it = json_data.find(key);
         if (it == json_data.end())
         {
@@ -39,6 +39,17 @@ namespace Magnefu
 
         value = json_data.value(key, 0);
     }
+
+    /*static void try_load_int(json& json_data, cstring key, i32& value) {
+        auto it = json_data.find(key);
+        if (it == json_data.end())
+        {
+            value = glTF::INVALID_INT_VALUE;
+            return;
+        }
+
+        value = json_data.value(key, 0);
+    }*/
 
     static void try_load_float(json& json_data, cstring key, f32& value) {
         auto it = json_data.find(key);
@@ -392,11 +403,35 @@ namespace Magnefu
         }
     }
 
+
     static void load_texture(json& json_data, glTF::Texture& texture, Allocator* allocator) {
+        try_load_int(json_data, "sampler", texture.sampler);
+
+        // Check for KHR_texture_basisu extension
+        auto extensions_it = json_data.find("extensions");
+        if (extensions_it != json_data.end()) {
+            auto basisu_it = extensions_it->find("KHR_texture_basisu");
+            if (basisu_it != extensions_it->end()) {
+                try_load_int(*basisu_it, "source", texture.source);
+            }
+            else {
+                try_load_int(json_data, "source", texture.source);
+            }
+        }
+        else {
+            try_load_int(json_data, "source", texture.source);
+        }
+
+        try_load_string(json_data, "name", texture.name, allocator);
+    }
+
+    
+
+    /*static void load_texture(json& json_data, glTF::Texture& texture, Allocator* allocator) {
         try_load_int(json_data, "sampler", texture.sampler);
         try_load_int(json_data, "source", texture.source);
         try_load_string(json_data, "name", texture.name, allocator);
-    }
+    }*/
 
     static void load_textures(json& json_data, glTF::glTF& gltf_data, Allocator* allocator) {
         json array = json_data["textures"];

@@ -12,9 +12,12 @@
 #define SCENE_COUNT 1
 
 static const char* kDefault3DModels[SCENE_COUNT] = {
+    //"res/models/wooden_medieval_bookstand_orig/scene_1.gltf",
+    //"res/models/wooden_medieval_bookstand_etc1s/scene-etc1s.gltf",
+    "res/models/wooden_medieval_bookstand_mixed_comp/output-highquality.gltf",
     //"res/scenes/sandbox/sandbox.gltf",
     //"res/models/Sponza/glTF/Sponza.gltf",
-    "res/models/Sponza/glTF/Sponza_ktx2.gltf",
+    //"res/models/Sponza/glTF/Sponza_ktx2.gltf",
     //"res/models/FlightHelmet/glTF/FlightHelmet.gltf",
     //"res/models/pony_cartoon/scene.gltf",
     //"res/models/pony_cartoon/flattened.gltf",
@@ -175,36 +178,13 @@ namespace Magnefu
         };
 
 
-        /*"KHR_materials_pbrSpecularGlossiness": {
-            "diffuseFactor": [
-                0.61,
-                    0.61,
-                    0.61,
-                    1.0
-            ] ,
-                "diffuseTexture": {
-                "index": 0
-            },
-                "glossinessFactor" : 1.0,
-                "specularFactor" : [
-                    0.0,
-                        0.0,
-                        0.0
-                ] ,
-                "specularGlossinessTexture" : {
-                "index": 1
-            }
-        }*/
+
         // TODO: (leon) Add support for KHR_materials_pbrSpecularGlossiness
         // Do I want to support this? The standard pbr texture is ao, roughness, metallic
-        struct MaterialPBRSpecularGlossiness {
-            u32     diffuse_color_factor_count;
-            f32*    diffuse_color_factor;
-            f32     glossiness_factor;
-            f32*    specular_factor;
-            TextureInfo* diffuse_texture;
-            TextureInfo* specular_glossiness_texture;
-        };
+        // ! NO NEED - gltf-transform tool supports conversion of specularGlossiness -> metallicRough
+
+
+
 
         // Might be worthwhile to just implement the transmission material
         struct MaterialTransmission {

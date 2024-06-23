@@ -6,6 +6,10 @@
 
 #include "enkiTS/TaskScheduler.h"
 #include "stb_image/stb_image.h"
+
+#ifndef KHRONOS_STATIC
+#define KHRONOS_STATIC
+#endif
 #include "ktxvulkan.h"
 
 
@@ -123,11 +127,12 @@ namespace Magnefu
                 Texture* texture = renderer->gpu->access_texture(request.texture);
                 const u32 k_texture_channels = 4;
                 const u32 k_texture_alignment = 4;
-                const sizet aligned_image_size = memoryAlign(texture->width * texture->height * k_texture_channels, k_texture_alignment);
+                //const sizet aligned_image_size = memoryAlign(texture->width * texture->height * k_texture_channels, k_texture_alignment);
+                const sizet aligned_image_size = memoryAlign(request.size, k_texture_alignment);
                 // Request place in buffer
                 const sizet current_offset = std::atomic_fetch_add(&staging_buffer_offset, aligned_image_size);
 
-                cb->upload_texture_data(texture->handle, request.data, staging_buffer->handle, current_offset);
+                cb->upload_texture_data(texture->handle, request.data, request.size, staging_buffer->handle, current_offset);
 
                 free(request.data);
             }
@@ -186,20 +191,51 @@ namespace Magnefu
 
             i64 start_reading_file = time_now();
             // Process request
-            int x, y, comp;
-            u8* texture_data = stbi_load(load_request.path, &x, &y, &comp, 4);
+            /*int x, y, comp;
+            u8* texture_data = stbi_load(load_request.path, &x, &y, &comp, 4);*/
 
-            if (texture_data) {
+            ktxTexture2* texture;
+            KTX_error_code result = ktxTexture2_CreateFromNamedFile(load_request.path, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
+            MF_CORE_ASSERT(result == KTX_SUCCESS, "");
+
+            ktx_transcode_fmt_e target_format = texture->supercompressionScheme == ktxSupercmpScheme::KTX_SS_BASIS_LZ ? KTX_TTF_BC3_RGBA : KTX_TTF_BC7_RGBA;
+
+            if (ktxTexture2_NeedsTranscoding(texture))
+            {
+                result = ktxTexture2_TranscodeBasis(texture, target_format, 0);
+                if (result != KTX_SUCCESS)
+                {
+                    throw std::runtime_error("Could not transcode the input texture to the selected target format.");
+                }
+            }
+
+            // TODO: Transcoding seems to be exactly what I needed to do. the image offset returns a valid value now.
+            // I should alter upload request so it contains info like miplevel count and the corresponding offsets and 
+            // sizes. This will require looping based on numLevels from ktxTexture2.
+
+            ktxTexture* temptex = ktxTexture(texture);
+            //auto mip_level_size = ktxTexture_GetImageSize(temptex, 0);
+            auto mip_level_size = ktxTexture_GetLevelSize(temptex, 0);
+            u32 actual_size = static_cast<u32>(mip_level_size);
+            ktx_off_t mip_level_offset;
+            auto get_image_off_result = ktxTexture_GetImageOffset(temptex, 0, 0, 0, &mip_level_offset);
+
+            if (result == KTX_SUCCESS) {
+            /*if (load_request.path) {*/
                 MF_CORE_INFO("File {} read in {} ms", load_request.path, time_from_milliseconds(start_reading_file));
 
                 UploadRequest& upload_request = upload_requests.push_use();
-                upload_request.data = texture_data;
+                upload_request.data = texture->pData;
+                upload_request.size = texture->dataSize;
+                //upload_request.data = texture_data;
                 upload_request.texture = load_request.texture;
                 upload_request.cpu_buffer = k_invalid_buffer;
             }
             else {
                 MF_CORE_ERROR("Error reading file {}", load_request.path);
             }
+
+            ktxTexture2_Destroy(texture);
         }
 
         staging_buffer_offset = 0;

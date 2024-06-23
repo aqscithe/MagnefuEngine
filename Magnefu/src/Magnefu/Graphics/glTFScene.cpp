@@ -198,16 +198,22 @@ namespace Magnefu {
 
             ktxTexture2* texture;
             KTX_error_code result = ktxTexture2_CreateFromNamedFile(image.uri.data, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
-            //KTX_error_code result = ktxTexture_CreateFromNamedFile(image.uri.data, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
             MF_CORE_ASSERT(result == KTX_SUCCESS, "");
+            
 
             vk_format = texture->vkFormat;
             width = texture->baseWidth;
             height = texture->baseHeight;
             mip_levels = texture->numLevels;
 
+            /*u32 mip_levels = 1;
+            int comp, width, height;
+
+            stbi_info(image.uri.data, &width, &height, &comp);*/
+
             // TODO: Skip if texture already has mips?
-            if (true) {
+            if (mip_levels <= 1) 
+            {
                 u32 w = width;
                 u32 h = height;
 
@@ -220,9 +226,23 @@ namespace Magnefu {
             }
             
 
+            // TODO: Detect whether I need R8G8B8A8 for alpha channel. Will have enormous savings on VRAM.
+           /* khr_df_model_e color_model = ktxTexture2_GetColorModel_e(texture);
+
+            ktx_uint32_t num_comp;
+            ktx_uint32_t byte_len;
+            ktxTexture2_GetComponentInfo(texture, &num_comp, &byte_len);
+
+            khr_df_primaries_e primaries = ktxTexture2_GetPrimaries_e(texture);
+
+            auto oetf = ktxTexture2_GetOETF(texture);
+            auto form = ktxTexture2_GetVkFormat(texture);
+            auto blah = ktxTexture2_GetPremultipliedAlpha(texture);*/
+
             TextureCreation tc;
             //tc.set_data(nullptr).set_format_type(VK_FORMAT_R8G8B8A8_UNORM, TextureType::Texture2D).set_flags(0).set_size((u16)width, (u16)height, 1).set_name(image.uri.data).set_mips(mip_levels);
-            tc.set_data(nullptr).set_format_type((VkFormat)vk_format, TextureType::Texture2D).set_flags(0).set_size((u16)width, (u16)height, 1).set_name(image.uri.data).set_mips(mip_levels);
+            tc.set_data(nullptr).set_format_type(texture->supercompressionScheme == ktxSupercmpScheme::KTX_SS_BASIS_LZ ? VK_FORMAT_BC3_UNORM_BLOCK : VK_FORMAT_BC7_UNORM_BLOCK, TextureType::Texture2D).set_flags(0).set_size((u16)width, (u16)height, 1).set_name(image.uri.data).set_mips(mip_levels);
+            //tc.set_data(nullptr).set_format_type((VkFormat)vk_format, TextureType::Texture2D).set_flags(0).set_size((u16)width, (u16)height, 1).set_name(image.uri.data).set_mips(mip_levels);
             TextureResource* tr = renderer->create_texture(tc);
             MF_CORE_ASSERT((tr != nullptr), "");
 
@@ -233,6 +253,7 @@ namespace Magnefu {
             async_loader->request_texture_data(full_filename, tr->handle);
             // Reset name buffer
             temp_name_buffer.clear();
+            ktxTexture2_Destroy(texture);
         }
 
         i64 end_loading_textures_files = time_now();

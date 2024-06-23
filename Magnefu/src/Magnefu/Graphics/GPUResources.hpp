@@ -836,6 +836,7 @@ namespace Magnefu {
         VmaAllocation                   vma_allocation;
         ResourceState                   state = RESOURCE_STATE_UNDEFINED;
 
+        u32                             compressed_size = 0;
         u16                             width = 1;
         u16                             height = 1;
         u16                             depth = 1;

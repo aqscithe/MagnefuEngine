@@ -80,7 +80,7 @@ namespace Magnefu {
         u32                             get_subgroup_sized(u32 group);
 
         // Non-drawing methods
-        void                            upload_texture_data(TextureHandle texture, void* texture_data, BufferHandle staging_buffer, sizet staging_buffer_offset);
+        void                            upload_texture_data(TextureHandle texture, void* texture_data, u32 texture_size, BufferHandle staging_buffer, sizet staging_buffer_offset);
         void                            copy_texture(TextureHandle src, TextureHandle dst, ResourceState dst_state);
         void                            copy_texture(TextureHandle src, TextureSubResource src_sub, TextureHandle dst, TextureSubResource dst_sub, ResourceState dst_state);
 

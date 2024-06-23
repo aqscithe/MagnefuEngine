@@ -545,7 +545,7 @@ namespace Magnefu
             return;
         }
 
-        VkFormat format = VK_FORMAT_BC3_UNORM_BLOCK; // Example: BC3 compressed format
+        VkFormat format = VK_FORMAT_BC7_UNORM_BLOCK; // 
 
         // Check if the format is supported
         VkFormatProperties formatProperties;
