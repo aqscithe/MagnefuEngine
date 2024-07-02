@@ -487,6 +487,7 @@ namespace Magnefu {
                 Array<u8> meshlet_triangles;
                 meshlet_triangles.init(temp_allocator, max_meshlets * max_triangles * 3, max_meshlets * max_triangles * 3);
 
+                // Has a much longer runtime on gltf files that have been altered with gltf-transform
                 sizet meshlet_count = meshopt_buildMeshlets(local_meshlets.data, meshlet_vertex_indices.data, meshlet_triangles.data, indices,
                     indices_accessor.count, vertices, position_buffer_accessor.count, sizeof(vec3s),
                     max_vertices, max_triangles, cone_weight);

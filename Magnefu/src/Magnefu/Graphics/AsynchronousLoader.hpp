@@ -29,12 +29,14 @@ namespace Magnefu
         BufferHandle                            buffer = k_invalid_buffer;
     }; // struct FileLoadRequest
 
+
     //
     //
     struct UploadRequest {
 
         void* data = nullptr;
         u32                                     size = 0;
+        Array<MipInfo>                          mips;
         TextureHandle                           texture = k_invalid_texture;
         BufferHandle                            cpu_buffer = k_invalid_buffer;
         BufferHandle                            gpu_buffer = k_invalid_buffer;

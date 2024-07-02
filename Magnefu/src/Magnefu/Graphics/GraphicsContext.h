@@ -51,6 +51,11 @@ namespace Magnefu
     struct GpuTimeQueryTree;
     struct GpuPipelineStatistics;
 
+    struct MipInfo {
+        u32 offset;
+        u32 size;
+    };
+
     //
     struct GpuThreadFramePools {
 

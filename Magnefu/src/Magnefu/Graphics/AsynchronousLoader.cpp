@@ -120,6 +120,7 @@ namespace Magnefu
             UploadRequest request = upload_requests.back();
             upload_requests.pop();
 
+
             CommandBuffer* cb = &command_buffers[renderer->gpu->current_frame];
             cb->begin();
 
@@ -132,7 +133,7 @@ namespace Magnefu
                 // Request place in buffer
                 const sizet current_offset = std::atomic_fetch_add(&staging_buffer_offset, aligned_image_size);
 
-                cb->upload_texture_data(texture->handle, request.data, request.size, staging_buffer->handle, current_offset);
+                cb->upload_texture_data(texture->handle, request.data, request.size, staging_buffer->handle, current_offset, request.mips);
 
                 free(request.data);
             }
@@ -213,23 +214,48 @@ namespace Magnefu
             // I should alter upload request so it contains info like miplevel count and the corresponding offsets and 
             // sizes. This will require looping based on numLevels from ktxTexture2.
 
-            ktxTexture* temptex = ktxTexture(texture);
-            //auto mip_level_size = ktxTexture_GetImageSize(temptex, 0);
-            auto mip_level_size = ktxTexture_GetLevelSize(temptex, 0);
-            u32 actual_size = static_cast<u32>(mip_level_size);
-            ktx_off_t mip_level_offset;
-            auto get_image_off_result = ktxTexture_GetImageOffset(temptex, 0, 0, 0, &mip_level_offset);
+       
 
             if (result == KTX_SUCCESS) {
             /*if (load_request.path) {*/
                 MF_CORE_INFO("File {} read in {} ms", load_request.path, time_from_milliseconds(start_reading_file));
 
                 UploadRequest& upload_request = upload_requests.push_use();
-                upload_request.data = texture->pData;
+
+                upload_request.data = MemoryService::Instance()->systemAllocator.allocate((sizet)texture->dataSize, 4);
+                if (upload_request.data)
+                {
+                    memcpy(upload_request.data, texture->pData, (size_t)texture->dataSize);
+                }
+                
                 upload_request.size = texture->dataSize;
-                //upload_request.data = texture_data;
                 upload_request.texture = load_request.texture;
                 upload_request.cpu_buffer = k_invalid_buffer;
+
+                upload_request.mips.init(allocator, texture->numLevels, 0);
+                ktxTexture* temptex = ktxTexture(texture);
+
+                // NOTE: Mip level 0 is actually last in the data in terms of offsets. The last
+                // mip level is at offset 0. So the smallest mip is the first mip encountered in the data.
+                // Should I change the order in which mipinfo is saved in upload request?
+                u32 data_size = 0;
+                for (int i = 0; i < texture->numLevels; i++)
+                {
+                    u32 mip_level_size = static_cast<u32>(ktxTexture_GetLevelSize(temptex, i));
+
+                    ktx_off_t mip_level_offset;
+                    auto get_image_off_result = ktxTexture_GetImageOffset(temptex, i, 0, 0, &mip_level_offset);
+                    MF_CORE_ASSERT((get_image_off_result == KTX_SUCCESS), "");
+
+                    MipInfo mip = { mip_level_offset, mip_level_size };
+                    upload_request.mips.push(mip);
+                    
+
+                    data_size += mip_level_size;
+                }
+
+                MF_CORE_ASSERT((data_size == texture->dataSize), "");
+
             }
             else {
                 MF_CORE_ERROR("Error reading file {}", load_request.path);
