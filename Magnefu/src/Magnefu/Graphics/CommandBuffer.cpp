@@ -788,7 +788,7 @@ namespace Magnefu {
 
         bool src_is_depth = src->vk_format == VK_FORMAT_D32_SFLOAT;
         bool dst_is_depth = dst->vk_format == VK_FORMAT_D32_SFLOAT;
-
+        
         // NOTE(marco): can't copy between depth and color
         MF_CORE_ASSERT((src_is_depth == dst_is_depth), "");
 

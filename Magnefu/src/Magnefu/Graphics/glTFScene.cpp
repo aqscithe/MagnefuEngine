@@ -239,6 +239,7 @@ namespace Magnefu {
             auto form = ktxTexture2_GetVkFormat(texture);
             auto blah = ktxTexture2_GetPremultipliedAlpha(texture);*/
 
+
             TextureCreation tc;
             //tc.set_data(nullptr).set_format_type(VK_FORMAT_R8G8B8A8_UNORM, TextureType::Texture2D).set_flags(0).set_size((u16)width, (u16)height, 1).set_name(image.uri.data).set_mips(mip_levels);
             tc.set_data(nullptr).set_format_type(texture->supercompressionScheme == ktxSupercmpScheme::KTX_SS_BASIS_LZ ? VK_FORMAT_BC3_UNORM_BLOCK : VK_FORMAT_BC7_UNORM_BLOCK, TextureType::Texture2D).set_flags(0).set_size((u16)width, (u16)height, 1).set_name(image.uri.data).set_mips(mip_levels);
