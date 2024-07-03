@@ -135,7 +135,7 @@ namespace Magnefu
 
                 cb->upload_texture_data(texture->handle, request.data, request.size, staging_buffer->handle, current_offset, request.mips);
 
-                free(request.data);
+                MemoryService::Instance()->systemAllocator.deallocate(request.data);
             }
             else if (request.cpu_buffer.index != k_invalid_buffer.index && request.gpu_buffer.index != k_invalid_buffer.index) {
                 Buffer* src = renderer->gpu->access_buffer(request.cpu_buffer);

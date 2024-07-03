@@ -743,50 +743,52 @@ namespace Magnefu {
 
         Texture* texture = gpu_device->access_texture(texture_handle);
         Buffer* staging_buffer = gpu_device->access_buffer(staging_buffer_handle);
-        //u32 image_size = texture->width * texture->height * 4; //ktx2 textures are compressed so this won't work.
-        u32 image_size = texture_size; //ktx2 textures are compressed so this won't work.
 
         u32 dst_offset = 0;
+        Array<VkBufferImageCopy> regions(gpu_device->allocator, mips.size, mips.size);
+
         for (int mip_level = 0; mip_level < mips.size; mip_level++)
         {
+            auto width = std::max(1, texture->width >> mip_level);
+            auto height = std::max(1, texture->height >> mip_level);
+            //u32 image_size = width * height * 4; // ktx2 textures are actually uncompressed now
+
+            // Copy buffer_data to staging buffer
             auto size = mips[mip_level].size;
             auto src_offset = mips[mip_level].offset;
             auto dst = staging_buffer->mapped_data + dst_offset;
             auto src = (u8*)texture_data + src_offset;
             memcpy(dst, src, size);
 
+            VkBufferImageCopy& region = regions[mip_level];
+            region.bufferOffset = staging_buffer_offset + dst_offset;
+            region.bufferRowLength = 0;
+            region.bufferImageHeight = 0;
+            region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            region.imageSubresource.mipLevel = mip_level;
+            region.imageSubresource.baseArrayLayer = 0;
+            region.imageSubresource.layerCount = 1;
+            region.imageOffset = { 0, 0, 0 };            
+            region.imageExtent = {
+                (uint32_t)width,
+                (uint32_t)height,
+                texture->depth
+            };
+
             dst_offset += size;
-            //memcpy(staging_buffer->mapped_data + mips[mip_level].offset, (u8*)texture_data + mips[mip_level].offset, mips[mip_level].size);
         }
 
-        // Copy buffer_data to staging buffer
-        //memcpy(staging_buffer->mapped_data + staging_buffer_offset, texture_data, static_cast<size_t>(image_size));
-
-        VkBufferImageCopy region = {};
-        region.bufferOffset = staging_buffer_offset;
-        region.bufferRowLength = 0;
-        region.bufferImageHeight = 0;
-
-        region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        region.imageSubresource.mipLevel = 0;
-        region.imageSubresource.baseArrayLayer = 0;
-        region.imageSubresource.layerCount = 1;
-
-        region.imageOffset = { 0, 0, 0 };
-        region.imageExtent = { texture->width, texture->height, texture->depth };
-
         // Pre copy memory barrier to perform layout transition
-        util_add_image_barrier(gpu_device, vk_command_buffer, texture, RESOURCE_STATE_COPY_DEST, 0, 1, false);
+        util_add_image_barrier(gpu_device, vk_command_buffer, texture, RESOURCE_STATE_COPY_DEST, 0, mips.count(), false);
         // Copy from the staging buffer to the image
-        vkCmdCopyBufferToImage(vk_command_buffer, staging_buffer->vk_buffer, texture->vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+        vkCmdCopyBufferToImage(vk_command_buffer, staging_buffer->vk_buffer, texture->vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, regions.count(), regions.data);
 
         // Post copy memory barrier
         util_add_image_barrier_ext(gpu_device, vk_command_buffer, texture, RESOURCE_STATE_COPY_SOURCE,
-            0, 1, 0, 1, false, gpu_device->vulkan_transfer_queue_family, gpu_device->vulkan_main_queue_family,
+            0, mips.count(), 0, 1, false, gpu_device->vulkan_transfer_queue_family, gpu_device->vulkan_main_queue_family,
             QueueType::CopyTransfer, QueueType::Graphics);
 
-
-        MemoryService::Instance()->systemAllocator.deallocate(texture_data);
+        //MemoryService::Instance()->systemAllocator.deallocate(texture_data);
     }
 
     void CommandBuffer::copy_texture(TextureHandle src_, TextureHandle dst_, ResourceState dst_state) {
