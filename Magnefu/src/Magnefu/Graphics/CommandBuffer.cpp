@@ -744,38 +744,30 @@ namespace Magnefu {
         Texture* texture = gpu_device->access_texture(texture_handle);
         Buffer* staging_buffer = gpu_device->access_buffer(staging_buffer_handle);
 
-        u32 dst_offset = 0;
+        memcpy(staging_buffer->mapped_data, texture_data, texture_size);
+
         Array<VkBufferImageCopy> regions(gpu_device->allocator, mips.size, mips.size);
 
         for (int mip_level = 0; mip_level < mips.size; mip_level++)
         {
             auto width = std::max(1, texture->width >> mip_level);
             auto height = std::max(1, texture->height >> mip_level);
-            //u32 image_size = width * height * 4; // ktx2 textures are actually uncompressed now
-
-            // Copy buffer_data to staging buffer
-            auto size = mips[mip_level].size;
-            auto src_offset = mips[mip_level].offset;
-            auto dst = staging_buffer->mapped_data + dst_offset;
-            auto src = (u8*)texture_data + src_offset;
-            memcpy(dst, src, size);
 
             VkBufferImageCopy& region = regions[mip_level];
-            region.bufferOffset = staging_buffer_offset + dst_offset;
+            region.bufferOffset = staging_buffer_offset + mips[mip_level].offset;
             region.bufferRowLength = 0;
             region.bufferImageHeight = 0;
             region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             region.imageSubresource.mipLevel = mip_level;
             region.imageSubresource.baseArrayLayer = 0;
             region.imageSubresource.layerCount = 1;
-            region.imageOffset = { 0, 0, 0 };            
+            region.imageOffset = { 0, 0, 0 };
             region.imageExtent = {
                 (uint32_t)width,
                 (uint32_t)height,
                 texture->depth
             };
 
-            dst_offset += size;
         }
 
         // Pre copy memory barrier to perform layout transition
@@ -788,7 +780,6 @@ namespace Magnefu {
             0, mips.count(), 0, 1, false, gpu_device->vulkan_transfer_queue_family, gpu_device->vulkan_main_queue_family,
             QueueType::CopyTransfer, QueueType::Graphics);
 
-        //MemoryService::Instance()->systemAllocator.deallocate(texture_data);
     }
 
     void CommandBuffer::copy_texture(TextureHandle src_, TextureHandle dst_, ResourceState dst_state) {
