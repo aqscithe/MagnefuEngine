@@ -407,31 +407,44 @@ namespace Magnefu
     static void load_texture(json& json_data, glTF::Texture& texture, Allocator* allocator) {
         try_load_int(json_data, "sampler", texture.sampler);
 
-        // Check for KHR_texture_basisu extension
+        bool extension_found = false;
         auto extensions_it = json_data.find("extensions");
         if (extensions_it != json_data.end()) {
-            auto basisu_it = extensions_it->find("KHR_texture_basisu");
-            if (basisu_it != extensions_it->end()) {
-                try_load_int(*basisu_it, "source", texture.source);
+            Array<cstring> found_extensions;
+            for (const auto& ext : glTF::s_supported_texture_ext) {
+                auto ext_it = extensions_it->find(ext);
+                if (ext_it != extensions_it->end()) {
+                    try_load_int(*ext_it, "source", texture.source);
+                    extension_found = true;
+                    found_extensions.push(ext);
+                    break;
+                }
             }
-            else {
+            /*texture.extensions_count = found_extensions.count();
+            if (texture.extensions_count > 0) {
+                texture.extensions = (StringBuffer*)allocate_and_zero(allocator, sizeof(StringBuffer) * found_extensions.count());
+                for (size_t i = 0; i < found_extensions.count(); ++i) {
+                    cstring ext_name = found_extensions[i];
+                    texture.extensions[i].init(sizeof(ext_name) / sizeof(ext_name[i]), allocator);
+                    texture.extensions[i].append(found_extensions[i]);
+                }
+            }*/
+        }
+
+        if (!extension_found) {
+            // Check for source directly if no supported extensions were found
+            auto source_it = json_data.find("source");
+            if (source_it != json_data.end()) {
                 try_load_int(json_data, "source", texture.source);
             }
-        }
-        else {
-            try_load_int(json_data, "source", texture.source);
+            else {
+                MF_CORE_ERROR("No supported texture extension or 'source' found in JSON data.");
+            }
         }
 
         try_load_string(json_data, "name", texture.name, allocator);
     }
 
-    
-
-    /*static void load_texture(json& json_data, glTF::Texture& texture, Allocator* allocator) {
-        try_load_int(json_data, "sampler", texture.sampler);
-        try_load_int(json_data, "source", texture.source);
-        try_load_string(json_data, "name", texture.name, allocator);
-    }*/
 
     static void load_textures(json& json_data, glTF::glTF& gltf_data, Allocator* allocator) {
         json array = json_data["textures"];
@@ -584,6 +597,24 @@ namespace Magnefu
         }
     }
 
+    static void load_extensions_used(json& json_data, glTF::glTF& gltf_data, Allocator* allocator)
+    {
+        json array = json_data["extensionsUsed"];
+
+        sizet array_count = array.size();
+        gltf_data.extensions_used = (StringBuffer*)allocate_and_zero(allocator, sizeof(StringBuffer) * array_count);
+        gltf_data.extensions_used_count = array_count;
+    }
+
+    static void load_extensions_required(json& json_data, glTF::glTF& gltf_data, Allocator* allocator)
+    {
+        json array = json_data["extensionsRequired"];
+
+        sizet array_count = array.size();
+        gltf_data.extensions_required = (StringBuffer*)allocate_and_zero(allocator, sizeof(StringBuffer) * array_count);
+        gltf_data.extensions_required_count = array_count;
+    }
+
     glTF::glTF gltf_load_file(cstring file_path) {
         glTF::glTF result{ };
 
@@ -643,6 +674,12 @@ namespace Magnefu
             }
             else if (properties.key() == "animations") {
                 load_animations(gltf_data, result, allocator);
+            }
+            else if (properties.key() == "extensionsUsed") {
+                load_extensions_used(gltf_data, result, allocator);
+            }
+            else if (properties.key() == "extensionsRequired") {
+                load_extensions_required(gltf_data, result, allocator);
             }
         }
 

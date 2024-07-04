@@ -14,7 +14,9 @@
 static const char* kDefault3DModels[SCENE_COUNT] = {
     //"res/models/wooden_medieval_bookstand_orig/scene_1.gltf",
     //"res/models/wooden_medieval_bookstand_etc1s/scene-etc1s.gltf",
-    "res/models/wooden_medieval_bookstand_mixed_comp/output-highquality.gltf",
+    //"res/models/wooden_medieval_bookstand_mixed_comp/output-highquality.gltf",
+    //"res/models/wooden_medieval_bookstand_mixed_comp/test.gltf",
+    "res/models/wood_med_book/scene-etc1s.gltf",
     //"res/scenes/sandbox/sandbox.gltf",
     //"res/models/Sponza/glTF/Sponza.gltf",
     //"res/models/Sponza/glTF/Sponza_ktx2.gltf",
@@ -48,6 +50,14 @@ namespace Magnefu
         static const i32 INVALID_INT_VALUE = 2147483647;
         static_assert(INVALID_INT_VALUE == i32_max, "Mismatch between invalid int and i32 max");
         static const f32 INVALID_FLOAT_VALUE = 3.402823466e+38F;
+
+        static cstring s_supported_texture_ext[] = {
+            "KHR_texture_basisu",
+        };
+
+        /*static cstring s_supported_material_ext[] = {
+
+        };*/
 
         struct Asset {
             StringBuffer                         copyright;
@@ -249,6 +259,8 @@ namespace Magnefu
         struct Texture {
             i32                         sampler;
             i32                         source;
+            u32                         extensions_count;
+            StringBuffer*               extensions;
             StringBuffer                name;
         };
 
