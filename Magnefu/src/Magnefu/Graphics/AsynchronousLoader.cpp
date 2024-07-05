@@ -34,7 +34,7 @@ namespace Magnefu
 
         // Create a persistently-mapped staging buffer
         BufferCreation bc;
-        bc.reset().set(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, ResourceUsageType::Stream, mfmega(64)).set_name("staging_buffer").set_persistent(true);
+        bc.reset().set(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, ResourceUsageType::Stream, mfmega(90)).set_name("staging_buffer").set_persistent(true);
         BufferHandle staging_buffer_handle = renderer->gpu->create_buffer(bc);
 
         staging_buffer = renderer->gpu->access_buffer(staging_buffer_handle);
