@@ -287,7 +287,7 @@ namespace Magnefu
 
             case Magnefu::MOUSE_BUTTON_5:
                 return GLFW_MOUSE_BUTTON_5;
-
+                
             case Magnefu::MOUSE_BUTTON_6:
                 return GLFW_MOUSE_BUTTON_6;
 
@@ -304,6 +304,30 @@ namespace Magnefu
         return u32_max;
     }
 
+    cstring* GamepadAxisNames()
+    {
+        static cstring names[] = { "left_x", "left_y", "right_x", "right_y", "trigger_left", "trigger_right", "gamepad_axis_count" };
+        return names;
+    }
+
+    cstring* GamepadButtonNames()
+    {
+        static cstring names[] = { "a", "b", "x", "y", "back", "guide", "start", "left_stick", "right_stick", "left_shoulder", "right_shoulder", "dpad_up", "dpad_down", "dpad_left", "dpad_right", "gamepad_button_count", };
+        return names;
+    }
+
+    cstring* MouseButtonNames() {
+        static cstring names[] = { "1", "2", "3", "4", "5", "6", "7", "8", "left", "right", "middle", "mouse_button_count", };
+        return names;
+    }
+
+    cstring* KeyButtonNames() {
+        static cstring names[] = { "unknown", "uuuu0", "uuuu1", "uuuu2", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "return", "escape", "backspace", "tab", "space", "minus", "equals", "leftbracket", "rightbracket", "backslash", "nonushash", "semicolon", "apostrophe", "grave", "comma", "period", "slash", "capslock", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12", "printscreen", "scrolllock", "pause", "insert", "home", "pageup", "delete", "end", "pagedown", "right", "left", "down", "up", "numlockclear", "kp_divide", "kp_multiply", "kp_minus", "kp_plus", "kp_enter", "kp_1", "kp_2", "kp_3", "kp_4", "kp_5", "kp_6", "kp_7", "kp_8", "kp_9", "kp_0", "kp_period", "nonusbackslash", "application", "power", "kp_equals", "f13", "f14", "f15", "f16", "f17", "f18", "f19", "f20", "f21", "f22", "f23", "f24", "exe", "help", "menu", "select", "stop", "again", "undo", "cut", "copy", "paste", "find", "mute", "volumeup", "volumedown", "uuuu3", "uuuu4", "uuuu5", "kp_comma", "kp_equalsas400", "international1", "international2", "international3", "international4", "international5", "international6", "international7", "international8", "international9", "lang1", "lang2", "lang3", "lang4", "lang5", "lang6", "lang7", "lang8", "lang9", "alterase", "sysreq", "cancel", "clear", "prior", "return2", "separator", "out", "oper", "clearagain", "crsel", "exsel", "uuuu7", "uuuu8", "uuuu9", "uuuu10", "uuuu11", "uuuu12", "uuuu13", "uuuu14", "uuuu15", "uuuu16", "uuuu17", "kp_00", "kp_000", "thousandsseparator", "decimalseparator", "currencyunit", "currencysubunit", "kp_leftparen", "kp_rightparen", "kp_leftbrace", "kp_rightbrace", "kp_tab", "kp_backspace", "kp_a", "kp_b", "kp_c", "kp_d", "kp_e", "kp_f", "kp_xor", "kp_power", "kp_percent", "kp_less", "kp_greater", "kp_ampersand", "kp_dblampersand", "kp_verticalbar", "kp_dblverticalbar", "kp_colon", "kp_hash", "kp_space", "kp_at", "kp_exclam", "kp_memstore", "kp_memrecall", "kp_memclear", "kp_memadd", "kp_memsubtract", "kp_memmultiply", "kp_memdivide", "kp_plusminus", "kp_clear", "kp_clearentry", "kp_binary", "kp_octal", "kp_decimal", "kp_hexadecimal", "uuuu18", "uuuu19", "lctrl", "lshift", "lalt", "lgui", "rctrl", "rshift", "ralt", "rgui",  "uuuu7", "uuuu8", "uuuu9", "uuuu10", "uuuu11", "uuuu12", "uuuu13", "uuuu14", "uuuu15", "uuuu16", "uuuu17", "uuuu7", "uuuu8", "uuuu9", "uuuu10", "uuuu11", "uuuu12", "uuuu13", "uuuu14", "uuuu15", "uuuu16", "uuuu17", "uuuu14", "uuuu15", "uuuu16", "mode", "audionext", "audioprev", "audiostop", "audioplay", "audiomute", "mediaselect", "www", "mail", "calculator", "computer", "ac_search", "ac_home", "ac_back", "ac_forward", "ac_stop", "ac_refresh", "ac_bookmarks", "brightnessdown", "brightnessup", "displayswitch", "kbdillumtoggle", "kbdillumdown", "kbdillumup", "eject", "sleep", "app1", "app2", "audiorewind", "audiofastforward", "key_button_count" };
+
+        return names;
+
+    }
+
     void InputBackend::GetMouseState(InputVector2& position, u8* buttons, u32 num_buttons)
     {
         auto window = (WindowsWindow*)Application::Get()->GetWindow();
@@ -313,10 +337,13 @@ namespace Magnefu
         position.x = static_cast<f32>(x);
         position.y = static_cast<f32>(y);
 
+        int mapped_glfw_button;
+        int glfw_button;
         for (u32 i = 0; i < num_buttons; ++i) 
         {
-            int glfw_button = ToGLFWMouseButton((MouseButtons)i); // Implement this mapping
-            buttons[i] = glfwGetMouseButton((GLFWwindow*)window->GetWindowHandle(), glfw_button) == GLFW_PRESS;
+            mapped_glfw_button = ToGLFWMouseButton((MouseButtons)i); // Implement this mapping
+            glfw_button = glfwGetMouseButton((GLFWwindow*)window->GetWindowHandle(), mapped_glfw_button);
+            buttons[i] = ( (glfw_button == GLFW_PRESS) || (glfw_button == GLFW_REPEAT) );
         }
     }
 
@@ -327,15 +354,15 @@ namespace Magnefu
         switch (event.GetEventType())
         {
             case Magnefu::EventType::KeyReleased:
-            case Magnefu::EventType::KeyPressed:
+            case Magnefu::EventType::KeyPressed: // TODO: (leon) add KeyPressed
             {
                 KeyEvent& key_event = *(KeyEvent*)&event;
 
                 i32 key = ToMFKeyCode(key_event.GetKeyCode());
                 if (key >= 0 && key < (i32)num_keys)
                 {
-                    keys[key] = (key_event.GetAction() == GLFW_PRESS);
-                    //MF_CORE_DEBUG("Key event. Keycode: {} | Scancode: {}", key, key_event.GetScancode());
+                    keys[key] = ( (key_event.GetAction() == GLFW_PRESS) || (key_event.GetAction() == GLFW_REPEAT) );
+                    //MF_CORE_DEBUG("Message: {}\n Keycode: {} | Scancode: {} | Name: {}", key_event.ToString(), key, key_event.GetScancode(), KeyButtonNames()[key]);
                 }
                     
                 break;
@@ -343,24 +370,20 @@ namespace Magnefu
            
             
             // Mouse button updates handled by InputBackend::GetMouseState
-            //case Magnefu::EventType::MouseButtonPressed:
-            //{
-            //    //MouseButtonPressedEvent& mouse_event = *(MouseButtonPressedEvent*)&event;
-            //    
-            //    break;
-            //}
-            //    
-            //case Magnefu::EventType::MouseButtonReleased:
-            //{
-            //    //MouseButtonReleasedEvent& mouse_event = *(MouseButtonReleasedEvent*)&event;
-            //    
-            //    break;
-            //}
-
-            //case Magnefu::EventType::MouseMoved:
-            //    break;
-            //case Magnefu::EventType::MouseScrolled:
-            //    break;
+            case Magnefu::EventType::MouseButtonPressed:
+            {
+                //MouseButtonPressedEvent& mouse_event = *(MouseButtonPressedEvent*)&event;
+                break;
+            }
+            case Magnefu::EventType::MouseButtonReleased:
+            {
+                //MouseButtonReleasedEvent& mouse_event = *(MouseButtonReleasedEvent*)&event;
+                break;
+            }
+            case Magnefu::EventType::MouseMoved:
+                break;
+            case Magnefu::EventType::MouseScrolled:
+                break;
 
             case Magnefu::EventType::GamepadConnected:
             {
@@ -377,151 +400,6 @@ namespace Magnefu
                 break;
         }
 
-        
-
-       
-//        case SDL_CONTROLLERDEVICEADDED:
-//        {
-//            rprint("Gamepad Added\n");
-//            int32_t index = event.cdevice.which;
-//
-//            init_gamepad(index, gamepads[index]);
-//
-//            break;
-//        }
-//
-//        case SDL_CONTROLLERDEVICEREMOVED:
-//        {
-//            rprint("Gamepad Removed\n");
-//            int32_t instance_id = event.jdevice.which;
-//            // Search for the correct gamepad
-//            for (size_t i = 0; i < k_max_gamepads; i++) {
-//                if (gamepads[i].id == instance_id) {
-//                    terminate_gamepad(gamepads[i]);
-//                    break;
-//                }
-//            }
-//            break;
-//        }
-//
-//        case SDL_CONTROLLERAXISMOTION:
-//        {
-//#if defined (INPUT_DEBUG_OUTPUT)
-//            rprint("Axis %u - %f\n", event.jaxis.axis, event.jaxis.value / 32768.0f);
-//#endif // INPUT_DEBUG_OUTPUT
-//
-//            for (size_t i = 0; i < k_max_gamepads; i++) {
-//                if (gamepads[i].id == event.caxis.which) {
-//                    gamepads[i].axis[event.caxis.axis] = event.caxis.value / 32768.0f;
-//                    break;
-//                }
-//            }
-//            break;
-//        }
-//
-//        case SDL_CONTROLLERBUTTONDOWN:
-//        case SDL_CONTROLLERBUTTONUP:
-//        {
-//#if defined (INPUT_DEBUG_OUTPUT)
-//            rprint("Button\n");
-//#endif // INPUT_DEBUG_OUTPUT
-//
-//            for (size_t i = 0; i < k_max_gamepads; i++) {
-//                if (gamepads[i].id == event.cbutton.which) {
-//                    gamepads[i].buttons[event.cbutton.button] = event.cbutton.state == SDL_PRESSED ? 1 : 0;
-//                    break;
-//                }
-//            }
-//            break;
-//        }
-//
-//#if 0
-//        case SDL_JOYDEVICEADDED:
-//        {
-//            rprint("Joystick Added\n");
-//            int32_t joystick_index = event.jdevice.which;
-//
-//            init_gamepad(joystick_index, gamepads[joystick_index]);
-//
-//            break;
-//        }
-//
-//        case SDL_JOYDEVICEREMOVED:
-//        {
-//            rprint("joystick Removed\n");
-//            int32_t joystick_instance_id = event.jdevice.which;
-//            // Search for the correct gamepad
-//            for (size_t i = 0; i < k_max_gamepads; i++) {
-//                if (gamepads[i].id == joystick_instance_id) {
-//                    terminate_gamepad(gamepads[i]);
-//                    break;
-//                }
-//            }
-//
-//            break;
-//        }
-//
-//        case SDL_JOYAXISMOTION:
-//        {
-//#if defined (INPUT_DEBUG_OUTPUT)
-//            rprint("Axis %u - %f\n", event.jaxis.axis, event.jaxis.value / 32768.0f);
-//#endif // INPUT_DEBUG_OUTPUT
-//
-//            for (size_t i = 0; i < k_max_gamepads; i++) {
-//                if (gamepads[i].id == event.jaxis.which) {
-//                    gamepads[i].axis[event.jaxis.axis] = event.jaxis.value / 32768.0f;
-//                }
-//            }
-//            break;
-//        }
-//
-//        case SDL_JOYBALLMOTION:
-//        {
-//#if defined (INPUT_DEBUG_OUTPUT)
-//            rprint("Ball\n");
-//#endif // INPUT_DEBUG_OUTPUT
-//
-//            for (size_t i = 0; i < k_max_gamepads; i++) {
-//                if (gamepads[i].id == event.jball.which) {
-//                    break;
-//                }
-//            }
-//            break;
-//        }
-//
-//        case SDL_JOYHATMOTION:
-//        {
-//#if defined (INPUT_DEBUG_OUTPUT)
-//            rprint("Hat\n");
-//#endif // INPUT_DEBUG_OUTPUT
-//
-//            /*for ( size_t i = 0; i < k_max_gamepads; i++ ) {
-//                if ( gamepads[ i ].id == event.jhat.which ) {
-//                    gamepads[ i ].hats[ event.jhat.hat ] = event.jhat.value;
-//                    break;
-//                }
-//            }*/
-//            break;
-//        }
-//
-//        case SDL_JOYBUTTONDOWN:
-//        case SDL_JOYBUTTONUP:
-//        {
-//#if defined (INPUT_DEBUG_OUTPUT)
-//            rprint("Button\n");
-//#endif // INPUT_DEBUG_OUTPUT
-//
-//            for (size_t i = 0; i < k_max_gamepads; i++) {
-//                if (gamepads[i].id == event.jbutton.which) {
-//                    gamepads[i].buttons[event.jbutton.button] = event.jbutton.state == SDL_PRESSED ? 1 : 0;
-//                    break;
-//                }
-//            }
-//            break;
-//        }
-//#endif // Disabled old SDL joystick code
-//
-//        }
     }
 
 #else
@@ -570,22 +448,7 @@ namespace Magnefu
     }
 
 
-    cstring* GamepadAxisNames() 
-    {
-        static cstring names[] = { "left_x", "left_y", "right_x", "right_y", "trigger_left", "trigger_right", "gamepad_axis_count" };
-        return names;
-    }
-
-    cstring* GamepadButtonNames() 
-    {
-        static cstring names[] = { "a", "b", "x", "y", "back", "guide", "start", "left_stick", "right_stick", "left_shoulder", "right_shoulder", "dpad_up", "dpad_down", "dpad_left", "dpad_right", "gamepad_button_count", };
-        return names;
-    }
-
-    cstring* MouseButtonNames() {
-        static cstring names[] = { "1", "2", "3", "4", "5", "6", "7", "8", "left", "right", "middle", "last",  "mouse_button_count", };
-        return names;
-    }
+    
 
 
 
@@ -1212,9 +1075,12 @@ namespace Magnefu
                 ImGui::Separator();
                 if (ImGui::TreeNode("Keyboard")) 
                 {
-                    for (u32 i = 0; i < MF_KEY_LAST; i++) 
+                    for (u32 i = 0; i < MF_KEY_COUNT; i++) 
                     {
-
+                        // There are gaps in enum. Need to check if key exist
+                        ImGui::Text("Button %u", i);
+                        ImGui::SameLine();
+                        ImGui::Text("Button %u, Previous %u, Name %s", keys[i], previous_keys[i], KeyButtonNames()[i]);
                     }
                     ImGui::TreePop();
                 }
@@ -1245,7 +1111,7 @@ namespace Magnefu
                     {
                         case DEVICE_PART_KEYBOARD:
                         {
-                            button_name = KeyNames()[binding.button];
+                            button_name = KeyButtonNames()[binding.button];
                             break;
                         }
                         case DEVICE_PART_MOUSE:

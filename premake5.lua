@@ -3,7 +3,7 @@
 workspace "Magnefu"
     architecture "x64"
     configurations { "Debug", "Release", "Dist" }
-    startproject "Editor"
+    startproject "Sandbox"
 
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
@@ -16,11 +16,15 @@ IncludeDir["ImGui"] = "Magnefu/vendor/imgui"
 IncludeDir["Vulkan"] = "Magnefu/vendor/vulkan/include"
 IncludeDir["SOIL2"] = "Magnefu/vendor/SOIL2/include"
 IncludeDir["entt"] = "Magnefu/vendor/entt/include"
+IncludeDir["assimp"] = "Magnefu/vendor/assimp/include"
+IncludeDir["meshoptimizer"] = "Magnefu/vendor/meshoptimizer"
+IncludeDir["vma"] = "Magnefu/vendor/vma"
 
 LibDir = {}
 LibDir["GLFW"] = "Magnefu/vendor/GLAD/lib"
 LibDir["Vulkan"] = "Magnefu/vendor/vulkan/lib"
 LibDir["SOIL2"] = "Magnefu/vendor/SOIL2/lib"
+LibDir["assimp"] = "Magnefu/vendor/assimp/lib/x64"
 
 -- Includes Premake files
 include "Magnefu/vendor/GLFW"
@@ -28,8 +32,8 @@ include "Magnefu/vendor/GLAD"
 include "Magnefu/vendor/imgui"
 
 prebuildcommands {
-    "{MKDIR} ../bin/" .. outputdir .. "/Editor",
-    "{MKDIR} ../bin-int/" .. outputdir .. "/Editor"
+    "{MKDIR} ../bin/" .. outputdir .. "/Sandbox",
+    "{MKDIR} ../bin-int/" .. outputdir .. "/Sandbox"
 }
 
 project "Magnefu"
@@ -82,7 +86,9 @@ project "Magnefu"
         "%{IncludeDir.GLAD}",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.SOIL2}",
-        "%{IncludeDir.entt}",
+        "%{IncludeDir.assimp}",
+        "%{IncludeDir.meshoptimizer}",
+        "%{IncludeDir.vma}",
         
     }
 
@@ -90,6 +96,7 @@ project "Magnefu"
         "%{LibDir.Vulkan}",
         "%{LibDir.GLFW}",
         "%{LibDir.SOIL2}",
+        "%{LibDir.assimp}",
         
     }
 
@@ -101,11 +108,18 @@ project "Magnefu"
         "vulkan-1",
         "shaderc_shared",
         "soil2",
-        "opengl32"
+        "opengl32",
+        "assimp-vc143-mt"
     }
 
     -- C files ignore PCH
     filter "files:magnefu/vendor/**.c"
+        flags {
+            "NoPCH"
+        }
+
+    -- All vendor files ignore PCH
+    filter "files:magnefu/vendor/**"
         flags {
             "NoPCH"
         }
@@ -140,8 +154,8 @@ project "Magnefu"
         optimize "on"
 
 
-project "Editor"
-    location "Editor"
+project "Sandbox"
+    location "Sandbox"
     kind "ConsoleApp" 
     staticruntime "on"
     language "C++"
@@ -166,6 +180,9 @@ project "Editor"
         "%{prj.name}/src",
         "%{IncludeDir.GLAD}",
         "%{IncludeDir.entt}",
+        "%{IncludeDir.assimp}",
+        "%{IncludeDir.meshoptimizer}",
+        "%{IncludeDir.vma}",
     }
 
     libdirs {
@@ -199,66 +216,6 @@ project "Editor"
     filter "configurations:Dist"
         defines  "MF_DIST"
         optimize "on"
-
---[[
-project "Sandbox"
-    location "Sandbox"
-    kind "ConsoleApp" 
-    staticruntime "on"
-    language "C++"
-    cppdialect "C++20"
-
-    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-    objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
-
-    files {
-        "%{prj.name}/src/**.h",
-        "%{prj.name}/src/**.cpp",
-        resourcedir .. "/**",
-    }
-
-    includedirs {
-        "Magnefu/src",
-        "Magnefu/vendor",
-        "Magnefu/vendor/spdlog/include",
-        "Magnefu/src/Maths",
-        "%{prj.name}/src",
-        "%{IncludeDir.GLAD}",
-        "%{IncludeDir.entt}",
-    }
-
-    libdirs {
-    }
-
-    links {
-        "Magnefu"
-    }
-
-    filter "system:windows"
-        systemversion "latest"
-
-        defines {
-            "MF_PLATFORM_WINDOWS",
-        }
-
-    postbuildcommands {
-        "{COPYDIR} %{prj.location}/res/* %{cfg.buildtarget.directory}/res" 
-    }
-
-    filter "configurations:Debug"
-        defines {
-            "MF_DEBUG"
-        }
-        symbols "on"
-
-    filter "configurations:Release"
-        defines  "MF_RELEASE"
-        optimize "on"
-
-    filter "configurations:Dist"
-        defines  "MF_DIST"
-        optimize "on"
-]]
 
 
 

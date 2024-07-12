@@ -33,8 +33,11 @@
 // Unique names
 #define MAGNEFU_UNIQUE_SUFFIX(PARAM)                 MAGNEFU_CONCAT(PARAM, __LINE__ )
 
+// Maybe put these in premake file
 #define MAGNEFU_SHADER_FOLDER						"res/shaders/"
-
+#define MAGNEFU_FRAME_GRAPH_FOLDER					"res/frame_graphs/"
+#define MAGNEFU_TEXTURE_FOLDER						"res/textures/"
+#define MAGNEFU_MODEL_FOLDER						"res/models/"
 
 // Native types typedefs /////////////////////////////////////////////////
 typedef uint8_t                 u8;

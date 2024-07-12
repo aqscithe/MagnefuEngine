@@ -1,102 +1,114 @@
 # Magnefu Game Engine
 
-<!-- TABLE OF CONTENTS -->
+## Table of Contents
+- [Magnefu Engine](#magnefu-engine)
+    + [Description](#description)
+    + [Support](#support)
+      - [Platforms](#platforms)
+      - [Graphics APIs](#graphics-apis)
+    + [Installation](#installation)
+      - [Premake](#premake)
+        + [Windows](#windows)
+        + [MacOS](#macos)
+    + [Controls](#controls)
+    + [Features](#features)
+      - [Core](#core)
+      - [Graphics](#graphics)
+      - [Editor](#editor)
+      - [Audio](#audio)
+      - [ECS](#ecs)
+    + [Bugs](#bugs)
+    + [Debugging Tools](#debugging-tools)
+    + [Devlog](#devlog)
+    + [End](#end)
 
 
 ## Description
 
-With the 3 pillars of Physics, AI, and Chemistry, the Magnefu Game Engine aims to be a game development tool for creating truly novel gameplay experiences, not just focusing purely on graphics but on interactions with the systems and AI of the game world. The hope is to create a base for truly emergent AI that surprises the player at every turn, physics that mimic(as much as possible) what one would expect and world systems that feel intuitive. ~For now, only OpenGL is being used but Vulkan and Direct3D graphics APIs will be supported in the future(perhaps Metal as well).~ Actually, I just made the switch from OpenGL to Vulkan. It was about time. Vulkan is challenging, but both from a performance and organization perspective, I feel the change is worth it.
 
-## Currently Supported Platforms
+## Support
+### Platforms
 - Windows x64
 
-## Currently Supported Graphics APIs
+### Graphics APIs
 - Vulkan
 
 ## Installation
 
-## Premake
+### Premake
 
-Project files can be generated - only Windows for now - by running the GenerateProjects.bat
+#### Windows
+1. Create Visual Studio project files by running GenerateProjects.bat in root directory.
 
-
-## Building
-
-Note that if you receive a message about Magnefu.dll not being a valid win32 application, delete the .vs folder in the root directory and then rerun the GenerateProjects.bat.
+#### MacOS
 
 ## Controls
 
 - Key binds
-> ![controls.png](./SCREENS/controls.png)
+> ![Controls](./SCREENS/controls.png)
 
 
 ## Features
+### Core
+- Logging
+> ![Logging 1](./SCREENS/logging_1.png)
 
-### Events
+### Graphics
+- Lighting
+> ![Point Light Shadows](./SCREENS/point_light_shadows.png)
+- Volumetric Fog
+> ![Volumetric Fog](./SCREENS/volumetric_fog.png)
+- Raytracing
+> ![Raytraced Shadows](./SCREENS/rt_shadows.png)
+> ![Debug Probes](./SCREENS/gi_debug_probes.png)
+- GPU Profiler
+> ![GPU Profiler](./SCREENS/gpu_profiler.gif)
 
-
-### Math Library
-
-
-### Memory Allocation
-
-
-### Renderer
-- Model Loading & Diffuse Textures
-> ![SpaceshipCorridor.png](./SCREENS/SpaceshipCorridor.png)
-> ![CorridorISOView.png](./SCREENS/CorridorISOView.png)
-
-- MSAA
-
-No MSAA
-> ![NoMSAA.png](/SCREENS/NoMSAA.png)
-
-MSAAx8
-> ![MSAAx8.png](./SCREENS/MSAAx8.png)
-
-- Compute Shader
-
-Using compute shader to calculate particle movement.
->![Particles-ComputeShader.gif](./SCREENS/Particles-ComputeShader.gif)
-
-- Now Including AO, Roughness, Metallic and Normal Textures w/ BRDF Lighting (Just 1 point light for now)
-> ![Corridor-ARM-and-Normal-Map.png](./SCREENS/Corridor-ARM-and-Normal-Map.png)
-
-> ![Bronze_shield-ARM.png](./SCREENS/Bronze_shield-ARM.png)
-
-> ![Victorian_Painting-ARM.png](./SCREENS/Victorian_Painting-ARM.png)
-
-
-### Resource Management
+### Editor
+<table>
+  <tr>
+    <td rowspan="4"><strong>Frame Graph Debugger</strong></td>
+    <td><img src="./SCREENS/frame_graph_normals.png" alt="Normals"></td>
+    <td>Displays the normal vectors in the frame graph.</td>
+  </tr>
+  <tr>
+    <td><img src="./SCREENS/frame_graph_color.png" alt="Color"></td>
+    <td>Shows the color output in the frame graph.</td>
+  </tr>
+  <tr>
+    <td><img src="./SCREENS/frame_graph_orm.png" alt="Occlusion Roughness Metallic"></td>
+    <td>Shows occlusion, roughness, and metallic values.</td>
+  </tr>
+  <tr>
+    <td><img src="./SCREENS/frame_graph_depth.png" alt="Depth"></td>
+    <td>Displays the depth information in the frame graph.</td>
+  </tr>
+</table>
 
 
-
-## Incomplete Features
-
-
-## Known Bugs
-
+## Bugs
+- Ray Tracing
+> ![RT Shadows Flickering Dots](./SCREENS/rt_shadows_dots_bug.gif)
 
 ## Debugging Tools
-
-### Nvidia Nsight Graphics
-### RenderDoc
-### brave://tracing/ (chrome://tracing)
+- Nvidia Nsight Graphics
+- RenderDoc
+- [chrome://tracing](chrome://tracing)
 
 
 ## Updates!
-From here on out, I'll post weekly updates on the engine. This includes new features, refactors, optimizations and more! Blog <span style="color:blue;">blog.alleriumlabs.com</span> coming soon. It will have more in depth versions of the updates below.
+Devlog coming soon: [Blog](https://leonlaglace.com/blog).
 
-- 15 May 2023 -> 21 May 2023 | Starting the switch to vulkan using this [tutorial](https://vulkan-tutorial.com/). I've learned about the swap chain, setting up a graphics pipeline and how to compile shaders to the spv binary.
-
-- 22 May 2023 -> 28 May 2023 | It was a long road but I'm finally drawing a triangle with Vulkan. Also learning about the concept of having multiple frames in flight.
-
-- 29 May 2023 -> 04 June 2023 | Doing some refactoring in order to introduce abstraction for the Vulkan API. Handling changes in the framebuffer and swap chain on window resize. Handling special case of window minimization.
-
-- 05 June 2023 -> 11 June 2023 | Got a lot done this week! Introduced textures, texture sampling, depth buffers and...model loading. I finally have a 3D model rendering with vulkan. As a bonus, I learned how to setup mipmapping and MSAA.
-
-- 12 June 2023 -> 18 June 2023 | Compute shaders baby! I've used compute shaders to do the movement calculations for particles on the screen. This also required a better understanding of Vulkan's VkSemaphore and VkFence synchronization primitives. This marks the tutorial completion. To celebrate finishing the tutorial, I have removed OpenGL completely and I'm starting to implement imgui. Slightly more complicated than doing so with OpenGL but hopefully the github [example](https://github.com/ocornut/imgui/tree/master/examples/example_glfw_vulkan) will be helpful.
+- 26 June 2023 -> 02 July 2023 | I have introduced all of the basic material textures: roughness, metallic, normal and ambient occlusion. Getting the right calculations for the normals was a little tricky but between this [article](https://learnopengl.com/Advanced-Lighting/Normal-Mapping) and some help from GPT, I was able to succeed. There is also the addition of a point light to show off the additional textures. The fragment shader is using the basic BRDF lighting algorithm(to great effect I might add). I'll have a screenshot included in the readme to showcase the new visuals. Next week will likely be less exciting visually. Going to focus on code abstraction in the engine, with my sights set dead on setting up a materials system. I also have a lot of excess code in the shader that needs to be cleaned up.
 
 - 19 June 2023 -> 25 June 2023 | Early notes: Nvidia Nsight Graphics is amazing! The frame debugger helped me debug some frustrating issues(constant flickering of imgui widgets) I had implementing dear imgui. The ability to know the order of events every frame and to be able to step through frames much like we can use break points to step through code is priceless. So ImGui is now working as expected.
 
-- 26 June 2023 -> 02 July 2023 | I have introduced all of the basic material textures: roughness, metallic, normal and ambient occlusion. Getting the right calculations for the normals was a little tricky but between this [article](https://learnopengl.com/Advanced-Lighting/Normal-Mapping) and some help from GPT, I was able to succeed. There is also the addition of a point light to show off the additional textures. The fragment shader is using the basic BRDF lighting algorithm(to great effect I might add). I'll have a screenshot included in the readme to showcase the new visuals. Next week will likely be less exciting visually. Going to focus on code abstraction in the engine, with my sights set dead on setting up a materials system. I also have a lot of excess code in the shader that needs to be cleaned up.
+- 12 June 2023 -> 18 June 2023 | Compute shaders baby! I've used compute shaders to do the movement calculations for particles on the screen. This also required a better understanding of Vulkan's VkSemaphore and VkFence synchronization primitives. This marks the tutorial completion. To celebrate finishing the tutorial, I have removed OpenGL completely and I'm starting to implement imgui. Slightly more complicated than doing so with OpenGL but hopefully the github [example](https://github.com/ocornut/imgui/tree/master/examples/example_glfw_vulkan) will be helpful.
+
+- 05 June 2023 -> 11 June 2023 | Got a lot done this week! Introduced textures, texture sampling, depth buffers and...model loading. I finally have a 3D model rendering with vulkan. As a bonus, I learned how to setup mipmapping and MSAA.
+
+- 29 May 2023 -> 04 June 2023 | Doing some refactoring in order to introduce abstraction for the Vulkan API. Handling changes in the framebuffer and swap chain on window resize. Handling special case of window minimization.
+
+- 22 May 2023 -> 28 May 2023 | It was a long road but I'm finally drawing a triangle with Vulkan. Also learning about the concept of having multiple frames in flight.
+
+- 15 May 2023 -> 21 May 2023 | Starting the switch to vulkan using this [tutorial](https://vulkan-tutorial.com/). I've learned about the swap chain, setting up a graphics pipeline and how to compile shaders to the spv binary.

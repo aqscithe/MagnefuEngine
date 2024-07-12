@@ -6,7 +6,7 @@
 
 // -- Graphics Includes ----------------- //
 #include "Renderer.hpp"
-
+#include "Magnefu/Application/ImGui/ImGuiService.hpp"
 
 // -- Core Includes ----------------------- //
 #include "Magnefu/Core/HashMap.hpp"
@@ -22,33 +22,37 @@
 #include <cmath>
 #include <stdio.h>
 
-namespace Magnefu
+
+
+namespace Magnefu 
 {
 
     // GPU task names to colors
     Magnefu::FlatHashMap<u64, u32>   name_to_color;
 
-    static u32      initial_frames_paused = 3;
+    static u32      initial_frames_paused = 15;
 
-    void GPUProfiler::init(Allocator* allocator_, u32 max_frames_) {
+    void GpuVisualProfiler::init(Allocator* allocator_, u32 max_frames_, u32 max_queries_per_frame_) {
 
         allocator = allocator_;
         max_frames = max_frames_;
-        timestamps = (GPUTimestamp*)mfalloca(sizeof(GPUTimestamp) * max_frames * 32, allocator);
+        max_queries_per_frame = max_queries_per_frame_;
+        timestamps = (GPUTimeQuery*)mfalloca(sizeof(GPUTimeQuery) * max_frames * max_queries_per_frame, allocator);
         per_frame_active = (u16*)mfalloca(sizeof(u16) * max_frames, allocator);
 
         max_duration = 16.666f;
         current_frame = 0;
         min_time = max_time = average_time = 0.f;
         paused = false;
+        pipeline_statistics = nullptr;
 
-        memset(per_frame_active, 0, 2 * max_frames);
+        memset(per_frame_active, 0, sizeof(u16) * max_frames);
 
         name_to_color.init(allocator, 16);
         name_to_color.set_default_value(u32_max);
     }
 
-    void GPUProfiler::shutdown() {
+    void GpuVisualProfiler::shutdown() {
 
         name_to_color.shutdown();
 
@@ -56,7 +60,9 @@ namespace Magnefu
         mffree(per_frame_active, allocator);
     }
 
-    void GPUProfiler::update(GraphicsContext& gpu) {
+    static f32 s_framebuffer_pixel_count = 0.f;
+
+    void GpuVisualProfiler::update(GraphicsContext& gpu) {
 
         gpu.set_gpu_timestamps_enable(!paused);
 
@@ -68,14 +74,20 @@ namespace Magnefu
         if (paused && !gpu.resized)
             return;
 
-        u32 active_timestamps = gpu.get_gpu_timestamps(&timestamps[32 * current_frame]);
+        // Collect timestamps
+        u32 active_timestamps = gpu.copy_gpu_timestamps(&timestamps[max_queries_per_frame * current_frame]);
         per_frame_active[current_frame] = (u16)active_timestamps;
+
+        // Collect pipeline statistics
+        pipeline_statistics = &gpu.gpu_time_queries_manager->frame_pipeline_statistics;
+
+        s_framebuffer_pixel_count = gpu.swapchain_width * gpu.swapchain_height;
 
         // Get colors
         for (u32 i = 0; i < active_timestamps; ++i) {
-            GPUTimestamp& timestamp = timestamps[32 * current_frame + i];
+            GPUTimeQuery& timestamp = timestamps[max_queries_per_frame * current_frame + i];
 
-            u64 hashed_name = Magnefu::hash_calculate(timestamp.name);
+            const u64 hashed_name = Magnefu::hash_calculate(timestamp.name);
             u32 color_index = name_to_color.get(hashed_name);
             // No entry found, add new color
             if (color_index == u32_max) {
@@ -97,7 +109,7 @@ namespace Magnefu
         }
     }
 
-    void GPUProfiler::imgui_draw() {
+    void GpuVisualProfiler::imgui_draw() {
         if (initial_frames_paused) {
             return;
         }
@@ -108,7 +120,7 @@ namespace Magnefu
             ImVec2 canvas_size = ImGui::GetContentRegionAvail();
             f32 widget_height = canvas_size.y - 100;
 
-            f32 legend_width = 200;
+            f32 legend_width = 250;
             f32 graph_width = fabsf(canvas_size.x - legend_width);
             u32 rect_width = ceilu32(graph_width / max_frames);
             i32 rect_x = ceili32(graph_width - rect_width);
@@ -137,7 +149,7 @@ namespace Magnefu
                 u32 frame_index = (current_frame - 1 - i) % max_frames;
 
                 f32 frame_x = cursor_pos.x + rect_x;
-                GPUTimestamp* frame_timestamps = &timestamps[frame_index * 32];
+                GPUTimeQuery* frame_timestamps = &timestamps[frame_index * max_queries_per_frame];
                 f32 frame_time = (f32)frame_timestamps[0].elapsed_ms;
                 // Clamp values to not destroy the frame data
                 frame_time = Magnefu::clamp(frame_time, 0.00001f, 1000.f);
@@ -149,16 +161,26 @@ namespace Magnefu
                 f32 rect_height = frame_time / max_duration * widget_height;
                 //drawList->AddRectFilled( { frame_x, cursor_pos.y + rect_height }, { frame_x + rect_width, cursor_pos.y }, 0xffffffff );
 
-                for (u32 j = 0; j < per_frame_active[frame_index]; ++j) {
-                    const GPUTimestamp& timestamp = frame_timestamps[j];
+                f32 current_height = cursor_pos.y;
 
-                    /*if ( timestamp.depth != 1 ) {
+                // Draw timestamps from the bottom
+                for (u32 j = 0; j < per_frame_active[frame_index]; ++j) {
+                    const GPUTimeQuery& timestamp = frame_timestamps[j];
+
+                    // Draw only depth 1 timestamps, hierarchically under frame marker.
+                    if (timestamp.depth != 1) {
                         continue;
-                    }*/
+                    }
+
+                    // Margin used to identify better each column.
+                    static constexpr u32 width_margin = 2;
 
                     rect_height = (f32)timestamp.elapsed_ms / max_duration * widget_height;
-                    draw_list->AddRectFilled({ frame_x, cursor_pos.y + widget_height - rect_height },
-                        { frame_x + rect_width, cursor_pos.y + widget_height }, timestamp.color);
+                    const ImVec2 rect_min{ frame_x + width_margin, current_height + widget_height - rect_height };
+                    const ImVec2 rect_max{ frame_x + width_margin + rect_width - width_margin, current_height + widget_height };
+                    draw_list->AddRectFilled(rect_min, rect_max, timestamp.color);
+
+                    current_height -= rect_height;
                 }
 
                 if (mouse_pos.x >= frame_x && mouse_pos.x < frame_x + rect_width &&
@@ -191,25 +213,38 @@ namespace Magnefu
             // Default to last frame if nothing is selected.
             selected_frame = selected_frame == -1 ? (current_frame - 1) % max_frames : selected_frame;
             if (selected_frame >= 0) {
-                GPUTimestamp* frame_timestamps = &timestamps[selected_frame * 32];
+                GPUTimeQuery* frame_timestamps = &timestamps[selected_frame * max_queries_per_frame];
 
-                f32 x = cursor_pos.x + graph_width;
-                f32 y = cursor_pos.y;
+                f32 x = cursor_pos.x + graph_width + 8;
+                f32 y = cursor_pos.y + widget_height - 14;
 
                 for (u32 j = 0; j < per_frame_active[selected_frame]; ++j) {
-                    const GPUTimestamp& timestamp = frame_timestamps[j];
+                    const GPUTimeQuery& timestamp = frame_timestamps[j];
 
-                    /*if ( timestamp.depth != 1 ) {
+                    // Skip inner timestamps
+                    if (timestamp.depth > max_visible_depth) {
                         continue;
-                    }*/
+                    }
 
-                    draw_list->AddRectFilled({ x, y },
-                        { x + 8, y + 8 }, timestamp.color);
+                    const f32 timestamp_x = x + timestamp.depth * 4;
 
-                    sprintf(buf, "(%d)-%s %2.4f", timestamp.depth, timestamp.name, timestamp.elapsed_ms);
-                    draw_list->AddText({ x + 12, y }, 0xffffffff, buf);
+                    // Draw root (frame) on top
+                    if (timestamp.depth == 0) {
+                        draw_list->AddRectFilled({ timestamp_x, cursor_pos.y + 4 },
+                            { timestamp_x + 8, cursor_pos.y + 12 }, timestamp.color);
 
-                    y += 16;
+                        sprintf(buf, "%2.3fms %d %s", timestamp.elapsed_ms, timestamp.depth, timestamp.name);
+                        draw_list->AddText({ timestamp_x + 20, cursor_pos.y }, 0xffffffff, buf);
+                    }
+                    else {
+                        // Draw all other timestamps starting from bottom
+                        draw_list->AddRectFilled({ timestamp_x, y + 4 },
+                            { timestamp_x + 8, y + 12 }, timestamp.color);
+
+                        sprintf(buf, "%2.3fms %d %s", timestamp.elapsed_ms, timestamp.depth, timestamp.name);
+                        draw_list->AddText({ timestamp_x + 20, y }, 0xffffffff, buf);
+                        y -= 14;
+                    }
                 }
             }
 
@@ -233,6 +268,143 @@ namespace Magnefu
         static int max_duration_index = 4;
         if (ImGui::Combo("Graph Max", &max_duration_index, items, IM_ARRAYSIZE(items))) {
             max_duration = max_durations[max_duration_index];
+        }
+
+        ImGui::SliderUint("Max Depth", &max_visible_depth, 1, 4);
+
+        ImGui::Separator();
+        static const char* stat_unit_names[] = { "Normal", "Kilo", "Mega" };
+        static const char* stat_units[] = { "", "K", "M" };
+        static const f32 stat_unit_multipliers[] = { 1.0f, 1000.f, 1000000.f };
+
+        static int stat_unit_index = 1;
+        const f32 stat_unit_multiplier = stat_unit_multipliers[stat_unit_index];
+        cstring stat_unit_name = stat_units[stat_unit_index];
+        if (pipeline_statistics) {
+            f32 stat_values[GpuPipelineStatistics::Count];
+            for (u32 i = 0; i < GpuPipelineStatistics::Count; ++i) {
+                stat_values[i] = pipeline_statistics->statistics[i] / stat_unit_multiplier;
+            }
+
+            ImGui::Text("Vertices %0.2f%s, Primitives %0.2f%s", stat_values[GpuPipelineStatistics::VerticesCount], stat_unit_name,
+                stat_values[GpuPipelineStatistics::PrimitiveCount], stat_unit_name);
+
+            ImGui::Text("Clipping: Invocations %0.2f%s, Visible Primitives %0.2f%s, Visible Perc %3.1f", stat_values[GpuPipelineStatistics::ClippingInvocations], stat_unit_name,
+                stat_values[GpuPipelineStatistics::ClippingPrimitives], stat_unit_name,
+                stat_values[GpuPipelineStatistics::ClippingPrimitives] / stat_values[GpuPipelineStatistics::ClippingInvocations] * 100.0f, stat_unit_name);
+
+            ImGui::Text("Invocations: Vertex Shaders %0.2f%s, Fragment Shaders %0.2f%s, Compute Shaders %0.2f%s", stat_values[GpuPipelineStatistics::VertexShaderInvocations], stat_unit_name,
+                stat_values[GpuPipelineStatistics::FragmentShaderInvocations], stat_unit_name, stat_values[GpuPipelineStatistics::ComputeShaderInvocations], stat_unit_name);
+
+            ImGui::Text("Invocations divided by number of full screen quad pixels.");
+            ImGui::Text("Vertex %0.2f, Fragment %0.2f, Compute %0.2f", stat_values[GpuPipelineStatistics::VertexShaderInvocations] * stat_unit_multiplier / s_framebuffer_pixel_count,
+                stat_values[GpuPipelineStatistics::FragmentShaderInvocations] * stat_unit_multiplier / s_framebuffer_pixel_count,
+                stat_values[GpuPipelineStatistics::ComputeShaderInvocations] * stat_unit_multiplier / s_framebuffer_pixel_count);
+
+        }
+
+        ImGui::Combo("Stat Units", &stat_unit_index, stat_unit_names, IM_ARRAYSIZE(stat_unit_names));
+    }
+
+
+    // GPUTimeQueriesManager //////////////////////////////////////////////////
+
+
+    void GPUTimeQueriesManager::init(GpuThreadFramePools* thread_frame_pools_, Allocator* allocator_, u16 queries_per_thread_, u16 num_threads_, u16 max_frames) {
+
+        allocator = allocator_;
+        thread_frame_pools = thread_frame_pools_;
+        num_threads = num_threads_;
+        queries_per_thread = queries_per_thread_;
+        queries_per_frame = queries_per_thread_ * num_threads_;
+
+        const u32 total_time_queries = queries_per_frame * max_frames;
+        const sizet allocated_size = sizeof(GPUTimeQuery) * total_time_queries;
+        u8* memory = mfallocam(allocated_size, allocator);
+
+        timestamps = (GPUTimeQuery*)memory;
+        memset(timestamps, 0, sizeof(GPUTimeQuery) * total_time_queries);
+
+        const u32 num_pools = num_threads_ * max_frames;
+        query_trees.init(allocator, num_pools, num_pools);
+
+        for (u32 i = 0; i < num_pools; ++i) {
+
+            GpuTimeQueryTree& query_tree = query_trees[i];
+            query_tree.set_queries(&timestamps[i * queries_per_thread], queries_per_thread);
+        }
+
+        reset();
+    }
+
+    void GPUTimeQueriesManager::shutdown() {
+        query_trees.shutdown();
+
+        mffree(timestamps, allocator);
+    }
+
+    void GPUTimeQueriesManager::reset() {
+        current_frame_resolved = false;
+    }
+
+    u32 GPUTimeQueriesManager::resolve(u32 current_frame, GPUTimeQuery* timestamps_to_fill) {
+        // For each pool
+        u32 copied_timestamps = 0;
+        for (u32 t = 0; t < num_threads; ++t) {
+            const u32 pool_index = (num_threads * current_frame) + t;
+            GpuThreadFramePools& thread_pools = thread_frame_pools[pool_index];
+            GpuTimeQueryTree* time_query = thread_pools.time_queries;
+            if (time_query && time_query->allocated_time_query) {
+                Magnefu::memoryCopy(timestamps_to_fill + copied_timestamps, &timestamps[pool_index * queries_per_thread], sizeof(GPUTimeQuery) * time_query->allocated_time_query);
+                
+                copied_timestamps += time_query->allocated_time_query;
+            }
+        }
+
+        return copied_timestamps;
+    }
+
+    // GpuTimeQueryTree ///////////////////////////////////////////////////////
+    void GpuTimeQueryTree::reset() {
+        current_time_query = 0;
+        allocated_time_query = 0;
+        depth = 0;
+    }
+
+    void GpuTimeQueryTree::set_queries(GPUTimeQuery* time_queries_, u32 count) {
+        time_queries.set(time_queries_, count);
+
+        reset();
+    }
+
+    GPUTimeQuery* GpuTimeQueryTree::push(cstring name) {
+
+        GPUTimeQuery& time_query = time_queries[allocated_time_query];
+        time_query.start_query_index = allocated_time_query * 2;
+        time_query.end_query_index = time_query.start_query_index + 1;
+        time_query.depth = depth++;
+        time_query.name = name;
+        time_query.parent_index = current_time_query;
+
+        current_time_query = allocated_time_query;
+        ++allocated_time_query;
+
+        return &time_query;
+    }
+
+    GPUTimeQuery* GpuTimeQueryTree::pop() {
+        GPUTimeQuery& time_query = time_queries[current_time_query];
+        current_time_query = time_query.parent_index;
+
+        depth--;
+
+        return &time_query;
+    }
+
+    // GpuPipelineStatistics //////////////////////////////////////////////////
+    void GpuPipelineStatistics::reset() {
+        for (u32 i = 0; i < Count; ++i) {
+            statistics[i] = 0;
         }
     }
 

@@ -43,65 +43,63 @@ Magnefu::FlatHashMap<Magnefu::ResourceHandle, Magnefu::ResourceHandle> g_texture
 
 
 static const char* g_vertex_shader_code = {
-	"#version 450\n"
-	"layout( location = 0 ) in vec2 Position;\n"
-	"layout( location = 1 ) in vec2 UV;\n"
-	"layout( location = 2 ) in uvec4 Color;\n"
-	"layout( location = 0 ) out vec2 Frag_UV;\n"
-	"layout( location = 1 ) out vec4 Frag_Color;\n"
-	"layout( std140, binding = 0 ) uniform LocalConstants { mat4 ProjMtx; };\n"
-	"void main()\n"
-	"{\n"
-	"    Frag_UV = UV;\n"
-	"    Frag_Color = Color / 255.0f;\n"
-	"    gl_Position = ProjMtx * vec4( Position.xy,0,1 );\n"
-	"}\n"
+    "#version 450\n"
+    "layout( location = 0 ) in vec2 Position;\n"
+    "layout( location = 1 ) in vec2 UV;\n"
+    "layout( location = 2 ) in uvec4 Color;\n"
+    "layout( location = 0 ) out vec2 Frag_UV;\n"
+    "layout( location = 1 ) out vec4 Frag_Color;\n"
+    "layout( std140, binding = 0 ) uniform LocalConstants { mat4 ProjMtx; };\n"
+    "void main()\n"
+    "{\n"
+    "    Frag_UV = UV;\n"
+    "    Frag_Color = Color / 255.0f;\n"
+    "    gl_Position = ProjMtx * vec4( Position.xy,0,1 );\n"
+    "}\n"
 };
 
 static const char* g_vertex_shader_code_bindless = {
-	"#version 450\n"
-	"layout( location = 0 ) in vec2 Position;\n"
-	"layout( location = 1 ) in vec2 UV;\n"
-	"layout( location = 2 ) in uvec4 Color;\n"
-	"layout( location = 0 ) out vec2 Frag_UV;\n"
-	"layout( location = 1 ) out vec4 Frag_Color;\n"
-	"layout (location = 2) flat out uint texture_id;\n"
-	"layout( std140, binding = 0 ) uniform LocalConstants { mat4 ProjMtx; };\n"
-	"void main()\n"
-	"{\n"
-	"    Frag_UV = UV;\n"
-	"    Frag_Color = Color / 255.0f;\n"
-	"    texture_id = gl_InstanceIndex;\n"
-	"    gl_Position = ProjMtx * vec4( Position.xy,0,1 );\n"
-	"}\n"
+    "#version 450\n"
+    "layout( location = 0 ) in vec2 Position;\n"
+    "layout( location = 1 ) in vec2 UV;\n"
+    "layout( location = 2 ) in uvec4 Color;\n"
+    "layout( location = 0 ) out vec2 Frag_UV;\n"
+    "layout( location = 1 ) out vec4 Frag_Color;\n"
+    "layout (location = 2) flat out uint texture_id;\n"
+    "layout( std140, set = 1, binding = 0 ) uniform LocalConstants { mat4 ProjMtx; };\n"
+    "void main()\n"
+    "{\n"
+    "    Frag_UV = UV;\n"
+    "    Frag_Color = Color / 255.0f;\n"
+    "    texture_id = gl_InstanceIndex;\n"
+    "    gl_Position = ProjMtx * vec4( Position.xy,0,1 );\n"
+    "}\n"
 };
 
 static const char* g_fragment_shader_code = {
-	"#version 450\n"
-	"#extension GL_EXT_nonuniform_qualifier : enable\n"
-	"layout (location = 0) in vec2 Frag_UV;\n"
-	"layout (location = 1) in vec4 Frag_Color;\n"
-	"layout (location = 0) out vec4 Out_Color;\n"
-	"layout (binding = 1) uniform sampler2D Texture;\n"
-	"void main()\n"
-	"{\n"
-	"    Out_Color = Frag_Color * texture(Texture, Frag_UV.st);\n"
-	"}\n"
+    "#version 450\n"
+    "layout (location = 0) in vec2 Frag_UV;\n"
+    "layout (location = 1) in vec4 Frag_Color;\n"
+    "layout (location = 0) out vec4 Out_Color;\n"
+    "layout (binding = 1) uniform sampler2D Texture;\n"
+    "void main()\n"
+    "{\n"
+    "    Out_Color = Frag_Color * texture(Texture, Frag_UV.st);\n"
+    "}\n"
 };
 
 static const char* g_fragment_shader_code_bindless = {
-	"#version 450\n"
-	"#extension GL_EXT_nonuniform_qualifier : enable\n"
-	"layout (location = 0) in vec2 Frag_UV;\n"
-	"layout (location = 1) in vec4 Frag_Color;\n"
-	"layout (location = 2) flat in uint texture_id;\n"
-	"layout (location = 0) out vec4 Out_Color;\n"
-	"#extension GL_EXT_nonuniform_qualifier : enable\n"
-	"layout (set = 1, binding = 10) uniform sampler2D textures[];\n"
-	"void main()\n"
-	"{\n"
-	"    Out_Color = Frag_Color * texture(textures[nonuniformEXT(texture_id)], Frag_UV.st);\n"
-	"}\n"
+    "#version 450\n"
+    "#extension GL_EXT_nonuniform_qualifier : enable\n"
+    "layout (location = 0) in vec2 Frag_UV;\n"
+    "layout (location = 1) in vec4 Frag_Color;\n"
+    "layout (location = 2) flat in uint texture_id;\n"
+    "layout (location = 0) out vec4 Out_Color;\n"
+    "layout (set = 0, binding = 10) uniform sampler2D textures[];\n"
+    "void main()\n"
+    "{\n"
+    "    Out_Color = Frag_Color * texture(textures[nonuniformEXT(texture_id)], Frag_UV.st);\n"
+    "}\n"
 };
 
 
@@ -178,12 +176,13 @@ namespace Magnefu
 		// consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
 		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-		TextureCreation texture_creation;// = { pixels, ( u16 )width, ( u16 )height, 1, 1, 0, TextureFormat::R8G8B8A8_UNORM, TextureType::Texture2D };
-		texture_creation.set_format_type(VK_FORMAT_R8G8B8A8_UNORM, TextureType::Texture2D).set_data(pixels).set_size(width, height, 1).set_flags(1, 0).set_name("ImGui_Font");
+		TextureCreation texture_creation;
+		texture_creation.set_format_type(VK_FORMAT_R8G8B8A8_UNORM, TextureType::Texture2D).set_data(pixels).set_size(width, height, 1).set_name("ImGui_Font");
 		g_font_texture = gpu->create_texture(texture_creation);
 
 		// Store our identifier
 		io.Fonts->TexID = (ImTextureID)&g_font_texture;
+
 
 		// Manual code. Used to remove dependency from that.
 		ShaderStateCreation shader_creation{};
@@ -211,15 +210,13 @@ namespace Magnefu
 		pipeline_creation.vertex_input.add_vertex_stream({ 0, 20, VertexInputRate::PerVertex });
 		pipeline_creation.render_pass = gpu->get_swapchain_output();
 
-		DescriptorSetLayoutCreation descriptor_set_layout_creation{};
-		if (gpu->bindless_supported) {
-			descriptor_set_layout_creation.add_binding({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, 1, "LocalConstants" }).add_binding({ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10, 1, "Texture" }).set_name("RLL_ImGui");
-		}
-		else {
-			descriptor_set_layout_creation.add_binding({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, 1, "LocalConstants" }).set_name("RLL_ImGui");
-			//descriptor_set_layout_creation.add_binding({ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, 1, "LocalConstants" }).set_name("RLL_ImGui");
-		}
+		pipeline_creation.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
+		DescriptorSetLayoutCreation descriptor_set_layout_creation{};
+		if (!gpu->bindless_supported) {
+			descriptor_set_layout_creation.add_binding({ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10, 1, "Texture" });
+		}
+		descriptor_set_layout_creation.add_binding({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, 1, "LocalConstants" }).set_name("RLL_ImGui").set_set_index(1);
 
 		g_descriptor_set_layout = gpu->create_descriptor_set_layout(descriptor_set_layout_creation);
 
@@ -235,10 +232,10 @@ namespace Magnefu
 		// Create descriptor set
 		DescriptorSetCreation ds_creation{};
 		if (gpu->bindless_supported) {
-			ds_creation.set_layout(pipeline_creation.descriptor_set_layout[0]).buffer(g_ui_cb, 0).texture(g_font_texture, 1).set_name("RL_ImGui");
+			ds_creation.set_layout(pipeline_creation.descriptor_set_layout[0]).buffer(g_ui_cb, 0).set_name("RL_ImGui");
 		}
 		else {
-			ds_creation.set_layout(pipeline_creation.descriptor_set_layout[0]).buffer(g_ui_cb, 0).set_name("RL_ImGui");
+			ds_creation.set_layout(pipeline_creation.descriptor_set_layout[0]).buffer(g_ui_cb, 0).texture(g_font_texture, 1).set_name("RL_ImGui");
 		}
 		g_ui_descriptor_set = gpu->create_descriptor_set(ds_creation);
 
@@ -255,25 +252,6 @@ namespace Magnefu
 		BufferCreation ib_creation;
 		ib_creation.set(VK_BUFFER_USAGE_INDEX_BUFFER_BIT, ResourceUsageType::Dynamic, g_ib_size).set_name("IB_ImGui");
 		g_ib = gpu->create_buffer(ib_creation);
-
-		//ImGui_ImplVulkan_InitInfo init_info = {};
-		//init_info.Instance = gpu->vulkan_instance;
-		//init_info.PhysicalDevice = gpu->vulkan_physical_device;
-		//init_info.Device = gpu->vulkan_device;
-		//init_info.QueueFamily = gpu->vulkan_queue_family;
-		//init_info.Queue = gpu->vulkan_queue;
-		////init_info.PipelineCache = ;
-		//init_info.DescriptorPool = gpu->vulkan_descriptor_pool;
-		//init_info.Subpass = 0;
-		//init_info.MinImageCount = gpu->vulkan_swapchain_image_count;
-		//init_info.ImageCount = gpu->vulkan_swapchain_image_count;
-		//init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-		//init_info.Allocator = gpu->vulkan_allocation_callbacks;
-		//init_info.CheckVkResultFn = nullptr;
-
-
-		//// ImGui's Vulkan Render Pipeline created here
-		//ImGui_ImplVulkan_Init(&init_info, gpu->imgui_render_pass);
 	}
 
 	void ImGuiService::Shutdown() 
@@ -316,19 +294,9 @@ namespace Magnefu
 		ImGui::NewFrame();
 	}
 
-	void ImGuiService::Render(CommandBuffer& commands) 
+	void ImGuiService::Render(CommandBuffer& commands, bool use_secondary) 
 	{
-		//ImGui::EndFrame();// Called by ImGui::Render()
 		ImGui::Render();
-
-		ImGuiIO& io = ImGui::GetIO();
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			GLFWwindow* contextBackup = glfwGetCurrentContext();
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-			glfwMakeContextCurrent(contextBackup);
-		}
 
 		ImDrawData* draw_data = ImGui::GetDrawData();
 
@@ -349,18 +317,15 @@ namespace Magnefu
 		size_t vertex_size = draw_data->TotalVtxCount * sizeof(ImDrawVert);
 		size_t index_size = draw_data->TotalIdxCount * sizeof(ImDrawIdx);
 
-		if (vertex_size >= g_vb_size || index_size >= g_ib_size) 
-		{
+		if (vertex_size >= g_vb_size || index_size >= g_ib_size) {
 			MF_CORE_ERROR("ImGui Backend Error: vertex/index overflow!");
 			return;
 		}
 
-		if (vertex_size == 0 && index_size == 0) 
-		{
+		if (vertex_size == 0 && index_size == 0) {
 			return;
 		}
 
-		using namespace Magnefu;
 
 		// Upload data
 		ImDrawVert* vtx_dst = NULL;
@@ -369,10 +334,8 @@ namespace Magnefu
 		MapBufferParameters map_parameters_vb = { g_vb, 0, (u32)vertex_size };
 		vtx_dst = (ImDrawVert*)gpu->map_buffer(map_parameters_vb);
 
-		if (vtx_dst) 
-		{
-			for (int n = 0; n < draw_data->CmdListsCount; n++) 
-			{
+		if (vtx_dst) {
+			for (int n = 0; n < draw_data->CmdListsCount; n++) {
 
 				const ImDrawList* cmd_list = draw_data->CmdLists[n];
 				memcpy(vtx_dst, cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof(ImDrawVert));
@@ -385,10 +348,8 @@ namespace Magnefu
 		MapBufferParameters map_parameters_ib = { g_ib, 0, (u32)index_size };
 		idx_dst = (ImDrawIdx*)gpu->map_buffer(map_parameters_ib);
 
-		if (idx_dst)
-		{
-			for (int n = 0; n < draw_data->CmdListsCount; n++) 
-			{
+		if (idx_dst) {
+			for (int n = 0; n < draw_data->CmdListsCount; n++) {
 
 				const ImDrawList* cmd_list = draw_data->CmdLists[n];
 				memcpy(idx_dst, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx));
@@ -401,11 +362,10 @@ namespace Magnefu
 		// TODO_KS: Add the sorting.
 		commands.push_marker("ImGUI");
 
-		// todo: key
-		commands.bind_pass(gpu->get_swapchain_pass());
+		commands.bind_pass(gpu->get_swapchain_pass(), gpu->get_current_framebuffer(), use_secondary);
 		commands.bind_pipeline(g_imgui_pipeline);
 		commands.bind_vertex_buffer(g_vb, 0, 0);
-		commands.bind_index_buffer(g_ib, 0);
+		commands.bind_index_buffer(g_ib, 0, VK_INDEX_TYPE_UINT16);
 
 		const Viewport viewport = { 0, 0, (u16)fb_width, (u16)fb_height, 0.0f, 1.0f };
 		commands.set_viewport(&viewport);
@@ -505,7 +465,7 @@ namespace Magnefu
 							}
 						}
 
-						commands.draw_indexed(Magnefu::TopologyType::Triangle, pcmd->ElemCount, 1, index_buffer_offset + pcmd->IdxOffset, vtx_buffer_offset + pcmd->VtxOffset, new_texture.index);
+						commands.draw_indexed(TopologyType::Triangle, pcmd->ElemCount, 1, index_buffer_offset + pcmd->IdxOffset, vtx_buffer_offset + pcmd->VtxOffset, new_texture.index);
 					}
 				}
 
@@ -1162,4 +1122,98 @@ namespace Magnefu
 		s_imgui_log.Draw("Log", &s_imgui_log_open);
 	}
 
-}
+	// Plot with ringbuffer
+
+// https://github.com/leiradel/ImGuiAl
+	template<typename T, size_t L>
+	class Sparkline {
+	public:
+		Sparkline() {
+			setLimits(0, 1);
+			clear();
+		}
+
+		void setLimits(T const min, T const max) {
+			_min = static_cast<float>(min);
+			_max = static_cast<float>(max);
+		}
+
+		void add(T const value) {
+			_offset = (_offset + 1) % L;
+			_values[_offset] = value;
+		}
+
+		void clear() {
+			memset(_values, 0, L * sizeof(T));
+			_offset = L - 1;
+		}
+
+		void draw(char const* const label = "", ImVec2 const size = ImVec2()) const {
+			char overlay[32];
+			print(overlay, sizeof(overlay), _values[_offset]);
+
+			ImGui::PlotLines(label, getValue, const_cast<Sparkline*>(this), L, 0, overlay, _min, _max, size);
+		}
+
+	protected:
+		float _min, _max;
+		T _values[L];
+		size_t _offset;
+
+		static float getValue(void* const data, int const idx) {
+			Sparkline const* const self = static_cast<Sparkline*>(data);
+			size_t const index = (idx + self->_offset + 1) % L;
+			return static_cast<float>(self->_values[index]);
+		}
+
+		static void print(char* const buffer, size_t const bufferLen, int const value) {
+			snprintf(buffer, bufferLen, "%d", value);
+		}
+
+		static void print(char* const buffer, size_t const bufferLen, double const value) {
+			snprintf(buffer, bufferLen, "%f", value);
+		}
+	};
+
+	static Sparkline<f32, 100> s_fps_line;
+
+	void imgui_fps_init() {
+		s_fps_line.clear();
+		s_fps_line.setLimits(0.0f, 33.f);
+	}
+
+	void imgui_fps_shutdown() {
+	}
+
+	void imgui_fps_add(f32 dt) {
+		s_fps_line.add(dt);
+	}
+
+	void imgui_fps_draw() {
+		s_fps_line.draw("FPS", { 0,100 });
+	}
+
+} // namespace Magnefu
+
+
+// Imgui helpers //////////////////////////////////////////////////////////
+
+namespace ImGui {
+
+	bool SliderUint(const char* label, u32* v, u32 v_min, u32 v_max, const char* format, ImGuiSliderFlags flags) {
+		return SliderScalar(label, ImGuiDataType_U32, v, &v_min, &v_max, format, flags);
+	}
+
+	bool SliderUint2(const char* label, u32 v[2], u32 v_min, u32 v_max, const char* format, ImGuiSliderFlags flags) {
+		return SliderScalarN(label, ImGuiDataType_U32, v, 2, &v_min, &v_max, format, flags);
+	}
+
+	bool SliderUint3(const char* label, u32 v[3], u32 v_min, u32 v_max, const char* format, ImGuiSliderFlags flags) {
+		return SliderScalarN(label, ImGuiDataType_U32, v, 3, &v_min, &v_max, format, flags);
+	}
+
+	bool SliderUint4(const char* label, u32 v[4], u32 v_min, u32 v_max, const char* format, ImGuiSliderFlags flags) {
+		return SliderScalarN(label, ImGuiDataType_U32, v, 4, &v_min, &v_max, format, flags);
+	}
+
+} // namespace ImGui

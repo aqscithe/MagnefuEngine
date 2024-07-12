@@ -203,7 +203,12 @@ namespace Magnefu
     }
 #else
 
-    void* HeapAllocator::allocate(sizet size, sizet alignment) {
+    void* HeapAllocator::allocate(sizet size, sizet alignment)
+    {
+        if (size == 96)
+        {
+            int x = 3;
+        }
 #if defined (HEAP_ALLOCATOR_STATS)
         void* allocated_memory = alignment == 1 ? tlsf_malloc(tlsfHandle, size) : tlsf_memalign(tlsfHandle, alignment, size);
         sizet actual_size = tlsf_block_size(allocated_memory);
@@ -219,7 +224,8 @@ namespace Magnefu
     }
 #endif // Magnefu_MEMORY_STACK
 
-    void* HeapAllocator::allocate(sizet size, sizet alignment, cstring file, i32 line) {
+    void* HeapAllocator::allocate(sizet size, sizet alignment, cstring file, i32 line)
+    {
         return allocate(size, alignment);
     }
 
@@ -317,6 +323,7 @@ namespace Magnefu
 
 		allocatedSize = 0;
 		totalSize = size;
+        //MF_CORE_DEBUG("STACKALLOCATOR - init() - allocatedSize: {} | totalSize: {}", allocatedSize, totalSize);
 	}
 
 	void StackAllocator::shutdown()
@@ -339,6 +346,7 @@ namespace Magnefu
 		}
 
 		allocatedSize = newAllocatedSize;
+        //MF_CORE_DEBUG("STACKALLOCATOR - allocate() - allocatedSize: {}", allocatedSize);
 		return memory + newStart;
 	}
 
@@ -358,11 +366,12 @@ namespace Magnefu
 		const sizet sizeAtPointer = (u8*)pointer - memory;
 
 		allocatedSize = sizeAtPointer;
-
+        //MF_CORE_DEBUG("STACKALLOCATOR - deallocate() -allocatedSize: {}", allocatedSize);
 	}
 
 	sizet StackAllocator::getMarker()
 	{
+        //MF_CORE_DEBUG("STACKALLOCATOR - getMarker() - allocatedSize: {}", allocatedSize);
 		return allocatedSize;
 	}
 
@@ -373,11 +382,14 @@ namespace Magnefu
 		{
 			allocatedSize = marker;
 		}
+
+        //MF_CORE_DEBUG("STACKALLOCATOR - freeToMarker() - marker: {} | allocatedSize: {}", marker, allocatedSize);
 	}
 
 	void StackAllocator::clear()
 	{
 		allocatedSize = 0;
+        //MF_CORE_DEBUG("STACKALLOCATOR - clear() - allocatedSize: {}", allocatedSize);
 	}
 
 

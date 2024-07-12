@@ -61,7 +61,7 @@ namespace Magnefu
 		void                            Shutdown() override;
 
 		void                            BeginFrame();
-		void                            Render(CommandBuffer& commands);
+		void                            Render(CommandBuffer& commands, bool use_secondary);
 
 		// Removes the Texture from the Cache and destroy the associated Descriptor Set.
 		void                            RemoveCachedTexture(TextureHandle& texture);
@@ -101,4 +101,16 @@ namespace Magnefu
 	void                                imgui_fps_add(f32 dt);
 	void                                imgui_fps_draw();
 }
+
+// Imgui helpers //////////////////////////////////////////////////////////
+
+namespace ImGui {
+
+	typedef int ImGuiSliderFlags;
+
+	bool SliderUint(const char* label, u32* v, u32 v_min, u32 v_max, const char* format = "%d", ImGuiSliderFlags flags = 0);
+	bool SliderUint2(const char* label, u32 v[2], u32 v_min, u32 v_max, const char* format = "%d", ImGuiSliderFlags flags = 0);
+	bool SliderUint3(const char* label, u32 v[3], u32 v_min, u32 v_max, const char* format = "%d", ImGuiSliderFlags flags = 0);
+	bool SliderUint4(const char* label, u32 v[4], u32 v_min, u32 v_max, const char* format = "%d", ImGuiSliderFlags flags = 0);
+} // namespace ImGui
 

@@ -47,7 +47,7 @@ namespace Magnefu
 
             for (u32 i = 0; i < free_indices_head; ++i) 
             {
-                MF_CORE_WARN("\tResource %u\n", free_indices[i]);
+                MF_CORE_WARN("\tResource {}", free_indices[i]);
             }
         }
 
@@ -83,6 +83,7 @@ namespace Magnefu
 
     void ResourcePool::release_resource(u32 handle) 
     {
+
         // TODO: add bits for checking if resource is alive and use bitmasks.
         free_indices[--free_indices_head] = handle;
         --used_indices;
