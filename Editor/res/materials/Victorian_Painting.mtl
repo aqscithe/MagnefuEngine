@@ -1,0 +1,16 @@
+# Blender 3.3.1 MTL File: 'Victorian Painting.blend'
+# www.blender.org
+
+newmtl Victorian_Paintings
+Ns 40.00000
+Ka 0.050000 0.050000 0.050000
+Kd 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd VictorianPaintings_BaseColor_Utility-sRGB-Texture.png
+map_Ns VictorianPaintings_Roughness_Utility-Raw.png
+map_refl VictorianPaintings_Metallic_Utility-Raw.png
+map_Bump VictorianPaintings_Normal_Utility-Raw.png

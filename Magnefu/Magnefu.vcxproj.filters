@@ -175,6 +175,15 @@
     <Filter Include="vendor\json">
       <UniqueIdentifier>{5C537BC1-C808-F4B6-51FD-ED8DBDB1EABA}</UniqueIdentifier>
     </Filter>
+    <Filter Include="vendor\ktx">
+      <UniqueIdentifier>{99B1C5A8-8569-07F6-EE70-E051DA47A2E6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\ktx\include">
+      <UniqueIdentifier>{0C62D340-F845-9496-61A6-8EE94DA97E18}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\ktx\include\KHR">
+      <UniqueIdentifier>{8096A860-6C90-D1B2-55FD-67C34196371F}</UniqueIdentifier>
+    </Filter>
     <Filter Include="vendor\meshoptimizer">
       <UniqueIdentifier>{D2B4B977-BE43-4341-6762-573C53D053E7}</UniqueIdentifier>
     </Filter>
@@ -195,6 +204,57 @@
     </Filter>
     <Filter Include="vendor\spdlog\sinks">
       <UniqueIdentifier>{42A61A34-AE07-F841-3775-3EF4A3D52E01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\spirv">
+      <UniqueIdentifier>{B6DD86F1-A240-1696-4BC6-4E4C3708E218}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\spirv\include">
+      <UniqueIdentifier>{295B1950-15EA-A219-BE08-B714AA76B3BF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\spirv\include\effcee">
+      <UniqueIdentifier>{96A6296C-02B4-5752-8B9A-533DF7A62309}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\spirv\include\glslang">
+      <UniqueIdentifier>{2005429A-0CC0-3146-B577-AA90A1117CD6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\spirv\include\glslang\Include">
+      <UniqueIdentifier>{73B44A15-5F9B-0C0D-08EC-722AF4B18573}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\spirv\include\glslang\MachineIndependent">
+      <UniqueIdentifier>{F20B8532-5E47-E5F5-673C-6285D3F66926}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\spirv\include\glslang\Public">
+      <UniqueIdentifier>{4EA46FF2-BA5D-DA9C-43BD-F476AF75900C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\spirv\include\glslang\SPIRV">
+      <UniqueIdentifier>{43E4E6B9-2F20-EA23-9832-021B848D923E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\spirv\include\gmock">
+      <UniqueIdentifier>{0952ADFB-F561-59CC-5E1B-BEEA4A4A4865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\spirv\include\gmock\internal">
+      <UniqueIdentifier>{754E8268-E107-ED12-6A67-07EDD61FA382}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\spirv\include\gmock\internal\custom">
+      <UniqueIdentifier>{3FF59A9C-2B5D-616A-94C8-7580804F7856}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\spirv\include\gtest">
+      <UniqueIdentifier>{3F00B1FB-2B10-5DCC-94C9-C1EA80F84B65}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\spirv\include\gtest\internal">
+      <UniqueIdentifier>{6B59C424-D712-2FCF-6072-49A9CC2AE53E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\spirv\include\gtest\internal\custom">
+      <UniqueIdentifier>{754F3054-61B7-F621-CA22-0B38B6A90D0E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\spirv\include\re2">
+      <UniqueIdentifier>{A17F5026-8DA4-9FA6-B6EF-8436A2739EC4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\spirv\include\shaderc">
+      <UniqueIdentifier>{12315E2B-FEEB-4DD7-A7A3-C621933D9867}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\spirv\include\spirv-tools">
+      <UniqueIdentifier>{0A9A424F-F6EA-2D91-1F4F-1C530BFFC0FA}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor\stb_image">
       <UniqueIdentifier>{0DA0BA59-F998-D9AB-22CB-BE300E23B9B7}</UniqueIdentifier>
@@ -2184,6 +2244,15 @@
     <ClInclude Include="vendor\json\json.hpp">
       <Filter>vendor\json</Filter>
     </ClInclude>
+    <ClInclude Include="vendor\ktx\include\KHR\khr_df.h">
+      <Filter>vendor\ktx\include\KHR</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\ktx\include\ktx.h">
+      <Filter>vendor\ktx\include</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\ktx\include\ktxvulkan.h">
+      <Filter>vendor\ktx\include</Filter>
+    </ClInclude>
     <ClInclude Include="vendor\meshoptimizer\meshoptimizer.h">
       <Filter>vendor\meshoptimizer</Filter>
     </ClInclude>
@@ -2495,6 +2564,207 @@
     </ClInclude>
     <ClInclude Include="vendor\spdlog\version.h">
       <Filter>vendor\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\effcee\effcee.h">
+      <Filter>vendor\spirv\include\effcee</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\glslang\Include\ResourceLimits.h">
+      <Filter>vendor\spirv\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\glslang\Include\glslang_c_interface.h">
+      <Filter>vendor\spirv\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\glslang\Include\glslang_c_shader_types.h">
+      <Filter>vendor\spirv\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\glslang\Include\visibility.h">
+      <Filter>vendor\spirv\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\glslang\MachineIndependent\Versions.h">
+      <Filter>vendor\spirv\include\glslang\MachineIndependent</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\glslang\Public\ResourceLimits.h">
+      <Filter>vendor\spirv\include\glslang\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\glslang\Public\ShaderLang.h">
+      <Filter>vendor\spirv\include\glslang\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\glslang\Public\resource_limits_c.h">
+      <Filter>vendor\spirv\include\glslang\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\glslang\SPIRV\GlslangToSpv.h">
+      <Filter>vendor\spirv\include\glslang\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\glslang\SPIRV\Logger.h">
+      <Filter>vendor\spirv\include\glslang\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\glslang\SPIRV\SPVRemapper.h">
+      <Filter>vendor\spirv\include\glslang\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\glslang\SPIRV\SpvTools.h">
+      <Filter>vendor\spirv\include\glslang\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\glslang\SPIRV\disassemble.h">
+      <Filter>vendor\spirv\include\glslang\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\glslang\SPIRV\spirv.hpp">
+      <Filter>vendor\spirv\include\glslang\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\glslang\build_info.h">
+      <Filter>vendor\spirv\include\glslang</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gmock\gmock-actions.h">
+      <Filter>vendor\spirv\include\gmock</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gmock\gmock-cardinalities.h">
+      <Filter>vendor\spirv\include\gmock</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gmock\gmock-function-mocker.h">
+      <Filter>vendor\spirv\include\gmock</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gmock\gmock-matchers.h">
+      <Filter>vendor\spirv\include\gmock</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gmock\gmock-more-actions.h">
+      <Filter>vendor\spirv\include\gmock</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gmock\gmock-more-matchers.h">
+      <Filter>vendor\spirv\include\gmock</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gmock\gmock-nice-strict.h">
+      <Filter>vendor\spirv\include\gmock</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gmock\gmock-spec-builders.h">
+      <Filter>vendor\spirv\include\gmock</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gmock\gmock.h">
+      <Filter>vendor\spirv\include\gmock</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gmock\internal\custom\gmock-generated-actions.h">
+      <Filter>vendor\spirv\include\gmock\internal\custom</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gmock\internal\custom\gmock-matchers.h">
+      <Filter>vendor\spirv\include\gmock\internal\custom</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gmock\internal\custom\gmock-port.h">
+      <Filter>vendor\spirv\include\gmock\internal\custom</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gmock\internal\gmock-internal-utils.h">
+      <Filter>vendor\spirv\include\gmock\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gmock\internal\gmock-port.h">
+      <Filter>vendor\spirv\include\gmock\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gmock\internal\gmock-pp.h">
+      <Filter>vendor\spirv\include\gmock\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\gtest-assertion-result.h">
+      <Filter>vendor\spirv\include\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\gtest-death-test.h">
+      <Filter>vendor\spirv\include\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\gtest-matchers.h">
+      <Filter>vendor\spirv\include\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\gtest-message.h">
+      <Filter>vendor\spirv\include\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\gtest-param-test.h">
+      <Filter>vendor\spirv\include\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\gtest-printers.h">
+      <Filter>vendor\spirv\include\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\gtest-spi.h">
+      <Filter>vendor\spirv\include\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\gtest-test-part.h">
+      <Filter>vendor\spirv\include\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\gtest-typed-test.h">
+      <Filter>vendor\spirv\include\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\gtest.h">
+      <Filter>vendor\spirv\include\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\gtest_pred_impl.h">
+      <Filter>vendor\spirv\include\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\gtest_prod.h">
+      <Filter>vendor\spirv\include\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\internal\custom\gtest-port.h">
+      <Filter>vendor\spirv\include\gtest\internal\custom</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\internal\custom\gtest-printers.h">
+      <Filter>vendor\spirv\include\gtest\internal\custom</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\internal\custom\gtest.h">
+      <Filter>vendor\spirv\include\gtest\internal\custom</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\internal\gtest-death-test-internal.h">
+      <Filter>vendor\spirv\include\gtest\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\internal\gtest-filepath.h">
+      <Filter>vendor\spirv\include\gtest\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\internal\gtest-internal.h">
+      <Filter>vendor\spirv\include\gtest\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\internal\gtest-param-util.h">
+      <Filter>vendor\spirv\include\gtest\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\internal\gtest-port-arch.h">
+      <Filter>vendor\spirv\include\gtest\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\internal\gtest-port.h">
+      <Filter>vendor\spirv\include\gtest\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\internal\gtest-string.h">
+      <Filter>vendor\spirv\include\gtest\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\gtest\internal\gtest-type-util.h">
+      <Filter>vendor\spirv\include\gtest\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\re2\filtered_re2.h">
+      <Filter>vendor\spirv\include\re2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\re2\re2.h">
+      <Filter>vendor\spirv\include\re2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\re2\set.h">
+      <Filter>vendor\spirv\include\re2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\re2\stringpiece.h">
+      <Filter>vendor\spirv\include\re2</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\shaderc\env.h">
+      <Filter>vendor\spirv\include\shaderc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\shaderc\shaderc.h">
+      <Filter>vendor\spirv\include\shaderc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\shaderc\shaderc.hpp">
+      <Filter>vendor\spirv\include\shaderc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\shaderc\status.h">
+      <Filter>vendor\spirv\include\shaderc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\shaderc\visibility.h">
+      <Filter>vendor\spirv\include\shaderc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\spirv-tools\libspirv.h">
+      <Filter>vendor\spirv\include\spirv-tools</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\spirv-tools\libspirv.hpp">
+      <Filter>vendor\spirv\include\spirv-tools</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\spirv-tools\linker.hpp">
+      <Filter>vendor\spirv\include\spirv-tools</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\spirv\include\spirv-tools\optimizer.hpp">
+      <Filter>vendor\spirv\include\spirv-tools</Filter>
     </ClInclude>
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>

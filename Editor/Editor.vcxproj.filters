@@ -4,86 +4,17 @@
     <Filter Include="res">
       <UniqueIdentifier>{4FA5880B-BBAE-887C-442A-9F7CB032947C}</UniqueIdentifier>
     </Filter>
-    <Filter Include="res\frame_graphs">
-      <UniqueIdentifier>{8D388D8D-7931-ACDF-A263-91648EBB8BEB}</UniqueIdentifier>
-    </Filter>
     <Filter Include="res\materials">
       <UniqueIdentifier>{00F71BAF-6CB7-97E5-35F2-E062A171DCC1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="res\meshes">
-      <UniqueIdentifier>{C3ACA540-AF64-E78D-186C-C0E90443827E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\meshes\area_lights">
-      <UniqueIdentifier>{559CE90F-4196-1262-2A03-A972169C78CE}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\meshes\primitives">
-      <UniqueIdentifier>{DEEE9906-4A5B-5501-134F-ED5E7F7A7769}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\meshes\primitives\3D">
-      <UniqueIdentifier>{E4B8F5AE-D0DD-442F-F928-2ABFE5AC434D}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\meshes\usd">
-      <UniqueIdentifier>{FE1C8041-EAEA-7347-D37E-E46DBFEB4FAC}</UniqueIdentifier>
-    </Filter>
     <Filter Include="res\models">
       <UniqueIdentifier>{425C5241-2E14-948E-971B-6DEA83F22E7F}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\models\FlightHelmet">
-      <UniqueIdentifier>{2EA5CEFB-9ADC-1693-A3E6-7AB60F9D3D8C}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\models\FlightHelmet\glTF">
-      <UniqueIdentifier>{2AE397DE-169E-878A-BF55-00D5ABEFD11A}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\models\FlightHelmet\screenshot">
-      <UniqueIdentifier>{9BA487C6-87E0-8A30-F0F2-A227DC4D334B}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\models\MetalRoughSpheres">
-      <UniqueIdentifier>{0306FE29-EFC0-EDD5-9878-662084123866}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\models\MetalRoughSpheres\glTF">
-      <UniqueIdentifier>{1F113E22-8B7F-93A1-D468-4EA14016893D}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\models\MetalRoughSpheres\glTF-Binary">
-      <UniqueIdentifier>{11EA3495-FD66-28D8-26E4-28EC12C0C46B}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\models\MetalRoughSpheres\glTF-Embedded">
-      <UniqueIdentifier>{36A50893-220D-CF60-8B78-E37677FFE54C}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\models\MetalRoughSpheres\screenshot">
-      <UniqueIdentifier>{50B6D756-BC45-9941-C541-7A593150D44D}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\models\SciFiHelmet">
-      <UniqueIdentifier>{3E8011D7-2A7A-3A29-13E7-D039FF7FA095}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\models\SciFiHelmet\glTF">
-      <UniqueIdentifier>{3A282E12-A635-5CF8-2F1C-58E39B2828AF}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\models\SciFiHelmet\screenshot">
-      <UniqueIdentifier>{AB75A114-17E4-F693-60CD-B193CC7AEC2F}</UniqueIdentifier>
     </Filter>
     <Filter Include="res\models\Sponza">
       <UniqueIdentifier>{2C8C42CE-98A2-4064-E119-CC854D6F11EC}</UniqueIdentifier>
     </Filter>
     <Filter Include="res\models\Sponza\glTF">
       <UniqueIdentifier>{E8D8E903-D4D2-1256-BD3F-A966A9D878C2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\models\Sponza\screenshot">
-      <UniqueIdentifier>{D9707682-C52B-662E-6EE3-DE785A7DB0BE}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\models\buster_drone">
-      <UniqueIdentifier>{1D8D48F0-89C4-9087-92CE-F4AAFE84B780}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\models\buster_drone\glTF">
-      <UniqueIdentifier>{7918DB8B-65D3-CA37-0E8B-4382FA2415C8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\models\buster_drone\glTF\textures">
-      <UniqueIdentifier>{8C1E9CE8-F8E2-9AD8-C148-CBA22DCC360E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\models\corridor">
-      <UniqueIdentifier>{75FD77E7-E15E-55F5-6ACC-9BA7D62C8CB4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\models\corridor\glTF">
-      <UniqueIdentifier>{D17F7667-BDA4-C5E7-E6EF-AA77D273C405}</UniqueIdentifier>
     </Filter>
     <Filter Include="res\shaders">
       <UniqueIdentifier>{4841F028-B4F6-681E-3DEB-62F5A99F5F22}</UniqueIdentifier>
@@ -96,12 +27,6 @@
     </Filter>
     <Filter Include="res\textures\12221_Cat_v1_l3">
       <UniqueIdentifier>{A4003536-90BB-24E2-3973-9D2C250D6F72}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\textures\Bronze_shield">
-      <UniqueIdentifier>{5987231E-4597-CFEE-AE50-340D9A7FBE87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\textures\DDS">
-      <UniqueIdentifier>{4CAD7C77-38A6-9BC9-61D8-804E4D307BD5}</UniqueIdentifier>
     </Filter>
     <Filter Include="res\textures\Lava_03-2K">
       <UniqueIdentifier>{411FBDFF-AD56-0597-B660-69BA22172C90}</UniqueIdentifier>
@@ -118,9 +43,6 @@
     <Filter Include="res\textures\amethyst_texture_1-2K">
       <UniqueIdentifier>{AA92C7C9-96CE-CA33-FFE0-E22AEB3B734E}</UniqueIdentifier>
     </Filter>
-    <Filter Include="res\textures\colors">
-      <UniqueIdentifier>{C3DF6CC0-2F41-4ACE-B8AE-9080240F818D}</UniqueIdentifier>
-    </Filter>
     <Filter Include="res\textures\darkmarble">
       <UniqueIdentifier>{C624BCD5-325C-046D-3B66-6890A71C2B66}</UniqueIdentifier>
     </Filter>
@@ -136,17 +58,11 @@
     <Filter Include="res\textures\old_copper">
       <UniqueIdentifier>{98A1DD65-04D9-25FD-0DE3-892079994CF6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="res\textures\painted-wall-sky-blue">
-      <UniqueIdentifier>{ECE1E741-D81D-EBAB-4130-03A32D8B93C6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="res\textures\retrotv0319">
       <UniqueIdentifier>{541BB50D-4040-048E-698B-E91D550F03AC}</UniqueIdentifier>
     </Filter>
     <Filter Include="res\textures\santa_hat">
       <UniqueIdentifier>{844C2E74-7046-57C6-59B3-EDD6454CBD32}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\textures\scificorridor">
-      <UniqueIdentifier>{A381CD69-8F91-793A-F84A-DE58E47968D3}</UniqueIdentifier>
     </Filter>
     <Filter Include="res\textures\skybox">
       <UniqueIdentifier>{11F17DE5-7D52-5BF3-06C0-A1A5722092B2}</UniqueIdentifier>
@@ -160,33 +76,6 @@
     <Filter Include="res\textures\starlights">
       <UniqueIdentifier>{F63C4520-6274-8DB7-6B7E-F1DAD734B4B0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="res\textures\surfaces">
-      <UniqueIdentifier>{4D25712E-B991-2C29-8285-C486EEB04E91}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\textures\surfaces\aerial_rocks_02">
-      <UniqueIdentifier>{8C87457D-F84B-446D-C1B1-74372D35E0A2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\textures\surfaces\metal_plate">
-      <UniqueIdentifier>{8444E105-F0B2-3685-399C-F184A5492C21}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\textures\surfaces\painted_concrete">
-      <UniqueIdentifier>{F3B49CC1-DF06-74B1-C825-B1C1B4168D9A}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\textures\surfaces\painted_metal_shutter">
-      <UniqueIdentifier>{01FFE400-6D64-7887-F63C-1A6062A16DF6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\textures\surfaces\plank_flooring">
-      <UniqueIdentifier>{11268C4E-FD0C-4E46-A65D-B4639223C7AC}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\textures\surfaces\red_laterite_soil_stones">
-      <UniqueIdentifier>{0111583C-ED8E-A8D5-D686-666DC2A3EAFD}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\textures\surfaces\slate_floor">
-      <UniqueIdentifier>{3682710A-A2F0-C689-EBD9-81895787BC25}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="res\textures\surfaces\snow_01">
-      <UniqueIdentifier>{03736612-6F8B-4D3C-3838-DDD5A40FE2D5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="res\textures\wooden_watch_tower2">
       <UniqueIdentifier>{95943AF5-81E5-2537-AA49-14F996F9B8A0}</UniqueIdentifier>
     </Filter>
@@ -199,6 +88,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="res\shaders\culling.h">
+      <Filter>res\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="res\shaders\ddgi.h">
       <Filter>res\shaders</Filter>
     </ClInclude>
     <ClInclude Include="res\shaders\debug_rendering.h">
@@ -241,16 +133,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\frame_graphs\graph.json">
-      <Filter>res\frame_graphs</Filter>
-    </None>
-    <None Include="res\frame_graphs\graph_meshlet.json">
-      <Filter>res\frame_graphs</Filter>
-    </None>
     <None Include="res\materials\12221_Cat_v1_l3.mtl">
-      <Filter>res\materials</Filter>
-    </None>
-    <None Include="res\materials\Bronze_shield.mtl">
       <Filter>res\materials</Filter>
     </None>
     <None Include="res\materials\T-rex.mtl">
@@ -268,145 +151,16 @@
     <None Include="res\materials\wooden_watch_tower2.mtl">
       <Filter>res\materials</Filter>
     </None>
-    <None Include="res\meshes\12221_Cat_v1_l3.obj">
-      <Filter>res\meshes</Filter>
-    </None>
-    <None Include="res\meshes\Bronze_shield.obj">
-      <Filter>res\meshes</Filter>
-    </None>
-    <None Include="res\meshes\Victorian_Painting.obj">
-      <Filter>res\meshes</Filter>
-    </None>
-    <None Include="res\meshes\area_lights\square_light.obj">
-      <Filter>res\meshes\area_lights</Filter>
-    </None>
-    <None Include="res\meshes\corridor.obj">
-      <Filter>res\meshes</Filter>
-    </None>
-    <None Include="res\meshes\primitives\3D\cube.obj">
-      <Filter>res\meshes\primitives\3D</Filter>
-    </None>
-    <None Include="res\meshes\primitives\3D\plane.obj">
-      <Filter>res\meshes\primitives\3D</Filter>
-    </None>
-    <None Include="res\meshes\primitives\3D\plane_template.obj">
-      <Filter>res\meshes\primitives\3D</Filter>
-    </None>
-    <None Include="res\meshes\retrotv0319.obj">
-      <Filter>res\meshes</Filter>
-    </None>
-    <None Include="res\meshes\santa_hat(DEFAULT).obj">
-      <Filter>res\meshes</Filter>
-    </None>
-    <None Include="res\meshes\usd\Sci-fi-corridor.usdz">
-      <Filter>res\meshes\usd</Filter>
-    </None>
-    <None Include="res\meshes\usd\The_Hunters_Rest.usdz">
-      <Filter>res\meshes\usd</Filter>
-    </None>
-    <None Include="res\meshes\viking_room.obj">
-      <Filter>res\meshes</Filter>
-    </None>
-    <None Include="res\meshes\wooden_watch_tower2.obj">
-      <Filter>res\meshes</Filter>
-    </None>
-    <None Include="res\models\FlightHelmet\LICENSE.md">
-      <Filter>res\models\FlightHelmet</Filter>
-    </None>
-    <None Include="res\models\FlightHelmet\README.body.md">
-      <Filter>res\models\FlightHelmet</Filter>
-    </None>
-    <None Include="res\models\FlightHelmet\README.md">
-      <Filter>res\models\FlightHelmet</Filter>
-    </None>
-    <None Include="res\models\FlightHelmet\glTF\FlightHelmet.bin">
-      <Filter>res\models\FlightHelmet\glTF</Filter>
-    </None>
-    <None Include="res\models\FlightHelmet\glTF\FlightHelmet.gltf">
-      <Filter>res\models\FlightHelmet\glTF</Filter>
-    </None>
-    <None Include="res\models\FlightHelmet\metadata.json">
-      <Filter>res\models\FlightHelmet</Filter>
-    </None>
-    <None Include="res\models\MetalRoughSpheres\LICENSE.md">
-      <Filter>res\models\MetalRoughSpheres</Filter>
-    </None>
-    <None Include="res\models\MetalRoughSpheres\README.body.md">
-      <Filter>res\models\MetalRoughSpheres</Filter>
-    </None>
-    <None Include="res\models\MetalRoughSpheres\README.md">
-      <Filter>res\models\MetalRoughSpheres</Filter>
-    </None>
-    <None Include="res\models\MetalRoughSpheres\glTF-Binary\MetalRoughSpheres.glb">
-      <Filter>res\models\MetalRoughSpheres\glTF-Binary</Filter>
-    </None>
-    <None Include="res\models\MetalRoughSpheres\glTF-Embedded\MetalRoughSpheres.gltf">
-      <Filter>res\models\MetalRoughSpheres\glTF-Embedded</Filter>
-    </None>
-    <None Include="res\models\MetalRoughSpheres\glTF\MetalRoughSpheres.gltf">
-      <Filter>res\models\MetalRoughSpheres\glTF</Filter>
-    </None>
-    <None Include="res\models\MetalRoughSpheres\glTF\MetalRoughSpheres0.bin">
-      <Filter>res\models\MetalRoughSpheres\glTF</Filter>
-    </None>
-    <None Include="res\models\MetalRoughSpheres\metadata.json">
-      <Filter>res\models\MetalRoughSpheres</Filter>
-    </None>
-    <None Include="res\models\SciFiHelmet\LICENSE.md">
-      <Filter>res\models\SciFiHelmet</Filter>
-    </None>
-    <None Include="res\models\SciFiHelmet\README.md">
-      <Filter>res\models\SciFiHelmet</Filter>
-    </None>
-    <None Include="res\models\SciFiHelmet\glTF\SciFiHelmet.bin">
-      <Filter>res\models\SciFiHelmet\glTF</Filter>
-    </None>
-    <None Include="res\models\SciFiHelmet\glTF\SciFiHelmet.gltf">
-      <Filter>res\models\SciFiHelmet\glTF</Filter>
-    </None>
-    <None Include="res\models\SciFiHelmet\metadata.json">
-      <Filter>res\models\SciFiHelmet</Filter>
-    </None>
-    <None Include="res\models\Sponza\LICENSE.md">
-      <Filter>res\models\Sponza</Filter>
-    </None>
-    <None Include="res\models\Sponza\README.body.md">
-      <Filter>res\models\Sponza</Filter>
-    </None>
-    <None Include="res\models\Sponza\README.md">
-      <Filter>res\models\Sponza</Filter>
-    </None>
     <None Include="res\models\Sponza\glTF\Sponza.bin">
       <Filter>res\models\Sponza\glTF</Filter>
     </None>
     <None Include="res\models\Sponza\glTF\Sponza.gltf">
       <Filter>res\models\Sponza\glTF</Filter>
     </None>
-    <None Include="res\models\Sponza\metadata.json">
-      <Filter>res\models\Sponza</Filter>
-    </None>
-    <None Include="res\models\buster_drone\glTF\buster_drone.bin">
-      <Filter>res\models\buster_drone\glTF</Filter>
-    </None>
-    <None Include="res\models\buster_drone\glTF\buster_drone.gltf">
-      <Filter>res\models\buster_drone\glTF</Filter>
-    </None>
-    <None Include="res\models\buster_drone\license.txt">
-      <Filter>res\models\buster_drone</Filter>
-    </None>
     <None Include="res\models\cone.mtl">
       <Filter>res\models</Filter>
     </None>
     <None Include="res\models\cone.obj">
-      <Filter>res\models</Filter>
-    </None>
-    <None Include="res\models\corridor\glTF\corridor.bin">
-      <Filter>res\models\corridor\glTF</Filter>
-    </None>
-    <None Include="res\models\corridor\glTF\corridor.gltf">
-      <Filter>res\models\corridor\glTF</Filter>
-    </None>
-    <None Include="res\models\extract_gltf_bin_data.py">
       <Filter>res\models</Filter>
     </None>
     <None Include="res\models\plane.mtl">
@@ -421,6 +175,66 @@
     <None Include="res\models\sphere.obj">
       <Filter>res\models</Filter>
     </None>
+    <None Include="res\shaders\AreaLight.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\AreaLightLTC.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Basic.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\BatchRender.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Cube.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\LightCube.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Particles.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Primitive.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\RecPrism.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Skybox.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Sphere.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Test.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\TestLighting-Texture.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\TestLighting.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\TestModelLoading.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\Texture2D.shader">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\bilateral_weights.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\brdf_lut_generation.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\calculate_probe_offsets.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\calculate_probe_statuses.cache">
+      <Filter>res\shaders</Filter>
+    </None>
     <None Include="res\shaders\cloth.glsl">
       <Filter>res\shaders</Filter>
     </None>
@@ -430,10 +244,10 @@
     <None Include="res\shaders\cloth_compute_comp.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\cloth_compute_comp.spv">
+    <None Include="res\shaders\commands_finalize.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\commands_finalize.cache">
+    <None Include="res\shaders\composite_camera_motion.cache">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\compute.cache">
@@ -451,13 +265,43 @@
     <None Include="res\shaders\culling_depth_pyramid_comp.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\culling_depth_pyramid_comp.spv">
-      <Filter>res\shaders</Filter>
-    </None>
     <None Include="res\shaders\culling_gpu_mesh_culling_comp.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\culling_gpu_mesh_culling_comp.spv">
+    <None Include="res\shaders\ddgi.glsl">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\ddgi.json">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\ddgi_calculate_probe_offsets_comp.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\ddgi_calculate_probe_statuses_comp.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\ddgi_debug_mesh_frag.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\ddgi_debug_mesh_vert.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\ddgi_probe_rt_rchit.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\ddgi_probe_rt_rgen.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\ddgi_probe_rt_rmiss.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\ddgi_probe_update_irradiance_comp.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\ddgi_probe_update_visibility_comp.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\ddgi_sample_irradiance_comp.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\debug.json">
@@ -466,55 +310,40 @@
     <None Include="res\shaders\debug_commands_finalize_comp.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\debug_commands_finalize_comp.spv">
+    <None Include="res\shaders\debug_debug_line_2d_cpu_frag.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\debug_debug_line_2d_cpu_vert.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\debug_debug_line_2d_gpu_frag.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\debug_debug_line_2d_gpu_frag.spv">
-      <Filter>res\shaders</Filter>
-    </None>
     <None Include="res\shaders\debug_debug_line_2d_gpu_vert.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\debug_debug_line_2d_gpu_vert.spv">
+    <None Include="res\shaders\debug_debug_line_cpu_frag.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\debug_debug_line_cpu_vert.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\debug_debug_line_frag.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\debug_debug_line_frag.spv">
-      <Filter>res\shaders</Filter>
-    </None>
     <None Include="res\shaders\debug_debug_line_gpu_frag.hash.cache">
-      <Filter>res\shaders</Filter>
-    </None>
-    <None Include="res\shaders\debug_debug_line_gpu_frag.spv">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\debug_debug_line_gpu_vert.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\debug_debug_line_gpu_vert.spv">
-      <Filter>res\shaders</Filter>
-    </None>
     <None Include="res\shaders\debug_debug_line_vert.hash.cache">
-      <Filter>res\shaders</Filter>
-    </None>
-    <None Include="res\shaders\debug_debug_line_vert.spv">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\debug_debug_mesh_frag.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\debug_debug_mesh_frag.spv">
-      <Filter>res\shaders</Filter>
-    </None>
     <None Include="res\shaders\debug_debug_mesh_vert.hash.cache">
-      <Filter>res\shaders</Filter>
-    </None>
-    <None Include="res\shaders\debug_debug_mesh_vert.spv">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\debug_line.cache">
@@ -523,7 +352,13 @@
     <None Include="res\shaders\debug_line.glsl">
       <Filter>res\shaders</Filter>
     </None>
+    <None Include="res\shaders\debug_line_2d_cpu.cache">
+      <Filter>res\shaders</Filter>
+    </None>
     <None Include="res\shaders\debug_line_2d_gpu.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\debug_line_cpu.cache">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\debug_line_gpu.cache">
@@ -535,22 +370,25 @@
     <None Include="res\shaders\debug_mesh.glsl">
       <Filter>res\shaders</Filter>
     </None>
+    <None Include="res\shaders\deferred_lighting_compute.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\deferred_lighting_pixel.cache">
+      <Filter>res\shaders</Filter>
+    </None>
     <None Include="res\shaders\del-cache">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\depth.glsl">
       <Filter>res\shaders</Filter>
     </None>
+    <None Include="res\shaders\depth_cubemap.cache">
+      <Filter>res\shaders</Filter>
+    </None>
     <None Include="res\shaders\depth_of_field_main_frag.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\depth_of_field_main_frag.spv">
-      <Filter>res\shaders</Filter>
-    </None>
     <None Include="res\shaders\depth_of_field_main_vert.hash.cache">
-      <Filter>res\shaders</Filter>
-    </None>
-    <None Include="res\shaders\depth_of_field_main_vert.spv">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\depth_pre.cache">
@@ -568,10 +406,16 @@
     <None Include="res\shaders\depth_skinned.vert">
       <Filter>res\shaders</Filter>
     </None>
+    <None Include="res\shaders\depth_tetrahedron.cache">
+      <Filter>res\shaders</Filter>
+    </None>
     <None Include="res\shaders\dof.glsl">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\dof.json">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\edge_detection.cache">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\emulation_gbuffer_culling.cache">
@@ -583,16 +427,25 @@
     <None Include="res\shaders\fullscreen.json">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\fullscreen_main_frag.hash.cache">
+    <None Include="res\shaders\fullscreen_bilateral_weights_comp.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\fullscreen_main_frag.spv">
+    <None Include="res\shaders\fullscreen_composite_camera_motion_comp.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\fullscreen_main_vert.hash.cache">
+    <None Include="res\shaders\fullscreen_main_post_frag.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\fullscreen_main_vert.spv">
+    <None Include="res\shaders\fullscreen_main_post_vert.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\fullscreen_main_triangle_frag.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\fullscreen_main_triangle_vert.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\fullscreen_temporal_aa_comp.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\gbuffer.glsl">
@@ -619,6 +472,15 @@
     <None Include="res\shaders\gpu_mesh_culling.cache">
       <Filter>res\shaders</Filter>
     </None>
+    <None Include="res\shaders\inject_data.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\light_integration.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\light_scattering.cache">
+      <Filter>res\shaders</Filter>
+    </None>
     <None Include="res\shaders\main.cache">
       <Filter>res\shaders</Filter>
     </None>
@@ -628,70 +490,46 @@
     <None Include="res\shaders\main.json">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\main_depth_pre_skinning_frag.hash.cache">
+    <None Include="res\shaders\main_depth_cubemap_vert.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\main_depth_pre_skinning_frag.spv">
+    <None Include="res\shaders\main_depth_pre_skinning_frag.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\main_depth_pre_skinning_vert.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\main_depth_pre_skinning_vert.spv">
-      <Filter>res\shaders</Filter>
-    </None>
     <None Include="res\shaders\main_depth_pre_vert.hash.cache">
-      <Filter>res\shaders</Filter>
-    </None>
-    <None Include="res\shaders\main_depth_pre_vert.spv">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\main_gbuffer_no_cull_frag.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\main_gbuffer_no_cull_frag.spv">
-      <Filter>res\shaders</Filter>
-    </None>
     <None Include="res\shaders\main_gbuffer_no_cull_vert.hash.cache">
-      <Filter>res\shaders</Filter>
-    </None>
-    <None Include="res\shaders\main_gbuffer_no_cull_vert.spv">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\main_gbuffer_skinning_frag.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\main_gbuffer_skinning_frag.spv">
-      <Filter>res\shaders</Filter>
-    </None>
     <None Include="res\shaders\main_gbuffer_skinning_vert.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\main_gbuffer_skinning_vert.spv">
+    <None Include="res\shaders\main_post.cache">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\main_transparent_no_cull_frag.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\main_transparent_no_cull_frag.spv">
-      <Filter>res\shaders</Filter>
-    </None>
     <None Include="res\shaders\main_transparent_no_cull_vert.hash.cache">
-      <Filter>res\shaders</Filter>
-    </None>
-    <None Include="res\shaders\main_transparent_no_cull_vert.spv">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\main_transparent_skinning_no_cull_frag.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\main_transparent_skinning_no_cull_frag.spv">
-      <Filter>res\shaders</Filter>
-    </None>
     <None Include="res\shaders\main_transparent_skinning_no_cull_vert.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\main_transparent_skinning_no_cull_vert.spv">
+    <None Include="res\shaders\main_triangle.cache">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\mesh.cache">
@@ -703,58 +541,43 @@
     <None Include="res\shaders\meshlet.json">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\meshlet_depth_pre_mesh.hash.cache">
+    <None Include="res\shaders\meshlet_depth_cubemap_mesh.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\meshlet_depth_pre_mesh.spv">
+    <None Include="res\shaders\meshlet_depth_cubemap_task.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\meshlet_depth_pre_mesh.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\meshlet_depth_pre_task.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\meshlet_depth_pre_task.spv">
+    <None Include="res\shaders\meshlet_depth_tetrahedron_mesh.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\meshlet_depth_tetrahedron_task.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\meshlet_emulation_gbuffer_culling_frag.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\meshlet_emulation_gbuffer_culling_frag.spv">
-      <Filter>res\shaders</Filter>
-    </None>
     <None Include="res\shaders\meshlet_emulation_gbuffer_culling_vert.hash.cache">
-      <Filter>res\shaders</Filter>
-    </None>
-    <None Include="res\shaders\meshlet_emulation_gbuffer_culling_vert.spv">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\meshlet_gbuffer_culling_frag.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\meshlet_gbuffer_culling_frag.spv">
-      <Filter>res\shaders</Filter>
-    </None>
     <None Include="res\shaders\meshlet_gbuffer_culling_mesh.hash.cache">
-      <Filter>res\shaders</Filter>
-    </None>
-    <None Include="res\shaders\meshlet_gbuffer_culling_mesh.spv">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\meshlet_gbuffer_culling_task.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\meshlet_gbuffer_culling_task.spv">
-      <Filter>res\shaders</Filter>
-    </None>
     <None Include="res\shaders\meshlet_generate_meshlet_index_buffer_comp.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\meshlet_generate_meshlet_index_buffer_comp.spv">
-      <Filter>res\shaders</Filter>
-    </None>
     <None Include="res\shaders\meshlet_generate_meshlet_instances_comp.hash.cache">
-      <Filter>res\shaders</Filter>
-    </None>
-    <None Include="res\shaders\meshlet_generate_meshlet_instances_comp.spv">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\meshlet_instance_culling.cache">
@@ -763,43 +586,37 @@
     <None Include="res\shaders\meshlet_mesh_frag.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\meshlet_mesh_frag.spv">
-      <Filter>res\shaders</Filter>
-    </None>
     <None Include="res\shaders\meshlet_mesh_mesh.hash.cache">
-      <Filter>res\shaders</Filter>
-    </None>
-    <None Include="res\shaders\meshlet_mesh_mesh.spv">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\meshlet_meshlet_instance_culling_comp.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\meshlet_meshlet_instance_culling_comp.spv">
+    <None Include="res\shaders\meshlet_meshlet_pointshadows_commands_generation_comp.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\meshlet_meshlet_pointshadows_culling_comp.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\meshlet_meshlet_write_counts_comp.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\meshlet_meshlet_write_counts_comp.spv">
+    <None Include="res\shaders\meshlet_pointshadows_commands_generation.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\meshlet_pointshadows_culling.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\meshlet_pointshadows_resolution_calculation_comp.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\meshlet_transparent_no_cull_frag.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\meshlet_transparent_no_cull_frag.spv">
-      <Filter>res\shaders</Filter>
-    </None>
     <None Include="res\shaders\meshlet_transparent_no_cull_mesh.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\meshlet_transparent_no_cull_mesh.spv">
-      <Filter>res\shaders</Filter>
-    </None>
     <None Include="res\shaders\meshlet_transparent_no_cull_task.hash.cache">
-      <Filter>res\shaders</Filter>
-    </None>
-    <None Include="res\shaders\meshlet_transparent_no_cull_task.spv">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\meshlet_write_counts.cache">
@@ -859,28 +676,127 @@
     <None Include="res\shaders\pbr_lighting.json">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\pbr_lighting_compute_comp.hash.cache">
+    <None Include="res\shaders\pbr_lighting_deferred_lighting_compute_comp.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\pbr_lighting_compute_comp.spv">
+    <None Include="res\shaders\pbr_lighting_deferred_lighting_pixel_frag.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\pbr_lighting_main_frag.hash.cache">
+    <None Include="res\shaders\pbr_lighting_deferred_lighting_pixel_vert.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\pbr_lighting_main_frag.spv">
+    <None Include="res\shaders\pbr_lighting_edge_detection_comp.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\pbr_lighting_main_vert.hash.cache">
+    <None Include="res\shaders\pbr_lighting_shadow_visibility_comp.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\shaders\pbr_lighting_main_vert.spv">
+    <None Include="res\shaders\pbr_lighting_shadow_visibility_filtering_comp.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\pbr_lighting_shadow_visibility_variance_comp.hash.cache">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\phong.vert">
       <Filter>res\shaders</Filter>
     </None>
+    <None Include="res\shaders\pointshadows_resolution_calculation.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\probe_rt.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\probe_update_irradiance.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\probe_update_visibility.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\ray_tracing.glsl">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\ray_tracing.json">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\ray_tracing_test_rchit.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\ray_tracing_test_rgen.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\ray_tracing_test_rmiss.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\reflections.glsl">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\reflections.json">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\reflections_brdf_lut_generation_comp.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\reflections_reflections_rt_rchit.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\reflections_reflections_rt_rgen.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\reflections_reflections_rt_rmiss.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\reflections_rt.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\reflections_svgf_accumulation_comp.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\reflections_svgf_downsample_comp.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\reflections_svgf_variance_comp.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\reflections_svgf_wavelet_comp.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\sample_irradiance.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\shadow_visibility.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\shadow_visibility_filtering.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\shadow_visibility_variance.cache">
+      <Filter>res\shaders</Filter>
+    </None>
     <None Include="res\shaders\skinning.glsl">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\spatial_filtering.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\svgf_accumulation.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\svgf_downsample.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\svgf_variance.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\svgf_wavelet.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\temporal_aa.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\temporal_filtering.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\test.cache">
       <Filter>res\shaders</Filter>
     </None>
     <None Include="res\shaders\transparent.glsl">
@@ -895,104 +811,35 @@
     <None Include="res\shaders\transparent_skinning_no_cull.cache">
       <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\textures\DDS\ltc_amp.dds">
-      <Filter>res\textures\DDS</Filter>
+    <None Include="res\shaders\volumetric_fog.glsl">
+      <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\textures\DDS\ltc_mat.dds">
-      <Filter>res\textures\DDS</Filter>
+    <None Include="res\shaders\volumetric_fog.json">
+      <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\textures\DDS\rgba_dxt1.dds">
-      <Filter>res\textures\DDS</Filter>
+    <None Include="res\shaders\volumetric_fog_inject_data_comp.hash.cache">
+      <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\textures\DDS\sample.dds">
-      <Filter>res\textures\DDS</Filter>
+    <None Include="res\shaders\volumetric_fog_light_integration_comp.hash.cache">
+      <Filter>res\shaders</Filter>
     </None>
-    <None Include="res\textures\create_arm_texture.py">
-      <Filter>res\textures</Filter>
+    <None Include="res\shaders\volumetric_fog_light_scattering_comp.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\volumetric_fog_spatial_filtering_comp.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\volumetric_fog_temporal_filtering_comp.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\volumetric_fog_volumetric_noise_baking_comp.hash.cache">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\volumetric_noise_baking.cache">
+      <Filter>res\shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_GlassPlasticMat_BaseColor.png">
-      <Filter>res\models\FlightHelmet\glTF</Filter>
-    </Image>
-    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_GlassPlasticMat_Normal.png">
-      <Filter>res\models\FlightHelmet\glTF</Filter>
-    </Image>
-    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_GlassPlasticMat_OcclusionRoughMetal.png">
-      <Filter>res\models\FlightHelmet\glTF</Filter>
-    </Image>
-    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_LeatherPartsMat_BaseColor.png">
-      <Filter>res\models\FlightHelmet\glTF</Filter>
-    </Image>
-    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_LeatherPartsMat_Normal.png">
-      <Filter>res\models\FlightHelmet\glTF</Filter>
-    </Image>
-    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_LeatherPartsMat_OcclusionRoughMetal.png">
-      <Filter>res\models\FlightHelmet\glTF</Filter>
-    </Image>
-    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_LensesMat_BaseColor.png">
-      <Filter>res\models\FlightHelmet\glTF</Filter>
-    </Image>
-    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_LensesMat_Normal.png">
-      <Filter>res\models\FlightHelmet\glTF</Filter>
-    </Image>
-    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_LensesMat_OcclusionRoughMetal.png">
-      <Filter>res\models\FlightHelmet\glTF</Filter>
-    </Image>
-    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_MetalPartsMat_BaseColor.png">
-      <Filter>res\models\FlightHelmet\glTF</Filter>
-    </Image>
-    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_MetalPartsMat_Normal.png">
-      <Filter>res\models\FlightHelmet\glTF</Filter>
-    </Image>
-    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_MetalPartsMat_OcclusionRoughMetal.png">
-      <Filter>res\models\FlightHelmet\glTF</Filter>
-    </Image>
-    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_RubberWoodMat_BaseColor.png">
-      <Filter>res\models\FlightHelmet\glTF</Filter>
-    </Image>
-    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_RubberWoodMat_Normal.png">
-      <Filter>res\models\FlightHelmet\glTF</Filter>
-    </Image>
-    <Image Include="res\models\FlightHelmet\glTF\FlightHelmet_Materials_RubberWoodMat_OcclusionRoughMetal.png">
-      <Filter>res\models\FlightHelmet\glTF</Filter>
-    </Image>
-    <Image Include="res\models\FlightHelmet\screenshot\screenshot-x150.jpg">
-      <Filter>res\models\FlightHelmet\screenshot</Filter>
-    </Image>
-    <Image Include="res\models\FlightHelmet\screenshot\screenshot.jpg">
-      <Filter>res\models\FlightHelmet\screenshot</Filter>
-    </Image>
-    <Image Include="res\models\MetalRoughSpheres\glTF\Spheres_BaseColor.png">
-      <Filter>res\models\MetalRoughSpheres\glTF</Filter>
-    </Image>
-    <Image Include="res\models\MetalRoughSpheres\glTF\Spheres_MetalRough.png">
-      <Filter>res\models\MetalRoughSpheres\glTF</Filter>
-    </Image>
-    <Image Include="res\models\MetalRoughSpheres\screenshot\screenshot-x150.png">
-      <Filter>res\models\MetalRoughSpheres\screenshot</Filter>
-    </Image>
-    <Image Include="res\models\MetalRoughSpheres\screenshot\screenshot.png">
-      <Filter>res\models\MetalRoughSpheres\screenshot</Filter>
-    </Image>
-    <Image Include="res\models\SciFiHelmet\glTF\SciFiHelmet_AmbientOcclusion.png">
-      <Filter>res\models\SciFiHelmet\glTF</Filter>
-    </Image>
-    <Image Include="res\models\SciFiHelmet\glTF\SciFiHelmet_BaseColor.png">
-      <Filter>res\models\SciFiHelmet\glTF</Filter>
-    </Image>
-    <Image Include="res\models\SciFiHelmet\glTF\SciFiHelmet_MetallicRoughness.png">
-      <Filter>res\models\SciFiHelmet\glTF</Filter>
-    </Image>
-    <Image Include="res\models\SciFiHelmet\glTF\SciFiHelmet_Normal.png">
-      <Filter>res\models\SciFiHelmet\glTF</Filter>
-    </Image>
-    <Image Include="res\models\SciFiHelmet\screenshot\screenshot-x150.jpg">
-      <Filter>res\models\SciFiHelmet\screenshot</Filter>
-    </Image>
-    <Image Include="res\models\SciFiHelmet\screenshot\screenshot.jpg">
-      <Filter>res\models\SciFiHelmet\screenshot</Filter>
-    </Image>
     <Image Include="res\models\Sponza\glTF\10381718147657362067.jpg">
       <Filter>res\models\Sponza\glTF</Filter>
     </Image>
@@ -1200,66 +1047,6 @@
     <Image Include="res\models\Sponza\glTF\white.png">
       <Filter>res\models\Sponza\glTF</Filter>
     </Image>
-    <Image Include="res\models\Sponza\screenshot\large.jpg">
-      <Filter>res\models\Sponza\screenshot</Filter>
-    </Image>
-    <Image Include="res\models\Sponza\screenshot\screenshot-x150.jpg">
-      <Filter>res\models\Sponza\screenshot</Filter>
-    </Image>
-    <Image Include="res\models\Sponza\screenshot\screenshot.jpg">
-      <Filter>res\models\Sponza\screenshot</Filter>
-    </Image>
-    <Image Include="res\models\buster_drone\glTF\textures\Boden_baseColor.png">
-      <Filter>res\models\buster_drone\glTF\textures</Filter>
-    </Image>
-    <Image Include="res\models\buster_drone\glTF\textures\Boden_metallicRoughness.png">
-      <Filter>res\models\buster_drone\glTF\textures</Filter>
-    </Image>
-    <Image Include="res\models\buster_drone\glTF\textures\Boden_normal.png">
-      <Filter>res\models\buster_drone\glTF\textures</Filter>
-    </Image>
-    <Image Include="res\models\buster_drone\glTF\textures\body_baseColor.png">
-      <Filter>res\models\buster_drone\glTF\textures</Filter>
-    </Image>
-    <Image Include="res\models\buster_drone\glTF\textures\body_emissive.png">
-      <Filter>res\models\buster_drone\glTF\textures</Filter>
-    </Image>
-    <Image Include="res\models\buster_drone\glTF\textures\body_metallicRoughness.png">
-      <Filter>res\models\buster_drone\glTF\textures</Filter>
-    </Image>
-    <Image Include="res\models\buster_drone\glTF\textures\body_normal.png">
-      <Filter>res\models\buster_drone\glTF\textures</Filter>
-    </Image>
-    <Image Include="res\models\buster_drone\glTF\textures\material_baseColor.png">
-      <Filter>res\models\buster_drone\glTF\textures</Filter>
-    </Image>
-    <Image Include="res\models\buster_drone\glTF\textures\material_metallicRoughness.png">
-      <Filter>res\models\buster_drone\glTF\textures</Filter>
-    </Image>
-    <Image Include="res\models\buster_drone\glTF\textures\material_normal.png">
-      <Filter>res\models\buster_drone\glTF\textures</Filter>
-    </Image>
-    <Image Include="res\models\corridor\glTF\scene_1001_AO.png">
-      <Filter>res\models\corridor\glTF</Filter>
-    </Image>
-    <Image Include="res\models\corridor\glTF\scene_1001_ARM.png">
-      <Filter>res\models\corridor\glTF</Filter>
-    </Image>
-    <Image Include="res\models\corridor\glTF\scene_1001_BaseColor.png">
-      <Filter>res\models\corridor\glTF</Filter>
-    </Image>
-    <Image Include="res\models\corridor\glTF\scene_1001_Emissive.png">
-      <Filter>res\models\corridor\glTF</Filter>
-    </Image>
-    <Image Include="res\models\corridor\glTF\scene_1001_Metalness.png">
-      <Filter>res\models\corridor\glTF</Filter>
-    </Image>
-    <Image Include="res\models\corridor\glTF\scene_1001_Normal.png">
-      <Filter>res\models\corridor\glTF</Filter>
-    </Image>
-    <Image Include="res\models\corridor\glTF\scene_1001_Roughness.png">
-      <Filter>res\models\corridor\glTF</Filter>
-    </Image>
     <Image Include="res\textures\12221_Cat_v1_l3\Cat_ao.jpg">
       <Filter>res\textures\12221_Cat_v1_l3</Filter>
     </Image>
@@ -1280,27 +1067,6 @@
     </Image>
     <Image Include="res\textures\BayerDither8x8.png">
       <Filter>res\textures</Filter>
-    </Image>
-    <Image Include="res\textures\Bronze_shield\Bronze_shield_AO.png">
-      <Filter>res\textures\Bronze_shield</Filter>
-    </Image>
-    <Image Include="res\textures\Bronze_shield\Bronze_shield_ARM.png">
-      <Filter>res\textures\Bronze_shield</Filter>
-    </Image>
-    <Image Include="res\textures\Bronze_shield\Bronze_shield_BaseColor.png">
-      <Filter>res\textures\Bronze_shield</Filter>
-    </Image>
-    <Image Include="res\textures\Bronze_shield\Bronze_shield_Height.png">
-      <Filter>res\textures\Bronze_shield</Filter>
-    </Image>
-    <Image Include="res\textures\Bronze_shield\Bronze_shield_Metallic.png">
-      <Filter>res\textures\Bronze_shield</Filter>
-    </Image>
-    <Image Include="res\textures\Bronze_shield\Bronze_shield_Normal.png">
-      <Filter>res\textures\Bronze_shield</Filter>
-    </Image>
-    <Image Include="res\textures\Bronze_shield\Bronze_shield_Roughness.png">
-      <Filter>res\textures\Bronze_shield</Filter>
     </Image>
     <Image Include="res\textures\LDR_RG01_0.png">
       <Filter>res\textures</Filter>
@@ -1331,15 +1097,6 @@
     </Image>
     <Image Include="res\textures\T-rex\755688691_2048x2048.png">
       <Filter>res\textures\T-rex</Filter>
-    </Image>
-    <Image Include="res\textures\Victorian_Painting\VictorianPaintings_AO_1_Utility-Raw.png">
-      <Filter>res\textures\Victorian_Painting</Filter>
-    </Image>
-    <Image Include="res\textures\Victorian_Painting\VictorianPaintings_AO_2_Utility-Raw.png">
-      <Filter>res\textures\Victorian_Painting</Filter>
-    </Image>
-    <Image Include="res\textures\Victorian_Painting\VictorianPaintings_ARM_Utility-sRGB-Texture.png">
-      <Filter>res\textures\Victorian_Painting</Filter>
     </Image>
     <Image Include="res\textures\Victorian_Painting\VictorianPaintings_BaseColor_Utility-sRGB-Texture.png">
       <Filter>res\textures\Victorian_Painting</Filter>
@@ -1392,9 +1149,6 @@
     <Image Include="res\textures\amethyst_texture_1-2K\amethyst-rough.png">
       <Filter>res\textures\amethyst_texture_1-2K</Filter>
     </Image>
-    <Image Include="res\textures\colors\black.png">
-      <Filter>res\textures\colors</Filter>
-    </Image>
     <Image Include="res\textures\container_specular.png">
       <Filter>res\textures</Filter>
     </Image>
@@ -1414,12 +1168,6 @@
       <Filter>res\textures\darkmarble</Filter>
     </Image>
     <Image Include="res\textures\defaults\diffuse.jpg">
-      <Filter>res\textures\defaults</Filter>
-    </Image>
-    <Image Include="res\textures\defaults\metallic.png">
-      <Filter>res\textures\defaults</Filter>
-    </Image>
-    <Image Include="res\textures\defaults\roughness.jpg">
       <Filter>res\textures\defaults</Filter>
     </Image>
     <Image Include="res\textures\grass.jpg">
@@ -1482,18 +1230,6 @@
     <Image Include="res\textures\old_copper\2K_old_copper_specular_level.png">
       <Filter>res\textures\old_copper</Filter>
     </Image>
-    <Image Include="res\textures\painted-wall-sky-blue\diffuse.png">
-      <Filter>res\textures\painted-wall-sky-blue</Filter>
-    </Image>
-    <Image Include="res\textures\painted-wall-sky-blue\metallic.png">
-      <Filter>res\textures\painted-wall-sky-blue</Filter>
-    </Image>
-    <Image Include="res\textures\painted-wall-sky-blue\normal.png">
-      <Filter>res\textures\painted-wall-sky-blue</Filter>
-    </Image>
-    <Image Include="res\textures\painted-wall-sky-blue\roughness.png">
-      <Filter>res\textures\painted-wall-sky-blue</Filter>
-    </Image>
     <Image Include="res\textures\pluto.png">
       <Filter>res\textures</Filter>
     </Image>
@@ -1554,27 +1290,6 @@
     <Image Include="res\textures\santa_hat\specular.jpg">
       <Filter>res\textures\santa_hat</Filter>
     </Image>
-    <Image Include="res\textures\scificorridor\scene_1001_AO.png">
-      <Filter>res\textures\scificorridor</Filter>
-    </Image>
-    <Image Include="res\textures\scificorridor\scene_1001_ARM.png">
-      <Filter>res\textures\scificorridor</Filter>
-    </Image>
-    <Image Include="res\textures\scificorridor\scene_1001_BaseColor.png">
-      <Filter>res\textures\scificorridor</Filter>
-    </Image>
-    <Image Include="res\textures\scificorridor\scene_1001_Emissive.png">
-      <Filter>res\textures\scificorridor</Filter>
-    </Image>
-    <Image Include="res\textures\scificorridor\scene_1001_Metalness.png">
-      <Filter>res\textures\scificorridor</Filter>
-    </Image>
-    <Image Include="res\textures\scificorridor\scene_1001_Normal.png">
-      <Filter>res\textures\scificorridor</Filter>
-    </Image>
-    <Image Include="res\textures\scificorridor\scene_1001_Roughness.png">
-      <Filter>res\textures\scificorridor</Filter>
-    </Image>
     <Image Include="res\textures\skybox\default\back-nz.png">
       <Filter>res\textures\skybox\default</Filter>
     </Image>
@@ -1616,105 +1331,6 @@
     </Image>
     <Image Include="res\textures\starlights\starlights_s.jpg">
       <Filter>res\textures\starlights</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\aerial_rocks_02\aerial_rocks_02_arm_2k.png">
-      <Filter>res\textures\surfaces\aerial_rocks_02</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\aerial_rocks_02\aerial_rocks_02_diff_2k.png">
-      <Filter>res\textures\surfaces\aerial_rocks_02</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\aerial_rocks_02\aerial_rocks_02_disp_2k.png">
-      <Filter>res\textures\surfaces\aerial_rocks_02</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\aerial_rocks_02\aerial_rocks_02_nor_dx_2k.png">
-      <Filter>res\textures\surfaces\aerial_rocks_02</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\metal_plate\metal_plate_arm_2k.png">
-      <Filter>res\textures\surfaces\metal_plate</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\metal_plate\metal_plate_diff_2k.png">
-      <Filter>res\textures\surfaces\metal_plate</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\metal_plate\metal_plate_disp_2k.png">
-      <Filter>res\textures\surfaces\metal_plate</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\metal_plate\metal_plate_nor_dx_2k.png">
-      <Filter>res\textures\surfaces\metal_plate</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\painted_concrete\painted_concrete_arm_2k.png">
-      <Filter>res\textures\surfaces\painted_concrete</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\painted_concrete\painted_concrete_diff_2k.png">
-      <Filter>res\textures\surfaces\painted_concrete</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\painted_concrete\painted_concrete_disp_2k.png">
-      <Filter>res\textures\surfaces\painted_concrete</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\painted_concrete\painted_concrete_nor_dx_2k.png">
-      <Filter>res\textures\surfaces\painted_concrete</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\painted_metal_shutter\painted_metal_shutter_arm_2k.png">
-      <Filter>res\textures\surfaces\painted_metal_shutter</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\painted_metal_shutter\painted_metal_shutter_diff_2k.png">
-      <Filter>res\textures\surfaces\painted_metal_shutter</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\painted_metal_shutter\painted_metal_shutter_disp_2k.png">
-      <Filter>res\textures\surfaces\painted_metal_shutter</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\painted_metal_shutter\painted_metal_shutter_nor_dx_2k.png">
-      <Filter>res\textures\surfaces\painted_metal_shutter</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\plank_flooring\plank_flooring_arm_2k.png">
-      <Filter>res\textures\surfaces\plank_flooring</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\plank_flooring\plank_flooring_diff_2k.png">
-      <Filter>res\textures\surfaces\plank_flooring</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\plank_flooring\plank_flooring_disp_2k.png">
-      <Filter>res\textures\surfaces\plank_flooring</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\plank_flooring\plank_flooring_nor_dx_2k.png">
-      <Filter>res\textures\surfaces\plank_flooring</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\red_laterite_soil_stones\red_laterite_soil_stones_arm_2k.png">
-      <Filter>res\textures\surfaces\red_laterite_soil_stones</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\red_laterite_soil_stones\red_laterite_soil_stones_diff_2k.png">
-      <Filter>res\textures\surfaces\red_laterite_soil_stones</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\red_laterite_soil_stones\red_laterite_soil_stones_disp_2k.png">
-      <Filter>res\textures\surfaces\red_laterite_soil_stones</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\red_laterite_soil_stones\red_laterite_soil_stones_nor_dx_2k.png">
-      <Filter>res\textures\surfaces\red_laterite_soil_stones</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\slate_floor\slate_floor_arm_2k.png">
-      <Filter>res\textures\surfaces\slate_floor</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\slate_floor\slate_floor_diff_2k.png">
-      <Filter>res\textures\surfaces\slate_floor</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\slate_floor\slate_floor_disp_2k.png">
-      <Filter>res\textures\surfaces\slate_floor</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\slate_floor\slate_floor_nor_dx_2k.png">
-      <Filter>res\textures\surfaces\slate_floor</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\snow_01\snow_01_arm_2k.png">
-      <Filter>res\textures\surfaces\snow_01</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\snow_01\snow_01_diff_2k.png">
-      <Filter>res\textures\surfaces\snow_01</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\snow_01\snow_01_disp_2k.png">
-      <Filter>res\textures\surfaces\snow_01</Filter>
-    </Image>
-    <Image Include="res\textures\surfaces\snow_01\snow_01_nor_dx_2k.png">
-      <Filter>res\textures\surfaces\snow_01</Filter>
-    </Image>
-    <Image Include="res\textures\viking_room.png">
-      <Filter>res\textures</Filter>
     </Image>
     <Image Include="res\textures\wall.jpg">
       <Filter>res\textures</Filter>

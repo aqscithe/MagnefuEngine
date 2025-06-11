@@ -95,7 +95,7 @@ namespace Magnefu
         using json = nlohmann::json;
 
         if (!file_exists(file_path)) {
-            MF_CORE_ERROR("Cannot find file %s", file_path);
+            MF_CORE_ERROR("Cannot find file {}", file_path);
             return;
         }
 

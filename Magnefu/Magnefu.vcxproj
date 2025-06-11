@@ -77,7 +77,7 @@
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\entt\include;vendor\assimp\include;vendor\meshoptimizer;vendor\vma;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\entt\include;vendor\assimp\include;vendor\meshoptimizer;vendor\vma;vendor\spirv\include;vendor\ktx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -89,8 +89,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;shaderc_shared.lib;soil2.lib;opengl32.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;vendor\SOIL2\lib;vendor\assimp\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;shaderc_combined.lib;opengl32.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;vendor\assimp\lib\x64;vendor\spirv\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -99,7 +99,7 @@
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\entt\include;vendor\assimp\include;vendor\meshoptimizer;vendor\vma;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\entt\include;vendor\assimp\include;vendor\meshoptimizer;vendor\vma;vendor\spirv\include;vendor\ktx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -115,8 +115,8 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;shaderc_shared.lib;soil2.lib;opengl32.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;vendor\SOIL2\lib;vendor\assimp\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;shaderc_combined.lib;opengl32.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;vendor\assimp\lib\x64;vendor\spirv\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
@@ -125,7 +125,7 @@
       <PrecompiledHeaderFile>mfpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>MF_PLATFORM_WINDOWS;MF_BUILD_DLL;_GLFW_USE_HYBRID_HPG;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;MF_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\SOIL2\include;vendor\entt\include;vendor\assimp\include;vendor\meshoptimizer;vendor\vma;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;src;src\Maths;src\Renderer;vendor\vulkan\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\entt\include;vendor\assimp\include;vendor\meshoptimizer;vendor\vma;vendor\spirv\include;vendor\ktx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -141,8 +141,8 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;shaderc_shared.lib;soil2.lib;opengl32.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;vendor\SOIL2\lib;vendor\assimp\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3_mt.lib;vulkan-1.lib;shaderc_combined.lib;opengl32.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>vendor\vulkan\lib;vendor\GLAD\lib;vendor\assimp\lib\x64;vendor\spirv\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -780,6 +780,9 @@
     <ClInclude Include="vendor\imgui\imstb_textedit.h" />
     <ClInclude Include="vendor\imgui\imstb_truetype.h" />
     <ClInclude Include="vendor\json\json.hpp" />
+    <ClInclude Include="vendor\ktx\include\KHR\khr_df.h" />
+    <ClInclude Include="vendor\ktx\include\ktx.h" />
+    <ClInclude Include="vendor\ktx\include\ktxvulkan.h" />
     <ClInclude Include="vendor\meshoptimizer\meshoptimizer.h" />
     <ClInclude Include="vendor\spdlog\async.h" />
     <ClInclude Include="vendor\spdlog\async_logger-inl.h" />
@@ -884,6 +887,73 @@
     <ClInclude Include="vendor\spdlog\stopwatch.h" />
     <ClInclude Include="vendor\spdlog\tweakme.h" />
     <ClInclude Include="vendor\spdlog\version.h" />
+    <ClInclude Include="vendor\spirv\include\effcee\effcee.h" />
+    <ClInclude Include="vendor\spirv\include\glslang\Include\ResourceLimits.h" />
+    <ClInclude Include="vendor\spirv\include\glslang\Include\glslang_c_interface.h" />
+    <ClInclude Include="vendor\spirv\include\glslang\Include\glslang_c_shader_types.h" />
+    <ClInclude Include="vendor\spirv\include\glslang\Include\visibility.h" />
+    <ClInclude Include="vendor\spirv\include\glslang\MachineIndependent\Versions.h" />
+    <ClInclude Include="vendor\spirv\include\glslang\Public\ResourceLimits.h" />
+    <ClInclude Include="vendor\spirv\include\glslang\Public\ShaderLang.h" />
+    <ClInclude Include="vendor\spirv\include\glslang\Public\resource_limits_c.h" />
+    <ClInclude Include="vendor\spirv\include\glslang\SPIRV\GlslangToSpv.h" />
+    <ClInclude Include="vendor\spirv\include\glslang\SPIRV\Logger.h" />
+    <ClInclude Include="vendor\spirv\include\glslang\SPIRV\SPVRemapper.h" />
+    <ClInclude Include="vendor\spirv\include\glslang\SPIRV\SpvTools.h" />
+    <ClInclude Include="vendor\spirv\include\glslang\SPIRV\disassemble.h" />
+    <ClInclude Include="vendor\spirv\include\glslang\SPIRV\spirv.hpp" />
+    <ClInclude Include="vendor\spirv\include\glslang\build_info.h" />
+    <ClInclude Include="vendor\spirv\include\gmock\gmock-actions.h" />
+    <ClInclude Include="vendor\spirv\include\gmock\gmock-cardinalities.h" />
+    <ClInclude Include="vendor\spirv\include\gmock\gmock-function-mocker.h" />
+    <ClInclude Include="vendor\spirv\include\gmock\gmock-matchers.h" />
+    <ClInclude Include="vendor\spirv\include\gmock\gmock-more-actions.h" />
+    <ClInclude Include="vendor\spirv\include\gmock\gmock-more-matchers.h" />
+    <ClInclude Include="vendor\spirv\include\gmock\gmock-nice-strict.h" />
+    <ClInclude Include="vendor\spirv\include\gmock\gmock-spec-builders.h" />
+    <ClInclude Include="vendor\spirv\include\gmock\gmock.h" />
+    <ClInclude Include="vendor\spirv\include\gmock\internal\custom\gmock-generated-actions.h" />
+    <ClInclude Include="vendor\spirv\include\gmock\internal\custom\gmock-matchers.h" />
+    <ClInclude Include="vendor\spirv\include\gmock\internal\custom\gmock-port.h" />
+    <ClInclude Include="vendor\spirv\include\gmock\internal\gmock-internal-utils.h" />
+    <ClInclude Include="vendor\spirv\include\gmock\internal\gmock-port.h" />
+    <ClInclude Include="vendor\spirv\include\gmock\internal\gmock-pp.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\gtest-assertion-result.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\gtest-death-test.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\gtest-matchers.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\gtest-message.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\gtest-param-test.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\gtest-printers.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\gtest-spi.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\gtest-test-part.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\gtest-typed-test.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\gtest.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\gtest_pred_impl.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\gtest_prod.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\internal\custom\gtest-port.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\internal\custom\gtest-printers.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\internal\custom\gtest.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\internal\gtest-death-test-internal.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\internal\gtest-filepath.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\internal\gtest-internal.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\internal\gtest-param-util.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\internal\gtest-port-arch.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\internal\gtest-port.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\internal\gtest-string.h" />
+    <ClInclude Include="vendor\spirv\include\gtest\internal\gtest-type-util.h" />
+    <ClInclude Include="vendor\spirv\include\re2\filtered_re2.h" />
+    <ClInclude Include="vendor\spirv\include\re2\re2.h" />
+    <ClInclude Include="vendor\spirv\include\re2\set.h" />
+    <ClInclude Include="vendor\spirv\include\re2\stringpiece.h" />
+    <ClInclude Include="vendor\spirv\include\shaderc\env.h" />
+    <ClInclude Include="vendor\spirv\include\shaderc\shaderc.h" />
+    <ClInclude Include="vendor\spirv\include\shaderc\shaderc.hpp" />
+    <ClInclude Include="vendor\spirv\include\shaderc\status.h" />
+    <ClInclude Include="vendor\spirv\include\shaderc\visibility.h" />
+    <ClInclude Include="vendor\spirv\include\spirv-tools\libspirv.h" />
+    <ClInclude Include="vendor\spirv\include\spirv-tools\libspirv.hpp" />
+    <ClInclude Include="vendor\spirv\include\spirv-tools\linker.hpp" />
+    <ClInclude Include="vendor\spirv\include\spirv-tools\optimizer.hpp" />
     <ClInclude Include="vendor\stb_image\stb_image.h" />
     <ClInclude Include="vendor\tiny_obj_loader\tiny_obj_loader.h" />
     <ClInclude Include="vendor\tlsf\tlsf.h" />

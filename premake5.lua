@@ -14,17 +14,18 @@ IncludeDir["GLFW"] = "Magnefu/vendor/GLFW/include"
 IncludeDir["GLAD"] = "Magnefu/vendor/GLAD/include"
 IncludeDir["ImGui"] = "Magnefu/vendor/imgui"
 IncludeDir["Vulkan"] = "Magnefu/vendor/vulkan/include"
-IncludeDir["SOIL2"] = "Magnefu/vendor/SOIL2/include"
 IncludeDir["entt"] = "Magnefu/vendor/entt/include"
 IncludeDir["assimp"] = "Magnefu/vendor/assimp/include"
 IncludeDir["meshoptimizer"] = "Magnefu/vendor/meshoptimizer"
 IncludeDir["vma"] = "Magnefu/vendor/vma"
+IncludeDir["spirv"] = "Magnefu/vendor/spirv/include"
+IncludeDir["ktx"] = "Magnefu/vendor/ktx"
 
 LibDir = {}
 LibDir["GLFW"] = "Magnefu/vendor/GLAD/lib"
 LibDir["Vulkan"] = "Magnefu/vendor/vulkan/lib"
-LibDir["SOIL2"] = "Magnefu/vendor/SOIL2/lib"
 LibDir["assimp"] = "Magnefu/vendor/assimp/lib/x64"
+LibDir["spirv"] = "Magnefu/vendor/spirv/lib"
 
 -- Includes Premake files
 include "Magnefu/vendor/GLFW"
@@ -85,19 +86,20 @@ project "Magnefu"
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.GLAD}",
         "%{IncludeDir.ImGui}",
-        "%{IncludeDir.SOIL2}",
         "%{IncludeDir.entt}",
         "%{IncludeDir.assimp}",
         "%{IncludeDir.meshoptimizer}",
         "%{IncludeDir.vma}",
+        "%{IncludeDir.spirv}",
+        "%{IncludeDir.ktx}"
         
     }
 
     libdirs {
         "%{LibDir.Vulkan}",
         "%{LibDir.GLFW}",
-        "%{LibDir.SOIL2}",
         "%{LibDir.assimp}",
+        "%{LibDir.spirv}"
         
     }
 
@@ -107,8 +109,7 @@ project "Magnefu"
         "ImGui",
         "glfw3_mt",
         "vulkan-1",
-        "shaderc_shared",
-        "soil2",
+        "shaderc_combined",
         "opengl32",
         "assimp-vc143-mt"
     }
@@ -187,10 +188,13 @@ project "Editor"
     }
 
     libdirs {
+        
+        "%{LibDir.assimp}",
     }
 
     links {
-        "Magnefu"
+        "Magnefu",
+        "assimp-vc143-mt"
     }
 
     filter "system:windows"
@@ -201,7 +205,7 @@ project "Editor"
         }
 
     postbuildcommands {
-        "{COPYDIR} %{prj.location}/res/* %{cfg.buildtarget.directory}/res" 
+        "{COPYDIR} %{prj.location}/res/* %{cfg.buildtarget.directory}/res"
     }
 
     filter "configurations:Debug"

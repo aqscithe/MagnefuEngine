@@ -218,7 +218,7 @@ namespace Magnefu {
         // Needs to be freed after the technique is created, or the name will be 0.
         temp_allocator->freeToMarker(allocated_marker);
 
-        MF_CORE_INFO("Created technique %s in {} seconds", technique_creation.name, time_from_seconds(begin_time));
+        MF_CORE_INFO("Created technique {} in {} seconds", technique_creation.name, time_from_seconds(begin_time));
 
         return technique;
     }
