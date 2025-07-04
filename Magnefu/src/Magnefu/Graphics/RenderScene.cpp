@@ -210,7 +210,7 @@ namespace Magnefu {
     }
 
     //
-    // DepthPrePass ///////////////////////////////////////////////////////
+    // DepthPyramidPass ///////////////////////////////////////////////////////
     void DepthPyramidPass::render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) {
         if (!enabled)
             return;
@@ -643,10 +643,8 @@ namespace Magnefu {
             gpu_commands->draw_mesh_task_indirect_count(render_scene->mesh_task_indirect_late_commands_sb[current_frame_index], offsetof(GpuMeshDrawCommand, indirectMS), render_scene->mesh_task_indirect_count_late_sb[current_frame_index], 0, render_scene->mesh_instances.size, sizeof(GpuMeshDrawCommand));
         }
     }
-
     //
     // LightPass //////////////////////////////////////////////////////////////
-
     //
     //
     struct LightingConstants {
@@ -1119,23 +1117,6 @@ namespace Magnefu {
             gpu_commands->draw_indexed(TopologyType::Triangle, sphere_index_count, render_scene->gi_total_probes, 0, 0, 0);
         }
 
-        // pipeline = renderer->get_pipeline( debug_material, 1 );
-
-        // gpu_commands->bind_pipeline( pipeline );
-
-        // for ( u32 mesh_index = 0; mesh_index < mesh_instances.size; ++mesh_index ) {
-        //     MeshInstance& mesh_instance = mesh_instances[ mesh_index ];
-        //     Mesh& mesh = *mesh_instance.mesh;
-
-        //     if ( mesh.physics_mesh != nullptr ) {
-        //         PhysicsMesh* physics_mesh = mesh.physics_mesh;
-
-        //         gpu_commands->bind_descriptor_set( &physics_mesh->debug_mesh_descriptor_set, 1, nullptr, 0 );
-
-        //         gpu_commands->draw_indirect( physics_mesh->draw_indirect_buffer, physics_mesh->vertices.size, 0, sizeof( VkDrawIndirectCommand  ) );
-        //     }
-        // }
-
         // Draw cpu debug rendering
         render_scene->debug_renderer.render(current_frame_index, gpu_commands, render_scene);
 
@@ -1219,7 +1200,6 @@ namespace Magnefu {
 
         Array<VkDrawIndexedIndirectCommand> sphere_indirect_commands;
         sphere_indirect_commands.init(resident_allocator, 4096);
-
 #if DEBUG_DRAW_MESHLET_SPHERES
         Array<mat4s> cone_matrices;
         cone_matrices.init(resident_allocator, 4096);
@@ -1860,7 +1840,6 @@ namespace Magnefu {
             gpu.resize_texture(render_target, new_width, new_height);
         }
     }
-
     void RayTracingTestPass::prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) {
         FrameGraphNode* node = frame_graph->get_node("ray_tracing_test");
         if (node == nullptr) {
@@ -2348,7 +2327,6 @@ namespace Magnefu {
         }
         }
     }
-
     void PointlightShadowPass::render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) {
 
         if (!render_scene->pointlight_rendering) {
@@ -2370,29 +2348,19 @@ namespace Magnefu {
             u32 height = depth_texture_array->height;
             // Perform manual clear of active lights shadowmaps.
             {
-                util_add_image_barrier_ext(gpu, gpu_commands->vk_command_buffer, depth_texture_array, RESOURCE_STATE_COPY_DEST, 0, 1, 0, layer_count, true);
-
-                // TODO: Clearing 256 cubemaps is incredibly slow, for the future try with point sprites at far with depth test always.
-                VkClearRect clear_rect;
-                clear_rect.baseArrayLayer = 0;
-                clear_rect.layerCount = layer_count;
-                clear_rect.rect.extent.width = width;
-                clear_rect.rect.extent.height = height;
-                clear_rect.rect.offset.x = 0;
-                clear_rect.rect.offset.y = 0;
-
-                VkClearDepthStencilValue clear_depth_stencil_value;
-                clear_depth_stencil_value.depth = 1.f;
-
-                VkImageSubresourceRange clear_range;
-                clear_range.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-                clear_range.baseArrayLayer = 0;
-                clear_range.baseMipLevel = 0;
-                clear_range.levelCount = 1;
-                clear_range.layerCount = layer_count;
-                vkCmdClearDepthStencilImage(gpu_commands->vk_command_buffer, depth_texture_array->vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clear_depth_stencil_value, 1, &clear_range);
-
+                // Transition to depth write so we can render a full-screen depth pass.
                 util_add_image_barrier_ext(gpu, gpu_commands->vk_command_buffer, depth_texture_array, RESOURCE_STATE_DEPTH_WRITE, 0, 1, 0, layer_count, true);
+
+                // Bind depth-only pass and clear via drawing.
+                gpu_commands->bind_pass(cubemap_render_pass, tetrahedron_framebuffer, false);
+                gpu_commands->bind_pipeline(clear_depth_pipeline);
+
+                struct ClearArgs { u32 baseLayer; u32 layerCount; } args{ 0u, layer_count };
+                gpu_commands->push_constants(clear_depth_pipeline, 0, sizeof(ClearArgs), &args);
+
+                gpu_commands->draw(TopologyType::Triangle, 0, 3, 0, 1);
+
+                gpu_commands->end_current_render_pass();
             }
 
             depth_texture_array->state = RESOURCE_STATE_DEPTH_WRITE;
@@ -2570,29 +2538,19 @@ namespace Magnefu {
             u32 height = depth_texture_array->height;
             // Perform manual clear of active lights shadowmaps.
             {
-                util_add_image_barrier_ext(gpu, gpu_commands->vk_command_buffer, depth_texture_array, RESOURCE_STATE_COPY_DEST, 0, 1, 0, layer_count, true);
-
-                // TODO: Clearing 256 cubemaps is incredibly slow, for the future try with point sprites at far with depth test always.
-                VkClearRect clear_rect;
-                clear_rect.baseArrayLayer = 0;
-                clear_rect.layerCount = layer_count;
-                clear_rect.rect.extent.width = width;
-                clear_rect.rect.extent.height = height;
-                clear_rect.rect.offset.x = 0;
-                clear_rect.rect.offset.y = 0;
-
-                VkClearDepthStencilValue clear_depth_stencil_value;
-                clear_depth_stencil_value.depth = 1.f;
-
-                VkImageSubresourceRange clear_range;
-                clear_range.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-                clear_range.baseArrayLayer = 0;
-                clear_range.baseMipLevel = 0;
-                clear_range.levelCount = 1;
-                clear_range.layerCount = layer_count;
-                vkCmdClearDepthStencilImage(gpu_commands->vk_command_buffer, depth_texture_array->vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clear_depth_stencil_value, 1, &clear_range);
-
+                // Transition to depth write so we can render a full-screen depth pass.
                 util_add_image_barrier_ext(gpu, gpu_commands->vk_command_buffer, depth_texture_array, RESOURCE_STATE_DEPTH_WRITE, 0, 1, 0, layer_count, true);
+
+                // Bind depth-only pass and clear via drawing.
+                gpu_commands->bind_pass(cubemap_render_pass, cubemap_framebuffer, false);
+                gpu_commands->bind_pipeline(clear_depth_pipeline);
+
+                struct ClearArgs { u32 baseLayer; u32 layerCount; } args{ 0u, layer_count };
+                gpu_commands->push_constants(clear_depth_pipeline, 0, sizeof(ClearArgs), &args);
+
+                gpu_commands->draw(TopologyType::Triangle, 0, 3, 0, 1);
+
+                gpu_commands->end_current_render_pass();
             }
 
             depth_texture_array->state = RESOURCE_STATE_DEPTH_WRITE;
@@ -2831,8 +2789,7 @@ namespace Magnefu {
 
                 meshlet_shadow_indirect_cb[i] = renderer->gpu->create_buffer(buffer_creation.set(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, ResourceUsageType::Immutable, sizeof(vec4s) * k_num_lights * 6).set_name("per_light_meshlet_shadow_indirect"));
 
-                ds_creation.reset();
-                ds_creation.buffer(meshlet_visible_instances[i], 30).buffer(per_light_meshlet_instances[i], 31).buffer(meshlet_shadow_indirect_cb[i], 32)
+                ds_creation.reset().buffer(meshlet_visible_instances[i], 30).buffer(per_light_meshlet_instances[i], 31).buffer(meshlet_shadow_indirect_cb[i], 32)
                     .buffer(pointlight_spheres_cb[i], 33).buffer(pointlight_view_projections_cb[i], 34).buffer(scene.lights_list_sb, 35)
                     .set_layout(renderer->gpu->get_descriptor_set_layout(meshlet_write_commands_pipeline, k_material_descriptor_set_index));
                 scene.add_scene_descriptors(ds_creation, pass);
@@ -2862,6 +2819,12 @@ namespace Magnefu {
             pass_index = meshlet_technique->get_pass_index("depth_tetrahedron");
 
             tetrahedron_meshlet_pipeline = meshlet_technique->passes[pass_index].pipeline;
+
+            // Depth clear pass (fullscreen triangle, instanced over layers)
+            u32 clear_pass_index = meshlet_technique->get_pass_index("clear_depth");
+            if (clear_pass_index != u32_max) {
+                clear_depth_pipeline = meshlet_technique->passes[clear_pass_index].pipeline;
+            }
         }
         // Shadow resolution computation
         {
@@ -2928,7 +2891,6 @@ namespace Magnefu {
 
         gpu.destroy_page_pool(shadow_maps_pool);
     }
-
     void PointlightShadowPass::recreate_lightcount_dependent_resources(RenderScene& scene) {
 
         GraphicsContext& gpu = *renderer->gpu;
@@ -3550,7 +3512,6 @@ namespace Magnefu {
             camera_composite_descriptor_set = gpu.create_descriptor_set(ds_creation);
         }
     }
-
     // IndirectPass ///////////////////////////////////////////////////////////
 
     struct alignas(16) GpuDDGIConstants {
@@ -4194,7 +4155,6 @@ namespace Magnefu {
         gpu.resize_texture(reflections_history_texture, adjusted_width, adjusted_height);
         gpu.resize_texture(moments_history_texture, adjusted_width, adjusted_height);
     }
-
     void SVGFAccumulationPass::prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) {
         renderer = scene.renderer;
 
@@ -4589,7 +4549,7 @@ namespace Magnefu {
             pass_index = technique->get_pass_index("svgf_downsample");
             GpuTechniquePass& downsample_pass = technique->passes[pass_index];
 
-            downsample_pipeline = pass.pipeline;
+            downsample_pipeline = downsample_pass.pipeline;
 
             layout = gpu.get_descriptor_set_layout(downsample_pipeline, k_material_descriptor_set_index);
             ds_creation.reset().set_layout(layout).buffer(gpu_constants, 40).buffer(scene.scene_cb, 0);
@@ -4825,7 +4785,6 @@ namespace Magnefu {
             gpu.destroy_descriptor_set(descriptor_set[i]);
         }
     }
-
     void SVGFWaveletPass::reload_shaders(RenderScene& scene, FrameGraph* frame_graph,
         Allocator* resident_allocator, StackAllocator* scratch_allocator) {
 
@@ -5206,7 +5165,6 @@ namespace Magnefu {
         else if (la->projected_z > lb->projected_z) return 1;
         return 0;
     }
-
     void RenderScene::upload_gpu_data(UploadGpuDataContext& context) {
 
         GraphicsContext& gpu = *renderer->gpu;
@@ -5654,637 +5612,7 @@ namespace Magnefu {
                 }
             }
         }
-
 #endif // 0
-
-        context.scratch_allocator->freeToMarker(current_marker);
-    }
-
-    void RenderScene::on_resize(GraphicsContext& gpu, FrameGraph* frame_graph, u32 new_width, u32 new_height) {
-
-        for (u32 i = 0; i < k_max_frames; ++i) {
-
-            gpu.destroy_buffer(lights_tiles_sb[i]);
-
-            const u32 tile_x_count = ceilu32(renderer->width * 1.0f / k_tile_size);
-            const u32 tile_y_count = ceilu32(renderer->height * 1.0f / k_tile_size);
-            const u32 tiles_entry_count = tile_x_count * tile_y_count * k_num_words;
-            const u32 buffer_size = tiles_entry_count * sizeof(u32);
-
-            BufferCreation buffer_creation;
-            buffer_creation.reset().set(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, ResourceUsageType::Dynamic, buffer_size).set_name("light_tiles");
-
-            lights_tiles_sb[i] = renderer->gpu->create_buffer(buffer_creation);
-        }
-
-        if (use_meshlets) {
-            GpuTechnique* transparent_technique = renderer->resource_cache.techniques.get(hash_calculate("meshlet"));
-            u32 meshlet_technique_index = transparent_technique->get_pass_index("transparent_no_cull");
-            GpuTechniquePass& transparent_pass = transparent_technique->passes[meshlet_technique_index];
-
-            DescriptorSetLayoutHandle transparent_layout = renderer->gpu->get_descriptor_set_layout(transparent_pass.pipeline, k_material_descriptor_set_index);
-            DescriptorSetCreation ds_creation;
-
-            for (u32 i = 0; i < k_max_frames; ++i) {
-
-                renderer->gpu->destroy_descriptor_set(mesh_shader_transparent_descriptor_set[i]);
-
-                ds_creation.reset().buffer(mesh_task_indirect_early_commands_sb[i], 6).buffer(mesh_task_indirect_count_early_sb[i], 7).set_layout(transparent_layout);
-                ds_creation.buffer(lights_lut_sb[i], 20).buffer(lights_list_sb, 21).buffer(lights_tiles_sb[i], 22).buffer(lighting_constants_cb[i], 23).buffer(lights_indices_sb[i], 25);
-
-                add_mesh_descriptors(ds_creation, transparent_pass);
-                add_scene_descriptors(ds_creation, transparent_pass);
-                add_meshlet_descriptors(ds_creation, transparent_pass);
-                add_lighting_descriptors(ds_creation, transparent_pass, i);
-                add_debug_descriptors(ds_creation, transparent_pass);
-
-                mesh_shader_transparent_descriptor_set[i] = renderer->gpu->create_descriptor_set(ds_creation);
-            }
-        }
-    }
-
-    void RenderScene::draw_mesh_instance(CommandBuffer* gpu_commands, MeshInstance& mesh_instance, bool transparent) {
-
-        Mesh& mesh = *mesh_instance.mesh;
-        BufferHandle buffers[]{ mesh.position_buffer, mesh.tangent_buffer, mesh.normal_buffer, mesh.texcoord_buffer, mesh.joints_buffer, mesh.weights_buffer };
-        u32 offsets[]{ mesh.position_offset, mesh.tangent_offset, mesh.normal_offset, mesh.texcoord_offset, mesh.joints_offset, mesh.weights_offset };
-        gpu_commands->bind_vertex_buffers(buffers, 0, mesh.skin_index != i32_max ? 6 : 4, offsets);
-
-        gpu_commands->bind_index_buffer(mesh.index_buffer, mesh.index_offset, mesh.index_type);
-
-        if (recreate_per_thread_descriptors) {
-            DescriptorSetCreation ds_creation{};
-            ds_creation.buffer(scene_cb, 0).buffer(mesh_instances_sb, 10).buffer(meshes_sb, 2);
-            DescriptorSetHandle descriptor_set = renderer->create_descriptor_set(gpu_commands, mesh.pbr_material.material, ds_creation);
-
-            gpu_commands->bind_local_descriptor_set(&descriptor_set, 1, nullptr, 0);
-        }
-        else {
-            gpu_commands->bind_descriptor_set(transparent ? &mesh.pbr_material.descriptor_set_transparent : &mesh.pbr_material.descriptor_set_main, 1, nullptr, 0);
-        }
-
-        // Gpu mesh index used to retrieve mesh data
-        gpu_commands->draw_indexed(TopologyType::Triangle, mesh.primitive_count, 1, 0, 0, mesh_instance.gpu_mesh_instance_index);
-    }
-
-    void RenderScene::add_scene_descriptors(DescriptorSetCreation& descriptor_set_creation, GpuTechniquePass& pass) {
-        const u16 binding = pass.get_binding_index("SceneConstants");
-        descriptor_set_creation.buffer(scene_cb, binding);
-    }
-
-    void RenderScene::add_mesh_descriptors(DescriptorSetCreation& descriptor_set_creation, GpuTechniquePass& pass) {
-        //.buffer( meshes_sb, "MeshDraws").buffer(mesh_instances_sb, "MeshInstanceDraws").buffer(mesh_bounds_sb, "MeshBounds");
-
-        // These are always defined together.
-        const u16 binding_md = pass.get_binding_index("MeshDraws");
-        const u16 binding_mid = pass.get_binding_index("MeshInstanceDraws");
-        const u16 binding_mb = pass.get_binding_index("MeshBounds");
-
-        descriptor_set_creation.buffer(meshes_sb, binding_md).buffer(mesh_instances_sb, binding_mid).buffer(mesh_bounds_sb, binding_mb);
-    }
-
-    void RenderScene::add_meshlet_descriptors(DescriptorSetCreation& descriptor_set_creation, GpuTechniquePass& pass) {
-        // .buffer(meshlets_sb, 1).buffer( meshlets_data_sb, 3 ).buffer( meshlets_vertex_pos_sb, 4 ).buffer( meshlets_vertex_data_sb, 5 )
-        // Handle optional bindings
-        u16 binding = pass.get_binding_index("Meshlets");
-        if (binding != u16_max) {
-            descriptor_set_creation.buffer(meshlets_sb, binding);
-        }
-
-        binding = pass.get_binding_index("MeshletData");
-        if (binding != u16_max) {
-            descriptor_set_creation.buffer(meshlets_data_sb, binding);
-        }
-
-        binding = pass.get_binding_index("VertexPositions");
-        if (binding != u16_max) {
-            descriptor_set_creation.buffer(meshlets_vertex_pos_sb, binding);
-        }
-
-        binding = pass.get_binding_index("VertexData");
-        if (binding != u16_max) {
-            descriptor_set_creation.buffer(meshlets_vertex_data_sb, binding);
-        }
-
-        // descriptor_set_creation.buffer( meshlets_sb, pass.get_binding_index( "Meshlets" ) ).buffer( meshlets_data_sb, pass.get_binding_index( "MeshletData" ) )
-            // .buffer( meshlets_vertex_pos_sb, pass.get_binding_index( "VertexPositions" ) ).buffer( meshlets_vertex_data_sb, pass.get_binding_index( "VertexData" ) );
-    }
-
-    void RenderScene::add_debug_descriptors(DescriptorSetCreation& descriptor_set_creation, GpuTechniquePass& pass) {
-        // .buffer( debug_line_sb, 20 ).buffer( debug_line_count_sb, 21 ).buffer( debug_line_commands_sb, 22 )
-
-        //  These are always defined all together, no need to check.
-        const u16 binding_dl = pass.get_binding_index("DebugLines");
-        const u16 binding_dlc = pass.get_binding_index("DebugLinesCount");
-        const u16 binding_dlcmd = pass.get_binding_index("DebugLineCommands");
-
-        descriptor_set_creation.buffer(debug_line_sb, binding_dl).buffer(debug_line_count_sb, binding_dlc).buffer(debug_line_commands_sb, binding_dlcmd);
-    }
-
-    void RenderScene::add_lighting_descriptors(DescriptorSetCreation& descriptor_set_creation, GpuTechniquePass& pass, u32 frame_index) {
-        // .buffer( scene.lights_lut_sb[ i ], 20 ).buffer( scene.lights_list_sb, 21 )
-        // .buffer( scene.lights_tiles_sb[ i ], 22 ).buffer( scene.lights_indices_sb[ i ], 25 )
-        u16 binding = pass.get_binding_index("ZBins");
-        if (binding != u16_max) {
-            descriptor_set_creation.buffer(lights_lut_sb[frame_index], binding);
-        }
-
-        binding = pass.get_binding_index("Lights");
-        if (binding != u16_max) {
-            descriptor_set_creation.buffer(lights_list_sb, binding);
-        }
-
-        binding = pass.get_binding_index("Tiles");
-        if (binding != u16_max) {
-            descriptor_set_creation.buffer(lights_tiles_sb[frame_index], binding);
-        }
-
-        binding = pass.get_binding_index("LightIndices");
-        if (binding != u16_max) {
-            descriptor_set_creation.buffer(lights_indices_sb[frame_index], binding);
-        }
-
-        binding = pass.get_binding_index("LightConstants");
-        if (binding != u16_max) {
-            descriptor_set_creation.buffer(lighting_constants_cb[frame_index], binding);
-        }
-
-        binding = pass.get_binding_index("as");
-        if (binding != u16_max) {
-            descriptor_set_creation.set_as(tlas, binding);
-        }
-    }
-
-    // DrawTask ///////////////////////////////////////////////////////////////
-    void DrawTask::init(GraphicsContext* gpu_, FrameGraph* frame_graph_, Renderer* renderer_,
-        ImGuiService* imgui_, GpuVisualProfiler* gpu_profiler_, RenderScene* scene_,
-        FrameRenderer* frame_renderer_) {
-        gpu = gpu_;
-        frame_graph = frame_graph_;
-        renderer = renderer_;
-        imgui = imgui_;
-        gpu_profiler = gpu_profiler_;
-        scene = scene_;
-        frame_renderer = frame_renderer_;
-
-        current_frame_index = gpu->current_frame;
-        current_framebuffer = gpu->get_current_framebuffer();
-    }
-
-    void DrawTask::ExecuteRange(enki::TaskSetPartition range_, uint32_t threadnum_) {
-        MF_PROFILE_SCOPE("Draw Task Execute");
-
-        using namespace Magnefu;
-
-        thread_id = threadnum_;
-
-        //rprint( "Executing draw task from thread %u\n", threadnum_ );
-        // TODO: improve getting a command buffer/pool
-        CommandBuffer* gpu_commands = gpu->get_command_buffer(threadnum_, current_frame_index, true);
-        gpu_commands->push_marker("Frame");
-
-        frame_graph->render(current_frame_index, gpu_commands, scene);
-
-        gpu_commands->push_marker("Fullscreen");
-        gpu_commands->clear(0.3f, 0.3f, 0.3f, 1.f, 0);
-        gpu_commands->clear_depth_stencil(1.0f, 0);
-        gpu_commands->bind_pass(gpu->get_swapchain_pass(), current_framebuffer, false);
-        gpu_commands->set_scissor(nullptr);
-        gpu_commands->set_viewport(nullptr);
-
-        // Apply fullscreen material
-        FrameGraphResource* texture = frame_graph->get_resource("final");
-        MF_CORE_ASSERT((texture != nullptr),"");
-        // TODO: proper handling.
-        TextureHandle output_texture = texture->resource_info.texture.handle;
-        if (scene->taa_enabled) {
-            output_texture = temp_taa_output;
-        }
-
-        gpu_commands->bind_pipeline(frame_renderer->main_post_pipeline);
-        gpu_commands->bind_descriptor_set(&frame_renderer->fullscreen_ds, 1, nullptr, 0);
-        gpu_commands->draw(TopologyType::Triangle, 0, 3, output_texture.index, 1);
-
-        imgui->Render(*gpu_commands, false);
-
-        gpu_commands->pop_marker(); // Fullscreen marker
-        gpu_commands->pop_marker(); // Frame marker
-
-        gpu_profiler->update(*gpu);
-
-        // Send commands to GPU
-        gpu->queue_command_buffer(gpu_commands);
-    }
-
-    // FrameRenderer //////////////////////////////////////////////////////////
-    struct alignas(16) GpuPostConstants {
-
-        u32             tonemap_type;
-        f32             exposure;
-        f32             sharpening_amount;
-        f32             pad;
-
-        vec2s           mouse_uv;
-        f32             zoom_scale;
-        u32             enable_zoom;
-    };
-
-    void FrameRenderer::init(Allocator* resident_allocator_, Renderer* renderer_,
-        FrameGraph* frame_graph_, SceneGraph* scene_graph_,
-        RenderScene* scene_) {
-        resident_allocator = resident_allocator_;
-        renderer = renderer_;
-        frame_graph = frame_graph_;
-        scene_graph = scene_graph_;
-        scene = scene_;
-        render_passes.init(resident_allocator, 16);
-
-        auto add_render_pass = [&](cstring name, FrameGraphRenderPass* render_pass) {
-            frame_graph->builder->register_render_pass(name, render_pass);
-
-            render_passes.push(render_pass);
-            };
-
-        add_render_pass("depth_pre_pass", &depth_pre_pass);
-        add_render_pass("gbuffer_pass_early", &gbuffer_pass_early);
-        add_render_pass("gbuffer_pass_late", &gbuffer_pass_late);
-        add_render_pass("lighting_pass", &light_pass);
-        add_render_pass("transparent_pass", &transparent_pass);
-        add_render_pass("depth_of_field_pass", &dof_pass);
-        add_render_pass("debug_pass", &debug_pass);
-        add_render_pass("mesh_occlusion_early_pass", &mesh_occlusion_early_pass);
-        add_render_pass("mesh_occlusion_late_pass", &mesh_occlusion_late_pass);
-        add_render_pass("depth_pyramid_pass", &depth_pyramid_pass);
-        add_render_pass("point_shadows_pass", &pointlight_shadow_pass);
-        add_render_pass("volumetric_fog_pass", &volumetric_fog_pass);
-        add_render_pass("temporal_anti_aliasing_pass", &temporal_anti_aliasing_pass);
-        add_render_pass("motion_vector_pass", &motion_vector_pass);
-        add_render_pass("ray_tracing_test", &ray_tracing_test_pass);
-        add_render_pass("shadow_visibility_pass", &shadow_visiblity_pass);
-        add_render_pass("indirect_lighting_pass", &indirect_pass);
-        add_render_pass("reflections_pass", &reflections_pass);
-        add_render_pass("svgf_accumulation_pass", &svgf_accumulation_pass);
-        add_render_pass("svgf_variance_pass", &svgf_variance_pass);
-        add_render_pass("svgf_wavelet_pass", &svgf_wavelet_pass);
-    }
-
-    void FrameRenderer::shutdown() {
-
-        for (u32 i = 0; i < render_passes.size; ++i) {
-            render_passes[i]->free_gpu_resources(*renderer->gpu);
-        }
-
-        renderer->gpu->destroy_descriptor_set(fullscreen_ds);
-        renderer->gpu->destroy_buffer(post_uniforms_buffer);
-
-        render_passes.shutdown();
-    }
-
-    void FrameRenderer::upload_gpu_data(UploadGpuDataContext& context) {
-        for (u32 i = 0; i < render_passes.size; ++i) {
-            render_passes[i]->upload_gpu_data(*scene);
-        }
-
-        scene->upload_gpu_data(context);
-
-        // TODO: move this
-        mesh_occlusion_early_pass.depth_pyramid_texture_index = depth_pyramid_pass.depth_pyramid.index;
-        mesh_occlusion_late_pass.depth_pyramid_texture_index = depth_pyramid_pass.depth_pyramid.index;
-        indirect_pass.depth_pyramid_texture = depth_pyramid_pass.depth_pyramid;
-
-        GraphicsContext& gpu = *renderer->gpu;
-
-        // Update per mesh material buffer
-        // TODO: update only changed stuff, this is now dynamic so it can't be done.
-        MapBufferParameters cb_map = { post_uniforms_buffer, 0, 0 };
-        GpuPostConstants* gpu_constants = (GpuPostConstants*)gpu.map_buffer(cb_map);
-        if (gpu_constants) {
-
-            gpu_constants->tonemap_type = scene->post_tonemap_mode;
-            gpu_constants->exposure = scene->post_exposure;
-            gpu_constants->sharpening_amount = scene->post_sharpening_amount;
-
-            gpu_constants->enable_zoom = scene->post_enable_zoom ? 1 : 0;
-            gpu_constants->zoom_scale = scene->post_zoom_scale;
-
-            if (!scene->post_block_zoom_input) {
-                gpu_constants->mouse_uv = vec2s{ context.last_clicked_position_left_button.x / gpu.swapchain_width,
-                                                         context.last_clicked_position_left_button.y / gpu.swapchain_height };
-            }
-
-            gpu.unmap_buffer(cb_map);
-        }
-    }
-
-    void FrameRenderer::render(CommandBuffer* gpu_commands, RenderScene* render_scene) {
-    }
-
-    void FrameRenderer::prepare_draws(StackAllocator* scratch_allocator) {
-
-        scene->prepare_draws(renderer, scratch_allocator, scene_graph);
-
-        for (u32 i = 0; i < render_passes.size; ++i) {
-            render_passes[i]->prepare_draws(*scene, frame_graph, renderer->gpu->allocator, scratch_allocator);
-        }
-
-        // Handle fullscreen pass.
-        fullscreen_tech = renderer->resource_cache.techniques.get(hash_calculate("fullscreen"));
-
-        u32 pass_index = fullscreen_tech->get_pass_index("main_triangle");
-        GpuTechniquePass& pass = fullscreen_tech->passes[pass_index];
-        passthrough_pipeline = pass.pipeline;
-
-        BufferCreation buffer_creation;
-        buffer_creation.reset().set(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, ResourceUsageType::Dynamic, sizeof(GpuPostConstants));
-        post_uniforms_buffer = renderer->gpu->create_buffer(buffer_creation);
-
-        pass_index = fullscreen_tech->get_pass_index("main_post");
-        GpuTechniquePass& post_pass = fullscreen_tech->passes[pass_index];
-        main_post_pipeline = post_pass.pipeline;
-
-        DescriptorSetCreation dsc;
-        DescriptorSetLayoutHandle descriptor_set_layout = renderer->gpu->get_descriptor_set_layout(main_post_pipeline, k_material_descriptor_set_index);
-        dsc.reset().buffer(scene->scene_cb, 0).buffer(post_uniforms_buffer, 11).set_layout(descriptor_set_layout);
-        fullscreen_ds = renderer->gpu->create_descriptor_set(dsc);
-
-        // TODO [gabriel]: cleanup code to have dependent resources created in the update_dependent_resources
-        // method instead of the prepare draw.
-        // For now call individually the debug method to cache ddgi stuff.
-        debug_pass.update_dependent_resources(*renderer->gpu, frame_graph, scene);
-    }
-
-    void FrameRenderer::update_dependent_resources() {
-        for (u32 i = 0; i < render_passes.size; ++i) {
-            render_passes[i]->update_dependent_resources(*renderer->gpu, frame_graph, scene);
-        }
-    }
-
-    // Transform /////////////////////////////////////////////////////////////
-
-    void Transform::reset() {
-        translation = { 0.f, 0.f, 0.f };
-        scale = { 1.f, 1.f, 1.f };
-        rotation = glms_quat_identity();
-    }
-
-    mat4s Transform::calculate_matrix() const {
-
-        const mat4s translation_matrix = glms_translate_make(translation);
-        const mat4s scale_matrix = glms_scale_make(scale);
-        const mat4s local_matrix = glms_mat4_mul(glms_mat4_mul(translation_matrix, glms_quat_mat4(rotation)), scale_matrix);
-        return local_matrix;
-    }
-
-    //////////////////////////////////////////////////////////////////////////
-
-    // CGLM converted method from:
-    // 2D Polyhedral Bounds of a Clipped, Perspective - Projected 3D Sphere
-    // By Michael Mara Morgan McGuire
-    void get_bounds_for_axis(const vec3s& a, // Bounding axis (camera space)
-        const vec3s& C, // Sphere center (camera space)
-        float r, // Sphere radius
-        float nearZ, // Near clipping plane (negative)
-        vec3s& L, // Tangent point (camera space)
-        vec3s& U) { // Tangent point (camera space)
-
-        const vec2s c{ glms_vec3_dot(a, C), C.z }; // C in the a-z frame
-        vec2s bounds[2]; // In the a-z reference frame
-        const float tSquared = glms_vec2_dot(c, c) - (r * r);
-        const bool cameraInsideSphere = (tSquared <= 0);
-        // (cos, sin) of angle theta between c and a tangent vector
-        vec2s v = cameraInsideSphere ? vec2s{ 0.0f, 0.0f } : vec2s{ glms_vec2_divs(vec2s{ sqrt(tSquared), r }, glms_vec2_norm(c)) };
-        // Does the near plane intersect the sphere?
-        const bool clipSphere = (c.y + r >= nearZ);
-        // Square root of the discriminant; NaN (and unused)
-        // if the camera is in the sphere
-        float k = sqrt((r * r) - ((nearZ - c.y) * (nearZ - c.y)));
-        for (int i = 0; i < 2; ++i) {
-            if (!cameraInsideSphere) {
-                mat2s transform{ v.x, -v.y,
-                                  v.y, v.x };
-
-                bounds[i] = glms_mat2_mulv(transform, glms_vec2_scale(c, v.x));
-            }
-
-            const bool clipBound = cameraInsideSphere || (bounds[i].y > nearZ);
-
-            if (clipSphere && clipBound) {
-                bounds[i] = vec2s{ c.x + k, nearZ };
-            }
-
-            // Set up for the lower bound
-            v.y = -v.y; k = -k;
-        }
-        // Transform back to camera space
-        L = glms_vec3_scale(a, bounds[1].x);
-        L.z = bounds[1].y;
-        U = glms_vec3_scale(a, bounds[0].x);
-        U.z = bounds[0].y;
-    }
-
-    vec3s project(const mat4s& P, const vec3s& Q) {
-        vec4s v = glms_mat4_mulv(P, vec4s{ Q.x, Q.y, Q.z, 1.0f });
-        v = glms_vec4_divs(v, v.w);
-
-        return vec3s{ v.x, v.y, v.z };
-    }
-
-    void project_aabb_cubemap_positive_x(const vec3s aabb[2], f32& s_min, f32& s_max, f32& t_min, f32& t_max) {
-        f32 rd_min = 1.f / glm_max(FLT_EPSILON, aabb[0].x);
-        f32 rd_max = 1.f / glm_max(FLT_EPSILON, aabb[1].x);
-
-        s_min = glm_min(-aabb[1].z * rd_min, -aabb[1].z * rd_max);
-        s_max = glm_max(-aabb[0].z * rd_min, -aabb[0].z * rd_max);
-
-        t_min = glm_min(-aabb[1].y * rd_min, -aabb[1].y * rd_max);
-        t_max = glm_max(-aabb[0].y * rd_min, -aabb[0].y * rd_max);
-    }
-
-    void project_aabb_cubemap_negative_x(const vec3s aabb[2], f32& s_min, f32& s_max, f32& t_min, f32& t_max) {
-        f32 rd_min = 1.f / glm_max(FLT_EPSILON, -aabb[0].x);
-        f32 rd_max = 1.f / glm_max(FLT_EPSILON, -aabb[1].x);
-
-        s_min = glm_min(aabb[0].z * rd_min, aabb[0].z * rd_max);
-        s_max = glm_max(aabb[1].z * rd_min, aabb[1].z * rd_max);
-
-        t_min = glm_min(-aabb[1].y * rd_min, -aabb[1].y * rd_max);
-        t_max = glm_max(-aabb[0].y * rd_min, -aabb[0].y * rd_max);
-    }
-
-    void project_aabb_cubemap_positive_y(const vec3s aabb[2], f32& s_min, f32& s_max, f32& t_min, f32& t_max) {
-        f32 rd_min = 1.f / glm_max(FLT_EPSILON, aabb[0].y);
-        f32 rd_max = 1.f / glm_max(FLT_EPSILON, aabb[1].y);
-
-        s_min = glm_min(-aabb[1].x * rd_min, -aabb[1].x * rd_max);
-        s_max = glm_max(-aabb[0].x * rd_min, -aabb[0].x * rd_max);
-
-        t_min = glm_min(-aabb[1].z * rd_min, -aabb[1].z * rd_max);
-        t_max = glm_max(-aabb[0].z * rd_min, -aabb[0].z * rd_max);
-    }
-
-    void project_aabb_cubemap_negative_y(const vec3s aabb[2], f32& s_min, f32& s_max, f32& t_min, f32& t_max) {
-        f32 rd_min = 1.f / glm_max(FLT_EPSILON, -aabb[0].y);
-        f32 rd_max = 1.f / glm_max(FLT_EPSILON, -aabb[1].y);
-
-        s_min = glm_min(aabb[0].x * rd_min, aabb[0].x * rd_max);
-        s_max = glm_max(aabb[1].x * rd_min, aabb[1].x * rd_max);
-
-        t_min = glm_min(-aabb[1].z * rd_min, -aabb[1].z * rd_max);
-        t_max = glm_max(-aabb[0].z * rd_min, -aabb[0].z * rd_max);
-    }
-
-    void project_aabb_cubemap_positive_z(const vec3s aabb[2], f32& s_min, f32& s_max, f32& t_min, f32& t_max) {
-        f32 rd_min = 1.f / glm_max(FLT_EPSILON, aabb[0].z);
-        f32 rd_max = 1.f / glm_max(FLT_EPSILON, aabb[1].z);
-
-        s_min = glm_min(-aabb[1].x * rd_min, -aabb[1].x * rd_max);
-        s_max = glm_max(-aabb[0].x * rd_min, -aabb[0].x * rd_max);
-
-        t_min = glm_min(-aabb[1].y * rd_min, -aabb[1].y * rd_max);
-        t_max = glm_max(-aabb[0].y * rd_min, -aabb[0].y * rd_max);
-    }
-
-    void project_aabb_cubemap_negative_z(const vec3s aabb[2], f32& s_min, f32& s_max, f32& t_min, f32& t_max) {
-        f32 rd_min = 1.f / glm_max(FLT_EPSILON, -aabb[0].z);
-        f32 rd_max = 1.f / glm_max(FLT_EPSILON, -aabb[1].z);
-
-        s_min = glm_min(aabb[0].x * rd_min, aabb[0].x * rd_max);
-        s_max = glm_max(aabb[1].x * rd_min, aabb[1].x * rd_max);
-
-        t_min = glm_min(-aabb[1].y * rd_min, -aabb[1].y * rd_max);
-        t_max = glm_max(-aabb[0].y * rd_min, -aabb[0].y * rd_max);
-    }
-
-    // Numerical sequences ////////////////////////////////////////////////////
-    f32 halton(i32 i, i32 b) {
-        // Creates a halton sequence of values between 0 and 1.
-        // https://en.wikipedia.org/wiki/Halton_sequence
-        // Used for jittering based on a constant set of 2D points.
-        f32 f = 1.0f;
-        f32 r = 0.0f;
-        while (i > 0) {
-            f = f / f32(b);
-            r = r + f * f32(i % b);
-            i = i / b;
-        }
-        return r;
-    }
-
-    // https://blog.demofox.org/2017/10/31/animating-noise-for-integration-over-time/
-    f32 interleaved_gradient_noise(vec2s pixel, i32 index) {
-        pixel = glms_vec2_adds(pixel, f32(index) * 5.588238f);
-        const f32 noise = fmodf(52.9829189f * fmodf(0.06711056f * pixel.x + 0.00583715f * pixel.y, 1.0f), 1.0f);
-        return noise;
-    }
-
-    vec2s halton23_sequence(i32 index) {
-        return vec2s{ halton(index, 2), halton(index, 3) };
-    }
-
-    // http://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/
-    vec2s m_robert_r2_sequence(i32 index) {
-        const f32 g = 1.32471795724474602596f;
-        const f32 a1 = 1.0f / g;
-        const f32 a2 = 1.0f / (g * g);
-
-        const f32 x = fmod(0.5f + a1 * index, 1.0f);
-        const f32 y = fmod(0.5f + a2 * index, 1.0f);
-        return vec2s{ x, y };
-    }
-
-    vec2s interleaved_gradient_sequence(i32 index) {
-        return vec2s{ interleaved_gradient_noise({1.f, 1.f}, index), interleaved_gradient_noise({1.f, 2.f}, index) };
-    }
-
-    // Computes a radical inverse with base 2 using crazy bit-twiddling from "Hacker's Delight"
-    inline f32 radical_inverse_base2(u32 bits) {
-        bits = (bits << 16u) | (bits >> 16u);
-        bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
-        bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
-        bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
-        bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
-        return f32(bits) * 2.3283064365386963e-10f; // / 0x100000000
-    }
-
-    // Returns a single 2D point in a Hammersley sequence of length "numSamples", using base 1 and base 2
-    vec2s hammersley_sequence(i32 index, i32 num_samples) {
-        return vec2s{ index * 1.f / num_samples, radical_inverse_base2(u32(index)) };
-    }
-
-    // DebugRenderer //////////////////////////////////////////////////////////
-
-    //
-    //
-    struct LineVertex {
-        vec3s                           position;
-        Color                           color;
-
-        void                            set(vec3s position_, Color color_) { position = position_; color = color_; }
-        void                            set(vec2s position_, Color color_) { position = { position_.x, position_.y, 0 }; color = color_; }
-    }; // struct LineVertex
-
-    //
-    //
-    struct LineVertex2D {
-        vec3s                           position;
-        u32                             color;
-
-        void                            set(vec2s position_, Color color_) { position = { position_.x, position_.y, 0 }, color = color_.abgr; }
-    }; // struct LineVertex2D
-
-    static const u32            k_max_lines = 1024 * 1024;
-
-    static LineVertex           s_line_buffer[k_max_lines];
-    static LineVertex2D         s_line_buffer_2d[k_max_lines];
-
-
-    void DebugRenderer::render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) {
-
-        if (current_line) {
-
-            const u32 mapping_size = sizeof(LineVertex) * current_line;
-            MapBufferParameters cb_map{ lines_vb, 0, mapping_size };
-            LineVertex* vtx_dst = (LineVertex*)renderer->gpu->map_buffer(cb_map);
-
-            if (vtx_dst) {
-                memcpy(vtx_dst, &s_line_buffer[0], mapping_size);
-
-                renderer->gpu->unmap_buffer(cb_map);
-            }
-
-            gpu_commands->bind_pipeline(debug_lines_draw_pipeline);
-            gpu_commands->bind_vertex_buffer(lines_vb, 0, 0);
-            gpu_commands->bind_descriptor_set(&debug_lines_draw_set, 1, nullptr, 0);
-            // Draw using instancing and 6 vertices.
-            const uint32_t num_vertices = 6;
-            gpu_commands->draw(TopologyType::Triangle, 0, num_vertices, 0, current_line / 2);
-
-            current_line = 0;
-        }
-
-        if (current_line_2d) {
-
-            const u32 mapping_size = sizeof(LineVertex2D) * current_line_2d;
-            MapBufferParameters cb_map{ lines_vb_2d, 0, mapping_size };
-            LineVertex2D* vtx_dst = (LineVertex2D*)renderer->gpu->map_buffer(cb_map);
-
-            if (vtx_dst) {
-                memcpy(vtx_dst, &s_line_buffer_2d[0], mapping_size);
-
-                renderer->gpu->unmap_buffer(cb_map);
-            }
-
-            gpu_commands->bind_pipeline(debug_lines_2d_draw_pipeline);
-            gpu_commands->bind_vertex_buffer(lines_vb_2d, 0, 0);
-            gpu_commands->bind_descriptor_set(&debug_lines_draw_set, 1, nullptr, 0);
-            // Draw using instancing and 6 vertices.
-            const uint32_t num_vertices = 6;
-            gpu_commands->draw(TopologyType::Triangle, 0, num_vertices, 0, current_line_2d / 2);
-
-            current_line_2d = 0;
-        }
-    }
-
     void DebugRenderer::init(RenderScene& scene, Allocator* resident_allocator, StackAllocator* scratch_allocator) {
 
         renderer = scene.renderer;

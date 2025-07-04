@@ -599,6 +599,8 @@ namespace Magnefu {
             return "rahit";
         case VK_SHADER_STAGE_MISS_BIT_KHR:
             return "rmiss";
+        case VK_SHADER_STAGE_GEOMETRY_BIT:
+            return "geom";
         default:
             return "";
         }
@@ -625,6 +627,8 @@ namespace Magnefu {
             return "ANY_HIT";
         case VK_SHADER_STAGE_MISS_BIT_KHR:
             return "MISS";
+        case VK_SHADER_STAGE_GEOMETRY_BIT:
+            return "GEOMETRY";
         default:
             return "";
         }

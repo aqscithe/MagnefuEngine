@@ -1865,14 +1865,25 @@ namespace Magnefu
 #endif
         process_execute(".", glsl_compiler_path, arguments, "");
 
+        // Enable SPIR-V optimisation except when compiling the engine in Debug mode.
+#ifdef MF_DEBUG
         bool optimize_shaders = false;
+#else
+        bool optimize_shaders = true;
+#endif
 
         if (optimize_shaders) {
             // TODO: add optional optimization stage
-            //"spirv-opt -O input -o output
+            // "spirv-opt -O <input> -o <output>" – path differs per-platform.
+#if defined(_MSC_VER)
             char* spirv_optimizer_path = temp_string_buffer.append_use_f("%sspirv-opt.exe", vulkan_binaries_path);
             char* optimized_spirv_filename = temp_string_buffer.append_use_f("shader_opt.spv");
             char* spirv_opt_arguments = temp_string_buffer.append_use_f("spirv-opt.exe -O --preserve-bindings %s -o %s", final_spirv_filename, optimized_spirv_filename);
+#else
+            char* spirv_optimizer_path = temp_string_buffer.append_use_f("%sspirv-opt", vulkan_binaries_path);
+            char* optimized_spirv_filename = temp_string_buffer.append_use_f("shader_opt.spv");
+            char* spirv_opt_arguments = temp_string_buffer.append_use_f("-O --preserve-bindings %s -o %s", final_spirv_filename, optimized_spirv_filename);
+#endif
 
             process_execute(".", spirv_optimizer_path, spirv_opt_arguments, "");
 
@@ -5139,10 +5150,41 @@ namespace Magnefu
             return dynamic_allocate(parameters.size == 0 ? buffer->size : parameters.size);
         }
 
+        auto mark_dirty = [&](u32 off, u32 sz) {
+            if (sz == 0) sz = buffer->size;
+            const u32 begin = off;
+            const u32 end   = off + sz;
+            if (!buffer->dirty) {
+                buffer->dirty_begin = begin;
+                buffer->dirty_end   = end;
+                buffer->dirty       = true;
+            } else {
+                buffer->dirty_begin = begin < buffer->dirty_begin ? begin : buffer->dirty_begin;
+                buffer->dirty_end   = end   > buffer->dirty_end   ? end   : buffer->dirty_end;
+            }
+        };
+
+        // If we already have a persistent mapping, mark dirty range and return.
+        if (buffer->mapped_data) {
+            mark_dirty(parameters.offset, parameters.size);
+            return buffer->mapped_data + parameters.offset;
+        }
+
+        // For dynamic CPU-visible buffers, create a persistent mapping on first use.
+        if (buffer->usage == ResourceUsageType::Dynamic) {
+            void* data = nullptr;
+            vmaMapMemory(vma_allocator, buffer->vma_allocation, &data);
+            buffer->mapped_data = static_cast<u8*>(data);
+            mark_dirty(parameters.offset, parameters.size);
+            return buffer->mapped_data + parameters.offset;
+        }
+
         void* data;
         vmaMapMemory(vma_allocator, buffer->vma_allocation, &data);
+        // For short lived mapping we don't track dirty; assume caller flushes entire range.
+        mark_dirty(parameters.offset, parameters.size);
 
-        return data;
+        return static_cast<u8*>(data) + parameters.offset;
     }
 
     void GraphicsContext::unmap_buffer(const MapBufferParameters& parameters) {
@@ -5152,6 +5194,21 @@ namespace Magnefu
         Buffer* buffer = access_buffer(parameters.buffer);
         if (buffer->parent_buffer.index == dynamic_buffer.index)
             return;
+
+        // If buffer is persistently mapped we just flush dirty ranges.
+        if (buffer->mapped_data) {
+            if (buffer->dirty) {
+                const VkDeviceSize flush_offset = buffer->dirty_begin;
+                const VkDeviceSize flush_size   = buffer->dirty_end - buffer->dirty_begin;
+                vmaFlushAllocation(vma_allocator, buffer->vma_allocation, flush_offset, flush_size);
+                buffer->dirty = false;
+            }
+            return;
+        }
+
+        // Non-persistent mapping: flush whole range then unmap.
+        VkDeviceSize flush_size = parameters.size == 0 ? buffer->size : parameters.size;
+        vmaFlushAllocation(vma_allocator, buffer->vma_allocation, parameters.offset, flush_size);
 
         vmaUnmapMemory(vma_allocator, buffer->vma_allocation);
     }
