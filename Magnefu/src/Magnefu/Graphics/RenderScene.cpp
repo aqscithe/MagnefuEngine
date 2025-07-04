@@ -210,7 +210,7 @@ namespace Magnefu {
     }
 
     //
-    // DepthPrePass ///////////////////////////////////////////////////////
+    // DepthPyramidPass ///////////////////////////////////////////////////////
     void DepthPyramidPass::render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) {
         if (!enabled)
             return;
@@ -646,7 +646,6 @@ namespace Magnefu {
 
     //
     // LightPass //////////////////////////////////////////////////////////////
-
     //
     //
     struct LightingConstants {
@@ -1219,7 +1218,6 @@ namespace Magnefu {
 
         Array<VkDrawIndexedIndirectCommand> sphere_indirect_commands;
         sphere_indirect_commands.init(resident_allocator, 4096);
-
 #if DEBUG_DRAW_MESHLET_SPHERES
         Array<mat4s> cone_matrices;
         cone_matrices.init(resident_allocator, 4096);
@@ -1860,7 +1858,6 @@ namespace Magnefu {
             gpu.resize_texture(render_target, new_width, new_height);
         }
     }
-
     void RayTracingTestPass::prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) {
         FrameGraphNode* node = frame_graph->get_node("ray_tracing_test");
         if (node == nullptr) {
@@ -2348,7 +2345,6 @@ namespace Magnefu {
         }
         }
     }
-
     void PointlightShadowPass::render(u32 current_frame_index, CommandBuffer* gpu_commands, RenderScene* render_scene) {
 
         if (!render_scene->pointlight_rendering) {
@@ -2831,8 +2827,7 @@ namespace Magnefu {
 
                 meshlet_shadow_indirect_cb[i] = renderer->gpu->create_buffer(buffer_creation.set(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, ResourceUsageType::Immutable, sizeof(vec4s) * k_num_lights * 6).set_name("per_light_meshlet_shadow_indirect"));
 
-                ds_creation.reset();
-                ds_creation.buffer(meshlet_visible_instances[i], 30).buffer(per_light_meshlet_instances[i], 31).buffer(meshlet_shadow_indirect_cb[i], 32)
+                ds_creation.reset().buffer(meshlet_visible_instances[i], 30).buffer(per_light_meshlet_instances[i], 31).buffer(meshlet_shadow_indirect_cb[i], 32)
                     .buffer(pointlight_spheres_cb[i], 33).buffer(pointlight_view_projections_cb[i], 34).buffer(scene.lights_list_sb, 35)
                     .set_layout(renderer->gpu->get_descriptor_set_layout(meshlet_write_commands_pipeline, k_material_descriptor_set_index));
                 scene.add_scene_descriptors(ds_creation, pass);
@@ -2862,6 +2857,12 @@ namespace Magnefu {
             pass_index = meshlet_technique->get_pass_index("depth_tetrahedron");
 
             tetrahedron_meshlet_pipeline = meshlet_technique->passes[pass_index].pipeline;
+
+            // Depth clear pass (fullscreen triangle, instanced over layers)
+            u32 clear_pass_index = meshlet_technique->get_pass_index("clear_depth");
+            if (clear_pass_index != u32_max) {
+                clear_depth_pipeline = meshlet_technique->passes[clear_pass_index].pipeline;
+            }
         }
         // Shadow resolution computation
         {
@@ -2928,7 +2929,6 @@ namespace Magnefu {
 
         gpu.destroy_page_pool(shadow_maps_pool);
     }
-
     void PointlightShadowPass::recreate_lightcount_dependent_resources(RenderScene& scene) {
 
         GraphicsContext& gpu = *renderer->gpu;
@@ -3550,7 +3550,6 @@ namespace Magnefu {
             camera_composite_descriptor_set = gpu.create_descriptor_set(ds_creation);
         }
     }
-
     // IndirectPass ///////////////////////////////////////////////////////////
 
     struct alignas(16) GpuDDGIConstants {
@@ -4194,7 +4193,6 @@ namespace Magnefu {
         gpu.resize_texture(reflections_history_texture, adjusted_width, adjusted_height);
         gpu.resize_texture(moments_history_texture, adjusted_width, adjusted_height);
     }
-
     void SVGFAccumulationPass::prepare_draws(RenderScene& scene, FrameGraph* frame_graph, Allocator* resident_allocator, StackAllocator* scratch_allocator) {
         renderer = scene.renderer;
 
@@ -4825,7 +4823,6 @@ namespace Magnefu {
             gpu.destroy_descriptor_set(descriptor_set[i]);
         }
     }
-
     void SVGFWaveletPass::reload_shaders(RenderScene& scene, FrameGraph* frame_graph,
         Allocator* resident_allocator, StackAllocator* scratch_allocator) {
 
@@ -5206,7 +5203,6 @@ namespace Magnefu {
         else if (la->projected_z > lb->projected_z) return 1;
         return 0;
     }
-
     void RenderScene::upload_gpu_data(UploadGpuDataContext& context) {
 
         GraphicsContext& gpu = *renderer->gpu;
@@ -5654,7 +5650,6 @@ namespace Magnefu {
                 }
             }
         }
-
 #endif // 0
 
         context.scratch_allocator->freeToMarker(current_marker);
@@ -6284,7 +6279,6 @@ namespace Magnefu {
             current_line_2d = 0;
         }
     }
-
     void DebugRenderer::init(RenderScene& scene, Allocator* resident_allocator, StackAllocator* scratch_allocator) {
 
         renderer = scene.renderer;

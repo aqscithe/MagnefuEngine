@@ -819,6 +819,9 @@ namespace Magnefu {
         DescriptorSetHandle     meshlet_write_commands_descriptor_set[k_max_frames];
         BufferHandle            meshlet_shadow_indirect_cb[k_max_frames];
 
+        // Fast depth clear
+        PipelineHandle          clear_depth_pipeline;
+
         // Shadow resolution pass
         PipelineHandle          shadow_resolution_pipeline;
         DescriptorSetHandle     shadow_resolution_descriptor_set[k_max_frames];
