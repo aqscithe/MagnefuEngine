@@ -5150,8 +5150,23 @@ namespace Magnefu
             return dynamic_allocate(parameters.size == 0 ? buffer->size : parameters.size);
         }
 
-        // If we already have a persistent mapping, just return it.
+        auto mark_dirty = [&](u32 off, u32 sz) {
+            if (sz == 0) sz = buffer->size;
+            const u32 begin = off;
+            const u32 end   = off + sz;
+            if (!buffer->dirty) {
+                buffer->dirty_begin = begin;
+                buffer->dirty_end   = end;
+                buffer->dirty       = true;
+            } else {
+                buffer->dirty_begin = begin < buffer->dirty_begin ? begin : buffer->dirty_begin;
+                buffer->dirty_end   = end   > buffer->dirty_end   ? end   : buffer->dirty_end;
+            }
+        };
+
+        // If we already have a persistent mapping, mark dirty range and return.
         if (buffer->mapped_data) {
+            mark_dirty(parameters.offset, parameters.size);
             return buffer->mapped_data + parameters.offset;
         }
 
@@ -5160,11 +5175,14 @@ namespace Magnefu
             void* data = nullptr;
             vmaMapMemory(vma_allocator, buffer->vma_allocation, &data);
             buffer->mapped_data = static_cast<u8*>(data);
+            mark_dirty(parameters.offset, parameters.size);
             return buffer->mapped_data + parameters.offset;
         }
 
         void* data;
         vmaMapMemory(vma_allocator, buffer->vma_allocation, &data);
+        // For short lived mapping we don't track dirty; assume caller flushes entire range.
+        mark_dirty(parameters.offset, parameters.size);
 
         return static_cast<u8*>(data) + parameters.offset;
     }
@@ -5176,6 +5194,21 @@ namespace Magnefu
         Buffer* buffer = access_buffer(parameters.buffer);
         if (buffer->parent_buffer.index == dynamic_buffer.index)
             return;
+
+        // If buffer is persistently mapped we just flush dirty ranges.
+        if (buffer->mapped_data) {
+            if (buffer->dirty) {
+                const VkDeviceSize flush_offset = buffer->dirty_begin;
+                const VkDeviceSize flush_size   = buffer->dirty_end - buffer->dirty_begin;
+                vmaFlushAllocation(vma_allocator, buffer->vma_allocation, flush_offset, flush_size);
+                buffer->dirty = false;
+            }
+            return;
+        }
+
+        // Non-persistent mapping: flush whole range then unmap.
+        VkDeviceSize flush_size = parameters.size == 0 ? buffer->size : parameters.size;
+        vmaFlushAllocation(vma_allocator, buffer->vma_allocation, parameters.offset, flush_size);
 
         vmaUnmapMemory(vma_allocator, buffer->vma_allocation);
     }
