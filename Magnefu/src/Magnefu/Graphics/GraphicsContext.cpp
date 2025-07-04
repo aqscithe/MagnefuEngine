@@ -1865,14 +1865,25 @@ namespace Magnefu
 #endif
         process_execute(".", glsl_compiler_path, arguments, "");
 
+        // Enable SPIR-V optimisation except when compiling the engine in Debug mode.
+#ifdef MF_DEBUG
         bool optimize_shaders = false;
+#else
+        bool optimize_shaders = true;
+#endif
 
         if (optimize_shaders) {
             // TODO: add optional optimization stage
-            //"spirv-opt -O input -o output
+            // "spirv-opt -O <input> -o <output>" – path differs per-platform.
+#if defined(_MSC_VER)
             char* spirv_optimizer_path = temp_string_buffer.append_use_f("%sspirv-opt.exe", vulkan_binaries_path);
             char* optimized_spirv_filename = temp_string_buffer.append_use_f("shader_opt.spv");
             char* spirv_opt_arguments = temp_string_buffer.append_use_f("spirv-opt.exe -O --preserve-bindings %s -o %s", final_spirv_filename, optimized_spirv_filename);
+#else
+            char* spirv_optimizer_path = temp_string_buffer.append_use_f("%sspirv-opt", vulkan_binaries_path);
+            char* optimized_spirv_filename = temp_string_buffer.append_use_f("shader_opt.spv");
+            char* spirv_opt_arguments = temp_string_buffer.append_use_f("-O --preserve-bindings %s -o %s", final_spirv_filename, optimized_spirv_filename);
+#endif
 
             process_execute(".", spirv_optimizer_path, spirv_opt_arguments, "");
 
