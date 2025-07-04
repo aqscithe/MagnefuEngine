@@ -800,6 +800,11 @@ namespace Magnefu {
         bool                            ready = true;
 
         u8* mapped_data = nullptr;
+
+        // Dirty range tracking for persistently-mapped buffers
+        u32                             dirty_begin = 0;
+        u32                             dirty_end   = 0;
+        bool                            dirty       = false;
         cstring                         name = nullptr;
 
     }; // struct Buffer
