@@ -206,6 +206,26 @@
 			]
 		},
 		{
+			"name" : "clear_depth",
+			"render_pass" : "point_shadows_pass",
+			"depth" : {
+				"write" : true,
+				"test" : "always"
+			},
+			"shaders" : [
+				{
+					"stage" : "vertex",
+					"shader" : "clear_depth.glsl",
+					"includes" : []
+				},
+				{
+					"stage" : "geometry",
+					"shader" : "clear_depth.glsl",
+					"includes" : []
+				}
+			]
+		},
+		{
 			"name" : "meshlet_pointshadows_culling",
 			"render_pass" : "gbuffer_pass_early",
 			"shaders" : [
