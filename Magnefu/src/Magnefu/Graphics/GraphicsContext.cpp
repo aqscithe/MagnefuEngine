@@ -5150,10 +5150,23 @@ namespace Magnefu
             return dynamic_allocate(parameters.size == 0 ? buffer->size : parameters.size);
         }
 
+        // If we already have a persistent mapping, just return it.
+        if (buffer->mapped_data) {
+            return buffer->mapped_data + parameters.offset;
+        }
+
+        // For dynamic CPU-visible buffers, create a persistent mapping on first use.
+        if (buffer->usage == ResourceUsageType::Dynamic) {
+            void* data = nullptr;
+            vmaMapMemory(vma_allocator, buffer->vma_allocation, &data);
+            buffer->mapped_data = static_cast<u8*>(data);
+            return buffer->mapped_data + parameters.offset;
+        }
+
         void* data;
         vmaMapMemory(vma_allocator, buffer->vma_allocation, &data);
 
-        return data;
+        return static_cast<u8*>(data) + parameters.offset;
     }
 
     void GraphicsContext::unmap_buffer(const MapBufferParameters& parameters) {
